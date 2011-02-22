@@ -1,0 +1,1 @@
+c++ -I.. -O2 -ldyn -lm generic.cpp -o generic

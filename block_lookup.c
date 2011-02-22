@@ -1,0 +1,94 @@
+/*
+    Copyright (C) 2010, 2011  Christian Klauer
+
+    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+
+    OpenRTDynamics is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenRTDynamics is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+// block_lookup.h
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "block_lookup.h"
+
+struct lindyn_comp_func_list_head_t * libdyn_new_compfnlist()
+{
+  struct lindyn_comp_func_list_head_t * list_header = (struct lindyn_comp_func_list_head_t *) malloc(sizeof(struct lindyn_comp_func_list_head_t));
+  
+  list_header->list_head = 0;
+  list_header->num_elements = 0;
+  list_header->list_tail = 0;
+}
+
+int libdyn_compfnlist_add(struct lindyn_comp_func_list_head_t *list, int blockid, int comp_fn_type, void *comp_fn)
+{
+  struct lindyn_comp_func_list_ele_t * element = (struct lindyn_comp_func_list_ele_t *) malloc(sizeof(struct lindyn_comp_func_list_ele_t));
+  
+  element->blockid = blockid;
+  element->comp_fn = comp_fn;
+  element->comp_fn_type = comp_fn_type;
+  
+  if (list->list_head == 0) { // first element in list
+    list->list_head = element;
+    list->list_tail = element;
+    element->next = 0;
+  } else { // add element to list head
+    element->next = list->list_head;
+    list->list_head = element;
+  }
+
+  return 1;
+}
+
+// find computational function pointer based on provided block identification number
+struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_find_blockid(struct lindyn_comp_func_list_head_t *list, int blockid)
+{
+  if (list == 0)
+    return 0;
+  
+  if (list->list_head == 0)
+    return 0;
+  
+  struct lindyn_comp_func_list_ele_t * current = list->list_head;
+  
+  do {
+    if (current->blockid == blockid)
+      return current; // found!
+    
+    current = current->next;
+  } while (current != 0);
+  
+  return 0; // nothing found
+}
+
+void libdyn_del_compfnlist(struct lindyn_comp_func_list_head_t *list)
+{
+  if (list->list_head == 0) {
+    free(list);
+    return;
+  }
+  
+  struct lindyn_comp_func_list_ele_t * current = list->list_head;
+  struct lindyn_comp_func_list_ele_t * tmp;
+  
+  do {
+    tmp = current->next;
+    free(current);
+    current = tmp;
+  } while (current != 0);
+  
+  return;
+}

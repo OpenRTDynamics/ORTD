@@ -1,0 +1,58 @@
+mprintf("LibDynamic Toolbox - (0.1)\n");
+
+if isdef("ld_toolboxlib") then
+	warning("NaN Toolbox library is already loaded");
+	return;
+end
+etc_tlbx  = get_absolute_file_path("ld_toolbox.start");
+etc_tlbx  = getshortpathname(etc_tlbx);
+root_tlbx = strncpy( etc_tlbx, length(etc_tlbx)-length("\etc") );
+
+//
+// Load sce-files containing functions
+
+//printf("** %s\n", root_tlbx);
+mprintf("\texec init\n");
+exec(root_tlbx + 'initialrun/irpar.sci');
+exec(root_tlbx + 'initialrun/libdyn.sci');
+
+
+
+
+//Load  functions library
+// =============================================================================
+//mprintf("\tLoad macros\n");
+//pathmacros = pathconvert( root_tlbx ) + "macros" + filesep();
+//ld_toolboxlib = lib(pathmacros);
+//clear pathmacros;
+
+// load gateways
+// =============================================================================
+//mprintf("\tLoad gateways\n");
+//ilib_verbose(0);
+//exec(pathconvert(root_tlbx+"/sci_gateway/loader_gateway.sce",%f));
+
+//// Load and add help chapter
+//// =============================================================================
+//if or(getscilabmode() == ["NW";"STD"]) then
+//	mprintf("\tLoad help\n");
+//	path_addchapter = pathconvert(root_tlbx+"/jar");
+//	if ( isdir(path_addchapter) <> [] ) then
+//		add_help_chapter("ld_toolbox", path_addchapter, %F);
+//		clear add_help_chapter;
+//	end
+//	clear path_addchapter;
+//end
+//
+//// Load demos
+//// =============================================================================
+//if or(getscilabmode() == ["NW";"STD"]) then
+//	mprintf("\tLoad demos\n");
+//	pathdemos = pathconvert(root_tlbx+"/demos/ld_toolbox.dem.gateway.sce",%F,%T);
+//	add_demo("ld_toolbox",pathdemos);
+//	clear pathdemos add_demo;
+//end
+
+
+clear root_tlbx;
+clear etc_tlbx;

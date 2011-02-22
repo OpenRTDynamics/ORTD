@@ -1,0 +1,1 @@
+( cd .. ; sh makelib_i386 ) && sh compile_pulsetest && ./pulsetest
