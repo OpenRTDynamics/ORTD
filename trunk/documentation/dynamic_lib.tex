@@ -1,0 +1,489 @@
+% Suche :   \\ref\{eq\:(\w*)\}
+% Replacement : \(\\ref\{eq\:\1\}\) durchgef�hrt (Klammer um Gleichungsreferenz)
+
+
+
+%\documentclass{scrartcl}
+
+\documentclass[%
+	pdftex,%              PDFTex verwenden da wir ausschliesslich ein PDF erzeugen.
+	a4paper,%             Wir verwenden A4 Papier.
+	oneside,%             Einseitiger Druck.
+	11pt,%                Grosse Schrift, besser geeignet f�r A4.
+	halfparskip,%         Halbe Zeile Abstand zwischen Abs�tzen.
+	%chapterprefix,%       Kapitel mit 'Kapitel' anschreiben.
+	headsepline,%         Linie nach Kopfzeile.
+	%footsepline,%         Linie vor Fusszeile.
+	bibtotocnumbered,%    Literaturverzeichnis im Inhaltsverzeichnis nummeriert einf�gen.
+	idxtotoc%             Index ins Inhaltsverzeichnis einf�gen.
+]{scrartcl}
+
+
+%\documentclass[smallheadings,a4paper]{scrartcl}
+%\usepackage[linedheaders]{classicthesis}
+%\pagestyle{plain}
+%\usepackage[utf8]{inputenc}
+%\usepackage{amsmath,bbold,cancel,trfsigns,amsfonts}
+%\usepackage{graphicx,color}
+%\DeclareGraphicsRule{.pdftex}{pdf}{.pdftex}{}
+%\usepackage[amsmath,thmmarks]{ntheorem}
+%\usepackage[colorlinks=true]{hyperref}
+%\usepackage{hyperref}
+%\setlength{\parindent}{0pt}
+
+\usepackage{a4}                % Paket fuer A4 Seitenformat
+\usepackage{epsfig}            % Paket zum Einbinden von postscript Graphiken
+%\usepackage[ngerman]{babel}    % deutsche Sonderzeichen, Trennmuster, etc
+\usepackage{german}
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc}  % deutsche Umlaute
+\usepackage{float}             % Hilfesmakros beim Positionieren von Graphiken
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}		% Andere Graphikdateien einbinden
+
+\usepackage{supertabular}
+
+\usepackage[sc]{mathpazo}
+
+%\usepackage{tikz}
+
+%\usepackage{rawfonts}
+%\usepackage{pictex}
+
+%\usepackage{epic}
+
+
+%
+% 13a. Font 'Latin Modern Family' verwenden.
+%      Verwende dieses Paket wenn du DML selbst kompilierst.
+%
+%\usepackage{lmodern}
+
+%
+% 14. Typewriter Font LuxiMono laden.
+%
+%\usepackage[scaled=.85]{luximono}
+
+
+
+%% Zeilenabstand: 1 1/2-zeilig   (1.3)
+\renewcommand{\baselinestretch}{1.1}
+
+%% Absatzabstand
+\parskip1.5ex
+
+%% erste Zeile eines Absatzes nicht einrcken
+\parindent0em
+
+%% Seitenumbruchsteuerung, bei wenigen Zeilen nach �berschrift am Zeilenende
+\def\condbreak#1{\vskip 0pt plus #1\pagebreak[3]\vskip 0pt plus -#1\relax}
+
+
+\setlength{\textwidth}{16.5cm}
+\setlength{\oddsidemargin}{0mm}
+
+\newcommand{\be}{\begin{equation*}}
+\newcommand{\ee}{\end{equation*}}
+\newcommand{\bea}{\begin{ray*}}
+\newcommand{\eea}{\end{eqnarray*}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\pd}{d}
+\newcommand{\intd}{\text{d}}
+\newcommand{\Lap}{\mathcal{L}}
+\newcommand{\lap}{\;\;\laplace\;\;}
+\newcommand{\jw}{j\omega}
+\newcommand{\w}{\omega}
+\newcommand{\phii}{\varphi}
+\newcommand{\gdw}{\Longleftrightarrow}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\D}{\displaystyle}
+\newcommand{\NN}{\nonumber}
+
+%\hyphenation{haupt-s\"ach-lich}
+
+\title{Modellierung einer Destillationskolonne zur Auslegung von Regelungskonzepten}
+\author{Christian Klauer}
+\date{Wintersemester 2008}
+
+\begin{document}
+%\maketitle
+
+% 	\begin{center}
+% 	\vfill{Technische Universit�t Berlin\\ Fachgebiet Regelungssysteme, Fakult�t IV}
+% 	\vfill {{\Large Modellierung einer Destillationskolonne zur Auslegung von Regelungskonzepten \\ }}
+% 	%\vfill {Seminar im Rahmen dessen die Arbeit geschrieben wird \\ Dozent}
+% 	\vspace*{\fill} {Studienarbeit \\ von \\ Christian Klauer \\ 302 444 \\  13.2.2009}
+% 	\end{center}
+% 	
+% 	\thispagestyle{empty}
+% 	
+% 	\newpage
+% 	
+% 	\tableofcontents
+% 	\thispagestyle{empty}
+% 	
+% 	\newpage
+
+\begin{center}
+{\huge 
+Dynamic Lib - Library for realtime controller implementations within C/C++}
+
+Christian Klauer, Fachgebiet Regelungssysteme, TU-Berlin
+\end{center}
+
+%\section{Einleitung}
+
+% \begin{figure}[!htb]
+% \centering \includegraphics[]{bilder/arm-mechanik.pdf} %width=0.8\columnwidth
+% \caption{Schematische Darstellung des Arms}
+% \label{fig:arm-mechanik}
+% \end{figure}
+
+\section{Purpose}
+
+Using Scilab or potentially other languages a signal driven simulation is set up. There is the possiblilty to connect blocks - like in Scicos/Simulink - for example transfer functions, sums, multiplications and so on. Description of such an schematic is done by using provided Scilab functions for creating and connecting blocks. Once an schematic is completely defined it may be combined with other schematics and written to disk, whereby every schematic gets a unique id defined by the user.
+
+Execution of these schematics is done by a library programmed in ``C'' that may be emmbedded into the users software.
+
+\paragraph{Advantages}
+
+\begin{itemize}
+ \item Quick and easy integration of dynamic structures like controller, digital signal processing and other alorothms into C-Code.
+ \item Different events for block activation are possible.
+ \item schematic development is done within Scilab, thus controllers designed can be direktly exported schematics that are executed within C-Code
+ \item As schematics are described by Scilab function calls their structure can easily switched depending on arbitrary conditions. For example one schematic and also one C-Programm can be used to realise different experiments like identification- or control experimens, which are switched dependig on the users decission.
+ \item Schematic may be managed by subversion etc.
+ \item Since it is only necessary to execute one Scilab-Script it is very fast to change parameters, transfer functions and even whole samples that are played in the simulation.
+\end{itemize}
+
+\paragraph{Disadvantages}
+
+\begin{itemize}
+ \item Only time discrete blocks (may be changed by introducing a solver)
+ \item Block can not generate events (at the moment).
+ \item Less blocks than they can be found in Scicos or Simulink. Though it may be possible to use Scicos-Blocks if there was an interface. It is also easy to set-up own blocks.
+ \item No GUI
+\end{itemize}
+
+\paragraph{Future extensions}
+
+\begin{itemize}
+  \item Schematics can be changed at runtime. This way an high level controller coded in C/C++ or even scilab choosing the lower level controller would be possible. Already possible but not in an elegant way.
+  \item Port to run on a mC. It would then be possible to programm new control structures without reflashing - only uploading a new schematic into ram is needed.
+\end{itemize}
+
+
+\section{Defining a schematic using Scilab commands}
+
+\paragraph{Basic Schematic Set-up}
+
+Setting up a new simulation schematic:
+
+\begin{verbatim}
+  sim = libdyn_new_simulation([], []);
+  defaultevents = [0];
+  someotherevent = [1]; 
+\end{verbatim}
+
+Give all inputs a name refered by scilab variables \texttt{phi} and \texttt{Theta} (at the moment this is not very nice but this will change in future):
+
+\begin{verbatim}
+  [simulation_inputs] = libdyn_get_input_signals(sim);
+  
+  // Give inputs a name
+  [sim,interf1] = libdyn_new_interface(sim, defaultevents, 1);
+  [sim,phi] = libdyn_conn_equation(sim, interf1, list(simulation_inputs, 0)); // port 0
+  [sim,interf4] = libdyn_new_interface(sim, defaultevents, 1);
+  [sim,Theta] = libdyn_conn_equation(sim, interf4, list(simulation_inputs, 1)); // port 1
+\end{verbatim}
+
+creating a new transfer function block, that is updated as a \texttt{defaultevents}-Event occurs:
+
+\begin{verbatim}  
+  [sim,tf_int] = libdyn_new_blk_zTF(sim, defaultevents, 1/(z-1));
+\end{verbatim}
+
+this block is then connected to signal \texttt{phi}, while the output is named \texttt{phi\_int}:
+
+\begin{verbatim}
+  [sim,phi_int] = libdyn_conn_equation(sim, tf_int, list(phi, 0));
+\end{verbatim}
+
+Blocks can also have multiple input ports:
+
+\begin{verbatim}
+  [sim,sum] = libdyn_new_blk_sum(sim, defaultevents, 1, -1);
+  [sim,phi_int_minus_phi] = libdyn_conn_equation(sim, sum, list(phi_int, 0, phi, 0));
+\end{verbatim}
+
+connecting outputs and return signals to C:
+
+\begin{verbatim}
+   sim = libdyn_connect_extern_ou(sim, phi_int_minus_phi, 0, 0); // output port 0
+   sim = libdyn_connect_extern_ou(sim, Theta, 0, 1); // output port 1
+\end{verbatim}
+
+
+\paragraph{Using events}
+
+Every Block is initialised with a eventvektor defining events that this block listens to. Every entry registrates the block to an event refered to by the value of this entry. The Block accesses these events in the same order as the events are refered in the eventvektor. 
+
+%For example if one block listens to its second event input it will 
+
+Events are generated by setting an event mask in C-Code.
+
+\paragraph{Some advanced methods}
+
+
+Saving a signal to a file:
+
+\begin{verbatim}
+  sim=libdyn_dumptoiofile(sim, defaultevents, "Theta.dat", list(Theta, 0));
+\end{verbatim}
+
+Play a sequence defined by a Scilab vektor:
+
+\begin{verbatim}
+  sequence = 1:0.01:100;
+  initial_play = 1;
+  [sim,sequence] = libdyn_new_blk_play(sim, [defaultevents], sequence, initial_play); 
+\end{verbatim}
+
+
+Superblocks:
+
+\begin{verbatim}
+function [sim, q_1, q_2, q_3] = pattern_generator(sim, u_Theta, phi_)
+  // INPUTS: u_phi, u_Theta
+
+  <define blocks>
+  
+  <connect blocks>
+  [sim,lkup_pattern1] = libdyn_conn_equation(sim, lkup_pattern1, list(phi_, 0));
+
+  <define outputs>  
+  [sim,q_1] = libdyn_conn_equation(sim, gain1, list(T_1, 0));
+  [sim,q_2] = libdyn_conn_equation(sim, gain2, list(T_2, 0));
+  [sim,q_3] = libdyn_conn_equation(sim, gain3, list(T_3, 0));
+endfunction
+\end{verbatim}
+
+Now it is possible to create a whole set of block by calling \texttt{pattern\_generator}, whereby the input signals are function parameters and the output signals references are returned by such a function.
+
+\section{Emmbeding into C++ Code}
+
+
+Setting up a new libdyn instance with two input and two outputs each of size one:
+
+\begin{verbatim}  
+  int insizes[] = {1,1};
+  int outsizes[] = {1,1};
+ 
+  libdyn * simbox = new libdyn(2, insizes, 2, outsizes);
+\end{verbatim}
+
+
+setting up simulation input variables:
+
+\begin{verbatim}
+  struct {
+    double r;
+    double y;
+  } acc_inputs; // sample input variables
+  
+  simbox->cfg_inptr(0, &acc_inputs.r); // set the first input to acc_inputs.r
+  simbox->cfg_inptr(1, &acc_inputs.y); // set the second input to acc_inputs.y
+\end{verbatim}
+
+load a scematic or a set of multiple ones from two files generated by scilab:
+
+\begin{verbatim}
+  int *ipar_cpy; // pointer to integer parameter list
+  double *rpar_cpy; // pointer to double parameter list
+  int Nipar;  // length of ipar list
+  int Nrpar;  // length of rpar list
+    
+  char *fname_i = "ldtest.ipar";
+  char *fname_r = "ldtest.rpar";
+  
+  irpar_load_from_afile(&ipar_cpy, &rpar_cpy, &Nipar, &Nrpar, fname_i, fname_r); 
+\end{verbatim}
+
+compile schematic that is refered to by \texttt{schematic\_id} - this was defined in scilab code:
+%\textrm{schematic_id} 
+
+\begin{verbatim}
+  int schematic_id = 901;
+  err = simbox->irpar_setup(ipar_cpy, rpar_cpy, schematic_id);
+  if (err == -1) { 
+      // There may be some problems during compilation. 
+      // Errors are reported on stdout
+    printf("Error in libdyn\n");
+    exit(1);
+  }
+\end{verbatim}
+
+periodically calculation of outputs:
+
+\begin{verbatim}
+  acc_inputs.r = 0.3; acc_inputs.y = 0.6; // modify inputs
+
+  int update_states = 0;
+  simbox->simulation_step(update_states);
+
+  double output1 = simbox->get_skalar_out(0);
+  double output2 = simbox->get_skalar_out(1);  
+\end{verbatim}
+
+Periodical state update, with the possiblilty to trigger events:
+
+\begin{verbatim}
+    int eventmask = (1 << 0) +  // event number 0; alwas triggered
+                    (low_freq_update << 1);  // another event number 1 
+                                             // low_freq_update is 
+                                             // either 1 or 0
+
+    simbox->event_trigger_mask(eventmask);
+    
+    int update_states = 1;
+    simbox->simulation_step(update_states); 
+\end{verbatim}
+
+close simulation and call destroy flag of all blocks:
+
+\begin{verbatim}
+  simbox->destruct();
+\end{verbatim}
+
+
+\section{Computitional function structure}
+
+An example of the computational function of a static block:
+
+\begin{verbatim}
+int compu_func_sat(int flag, struct dynlib_block_t *block)
+{
+  int Nout = 1;  int Nin = 1;
+
+  double *inp1;  double *out;	
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  double min = rpar[0];  double max = rpar[1];
+
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+      inp1 = (double *) libdyn_get_input_ptr(block,0);
+      out = (double *) libdyn_get_output_ptr(block,0);
+      
+      *out = *inp1;
+      
+      if (*out < min)
+        *out = min;
+      if (*out > max)
+        *out = max;
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+      return 0;
+      break;
+
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+      return 0;
+      break;
+  }
+}
+\end{verbatim}
+
+
+Flags available:
+
+\begin{itemize}
+ \item \texttt{COMPF\_FLAG\_CONFIGURE}: Configure Blocks input sizes and types.
+ \item \texttt{COMPF\_FLAG\_INIT}: Not now. Called before simulation start. Allocate memory; init hardware.
+ \item \texttt{COMPF\_FLAG\_DESTUCTOR}: Destruct block instance.
+ \item \texttt{COMPF\_FLAG\_CALCOUTPUTS}: Calculate outputs.
+ \item \texttt{COMPF\_FLAG\_UPDATESTATES}: Update states.
+ \item \texttt{COMPF\_FLAG\_RELOAD\_IRPAR}: Not now. Called after new irpar paramters have been loaded.
+ \item \texttt{COMPF\_FLAG\_PRINTINFO}: Print information about block instance on stdout.
+\end{itemize}
+
+Block configuration:
+
+First choose the blocktype (\texttt{BLOCKTYPE\_STATIC} or \texttt{BLOCKTYPE\_DYNAMIC}), the number of in and outports, a possible instance pointer, and whether memory for the outputs is provided by the block (In most cases 0 is choosen). 
+
+\begin{verbatim}
+void libdyn_config_block(struct dynlib_block_t *block, int block_type, 
+                         int Nout, int Nin, void *work, int own_outcache);
+\end{verbatim}
+
+Then all input ports have to be configured. The corresponding input port  \texttt{in} is configured to be of size \texttt{len}-Elements of \texttt{datatype}:
+
+\begin{verbatim}
+int libdyn_config_block_input(struct dynlib_block_t *block, int in, 
+                              int len, int datatype);
+\end{verbatim}
+
+In an analog way this must be done for the outputs. Additionally the static dependence of an output on any input has to be marked by \texttt{dinput\_dependence = 1}
+
+\begin{verbatim}
+int libdyn_config_block_output(struct dynlib_block_t *block, int out, 
+                               int len, int datatype, int dinput_dependence);
+\end{verbatim}
+
+Possible Datatypes are:
+
+\begin{itemize}
+ \item \texttt{DATATYPE\_FLOAT} 
+ \item \texttt{DATATYPE\_INT}
+ \item \texttt{DATATYPE\_BOOLEAN}
+\end{itemize}
+
+You can also configure a work pointer by the macro:
+
+\begin{verbatim}
+ libdyn_set_work_ptr(block, work_);
+\end{verbatim}
+
+If it was choosen to allocate own output memory (\texttt{own\_outcache} = 1) you have to tell the libray about it for each output port:
+
+\begin{verbatim}
+ void libdyn_config_outcache(struct dynlib_block_t *block, int Nout,  void *data);
+\end{verbatim}
+
+
+
+\paragraph{Pitfalls}
+
+\begin{itemize}
+ \item Never call \texttt{libdyn\_get\_input\_ptr} before the in or outputs are configured.
+\end{itemize}
+
+
+% 
+% 
+% \begin{appendix}
+% 
+% \begin{thebibliography}{99999}             % Hier beginnt das Literaturverzeichnis
+% 
+% \bibitem{hill1938}
+% AV Hill,
+% \newblock {\it The heat of shortening and the dynamic constants of muscle,}
+% \newblock 1938.
+% 
+% 
+% \end{thebibliography}
+% \end{appendix}
+% 
+
+
+\end{document}

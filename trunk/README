@@ -1,0 +1,75 @@
+OpenRTDynamics v0.99 -- Real Time Dynamic Toolbox suitable for
+                        implementing time discrete controllers 
+                        using block schematics similar to to 
+                        Simulink or Scicos.
+
+
+OS Dependency
+-------------
+
+- Linux. Maybe other UNIX-like.
+- Shouldn't be a problem to port to other OS
+  or even embedded systems
+
+License
+-------
+
+LGPL, see COPYING / COPYING.LESSER
+
+Compile / Install
+-----------------
+
+Run "sh makelib_i386" for x86
+or "sh makelib" in case of 64bit OS.
+
+this will compile libortd.so and libdyn_generic_exec, which is a generic 
+schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
+
+Link or copy the the "ld_toolbox" directory (not only its contents) 
+to your <scilab installation directory>/share/scilab/contrib . This
+installs the scilab toolbox.
+
+Examples
+--------
+
+Examples can be found within the "examples" subdirectory.
+At first try to execute "generic_example.sce" within scilab 5 or above. 
+It will create *.[i,r]par files containing the schematic.
+Ensure that you loaded the "ld_toolbox" at first. Then run the command 
+
+# libdyn_generic_exec 
+
+within the "examples" directory. It will load the [i,r]par files, 
+compile the schematic and start execution. This example will create
+several “.dat” output files.
+
+Another example is pulsetest -- a realtime synthesiser, which uses pulseaudio.
+Therefore, for compiling you need to install the pa-headers at first:
+
+sudo apt-get install libpulse-dev
+
+Run it with ./pulsetest and type “q” or “w” or “ESC”.
+
+TODO
+----
+
+- Makefile
+- Better Documentation (the provided one is out of date)
+
+BUGS
+----
+
+- Missing error messages
+ (for example when a *par file was not found)
+- Otherwise it works quite stable (Used for many controller implementations)
+
+CONTACT
+-------
+
+Christian Klauer
+Control Systems Group
+TU-Berlin, Germany
+Email: <klauer@control.tu-berlin.de>
+Web: http://www.control.tu-berlin.de/User:Christian_Klauer
+
+
