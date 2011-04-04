@@ -1,7 +1,7 @@
-OpenRTDynamics v0.99 -- Real Time Dynamic Toolbox suitable for
-                        implementing time discrete controllers 
-                        using block schematics similar to to 
-                        Simulink or Scicos.
+OpenRTDynamics v0.99a -- Real Time Dynamic Toolbox suitable for
+                         implementing time discrete controllers 
+                         using block schematics similar to to 
+                         Simulink or Scicos.
 
 
 OS Dependency
@@ -29,19 +29,28 @@ Link or copy the the "ld_toolbox" directory (not only its contents)
 to your <scilab installation directory>/share/scilab/contrib . This
 installs the scilab toolbox.
 
+Tools
+-----
+
+- libdyn_generic_exec
+    executes schematics in realtime / as fast as possible
+    type "libdyn_generic_exec --help" for help
+
 Examples
 --------
 
 Examples can be found within the "examples" subdirectory.
-At first try to execute "generic_example.sce" within scilab 5 or above. 
+At first try to execute "simple_demo.sce" within scilab 5 or above. 
 It will create *.[i,r]par files containing the schematic.
 Ensure that you loaded the "ld_toolbox" at first. Then run the command 
 
-# libdyn_generic_exec 
+# libdyn_generic_exec -s simple_demo -i 901 -l 100
 
 within the "examples" directory. It will load the [i,r]par files, 
 compile the schematic and start execution. This example will create
 several “.dat” output files.
+
+You can also use simple_demo.sce as a template.
 
 Another example is pulsetest -- a realtime synthesiser, which uses pulseaudio.
 Therefore, for compiling you need to install the pa-headers at first:
@@ -56,11 +65,18 @@ TODO
 - Makefile
 - Better Documentation (the provided one is out of date)
 
+- Wraper block for backgroud computations for state updates
+- block interpreting math formula
+- wraper for scicos blocks and inclusion of hart toolbox
+- a dynamical linker that loads *so files as it might be described
+  within the schematics
+- ....
+
 BUGS
 ----
 
-- Missing error messages
- (for example when a *par file was not found)
+- Transfer function blocks are limited by a order of max 20 for the given tf
+  No error catching
 - Otherwise it works quite stable (Used for many controller implementations)
 
 CONTACT

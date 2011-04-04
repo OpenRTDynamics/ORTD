@@ -74,6 +74,10 @@ function parlist = new_irparam_elemet_box(parlist, ipar, rpar, id)
   parlist = new_irparam_elemet(parlist, id, 10, ipar , rpar);
 endfunction
 
+// same as new_irparam_elemet_box but with a irparlsit structure
+function parlist = new_irparam_container(parlist, irparlist, id)
+  parlist = new_irparam_elemet(parlist, id, 10, irparlist.ipar , irparlist.rpar);
+endfunction
 
 
 

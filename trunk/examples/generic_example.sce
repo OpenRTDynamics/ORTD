@@ -26,6 +26,9 @@
 //
 // execute within scilab and run "libdyn_generic_exec" within 
 // the directory of this file
+
+
+// libdyn_generic_exec --help -s generic -i 901 -l 100
 //
 // It will write output data to *dat files
 //
@@ -89,7 +92,7 @@ endfunction
   
   
   
-  // Collect and encode as irparem-set
+  // Collect and encode as irparam-set
   sim = libdyn_build_cl(sim); 
   sim_container_irpar = combine_irparam(sim.parlist);
 
