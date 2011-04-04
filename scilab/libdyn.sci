@@ -727,6 +727,48 @@ function sim = libdyn_build_cl(sim)
 endfunction
 
 
+//
+// Set-up a new schematic which is defined by the function fn.
+// insizes and outsizes contain one vector element for each in/outport port.
+// The values of the element determines the size of the port respectively
+//
+// This is the main user function
+//
+function [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsizes);
+    sim = libdyn_new_simulation(insizes, outsizes);
+
+   [sim,simulation_inputs] = libdyn_get_external_ins(sim);
+   
+   // get all inputs
+   inlist = list();
+   for i = 1:length(insizes)
+     [sim,key] = libdyn_new_oport_hint(sim, simulation_inputs, i-1);
+     inlist(i) = key;
+   end
+
+   [sim, outlist] = fn(sim, inlist);
+   
+   // connect outputs
+   for i = 1:length(outsizes);
+//       if exists(outlist(i)) then
+//           1; // ok
+//       else
+//           error("libdyn: libdyn_setup_schematic: yout function did not provide enough outputs");
+//       end
+     sim = libdyn_connect_outport(sim, outlist(i), i-1);
+   end
+  
+  
+  
+  // Collect and encode as irparam-set
+  sim = libdyn_build_cl(sim); 
+  sim_container_irpar = combine_irparam(sim.parlist);
+  
+//  // pack simulations into irpar container
+//  parlist = new_irparam_elemet_box(parlist, sim_container_irpar.ipar, sim_container_irpar.rpar, sid);
+endfunction
+
+
 
 //////////////////////////////////////////////////////////
 // fancy shortcuts, that *should* be used by the user
