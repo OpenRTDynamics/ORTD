@@ -423,6 +423,11 @@ function [sim,bid] = libdyn_new_flipflop(sim, events, initial_state)
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [initial_state], []);
 endfunction
 
+function [sim,bid] = libdyn_new_printf(sim, events, str, insize)
+  btype = 170;
+  str = ascii(str);
+  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
+endfunction
 
 
 
@@ -775,7 +780,7 @@ endfunction
 //////////////////////////////////////////////////////////
 
 function [sim,c] = ld_const(sim, events, val)
-    [sim,c] = libdyn_new_blk_const(sim, initialevent, val);
+    [sim,c] = libdyn_new_blk_const(sim, events, val); // Instead of event a predefined initial event that only occurs once should be used
     [sim,c] = libdyn_new_oport_hint(sim, c, 0);    
 endfunction
 
@@ -841,6 +846,13 @@ function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state)
     [sim,blk] = libdyn_conn_equation(sim, blk, list(set0,0, set1,0, reset,0));
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
+
+function [sim] = ld_printf(sim, events, in, str, insize)
+//    [sim,blk] = libdyn_new_printf(sim, events, inlist);
+  [sim,blk] = libdyn_new_printf(sim, events, str, insize);
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
+endfunction
+
 
 // compare block. If input > thr: output = 1; else -1
 //function [sim,bid] = libdyn_new_compare(sim, events, thr)

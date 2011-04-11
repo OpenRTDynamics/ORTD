@@ -1,4 +1,4 @@
-OpenRTDynamics v0.99a -- Real Time Dynamic Toolbox suitable for
+OpenRTDynamics v0.99b -- Real Time Dynamic Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos.
@@ -15,6 +15,13 @@ License
 -------
 
 LGPL, see COPYING / COPYING.LESSER
+
+Requirements
+------------
+
+Scilab 5 or above
+Scilab 4.1.2 also works, but the toolbox will not load. Manually loading
+             the *sci is required.
 
 Compile / Install
 -----------------
@@ -88,4 +95,11 @@ TU-Berlin, Germany
 Email: <klauer@control.tu-berlin.de>
 Web: http://www.control.tu-berlin.de/User:Christian_Klauer
 
+
+CHANGELOG
+---------
+
+11.4.11 (v0.99b)
+  - small Bug within ld_const function
+  - a new printf block
 

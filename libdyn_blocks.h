@@ -61,6 +61,8 @@ struct dynlib_block_t *new_filedump_block(struct dynlib_simulation_t *sim, int *
 int compu_func_compare(int flag, struct dynlib_block_t *block);
 int compu_func_delay(int flag, struct dynlib_block_t *block);
 int compu_func_flipflop(int flag, struct dynlib_block_t *block);
+int compu_func_printf(int flag, struct dynlib_block_t *block);
+
 int compu_func_interface(int flag, struct dynlib_block_t *block);
 struct dynlib_block_t *new_interface_block(struct dynlib_simulation_t *sim, int *len);
 int compu_func_super(int flag, struct dynlib_block_t *block);

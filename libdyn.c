@@ -1720,6 +1720,7 @@ struct dynlib_filter_t *libdyn_new_tf_filter_irpar(int *ipar, double *rpar, int 
 #define LIBDYN_BLOCK_ID_COMPARE 140
 #define LIBDYN_BLOCK_ID_DELAY 150
 #define LIBDYN_BLOCK_ID_FLIPFLOP 160
+#define LIBDYN_BLOCK_ID_PRINTF 170
 
 #define LIBDYN_BLOCK_INTERFACE 4000
 #define LIBDYN_BLOCK_ID_GENERIC 5000
@@ -1865,6 +1866,11 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
     case LIBDYN_BLOCK_ID_FLIPFLOP :
       {       
        block = libdyn_new_block(sim, &compu_func_flipflop, &bipar[0], &brpar[0], 0,  0);
+      }
+      break;
+    case LIBDYN_BLOCK_ID_PRINTF :
+      {       
+       block = libdyn_new_block(sim, &compu_func_printf, &bipar[0], &brpar[0], 0,  0);
       }
       break;
       
