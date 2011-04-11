@@ -1,0 +1,187 @@
+
+List of Blocks
+--------------
+
+
+
+BLOCKS CODED IN C
+-----------------
+
+
+function [sim,c] = ld_const(sim, events, val)
+
+c = val
+
+
+
+
+function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2)
+
+sum_ = inp_list(1) * fak1 + inp_list(2) * fak2
+
+
+
+
+
+function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
+
+// Multiplication/Division of inp_list(1) inp_list(2)
+// muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+
+
+
+
+function [sim,y] = ld_gain(sim, events, inp_list, gain)
+
+y = gain * inp_list(1)
+
+
+
+
+function [sim,sign_] = ld_sign(sim, events, inp_list, thr)
+
+Sign of inp_list(1): 1 or -1 ???
+
+
+
+
+function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
+
+This is a lookup table block. Values of the input signal inp_list(1) between [lower_b, upper_b] 
+are linearly mapped to the elements of the table vector. The corresponding element is the blocks
+output (lkup). Linear interpolation is done between elements.
+
+
+
+
+function [sim,fngen] = ld_fngen(sim, events, inp_list, shape_)
+
+A Function generator; inp_list(1) and inp_list(2) contain modulation information. ...???
+
+
+
+
+function [sim,delay] = ld_delay(sim, events, inp_list, delay_len)
+
+delay = inp_list(1) * z^(-delay_len)
+
+
+
+function [sim,y] = ld_ztf(sim, events, inp_list, H)
+
+Time diskrete transfer function in z-domain.
+y = H(z) * inp_list(1)
+
+
+
+
+function [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit)
+
+Saturation;  
+
+
+
+
+function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state)
+
+???
+
+
+
+function [sim] = ld_printf(sim, events, in, str, insize)
+
+Print the string str to console followed by a dump of the vectorial signal of length insize.
+Note: May disturb realtime as data is written directly via the "printf" C-funktion.
+
+
+
+
+function [sim,y] = ld_compare(sim, events, in,  thr)
+
+compare block; If input > thr: y = 1; else y = -1
+
+
+
+
+
+
+function [sim,y] = ld_compare_01(sim, events, in,  thr)
+
+compare block; If input > thr: y = 1; else y = 0
+
+
+
+
+
+
+function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in)
+
+
+A switching Block;
+inputs are cntrl=control_in, in=signal_in
+if control_in > 0 : signal_in is directed to output 1; output_2 is set to zero
+if control_in < 0 : signal_in is directed to output 2; output_1 is set to zero
+
+
+
+
+
+function [sim,bid] = libdyn_new_blk_play(sim, events, r, initial_play, hold_last_value, mute_afterstop)
+
+Sample play block
+
+plays the sequence stored in r
+each time event 0 occurs the next value of r is put out
+sampling start either imediadedly (initial_play=1) or on event 1.
+Event 2 stops sampling and set ouput to last values (mute_afterstop = 0 and hold_last_values == 1) 
+or zero (mute_afterstop = 1)
+
+
+
+
+
+
+function [sim,y] = ld_play_simple(sim, events, r)
+
+Plays a vektor r. On each event the next sample is played. When finished ... ???
+
+
+
+
+
+MACROS
+------
+
+
+function [sim,y] = ld_add_ofs(sim, events, u, ofs)
+
+Add a constant "ofs" to the signal u; y = u + const(ofs)
+
+
+
+
+// normal controller
+function [sim,u] = ld_standard_controller(sim, event, r, y, K)
+
+
+
+// like normal controller but with a measurement filter M
+function [sim,u] = ld_standard_controller_2dof(sim, event, r, y, K, M)
+
+
+
+
+// controller with a feedforwad part
+function [sim,u,u_fb,u_ff] = ld_standard_controller_ffw(sim, event, r, y, K, Gm1, T)
+
+
+
+
+
+
+
+
+
+
+
+
