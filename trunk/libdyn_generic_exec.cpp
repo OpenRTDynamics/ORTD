@@ -65,7 +65,6 @@ int siminit(struct global_t *global_p)
   // 2 outports
   global_p->simbox = new libdyn(2, insizes, 2, outsizes);
   
-    printf("*1\n");
   //
   // Variables for simulation inputs
   //
@@ -285,9 +284,9 @@ void usage(void)
 		"  -d <divider> new baserate divider\n"
 		"  -s <name> name of schematic irpar files. .ipar and .rpar will be added to name\n"
 		"  -i schematic id\n"
-		"  --simlen <len> number of simulation steps. 0 is endless\n"
+		"  -l <len> number of simulation steps. 0 is endless\n"
 		" \n"
-		"Example: libdyn_generic_exec --baserate 0 -d 2 -d 10 -s schematic -i 1001 --simlen 1000\n"
+		"Example: libdyn_generic_exec --baserate 0 -d 2 -d 10 -s schematic -i 1001 -l 1000\n"
 		"\n");
 		
 	exit(0);
@@ -430,7 +429,15 @@ int main(int argc, char *argv[])
   } else {
     // run as fast as possible
     siminit(global_p);
-    simperiodic(global_p);
+    if (global_p->args.simlen != 0) {
+      int i;
+      for (i=0; i<global_p->args.simlen; ++i) {
+	simperiodic(global_p);
+      }
+    } else {
+      for (;;) // FIXME
+	simperiodic(global_p);
+    }
     simend(global_p);
   }
 }
