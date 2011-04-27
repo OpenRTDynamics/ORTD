@@ -1,4 +1,4 @@
-OpenRTDynamics v0.99b -- Real Time Dynamic Toolbox suitable for
+OpenRTDynamics v0.99c -- Real Time Dynamic Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos.
@@ -26,8 +26,7 @@ Scilab 4.1.2 also works, but the toolbox will not load. Manually loading
 Compile / Install
 -----------------
 
-Run "sh makelib_i386" for x86
-or "sh makelib" in case of 64bit OS.
+Run "make" on 32/64 linux platforms
 
 this will compile libortd.so and libdyn_generic_exec, which is a generic 
 schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
@@ -84,6 +83,7 @@ BUGS
 
 - Transfer function blocks are limited by a order of max 20 for the given tf
   No error catching
+- Objects created by libdyn_new_feedback can by ONLY used once
 - Otherwise it works quite stable (Used for many controller implementations)
 
 CONTACT
@@ -103,3 +103,6 @@ CHANGELOG
   - small Bug within ld_const function
   - a new printf block
 
+v0.99c
+  - Makefile
+  - better dokumentation

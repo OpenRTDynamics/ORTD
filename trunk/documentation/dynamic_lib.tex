@@ -128,9 +128,10 @@
 
 \begin{center}
 {\huge 
-Dynamic Lib - Library for realtime controller implementations within C/C++}
+Dynamic Lib (part of OpenRTDynamics) - Library for realtime controller implementations within C/C++}
 
-Christian Klauer, Fachgebiet Regelungssysteme, TU-Berlin
+Christian Klauer, Fachgebiet Regelungssysteme, TU-Berlin \\
+http://openrtdynamics.sf.net
 \end{center}
 
 %\section{Einleitung}
@@ -143,19 +144,33 @@ Christian Klauer, Fachgebiet Regelungssysteme, TU-Berlin
 
 \section{Purpose}
 
-Using Scilab or potentially other languages a signal driven simulation is set up. There is the possiblilty to connect blocks - like in Scicos/Simulink - for example transfer functions, sums, multiplications and so on. Description of such an schematic is done by using provided Scilab functions for creating and connecting blocks. Once an schematic is completely defined it may be combined with other schematics and written to disk, whereby every schematic gets a unique id defined by the user.
+The intention is to create a framework for easy implementation of realtime controllers for (feedback / feed forward) control, without the need for using a C-Compiler to generate a new / changed controller. Hardware devices connected to the executing computer may be used for acquiring sensor information or to actuate your process.
 
-Execution of these schematics is done by a library programmed in ``C'' that may be emmbedded into the users software.
+Controllers are designed within Scilab, saved to disk / transferred to the target and interpreted by a special simulator library. Redesigning your controller only requires executing your Scilab script – no compilation of C-Code is required.
+
+A signal driven simulation is set up by a sequence of Scilab function calls to a Scilab toolbox (\texttt{ld\_toolbox}). There is the possibility to connect blocks - like in Scicos/Simulink - for example transfer functions, sums, multiplications and so on. Description of such an schematic is done by using provided Scilab functions for creating and connecting blocks. Once an schematic is completely defined it may be combined with other schematics and written to disk, whereby every schematic gets a unique id defined by the user.
+
+Execution of these schematics is done by a library programmed in ``C'' that may be embedded into the users software or by the standalone program \texttt{libdyn\_generic\_exec}.
+
+The whole procedure is illustrated in figure \ref{fig:principle}.
+
+\begin{figure}[!htb]
+\centering \includegraphics[width=0.98\linewidth]{pictures/principle.pdf} %width=0.8\columnwidth
+\caption{Principle}
+\label{fig:principle}
+\end{figure}
+
 
 \paragraph{Advantages}
 
 \begin{itemize}
- \item Quick and easy integration of dynamic structures like controller, digital signal processing and other alorothms into C-Code.
- \item Different events for block activation are possible.
- \item schematic development is done within Scilab, thus controllers designed can be direktly exported schematics that are executed within C-Code
- \item As schematics are described by Scilab function calls their structure can easily switched depending on arbitrary conditions. For example one schematic and also one C-Programm can be used to realise different experiments like identification- or control experimens, which are switched dependig on the users decission.
- \item Schematic may be managed by subversion etc.
+ \item No time needed to compile schematics through a C-Compiler -- they are internally interpreted just before execution. So there is no need to have a running (cross-) compilation environment for the target system for development of new schematics. Its needed only once to compile the library.
+ \item Quick and easy integration of dynamic structures like control, digital signal processing and other algorithms into C/C++ - Code.
+ \item schematic development is done within Scilab, thus controllers designed can be directly exported schematics that are executed within C/C++ - Code
+ \item As schematics are described by Scilab function calls their structure can easily switched depending on arbitrary conditions. For example one schematic and also one C/C++ - program can be used to realise different experiments like identification- or control experiments, which are switched depending on the users decision.
+ \item Schematics may be managed by subversion etc.
  \item Since it is only necessary to execute one Scilab-Script it is very fast to change parameters, transfer functions and even whole samples that are played in the simulation.
+ \item Different events for block activation are possible.
 \end{itemize}
 
 \paragraph{Disadvantages}
@@ -171,109 +186,163 @@ Execution of these schematics is done by a library programmed in ``C'' that may 
 
 \begin{itemize}
   \item Schematics can be changed at runtime. This way an high level controller coded in C/C++ or even scilab choosing the lower level controller would be possible. Already possible but not in an elegant way.
-  \item Port to run on a mC. It would then be possible to programm new control structures without reflashing - only uploading a new schematic into ram is needed.
+  \item Port to run on a mC. It would then be possible to program new control structures without reflashing - only uploading a new schematic into ram is needed.
 \end{itemize}
 
 
 \section{Defining a schematic using Scilab commands}
 
-\paragraph{Basic Schematic Set-up}
+\subsection{Blocks and connections}
 
-Setting up a new simulation schematic:
+Each schematic is based on one or more blocks that perform basic functionality like summation, filtering, multiplication and so on. Each block takes may take any number of input signals, which may be also vectorial signals. Additionally each block may have multiple output ports -- signal sources. Here is a basic definition of an block within Scilab:
 
 \begin{verbatim}
-  sim = libdyn_new_simulation([], []);
-  defaultevents = [0];
-  someotherevent = [1]; 
+  [sim, y] = ld_gain(sim, events, u, 1.5);
 \end{verbatim}
 
-Give all inputs a name refered by scilab variables \texttt{phi} and \texttt{Theta} (at the moment this is not very nice but this will change in future):
+This line would create a new block taking one input u multiplying it by $1.5$ and providing the result y via its output. The used signals u and y are represented by Scilab variables. They are somewhat special because they only refer to an signal and do only contain information about the source of the referred signal.
+The identifier \texttt{sim} is an instance of an object that refers to the schematic to which the block should be added. Details are described later on. The second argument event contains information on which events (in a timely manner) should be directed to the block. Again, the details are described later on.
+In order to connect further blocks the variable y could be used as an input for one or more blocks:
 
 \begin{verbatim}
-  [simulation_inputs] = libdyn_get_input_signals(sim);
+[sim, y_cut] = ld_sat(sim, event, y, -1, 1);
+\end{verbatim}
+
+Its also possible to combine certain blocks to a new block to gain some advance reusable functionality by defining a new Scilab function:
+
+\begin{verbatim}
+function [sim,y] = add_ofs(sim, events, u, ofs)
+  [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
   
-  // Give inputs a name
-  [sim,interf1] = libdyn_new_interface(sim, defaultevents, 1);
-  [sim,phi] = libdyn_conn_equation(sim, interf1, list(simulation_inputs, 0)); // port 0
-  [sim,interf4] = libdyn_new_interface(sim, defaultevents, 1);
-  [sim,Theta] = libdyn_conn_equation(sim, interf4, list(simulation_inputs, 1)); // port 1
-\end{verbatim}
-
-creating a new transfer function block, that is updated as a \texttt{defaultevents}-Event occurs:
-
-\begin{verbatim}  
-  [sim,tf_int] = libdyn_new_blk_zTF(sim, defaultevents, 1/(z-1));
-\end{verbatim}
-
-this block is then connected to signal \texttt{phi}, while the output is named \texttt{phi\_int}:
-
-\begin{verbatim}
-  [sim,phi_int] = libdyn_conn_equation(sim, tf_int, list(phi, 0));
-\end{verbatim}
-
-Blocks can also have multiple input ports:
-
-\begin{verbatim}
-  [sim,sum] = libdyn_new_blk_sum(sim, defaultevents, 1, -1);
-  [sim,phi_int_minus_phi] = libdyn_conn_equation(sim, sum, list(phi_int, 0, phi, 0));
-\end{verbatim}
-
-connecting outputs and return signals to C:
-
-\begin{verbatim}
-   sim = libdyn_connect_extern_ou(sim, phi_int_minus_phi, 0, 0); // output port 0
-   sim = libdyn_connect_extern_ou(sim, Theta, 0, 1); // output port 1
-\end{verbatim}
-
-
-\paragraph{Using events}
-
-Every Block is initialised with a eventvektor defining events that this block listens to. Every entry registrates the block to an event refered to by the value of this entry. The Block accesses these events in the same order as the events are refered in the eventvektor. 
-
-%For example if one block listens to its second event input it will 
-
-Events are generated by setting an event mask in C-Code.
-
-\paragraph{Some advanced methods}
-
-
-Saving a signal to a file:
-
-\begin{verbatim}
-  sim=libdyn_dumptoiofile(sim, defaultevents, "Theta.dat", list(Theta, 0));
-\end{verbatim}
-
-Play a sequence defined by a Scilab vektor:
-
-\begin{verbatim}
-  sequence = 1:0.01:100;
-  initial_play = 1;
-  [sim,sequence] = libdyn_new_blk_play(sim, [defaultevents], sequence, initial_play); 
-\end{verbatim}
-
-
-Superblocks:
-
-\begin{verbatim}
-function [sim, q_1, q_2, q_3] = pattern_generator(sim, u_Theta, phi_)
-  // INPUTS: u_phi, u_Theta
-
-  <define blocks>
-  
-  <connect blocks>
-  [sim,lkup_pattern1] = libdyn_conn_equation(sim, lkup_pattern1, list(phi_, 0));
-
-  <define outputs>  
-  [sim,q_1] = libdyn_conn_equation(sim, gain1, list(T_1, 0));
-  [sim,q_2] = libdyn_conn_equation(sim, gain2, list(T_2, 0));
-  [sim,q_3] = libdyn_conn_equation(sim, gain3, list(T_3, 0));
+  [sim,y] = ld_sum(sim, events, list(u,0, ofs_const,0), 1,1);
 endfunction
 \end{verbatim}
 
-Now it is possible to create a whole set of block by calling \texttt{pattern\_generator}, whereby the input signals are function parameters and the output signals references are returned by such a function.
+Now, the new function can be used in the same manner as the predefined blocks:
 
-\section{Emmbeding into C++ Code}
+\begin{verbatim}
+[sim,y_cut_ofs] = add_ofs(sim, events, y_cut, 1);
+\end{verbatim}
 
+\section{Feedback loops}
+
+At first consider this example:
+
+\begin{verbatim}
+function [sim, x,v] = oscillator(u)
+    // create a feedback signal
+    [sim,x_feedback] = libdyn_new_feedback(sim);
+
+    // use this as a normal signal
+    [sim,a] = ld_sum(sim, defaultevents, list(u, x_feedback), 1, -1);
+    [sim,v] = ld_ztf(sim, defaultevents, list(a), 1/(z-1) * T_a ); // Integrator approximation
+    [sim,x] = ld_ztf(sim, defaultevents, list(v), 1/(z-1) * T_a ); // Integrator approximation  
+    
+    // feedback gain
+    [sim,x_gain] = ld_gain(sim, defaultevents, list(x), 0.6);
+    
+    // close loop x_gain = x_feedback
+    [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
+endfunction
+\end{verbatim}
+
+Since the signal \texttt{x\_feedback}, which is used for feedback, is defined later on relative to the usage in the Scilab script, a provisional symbol has to be created by the command
+
+\begin{verbatim}
+[sim, x_feedback] = libdyn_new_feedback(sim);
+\end{verbatim}
+
+This creates a new signal x\_feedback that has no source for now. Its possible to use it as input for a block\footnote{Due to a limitation, at the time of writing it is only possible to connect on block}.
+
+Later on, to assign a real signal to x\_feedback libdyn\_close\_loop is used:
+
+\begin{verbatim}
+[sim] = libdyn_close_loop(sim, x_gain, x_feedback);
+\end{verbatim}
+
+\subsection{events}
+
+In every simulation up to 32 events are available, that are triggered by the C/C++ environment. Each block has one or more event inputs. To register certain events for a particular block most block-generating functions require a list of events to use. This list is represented by an integer vector, whereby the n-th element defines the event number for the n-th event input of the block. In the examples above this list was called \texttt{defaultevents}, which is commonly set to the vector \texttt{[0]} and denotes one regular occurring event. As an example, the list \texttt{[0,2,3]} registers three events to a block: The first is event 0, the second 2 and the last one is 3.
+Events are used to update the states of the blocks or to fulfill special behavior like resetting the states, start/stop of a sampled sequence etc.
+
+\subsection{Setting up a new schematic}
+
+A new schematic is defined through a Scilab function:
+
+\begin{verbatim}
+function [sim, outlist] = schematic_fn(sim, inlist)
+  [sim,u] = ld_const(sim, defaultevents, 1);
+  
+  [sim, x,y] = damped_oscillator(u);
+  
+  [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
+  
+  // save result to file
+  [sim, save0] = libdyn_dumptoiofile(sim, defaultevents, "result.dat", list(x));
+  
+  // output of schematic
+  outlist = list(x);
+endfunction
+\end{verbatim}
+
+A schematic may have multiple input and output ports, which may be used as an interface to the users C/C++ - Code (see section \ref{sec:embeding}).
+
+With help of the following Scilab code the schematic is generated and saved to disk:  
+
+\begin{verbatim}
+// defile events
+defaultevents = [0]; // main event
+
+// set-up schematic by calling the user defined function "schematic_fn"
+insizes = [1,1]; outsizes=[1];
+[sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, insizes, outsizes);
+
+
+
+//
+// Save the schematic to disk (possibly with other ones or other irpar elements)
+//
+
+parlist = new_irparam_set();
+
+// pack simulations into irpar container with id = 901
+parlist = new_irparam_container(parlist, sim_container_irpar, 901);
+
+// irparam set is complete convert to vectors
+par = combine_irparam(parlist);
+
+// save vectors to a file
+save_irparam(par, 'oscillator.ipar', 'oscillator.rpar');
+
+// clear
+par.ipar = [];
+par.rpar = [];
+\end{verbatim}
+
+The function \texttt{libdyn\_setup\_schematic} calls the defining function of the schematic and encodes the blocks parameters and the connections between blocks into two parameter vectors (integer and real values). This encoded information is stored within an irparm-set (integer and real parameter set), whereby the id 901 is assigned to the schematic, by the function \texttt{new\_irparam\_container}. During this process may other schematics with different ids may also be added to be stored in the same irparam-set. Lastly, the parameter sets are calculated and stored into two files for the integer and real part respectively.
+
+% 
+% \subsection{Some advanced methods}
+% 
+% 
+% Saving a signal to a file:
+% 
+% \begin{verbatim}
+%   sim=libdyn_dumptoiofile(sim, defaultevents, "Theta.dat", Theta);
+% \end{verbatim}
+
+% Play a sequence defined by a Scilab vektor:
+
+% \begin{verbatim}
+%   sequence = 1:0.01:100;
+%   initial_play = 1;
+%   [sim,sequence] = libdyn_new_blk_play(sim, [defaultevents], sequence, initial_play); 
+% \end{verbatim}
+
+
+
+\section{Embedding into C++ Code}
+\label{sec:embeding}
 
 Setting up a new libdyn instance with two input and two outputs each of size one:
 
@@ -396,6 +465,9 @@ int compu_func_sat(int flag, struct dynlib_block_t *block)
 
       return 0;
       break;
+    case COMPF_FLAG_INIT:  // init
+      return 0;
+      break;
 
     case COMPF_FLAG_DESTUCTOR: // destroy instance
       return 0;
@@ -408,18 +480,18 @@ int compu_func_sat(int flag, struct dynlib_block_t *block)
 Flags available:
 
 \begin{itemize}
- \item \texttt{COMPF\_FLAG\_CONFIGURE}: Configure Blocks input sizes and types.
- \item \texttt{COMPF\_FLAG\_INIT}: Not now. Called before simulation start. Allocate memory; init hardware.
+ \item \texttt{COMPF\_FLAG\_CONFIGURE}: Configure Blocks input sizes and types. DO NOT allocated memory or initialise hardware/ports etc.
+ \item \texttt{COMPF\_FLAG\_INIT}: Called before simulation starts. Allocate memory; initialise hardware.
  \item \texttt{COMPF\_FLAG\_DESTUCTOR}: Destruct block instance.
  \item \texttt{COMPF\_FLAG\_CALCOUTPUTS}: Calculate outputs.
  \item \texttt{COMPF\_FLAG\_UPDATESTATES}: Update states.
- \item \texttt{COMPF\_FLAG\_RELOAD\_IRPAR}: Not now. Called after new irpar paramters have been loaded.
+ \item \texttt{COMPF\_FLAG\_RELOAD\_IRPAR}: Not available for now. Called after new irpar parameters have been loaded.
  \item \texttt{COMPF\_FLAG\_PRINTINFO}: Print information about block instance on stdout.
 \end{itemize}
 
 Block configuration:
 
-First choose the blocktype (\texttt{BLOCKTYPE\_STATIC} or \texttt{BLOCKTYPE\_DYNAMIC}), the number of in and outports, a possible instance pointer, and whether memory for the outputs is provided by the block (In most cases 0 is choosen). 
+First choose the blocktype (\texttt{BLOCKTYPE\_STATIC} or \texttt{BLOCKTYPE\_DYNAMIC}), the number of in- and out-ports, a possible instance pointer, and whether memory for the outputs is provided by the block (In most cases 0 is chosen). 
 
 \begin{verbatim}
 void libdyn_config_block(struct dynlib_block_t *block, int block_type, 
@@ -454,7 +526,7 @@ You can also configure a work pointer by the macro:
  libdyn_set_work_ptr(block, work_);
 \end{verbatim}
 
-If it was choosen to allocate own output memory (\texttt{own\_outcache} = 1) you have to tell the libray about it for each output port:
+If it was chosen to allocate own output memory (\texttt{own\_outcache} = 1) you have to tell the library about it for each output port:
 
 \begin{verbatim}
  void libdyn_config_outcache(struct dynlib_block_t *block, int Nout,  void *data);
@@ -467,6 +539,67 @@ If it was choosen to allocate own output memory (\texttt{own\_outcache} = 1) you
 \begin{itemize}
  \item Never call \texttt{libdyn\_get\_input\_ptr} before the in or outputs are configured.
 \end{itemize}
+
+
+
+
+\section{Basic Schematic Set-up OLD STYLE}
+
+Setting up a new simulation schematic:
+
+\begin{verbatim}
+  sim = libdyn_new_simulation([], []);
+  defaultevents = [0];
+  someotherevent = [1]; 
+\end{verbatim}
+
+Give all inputs a name referred by Scilab variables \texttt{phi} and \texttt{Theta} (at the moment this is not very nice but this will change in future):
+
+\begin{verbatim}
+  [simulation_inputs] = libdyn_get_input_signals(sim);
+  
+  // Give inputs a name
+  [sim,interf1] = libdyn_new_interface(sim, defaultevents, 1);
+  [sim,phi] = libdyn_conn_equation(sim, interf1, list(simulation_inputs, 0)); // port 0
+  [sim,interf4] = libdyn_new_interface(sim, defaultevents, 1);
+  [sim,Theta] = libdyn_conn_equation(sim, interf4, list(simulation_inputs, 1)); // port 1
+\end{verbatim}
+
+creating a new transfer function block, that is updated as a \texttt{defaultevents}-Event occurs:
+
+\begin{verbatim}  
+  [sim,tf_int] = libdyn_new_blk_zTF(sim, defaultevents, 1/(z-1));
+\end{verbatim}
+
+this block is then connected to signal \texttt{phi}, while the output is named \texttt{phi\_int}:
+
+\begin{verbatim}
+  [sim,phi_int] = libdyn_conn_equation(sim, tf_int, list(phi, 0));
+\end{verbatim}
+
+Blocks can also have multiple input ports:
+
+\begin{verbatim}
+  [sim,sum] = libdyn_new_blk_sum(sim, defaultevents, 1, -1);
+  [sim,phi_int_minus_phi] = libdyn_conn_equation(sim, sum, list(phi_int, 0, phi, 0));
+\end{verbatim}
+
+connecting outputs and return signals to C:
+
+\begin{verbatim}
+   sim = libdyn_connect_extern_ou(sim, phi_int_minus_phi, 0, 0); // output port 0
+   sim = libdyn_connect_extern_ou(sim, Theta, 0, 1); // output port 1
+\end{verbatim}
+
+
+\paragraph{Using events}
+
+Every Block is initialised with a eventvector defining events that this block listens to. Every entry registers the block to an event referred by the value of this entry. The Block accesses these events in the same order as the events are referred in the eventvector. 
+
+%For example if one block listens to its second event input it will 
+
+Events are generated by setting an event mask in C-Code.
+
 
 
 % 

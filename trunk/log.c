@@ -185,7 +185,7 @@ int log_ringbuffer_avait_signal(struct ringbuffer_t *rb)
 
   mydebug(0) printf("log_ringbuffer_avait_signal - mutex locked\n");
   
-  while (rb->elements_pending == 0 & rb->special_signal == 0) {
+  while (rb->elements_pending == 0 & rb->special_signal == 0) { // FIXME do { .. } while() ???
     pthread_cond_wait(&rb->thread_condition, &rb->thread_mutex);
   }
   mydebug(0) printf("log_ringbuffer_avait_signal: sigal received\n");

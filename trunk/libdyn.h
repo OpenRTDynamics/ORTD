@@ -88,9 +88,15 @@
 #define libdyn_get_opar_ptr(block) ((block)->opar)
 #define libdyn_get_work_ptr(block) ((block)->work)
 #define libdyn_set_work_ptr(block, work_) ((block)->work = (work_))
+#define libdyn_get_Ninports(block) ((block)->Nin)
+#define libdyn_get_Noutports(block) ((block)->Nout)
+#define libdyn_get_inportsize(block, i) ((block)->inlist[(i)].len)
+#define libdyn_get_outportsize(block, i) ((block)->outlist[(i)].len)
+
 
 #define libdyn_get_extraparam(block) ((block)->extraparam)
 #define libdyn_set_extraparam(block, par) ((block)->extraparam = (par))
+
 
 
 //

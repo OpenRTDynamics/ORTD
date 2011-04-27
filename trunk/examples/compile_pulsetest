@@ -1,4 +1,4 @@
 #sudo apt-get install libpulse-dev
 
-c++ -I.. -lpulse-simple -lm -O2 -ldyn -lm pulsetest.cpp -o pulsetest
+c++ -I.. -lpulse-simple -lm -O2 -lortd -lm pulsetest.cpp -o pulsetest
 

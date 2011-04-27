@@ -1725,6 +1725,7 @@ struct dynlib_filter_t *libdyn_new_tf_filter_irpar(int *ipar, double *rpar, int 
 #define LIBDYN_BLOCK_INTERFACE 4000
 #define LIBDYN_BLOCK_ID_GENERIC 5000
 
+#define LIBDYN_BLOCK_ID_SCOPE 10001
 
 // Create Block instance from irpar
 struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, int *ipar, double *rpar, 
@@ -1875,6 +1876,11 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
       break;
       
       
+    case LIBDYN_BLOCK_ID_SCOPE :
+      {       
+       block = libdyn_new_block(sim, &compu_func_scope, &bipar[0], &brpar[0], 0,  0);
+      }
+      break;
       
       
       
@@ -1887,6 +1893,9 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
       }
       break;      
   }
+  
+  
+  
 
   if (block == 0) { // kein vordefinierter Block -> in blocklisten nachschauen
     struct lindyn_comp_func_list_ele_t *cfn_ele;
