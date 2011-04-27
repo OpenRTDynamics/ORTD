@@ -68,3 +68,10 @@ struct dynlib_block_t *new_interface_block(struct dynlib_simulation_t *sim, int 
 int compu_func_super(int flag, struct dynlib_block_t *block);
 struct dynlib_block_t *new_super_block_(struct dynlib_simulation_t *sim, struct dynlib_simulation_t *content);
 
+
+
+
+int compu_func_scope(int flag, struct dynlib_block_t *block);
+
+
+

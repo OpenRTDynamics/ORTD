@@ -236,6 +236,10 @@ endfunction
 function [blk, port] = libdyn_deref_porthint(sim, obj)    
       highoid = obj.highleveloid; // Hole object id des Referenzierten objects
       port = obj.outport; // Hole die portnummer des Referenzierten objects
+      
+      // FIXME Hier kann getestet werden, ob der index existiert. Wenn nicht
+      // ist es wahrscheinlich, dass [sim,obj] = ... nicht verwendet wurde sondern
+      // sim weggelassen wurde
       blk = sim.objectlist(highoid); // Ersetze das Quell-Object
 endfunction
 

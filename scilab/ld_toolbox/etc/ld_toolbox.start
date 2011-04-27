@@ -16,6 +16,7 @@ mprintf("\texec init\n");
 exec(root_tlbx + 'initialrun/irpar.sci');
 exec(root_tlbx + 'initialrun/libdyn.sci');
 
+exec(root_tlbx + 'initialrun/modules_loader.sce');
 
 
 
