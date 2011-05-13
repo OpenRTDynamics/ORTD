@@ -105,12 +105,48 @@ function [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar)
   sim.objectlist(oid) = blk;
 endfunction
 
+// test wheter the given object is a libdyn object
+function [ret] = libdyn_is_ldobject(obj) 
+  ret = %F;
+  if typeof(obj) == 'st' then
+    if isfield(obj, 'magic') then
+      if obj.magic == 678234 then
+        ret = %T;
+      end
+    end
+  end
+endfunction
+
 // Check wheter the object given by the user is part of the given simulation
 function libdyn_check_object(sim,obj) 
+  if libdyn_is_ldobject(obj) == %F then
+    error("The given variable is no libdyn object");
+  end
+
   if obj.simid ~= sim.simid then
     error("Object does not belong to this simulation");
   end
 endfunction
+
+// try to find a libdyn object within a list() 
+// usage for compatibility issues
+function [obj] = libdyn_extrakt_obj( whatever )
+  obj = [];
+
+  if libdyn_is_ldobject(whatever) then
+    obj = whatever;
+  else
+
+
+    if typeof(whatever) == 'list' then
+      if libdyn_is_ldobject( whatever(1) ) then
+        obj = whatever(1);
+      end
+    end
+
+  end
+endfunction
+
 
 // FIXME: Grosser Fehler! [sim,blk] muss es jetzt heissen
 // allerdings müssen alle Schaltbilder angepasst werden
@@ -123,7 +159,9 @@ function [blk] = libdyn_get_input_signals(sim);
   blk.outsizes = [];
   
   blk.input_block = 1; // Because the Simulations inputs are not a real block // FIXME: raus
-  
+
+  blk.magic = 678234;  
+
   // store block structure
   sim.objectlist(oid) = blk;
 endfunction
@@ -139,6 +177,7 @@ function [sim,blk] = libdyn_get_external_ins(sim);
   
   blk.input_block = 1; // Because the Simulations inputs are not a real block // FIXME: raus
   
+  blk.magic = 678234;
   // store block structure
   sim.objectlist(oid) = blk;
 endfunction
@@ -164,6 +203,8 @@ function [sim,blk] = libdyn_new_oport_hint(sim, object, port);
   // ---- special vars of this object class -----
   blk.highleveloid = object.oid;
   blk.outport = port;
+
+  blk.magic = 678234;
   
   // stort block structure
   sim.objectlist(oid) = blk;
@@ -211,6 +252,8 @@ function [sim,fbdummy] = libdyn_new_feedback(sim);
 
   fbdummy.objecttype = 8; // Which object type is this? 8 - Special feedback dummy referer
   
+  fbdummy.magic = 678234;
+
   // ---- special vars of this object class -----
   
   // stort block structure -- fbdummy is only a reference to that
@@ -236,6 +279,10 @@ endfunction
 function [blk, port] = libdyn_deref_porthint(sim, obj)    
       highoid = obj.highleveloid; // Hole object id des Referenzierten objects
       port = obj.outport; // Hole die portnummer des Referenzierten objects
+      
+      // FIXME Hier kann getestet werden, ob der index existiert. Wenn nicht
+      // ist es wahrscheinlich, dass [sim,obj] = ... nicht verwendet wurde sondern
+      // sim weggelassen wurde
       blk = sim.objectlist(highoid); // Ersetze das Quell-Object
 endfunction
 
@@ -391,13 +438,6 @@ function [sim,bid] = libdyn_new_blk_filedump(sim, events, filename, vlen, maxlen
   btype = 130;
   fname = ascii(filename);
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [maxlen, autostart, vlen, length(fname), fname(:)'], []);
-endfunction
-
-// Quick and easy dumping of signals to files in one line of code
-function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source)
-  // source: a list with a block + a port
-  [sim,save_] = libdyn_new_blk_filedump(sim, events, fname, 1, 0, 1);
-  [sim,save_] = libdyn_conn_equation(sim, save_, source);  
 endfunction
 
 // compare block. If input > thr: 
@@ -799,20 +839,26 @@ function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
 endfunction
 
 function [sim,gain] = ld_gain(sim, events, inp_list, gain)
+  [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+
   [sim,gain] = libdyn_new_blk_gain(sim, events, gain);  
-  [sim,gain] = libdyn_conn_equation(sim, gain, inp_list);
+  [sim,gain] = libdyn_conn_equation(sim, gain, list(inp,0));
   [sim,gain] = libdyn_new_oport_hint(sim, gain, 0);    
 endfunction
 
 function [sim,sign_] = ld_sign(sim, events, inp_list, thr)
+    [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+
     [sim,sign_] = libdyn_new_compare(sim, events, thr);
-    [sim,sign_] = libdyn_conn_equation(sim, sign_, inp_list);
+    [sim,sign_] = libdyn_conn_equation(sim, sign_, list(inp));
     [sim,sign_] = libdyn_new_oport_hint(sim, sign_, 0);
 endfunction
 
 function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
+  [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+
     [sim,lkup] = libdyn_new_blk_lkup(sim, events, lower_b, upper_b, table);
-    [sim,lkup] = libdyn_conn_equation(sim, lkup, inp_list);
+    [sim,lkup] = libdyn_conn_equation(sim, lkup, list(inp));
     [sim,lkup] = libdyn_new_oport_hint(sim, lkup, 0);
 endfunction
   
@@ -824,26 +870,32 @@ endfunction
 
 
 function [sim,delay] = ld_delay(sim, events, inp_list, delay_len)
+    [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+
     [sim,delay] = libdyn_new_delay(sim, events, delay_len)
-    [sim,delay] = libdyn_conn_equation(sim, delay, inp_list);
+    [sim,delay] = libdyn_conn_equation(sim, delay, list(inp));
     [sim,delay] = libdyn_new_oport_hint(sim, delay, 0);    
 endfunction
 
 function [sim,y] = ld_ztf(sim, events, inp_list, H)
+  [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+
     [sim,tf] = libdyn_new_blk_zTF(sim, events, H);
-    [sim,y] = libdyn_conn_equation(sim, tf, inp_list);
+    [sim,y] = libdyn_conn_equation(sim, tf, list(inp));
     [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
 function [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit)
+  [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+
     [sim,sat] = libdyn_new_blk_sat(sim, events, lowerlimit, upperlimit);
-    [sim,y] = libdyn_conn_equation(sim, sat, inp_list);
+    [sim,y] = libdyn_conn_equation(sim, sat, list(inp));
     [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
 function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state)
     [sim,blk] = libdyn_new_flipflop(sim, events, initial_state);
-    [sim,blk] = libdyn_conn_equation(sim, blk, list(set0,0, set1,0, reset,0));
+    [sim,blk] = libdyn_conn_equation(sim, blk, list(set0,0, set1,0, reset,0)); // FIXME: remove ,0
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
 
@@ -904,6 +956,25 @@ function [sim,y] = ld_play_simple(sim, events, r)
   [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
+
+// Quick and easy dumping of signals to files in one line of code
+// obsolete version
+function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source)
+  [source] = libdyn_extrakt_obj( source ); // compatibility
+
+  // source: a list with a block + a port
+  [sim,save_] = libdyn_new_blk_filedump(sim, events, fname, 1, 0, 1);
+  [sim,save_] = libdyn_conn_equation(sim, save_, list(source, 0) );
+endfunction
+
+// Quick and easy dumping of signals to files in one line of code
+function [sim,save_]=ld_dumptoiofile(sim, events, fname, source)
+  [inp] = libdyn_extrakt_obj( source ); // compatibility
+
+  // source: a list with a block + a port
+  [sim,save_] = libdyn_new_blk_filedump(sim, events, fname, 1, 0, 1);
+  [sim,save_] = libdyn_conn_equation(sim, save_, list(source) );
+endfunction
 
 
 //////////////////////////////////////////////////////////
