@@ -1,4 +1,4 @@
-OpenRTDynamics v0.99c -- Real Time Dynamic Toolbox suitable for
+OpenRTDynamics v0.99d -- Real Time Dynamic Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos.
@@ -46,7 +46,12 @@ Examples
 --------
 
 Examples can be found within the "examples" subdirectory.
-At first try to execute "simple_demo.sce" within scilab 5 or above. 
+
+For a ready to run example go into the examples directory via shell and type:
+
+# sh sh_runoscillator
+
+A second try could be to execute "simple_demo.sce" within scilab 5 or above. 
 It will create *.[i,r]par files containing the schematic.
 Ensure that you loaded the "ld_toolbox" at first. Then run the command 
 
@@ -106,3 +111,6 @@ CHANGELOG
 v0.99c
   - Makefile
   - better dokumentation
+
+v0.99d
+  - Nicer Scilab interface
