@@ -514,8 +514,9 @@ function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
   libdyn_check_object(sim,src);
   
   if (src.objecttype == 4 | src.objecttype == 5) then // port specialiser bearbeiten FIXME: remove this as it is only a compatibility layer
-    printf("WARNING: libdyn_connect_extern_ou is not designed for handling port specialisers - your request\n");
-    printf("is redirected to libdyn_connect_outport, which you should use instead. src_port was ignored\n");
+   // FIXME REMOVED
+   // printf("WARNING: libdyn_connect_extern_ou is not designed for handling port specialisers - your request\n");
+   // printf("is redirected to libdyn_connect_outport, which you should use instead. src_port was ignored\n");
       // fixme: Aus Kompatiblitätsgrüden hier libdyn_connect_outport(sim, src, dst_out_port) aufrufen und src_port verwerfen
     sim = libdyn_connect_outport(sim, src, dst_port);
   else
@@ -600,7 +601,8 @@ function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
       if (length(input_list) >= i+1) then
         check = input_list(i+1);
         if (type(check) == 1) then
-          printf("WARNING: There was an additional port specifier given that is not needed because a port hint object was given\n");
+// FIXME REMOVED
+          //printf("WARNING: There was an additional port specifier given that is not needed because a port hint object was given\n");
           i=i+1; // Just ignore this additional information in the parameter list
         end    
       end
@@ -622,7 +624,8 @@ function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
       if (length(input_list) >= i+1) then
         check = input_list(i+1);
         if (type(check) == 1) then
-          printf("WARNING: There was an additional port specifier given that is not needed because a feedback dummy was given\n");
+// FIXME REMOVED
+        //  printf("WARNING: There was an additional port specifier given that is not needed because a feedback dummy was given\n");
           i=i+1; // Just ignore this additional information in the parameter list
         end    
       end

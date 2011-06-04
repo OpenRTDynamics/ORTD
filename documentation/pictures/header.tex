@@ -1,0 +1,144 @@
+% \documentclass[%
+% 	pdftex,%              PDFTex verwenden da wir ausschliesslich ein PDF erzeugen.
+% 	a4paper,%             Wir verwenden A4 Papier.
+% 	oneside,%             Einseitiger Druck.
+% 	12pt,%                Grosse Schrift, besser geeignet für A4.
+% 	halfparskip,%         Halbe Zeile Abstand zwischen Absätzen.
+% 	%chapterprefix,%       Kapitel mit 'Kapitel' anschreiben.
+% 	headsepline,%         Linie nach Kopfzeile.
+% 	footsepline,%         Linie vor Fusszeile.
+% 	bibtotocnumbered,%    Literaturverzeichnis im Inhaltsverzeichnis nummeriert einfügen.
+% 	idxtotoc%             Index ins Inhaltsverzeichnis einfügen.
+% ]{scrartcl}
+% 
+% 
+% 
+% 
+
+% %\usepackage{a4}                % Paket fuer A4 Seitenformat
+% %\usepackage{epsfig}            % Paket zum Einbinden von postscript Graphiken
+% %\usepackage[ngerman]{babel}    % deutsche Sonderzeichen, Trennmuster, etc
+% %\usepackage{german}
+% \usepackage[T1]{fontenc} 
+% \usepackage[utf8]{inputenc}  % deutsche Umlaute
+% \usepackage{float}             % Hilfesmakros beim Positionieren von Graphiken
+% \usepackage{amsmath}
+% \usepackage{amsfonts}
+% \usepackage{amssymb}
+% \usepackage{graphicx}		% Andere Graphikdateien einbinden
+% 
+% %\usepackage{supertabular}
+% 
+% \usepackage[sc]{mathpazo}
+
+%\usepackage{tikz}
+
+%\usepackage{rawfonts}
+%\usepackage{pictex}
+
+%\usepackage{epic}
+
+
+%
+% 13a. Font 'Latin Modern Family' verwenden.
+%      Verwende dieses Paket wenn du DML selbst kompilierst.
+%
+%\usepackage{lmodern}
+
+%
+% 14. Typewriter Font LuxiMono laden.
+%
+%\usepackage[scaled=.85]{luximono}
+
+% 
+% 
+% %% Zeilenabstand: 1 1/2-zeilig   (1.3)
+% \renewcommand{\baselinestretch}{1.1}
+% 
+% %% Absatzabstand
+% \parskip1.5ex
+% 
+% %% erste Zeile eines Absatzes nicht einrcken
+% \parindent0em
+% 
+% %% Seitenumbruchsteuerung, bei wenigen Zeilen nach Überschrift am Zeilenende
+% \def\condbreak#1{\vskip 0pt plus #1\pagebreak[3]\vskip 0pt plus -#1\relax}
+% 
+% 
+% \setlength{\textwidth}{16.5cm}
+% \setlength{\oddsidemargin}{0mm}
+
+
+
+
+
+
+
+
+  \documentclass{article}
+
+
+  \usepackage{german,amssymb,amsmath}
+
+
+  \renewcommand{\familydefault}{\sfdefault}
+
+
+% %\usepackage{a4}                % Paket fuer A4 Seitenformat
+% %\usepackage{epsfig}            % Paket zum Einbinden von postscript Graphiken
+% %\usepackage[ngerman]{babel}    % deutsche Sonderzeichen, Trennmuster, etc
+% %\usepackage{german}
+% \usepackage[T1]{fontenc} 
+% \usepackage[utf8]{inputenc}  % deutsche Umlaute
+% \usepackage{float}             % Hilfesmakros beim Positionieren von Graphiken
+ \usepackage{amsmath}
+ \usepackage{amsfonts}
+ \usepackage{amssymb}
+% \usepackage{graphicx}		% Andere Graphikdateien einbinden
+% 
+% %\usepackage{supertabular}
+% 
+ \usepackage[sc]{mathpazo}
+
+\newcommand{\be}{\begin{equation*}}
+\newcommand{\ee}{\end{equation*}}
+\newcommand{\bea}{\begin{ray*}}
+\newcommand{\eea}{\end{eqnarray*}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\pd}{d}
+\newcommand{\intd}{\text{d}}
+\newcommand{\Lap}{\mathcal{L}}
+\newcommand{\lap}{\;\;\laplace\;\;}
+\newcommand{\jw}{j\omega}
+\newcommand{\w}{\omega}
+\newcommand{\phii}{\varphi}
+\newcommand{\gdw}{\Longleftrightarrow}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\D}{\displaystyle}
+\newcommand{\NN}{\nonumber}
+
+\DeclareRobustCommand{\vec}[1]{{\mbox{\mathversion{bold}\ensuremath{#1}}}}
+\DeclareRobustCommand{\mat}[1]{{\mbox{\mathversion{bold}\ensuremath{#1}}}}
+\newcommand{\FSET}{\protect\mathscr}
+\newcommand{\OP}{\protect\mathcal}
+\newcommand{\POLY}{\protect\mathsf}
+% --- Definition von Mengensymbolen ----
+\providecommand{\Rset}{\protect\mathbb{R}}
+\providecommand{\Nset}{\protect\mathbb{N}}
+\providecommand{\Zset}{\protect\mathbb{Z}}
+\providecommand{\Qset}{\protect\mathbb{Q}}
+% --- Konstante e=2.71828 soll nicht kursiv erscheinen ---
+\newcommand{\e}{\mathrm{e}}
+% --- Komplexe Einheit j ---
+\newcommand{\jc}{\dot{\imath}}
+% --- Differentialoperator senkrecht setzen ---
+\renewcommand{\d}{\operatorname{d}}
+
+\newcommand{\vectornorm}[1]{\left|\left|#1\right|\right|}
+
+\newcommand{\Th}{\vartheta}
+\renewcommand{\Theta}{\vartheta}
+
+
+
+

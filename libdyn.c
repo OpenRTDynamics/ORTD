@@ -69,9 +69,12 @@ void libdyn_free(struct dynlib_simulation_t *sim, void * p)
 // Simulation handling
 //
 
+// This file is generated automatically by the build system
+#include "module_list__.h"
+
 struct dynlib_simulation_t *libdyn_new_simulation()
 {
-    int i;
+    int i, ret;
     struct dynlib_simulation_t *sim = (struct dynlib_simulation_t *) malloc(sizeof(struct dynlib_simulation_t));
 
     sim->blocks_initialised = 0;
@@ -97,9 +100,24 @@ struct dynlib_simulation_t *libdyn_new_simulation()
     for (i = 0; i < LIBDYN_MAX_EVENTS; ++i)
       sim->clock_multiplier[i] = 0;
 
-    // New comp_func list
+    // New comp_func list (computaional function list)
     sim->private_comp_func_list = libdyn_new_compfnlist();
     sim->global_comp_func_list = 0; // noting set for now
+    
+    // WENN VERERBUNG NICHT AKTIV
+    // BEGIN
+    
+    // Call functions of all modules
+    // They will create new elements of
+    // the compfnlist
+    // This function is programmed by the make file within module_list__.c
+    
+    ret = libdyn_siminit_modules(sim);
+    
+    // kein Master; wird von libdyn_cpp überschrieben, falls ein master eingesetzt wird.
+    sim->master = NULL;
+    
+    // END
     
     return(sim);
 }
@@ -1725,7 +1743,7 @@ struct dynlib_filter_t *libdyn_new_tf_filter_irpar(int *ipar, double *rpar, int 
 #define LIBDYN_BLOCK_INTERFACE 4000
 #define LIBDYN_BLOCK_ID_GENERIC 5000
 
-#define LIBDYN_BLOCK_ID_SCOPE 10001
+//#define LIBDYN_BLOCK_ID_SCOPE 10001
 
 // Create Block instance from irpar
 struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, int *ipar, double *rpar, 
@@ -1876,11 +1894,11 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
       break;
       
       
-    case LIBDYN_BLOCK_ID_SCOPE :
+/*    case LIBDYN_BLOCK_ID_SCOPE :
       {       
        block = libdyn_new_block(sim, &compu_func_scope, &bipar[0], &brpar[0], 0,  0);
       }
-      break;
+      break;*/
       
       
       

@@ -1182,8 +1182,10 @@ int compu_func_filedump(int flag, struct dynlib_block_t *block)
       filename[i] = 0; // String termination
       
 //      printf("Decoded filename = %s\n", filename);
+
+      int num_elements = 10000 / vlen; // Buffersize is alwas aroud 10000 * sizeof(double)
       
-      struct filewriter_t *filewriter = log_dfilewriter_new(vlen, 100, filename);
+      struct filewriter_t *filewriter = log_dfilewriter_new(vlen, num_elements, filename);
       if (filewriter == 0) {
 	printf("compu_func_filedump: ERROR: Connot create filewriter - maybe check filename\n");
 	return -1;
@@ -1447,11 +1449,6 @@ int compu_func_printf(int flag, struct dynlib_block_t *block)
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {  
-    }
-      return 0;
-      break;
-    case COMPF_FLAG_UPDATESTATES:
-    {
       in = (double *) libdyn_get_input_ptr(block,0);
       char *str = (char *) block->work;
 
@@ -1460,7 +1457,21 @@ int compu_func_printf(int flag, struct dynlib_block_t *block)
       for (i = 0; i < vlen; ++i) {
 	printf("%f, ", in[i]);
       }
-      printf("]\n");
+      printf("].\n"); 
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+/*      in = (double *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      printf("%s [", str);
+      int i;
+      for (i = 0; i < vlen; ++i) {
+	printf("%f, ", in[i]);
+      }
+      printf("]\n");*/
     } 
       return 0;
       break;

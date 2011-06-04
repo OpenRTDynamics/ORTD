@@ -225,6 +225,10 @@ struct dynlib_simulation_t {
   
   struct lindyn_comp_func_list_head_t *private_comp_func_list;
   struct lindyn_comp_func_list_head_t *global_comp_func_list;
+  
+  // optinal: Master
+  // Ist eine cpp-Klasse
+  void *master;
 };
 
 struct block_config_ret_t {

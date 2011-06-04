@@ -1,0 +1,5 @@
+
+
+cc -O2 -lm libdyn_irpar_demo.c libdyn.c libdyn_blocks.c irpar.c -o libdyn_irpar_demo
+
+

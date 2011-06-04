@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# find scilab_dir has to run at first
+
+ortddir=`pwd`
+scilabdir=`cat scilabdir.conf`
+
+cd $scilabdir
+cd share/scilab/contrib
+ln -s $ortddir/scilab/ld_toolbox . && ( echo "A new link named ld_toolbox was created within `pwd`."; ls -l )

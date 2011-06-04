@@ -1,0 +1,25 @@
+#!/bin/bash
+
+ortddir=`pwd`
+
+echo "Tell me your scilab directory (installation from the archive at the scilab webpage)"
+
+read scilabdir
+
+cd $scilabdir
+pwd
+
+success=no
+
+./bin/scilab -nogui -e quit | grep -i scilab && success=yes
+
+echo $success
+
+if [ "yes" = $success ]; then
+  echo "scilab was found within $scilabdir"
+  cd $ortddir
+  echo $scilabdir > scilabdir.conf
+else
+  echo "Scilab was not found within $scilabdir"
+  exit -1
+fi
