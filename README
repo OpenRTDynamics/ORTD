@@ -42,6 +42,11 @@ Scilab Website was extracted) and installs the Scilab toolbox.
 Alternatively, link or copy the the "ld_toolbox" directory (not only its contents) 
 to your <scilab installation directory>/share/scilab/contrib .
 
+HART-Module installation
+------------------------
+
+Link hart/hart_ortd to the modules/ directory of your HART-Toolbox. 
+NOTE: Do not make a copy!
 
 Tools
 -----
@@ -81,14 +86,18 @@ Run it with ./pulsetest and type “q” or “w” or “ESC”.
 TODO
 ----
 
-- Makefile
+- Makefile (done)
 - Better Documentation (the provided one is out of date)
 
-- Wraper block for backgroud computations for state updates
-- block interpreting math formula
-- wraper for scicos blocks and inclusion of hart toolbox
+- Wrapper block for backgroud computations for state updates
+- nestet schematics
+- exchangable schematics
+- tcp server for remote control, parameter uploading ...
+- block interpreting math formula (done)
+- wrapper for scicos blocks and inclusion of hart toolbox
 - a dynamical linker that loads *so files as it might be described
   within the schematics
+- A matix module (multiplication, inversion ...)
 - ....
 
 BUGS
@@ -124,4 +133,6 @@ v0.99d
   - Nicer Scilab interface
 
 v0.99e
+  - Modules support
   - muParser Block support for using math formula within simulations
+  - HART-module (hart.sf.net) for using ORTD in Scicos
