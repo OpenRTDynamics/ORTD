@@ -1,0 +1,1 @@
+c++ -I.. -O2 -ldyn -lm dynlib_test4.cpp -o dynlib_test4

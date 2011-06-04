@@ -26,14 +26,22 @@ Scilab 4.1.2 also works, but the toolbox will not load. Manually loading
 Compile / Install
 -----------------
 
-Run "make" on 32/64 linux platforms
+Run "make install" on 32/64 linux platforms
 
 this will compile libortd.so and libdyn_generic_exec, which is a generic 
 schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
 
-Link or copy the the "ld_toolbox" directory (not only its contents) 
-to your <scilab installation directory>/share/scilab/contrib . This
-installs the scilab toolbox.
+
+The command
+
+  make install_toolbox
+
+will ask you for your Scilab 5 installation directory (where the package from the
+Scilab Website was extracted) and installs the Scilab toolbox.
+
+Alternatively, link or copy the the "ld_toolbox" directory (not only its contents) 
+to your <scilab installation directory>/share/scilab/contrib .
+
 
 Tools
 -----
@@ -114,3 +122,6 @@ v0.99c
 
 v0.99d
   - Nicer Scilab interface
+
+v0.99e
+  - muParser Block support for using math formula within simulations

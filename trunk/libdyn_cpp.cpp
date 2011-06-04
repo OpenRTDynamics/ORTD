@@ -21,11 +21,255 @@
 // Wrapper around libdyn.c 's simulation setup code
 
 #include "libdyn_cpp.h"
+
+extern "C" {
+  #include "irpar.h"
+}
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
+#define libdyn_get_typesize(type) (sizeof(double))
 
 #define idiots_check
+
+
+
+
+irpar::irpar()
+{
+  ipar = NULL;
+  rpar = NULL;
+  Nrpar = 0;
+  Nipar = 0;
+}
+
+bool irpar::load_from_afile(char *fname_i, char* fname_r)
+{
+    int err; // variable for errors
+
+    err = irpar_load_from_afile(&ipar, &rpar, &Nipar, &Nrpar, fname_i, fname_r);
+    if (err == -1) {
+      printf("Error loading irpar files\n");
+      return false;      
+    }
+    
+    return true;
+}
+
+bool irpar::load_from_afile(char* fname)
+{
+	strcpy(fname_ipar, fname);
+	strcat(fname_ipar, ".ipar");
+	strcpy(fname_rpar, fname);
+	strcat(fname_rpar, ".rpar");
+
+	printf("fnames ipar = %s\n", fname_ipar);
+	printf("fnames rpar = %s\n", fname_rpar);
+	
+	return this->load_from_afile(fname_ipar, fname_rpar);
+
+}
+
+
+void irpar::destruct()
+{
+  if (ipar != NULL)
+    free(ipar);
+  if (rpar != NULL)
+    free(rpar);
+}
+
+
+
+//
+// class libdyn_nested
+//
+
+bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
+{
+  int sum, tmp, i;
+  double *p;
+
+  iocfg.inports = Nin;
+  iocfg.outports = Nout;
+  
+  int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
+  int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
+  
+  for (i = 0; i < iocfg.inports; ++i)
+    insizes[i] = insizes_[i];
+  for (i = 0; i < iocfg.outports; ++i)
+    outsizes[i] = outsizes_[i];
+  
+  iocfg.insizes = insizes;
+  iocfg.outsizes = outsizes;
+  
+  
+  // List of Pointers to in vectors
+  iocfg.inptr = (double **) malloc(sizeof(double *) * iocfg.inports);
+  
+  
+  //
+  // Alloc list of pointers for outvalues comming from libdyn
+  // These pointers will be set by irpar_get_libdynconnlist
+  //
+  
+  iocfg.outptr = (double **) malloc(sizeof(double *) * iocfg.outports);
+
+  for (i=0; i<iocfg.outports; ++i)
+    iocfg.outptr[i] = (double*) 0x0;
+  
+  // Initially there is no master
+  this->ld_master = NULL;
+  
+  return true;
+}
+
+void libdyn_nested::set_buffer_inptrs()
+{
+  int i;
+  char *ptr = (char*) InputBuffer;
+
+  // share the allocated_inbuffer accoss all inputs
+  
+  i = 0;  iocfg.inptr[i] = (double *) ptr; //sim->cfg_inptr(i, (double *) ptr);
+  
+  for (i = 1; i < iocfg.inports; ++i) {
+    int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i-1]); // FIXME
+    int vlen = iocfg.insizes[i-1];
+    ptr += element_len*vlen;
+    
+  //  sim->cfg_inptr(i, (double*) ptr);
+    iocfg.inptr[i] = (double *) ptr;
+
+  }
+
+}
+
+
+bool libdyn_nested::allocate_inbuffers()
+{
+  int i;
+  
+  int nBytes_for_input = 0;
+  
+  for (i = 0; i < iocfg.inports; ++i) {
+    int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); // FIXME
+    int vlen = iocfg.insizes[i];
+  
+    nBytes_for_input = nBytes_for_input + element_len * vlen;
+  }
+  
+  InputBuffer = (void*) malloc(nBytes_for_input);
+  
+  this->set_buffer_inptrs();
+  
+  return true;
+}
+
+
+
+libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
+{
+  this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
+}
+
+libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes, bool use_buffered_input)
+{
+  this->use_buffered_input = use_buffered_input;
+   
+  this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
+
+  if (use_buffered_input)
+    this->allocate_inbuffers();
+
+  
+  //this->libdyn_nested(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
+  
+}
+
+
+int libdyn_nested::add_simulation(irpar *param, int boxid)
+{
+  return this->add_simulation(param->ipar, param->rpar, boxid);
+}
+
+
+int libdyn_nested::add_simulation(dynlib_simulation_t* sim)
+{
+
+}
+
+int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
+{
+  libdyn *sim;
+  
+  sim = new libdyn(&iocfg);
+  sim->set_master(ld_master);
+  
+  
+  int err;
+  err = sim->irpar_setup(ipar, rpar, boxid); // compilation of schematic
+
+  if (err == -1) {
+      // There may be some problems during compilation. 
+      // Errors are reported on stdout    
+    printf("Error in libdyn\n");
+    
+    return err;
+  }
+
+  
+  // later: list management
+  current_sim = sim;
+  
+  return err;
+}
+
+void libdyn_nested::copy_outport_vec(int nPort, void* dest)
+{
+  void *src = current_sim->get_vec_out(nPort);
+  int len = this->iocfg.outsizes[nPort];
+  int datasize = sizeof(double); // FIXME
+  
+  memcpy(dest, src, len*datasize);
+}
+
+// makes only sense of use_buffered_input == true
+void libdyn_nested::copy_inport_vec(int nPort, void* src)
+{
+  if (use_buffered_input == false) {
+    fprintf(stderr, "Hmmm\n");
+    return;
+  }
+  
+  int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); // FIXME
+  int vlen = iocfg.insizes[nPort];
+
+  
+  memcpy((void*) iocfg.inptr[nPort], src, element_len * vlen);
+}
+
+
+void libdyn_nested::simulation_step(int update_states)
+{
+  current_sim->simulation_step(update_states);
+}
+
+void libdyn_nested::event_trigger_mask(int mask)
+{
+  current_sim->event_trigger_mask(mask);
+}
+
+
+
+
+
+//
+// class libdyn
+//
 
 void libdyn::event_trigger_mask(int mask)
 {
@@ -52,8 +296,12 @@ int libdyn::irpar_setup(int* ipar, double* rpar, int boxid)
   error = libdyn_irpar_setup(ipar, rpar, boxid, &sim, &iocfg);
   if (error < 0)
     return error;
-  
-  error = libdyn_simulation_init(sim); // Call INIT FLag of all blocks
+
+  // Make master available, if any
+  sim->master = (void*) ld_master; // anonymous copy for "C"-only Code
+
+  // Call INIT FLag of all blocks
+  error = libdyn_simulation_init(sim);
   if (error < 0)
     return error;
 }
@@ -95,7 +343,7 @@ double * libdyn::get_vec_out(int out)
   return iocfg.outptr[out];
 }
 
-libdyn::libdyn(int Nin, int* insizes_, int Nout, int* outsizes_)
+libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 {
   error = 0;
   
@@ -130,7 +378,39 @@ libdyn::libdyn(int Nin, int* insizes_, int Nout, int* outsizes_)
 
   for (i=0; i<iocfg.outports; ++i)
     iocfg.outptr[i] = (double*) 0x0;
+  
+  // Initially there is no master
+  this->ld_master = NULL;
+}
 
+libdyn::libdyn(struct libdyn_io_config_t * iocfg)
+{
+  error = 0;
+  
+//   printf("iocfg: %d %d\n", iocfg->inports, iocfg->outports);
+  
+  memcpy((void*) &this->iocfg, (void*) iocfg, sizeof(struct libdyn_io_config_t));
+  
+//   printf("iocfg cpy: %d %d\n", this->iocfg.inports, this->iocfg.outports);
+  
+  // Initially there is no master
+  this->ld_master = NULL;
+}
+
+void libdyn::set_master(libdyn_master* ld_master)
+{
+  this->ld_master = ld_master;
+  printf("Master was set\n");
+}
+
+int libdyn::prepare_replacement_sim(int* ipar, double* rpar, int boxid)
+{
+  // TODO
+}
+
+void libdyn::switch_to_replacement_sim()
+{
+  // TODO
 }
 
 
@@ -160,4 +440,35 @@ void libdyn::destruct()
   libdyn_del_simulation(sim);
 }
 
+//
+// Master
+//
+
+
+libdyn_master::libdyn_master()
+{
+  global_comp_func_list = libdyn_new_compfnlist();
+  printf("Created new libdyn master\n");
+}
+
+int libdyn_master::init_communication()
+{
+  // init communication_server
+}
+
+int libdyn_master::init_blocklist()
+{
+  // call modules
+}
+
+
+void* libdyn_master::get_communication_server()
+{
+  return communication_server;
+}
+
+void libdyn_master::destruct()
+{
+  libdyn_del_compfnlist(global_comp_func_list);
+}
 

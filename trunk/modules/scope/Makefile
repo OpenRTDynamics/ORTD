@@ -21,8 +21,8 @@ endif
 all: lib termrtailab
 	echo "Module scope done"
 
-lib: rt_preempt_scope.o scope_block.o
-	ar rvs module.a rt_preempt_scope.o  # scope_block.o
+lib: register.o rt_preempt_scope.o scope_block.o
+	ar rvs module.a register.o rt_preempt_scope.o  # scope_block.o
 	ar rvs module_Linux.a scope_block.o   # Only include for "Linux" Target
 #	$(LD) -static -o scope.o rt_preempt_scope.o rt_preempt_scope_decoder.o
 
@@ -35,7 +35,7 @@ termrtailab_thread: rt_preempt_scope_decoder.o rt_preempt_example_thread.cpp
 
 
 clean:
-	rm -f *.o module.a termrtailab termrtailab_thread
+	rm -f *.o module.a module_Linux.a termrtailab termrtailab_thread
 
 #rt_preempt_example.o: rt_preempt_example.cpp
 #	$(CC) $(CFLAGS) -c rt_preempt_example.cpp
@@ -50,4 +50,11 @@ rt_preempt_scope_decoder.o: rt_preempt_scope_decoder.cpp
 # Compile for "Linux"-Target
 scope_block.o: scope_block.c
 	$(CC) $(CFLAGS) -c scope_block.c 
+
+
+register.o: register.c
+	$(CC) $(CFLAGS) -c register.c 
+
+
+
 

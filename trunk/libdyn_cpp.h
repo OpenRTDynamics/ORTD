@@ -24,13 +24,155 @@ extern "C" {
   #include "libdyn.h"  
 }
 
+class irpar;
+class libdyn_master;
+class libdyn;
+class libdyn_nested;
+
+// Änderungen:
+// - dynlib_simulation_t soll einen void *cpp_huelle - link zu libdyn_cpp Klasse erhalten
+// - blöcke die den communication_server benutzen können über diesen link, über die masterklasse auf die Serverklasse zugreifen.
+// - global_comp_func_list wird einmal vom master angelegt (alle module werden aufgerufen um die blöcke zu registrieren) und allen simulationen als pointer weitergereicht
+// - libdyn_cpp Klassen können auch ohne master betrieben werden communication_server blöcke müssen diesen fall abfangen. (cpp_huelle==NULL) test
+// - libdyn_cpp 
+// - nested simulations
+
+// NEU Class which is created once and <used for multiple simulations e.g. nested simulations
+
+
+#define BUILD_COMMUNICATION_SEVER
+
+class irpar {
+  private:
+    char fname_ipar[256];
+    char fname_rpar[256];
+  public:
+    irpar();
+    void destruct();
+    
+      int err; // variable for errors
+  
+      bool load_from_afile( char* fname_i, char* fname_r );
+      bool load_from_afile( char* fname );
+      
+      int Nipar, Nrpar;
+      int *ipar;
+      double *rpar;
+
+};
+
+class libdyn_master {
+  private:
+    
+    // Daten, die vererbt werden sollen
+    struct lindyn_comp_func_list_head_t *global_comp_func_list;
+    void *communication_server;
+          // ... //
+    
+    // Die Verzeichnisstruktur aus communication_server hier herein bauen
+    
+  public:
+    // return communication_server variable
+    void *get_communication_server();
+    
+    
+    libdyn_master();
+    
+    // gemeinsam genutzte systeme initialisieren
+    int init_communication();
+         // ... //
+    
+    // calls every module to register its blocks
+    int init_blocklist();
+    
+    void destruct();
+};
+
+class libdyn_nested {
+  private:
+    bool internal_init(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
+    bool allocate_inbuffers();
+    void set_buffer_inptrs();
+    
+    void* InputBuffer;
+  public:
+
+    libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
+    libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
+    
+  /**
+    * \brief Configure pointer to input port source variables
+    * \param in number of input port
+    * \param inptr array of a double variables that will be used as input vector
+    */
+    bool cfg_inptr(int in, double *inptr);    
+    
+    // uses a buffer for copies of the input data - necessary within scicos blocks or for a threaded nested simulation
+    bool use_buffered_input;
+    
+    int add_simulation(irpar* param, int boxid);
+    int add_simulation(int *ipar, double *rpar, int boxid);
+    int add_simulation(struct dynlib_simulation_t *sim);
+    
+
+    bool set_current_simulation(struct dynlib_simulation_t *sim);
+    bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
+
+    bool set_current_simulation(int nSim);
+    bool reset_states_of_simulation(int nSim);
+    
+    // laods all schematics from an irpar container and call add_simulation for each
+    bool load_simulations(int *ipar, double *rpar, int boxid);
+    
+    // length of one element depends on datatype
+    void copy_outport_vec(int nPort, void *dest);
+    
+    // 
+    void copy_inport_vec(int nPort, void *src);
+    
+    void event_trigger_mask(int mask);
+    void simulation_step(int update_states);
+    
+    
+    libdyn *current_sim;
+    
+    struct libdyn_io_config_t iocfg;
+    
+    
+    libdyn_master * ld_master;
+
+};
+
 class libdyn {
 private:
+  libdyn_master *ld_master; // NEU pointer to libdyn_master; initial == NULL;
+  
   struct dynlib_simulation_t *sim;
   struct libdyn_io_config_t iocfg;
+
+  // NEU währen die Simulation sim läuft kann eine neue Simulation vorbereitet werden
+  struct dynlib_simulation_t *sim_prepare;
+  struct libdyn_io_config_t iocfg_prepare;
+
+  int prepare_replacement_sim(int *ipar, double *rpar, int boxid);
+  void switch_to_replacement_sim();
+  
+  // NEU liste eingebetter Simulationen. Diese kann sich durch laden einer neuen simulation ändern
+  
+  libdyn **nested_sim;
+  
+  // NEU Simulation der höheren Ebene, wenn keine =NULL
+  
+  libdyn *higher_level_sim;
+  
+  
+  // Fehler ??
   int error;
   
 public:
+  // NEU set a new master
+  void set_master(libdyn_master *ld_master);
+  
  /**
   * \brief Set-up a new libdyn instance
   * \param Nin number of inputs
@@ -38,7 +180,9 @@ public:
   * \param Nout number of outputs
   * \param outsizes_ an array of size Nout containing port sizes for the output ports
   */
-  libdyn(int Nin, int* insizes_, int Nout, int* outsizes_);
+  libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_);
+  
+  libdyn(libdyn_io_config_t * iocfg);
   
  /**
   * \brief Delete everything
@@ -103,7 +247,7 @@ public:
   bool add_libdyn_block(int blockid, void *comp_fn);
   
   /**
-  * \brief Dump a list of all created blocks
+  * \brief Dump a list of all created blocks to stdout
   */  
   void dump_all_blocks();
 };

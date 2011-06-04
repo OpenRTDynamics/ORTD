@@ -258,5 +258,4 @@ int compu_func_scope(int flag, struct dynlib_block_t *block)
 
 
 
-
 //} // extern "C"

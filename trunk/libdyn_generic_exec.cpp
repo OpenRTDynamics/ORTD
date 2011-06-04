@@ -39,6 +39,7 @@ struct global_t {
   } args;
   
   libdyn * simbox;
+  libdyn_master * master;
 
   double inputs[2];
   double outputs[2];
@@ -54,6 +55,9 @@ struct global_t {
 
 int siminit(struct global_t *global_p)
 {
+  // set-up a new libdyn master
+  global_p->master = new libdyn_master();
+  
     // Define sizes of in- and outports 
   int insizes[] = {1,1};
   int outsizes[] = {1,1};
@@ -64,6 +68,7 @@ int siminit(struct global_t *global_p)
   // 2 inports
   // 2 outports
   global_p->simbox = new libdyn(2, insizes, 2, outsizes);
+  global_p->simbox->set_master(global_p->master);
   
   //
   // Variables for simulation inputs
@@ -166,11 +171,18 @@ int simperiodic(struct global_t *global_p)
 int simend(struct global_t *global_p)
 {
   global_p->simbox->destruct();
+  delete global_p->simbox;
+  
+  global_p->master->destruct();
+  delete global_p->master;
 }
 
 
 
+//
 // RT stuff
+//
+
 #define NSEC_PER_SEC    1000000000
 #define USEC_PER_SEC	1000000
 
