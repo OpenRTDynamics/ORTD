@@ -49,8 +49,11 @@ class rt_server_command {
 
     int command_id;
     char *command_name;
+    
+    void *userdat; // pointer to user definable data
 
     int run_callback(rt_server *rt_server_i, char *param);
+    char * get_parameter_str();
 };
 
 class tcp_connection {
@@ -88,6 +91,7 @@ class tcp_server {
     
 };
 
+// one rt_server instance handles one client
 class rt_server {
   private:
     
@@ -123,8 +127,10 @@ class rt_server {
     void destruct();
 };
 
+
 /*
  \brief Verwaltet liste mit commandos und nimmt Verbindungen entgegen
+        startet neuen rt_server bei neuem Client
 
 
 */
@@ -134,10 +140,11 @@ class rt_server_threads_manager {
     int init_tcp(int port);
 
     // register a command "name" with id and its callback function
-    void add_command(char* name, int id, int (*callback)(rt_server_command*, rt_server *rt_server_src) );
+    void add_command(char* name, int (*callback)(rt_server_command*, rt_server *rt_server_src), void *userdat );
     
     
     void loop();
+    bool start_main_loop_thread();
     
     void destruct();
 
@@ -147,7 +154,9 @@ class rt_server_threads_manager {
   private:
     tcp_server *iohelper;
     
+    int command_id_counter;
 //     tcp_connection *tcpc;
     
+    pthread_t mainloop_thread;
 
 };

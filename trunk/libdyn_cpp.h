@@ -24,6 +24,21 @@ extern "C" {
   #include "libdyn.h"  
 }
 
+#define REMOTE
+
+
+
+#ifdef REMOTE
+#include "modules/rt_server/parameter_manager.h"
+#endif
+
+// The different realtime envoronments
+#define RTENV_UNDECIDED 0
+#define RTENV_SIMULATION 1
+#define RTENV_RTP 2
+#define RTENV_RTAI 3
+
+
 class irpar;
 class libdyn_master;
 class libdyn;
@@ -68,7 +83,12 @@ class libdyn_master {
     struct lindyn_comp_func_list_head_t *global_comp_func_list;
     void *communication_server;
           // ... //
+	  
+	  #ifdef REMOTE
+	  
     
+	  #endif
+	  
     // Die Verzeichnisstruktur aus communication_server hier herein bauen
     
   public:
@@ -76,16 +96,28 @@ class libdyn_master {
     void *get_communication_server();
     
     
+    libdyn_master(int realtime_env, int remote_control_tcpport);
     libdyn_master();
     
     // gemeinsam genutzte systeme initialisieren
-    int init_communication();
+	  #ifdef REMOTE
+	  rt_server_threads_manager * rts_mgr;
+
+	  directory_tree * dtree;
+	  parameter_manager * pmgr;
+
+    int init_communication(int tcpport);
+    void close_communication();
          // ... //
+	  #endif
     
     // calls every module to register its blocks
     int init_blocklist();
     
     void destruct();
+    
+    // store the type of the realtime environment. rtp, rtai, simulation ...
+    int realtime_environment;
 };
 
 class libdyn_nested {

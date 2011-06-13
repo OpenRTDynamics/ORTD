@@ -400,7 +400,7 @@ libdyn::libdyn(struct libdyn_io_config_t * iocfg)
 void libdyn::set_master(libdyn_master* ld_master)
 {
   this->ld_master = ld_master;
-  printf("Master was set\n");
+//   printf("Master was set\n");
 }
 
 int libdyn::prepare_replacement_sim(int* ipar, double* rpar, int boxid)
@@ -432,12 +432,12 @@ void libdyn::dump_all_blocks()
 
 void libdyn::destruct()
 {
+  libdyn_del_simulation(sim);
+
   free(iocfg.insizes);
   free(iocfg.outsizes);
   free(iocfg.inptr);
   free(iocfg.outptr);
-  
-  libdyn_del_simulation(sim);
 }
 
 //
@@ -447,14 +447,88 @@ void libdyn::destruct()
 
 libdyn_master::libdyn_master()
 {
+  this->realtime_environment = RTENV_UNDECIDED;
+  
   global_comp_func_list = libdyn_new_compfnlist();
   printf("Created new libdyn master\n");
+  
+#ifdef REMOTE
+  dtree = NULL;
+  pmgr = NULL;
+  rts_mgr = NULL;
+  
+   init_communication(10000);  // FIXME remove
+#endif
 }
 
-int libdyn_master::init_communication()
+// remote_control_tcpport - if 0 the no remote control will be set-up
+libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
+{
+  this->realtime_environment = realtime_env;
+  
+  global_comp_func_list = libdyn_new_compfnlist();
+  printf("Created new libdyn master\n");
+  
+#ifdef REMOTE
+  dtree = NULL;
+  pmgr = NULL;
+  rts_mgr = NULL;
+
+  if (remote_control_tcpport != 0) 
+    init_communication(remote_control_tcpport);
+#endif
+}
+
+
+#ifdef REMOTE
+	  
+int libdyn_master::init_communication(int tcpport)
 {
   // init communication_server
+  
+    printf("Initialising remote control interface on port %d\n", tcpport);
+  
+   dtree = new directory_tree();
+  
+  
+    this->rts_mgr = new rt_server_threads_manager();
+    
+    printf("rts_mgr = %p\n", rts_mgr);
+    rts_mgr->command_map.clear();
+   rts_mgr->init_tcp(tcpport);
+  
+// // //    rts_mgr->add_command("cmd1", &callback, NULL);
+
+
+  
+   pmgr = new parameter_manager( rts_mgr, dtree );
+
+/*  if ((void*)pmgr == (void*)0x23)
+     parameter *p1 = pmgr->new_parameter("parameter1", DATATYPE_FLOAT, 10 );*/
+  
+    rts_mgr->start_main_loop_thread();
+  
 }
+
+void libdyn_master::close_communication()
+{
+  if (rts_mgr != NULL) {
+  rts_mgr->destruct();
+  delete rts_mgr;
+  }
+    
+  if (pmgr != NULL) {
+  pmgr->destruct();
+  delete pmgr;
+  }
+  
+  if (dtree != NULL) {
+  dtree->destruct();
+  delete dtree;
+  }
+}
+
+#endif
 
 int libdyn_master::init_blocklist()
 {
@@ -470,5 +544,10 @@ void* libdyn_master::get_communication_server()
 void libdyn_master::destruct()
 {
   libdyn_del_compfnlist(global_comp_func_list);
+  
+  #ifdef REMOTE
+  close_communication();
+  #endif
+  
 }
 

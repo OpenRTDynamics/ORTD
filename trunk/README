@@ -93,11 +93,12 @@ TODO
 - nestet schematics
 - exchangable schematics
 - tcp server for remote control, parameter uploading ...
-- block interpreting math formula (done)
+- block interpreting math formula (done; with help of muParser)
 - wrapper for scicos blocks and inclusion of hart toolbox
 - a dynamical linker that loads *so files as it might be described
   within the schematics
 - A matix module (multiplication, inversion ...)
+- A Kalman Filter build with basic blocks
 - ....
 
 BUGS
@@ -134,5 +135,8 @@ v0.99d
 
 v0.99e
   - Modules support
-  - muParser Block support for using math formula within simulations
-  - HART-module (hart.sf.net) for using ORTD in Scicos
+  - muParser (http://muparser.sourceforge.net/) Block support for using math formula within simulations
+  - HART-module (hart.sf.net) for using ORTD in Scicos simulations
+  - remote control interface via TCP to set parameters via a new "ld_parameter" block
+    enable it in libdyn_generic_exec by the --master_tcpport <port> option
+    an example can be found under examples/remote_control.sce
