@@ -29,6 +29,7 @@ struct global_t {
   struct {
     int baserate;
     int simlen;
+    int master_tcpport;
     
     int schematic_id;
     char schematic_fname_ipar[256];
@@ -56,8 +57,11 @@ struct global_t {
 int siminit(struct global_t *global_p)
 {
   // set-up a new libdyn master
-  global_p->master = new libdyn_master();
-  
+   global_p->master = new libdyn_master(RTENV_UNDECIDED, global_p->args.master_tcpport);
+ 
+//           printf("destruct rts_mgr\n"); global_p->master->rts_mgr->destruct();   printf("**** exit****\n"); exit(0); //DEBUG
+
+   
     // Define sizes of in- and outports 
   int insizes[] = {1,1};
   int outsizes[] = {1,1};
@@ -119,6 +123,7 @@ int siminit(struct global_t *global_p)
     exit(1);
   }
 
+
 }
 
 int simperiodic(struct global_t *global_p)
@@ -158,7 +163,9 @@ int simperiodic(struct global_t *global_p)
     
     ++global_p->stepc;
  // } while 
- 
+
+
+    
   if ((global_p->stepc < simlen) || (simlen == 0)) {
     return 0;
   } else {
@@ -166,13 +173,16 @@ int simperiodic(struct global_t *global_p)
      return -1;
   }
 
+
 }
 
 int simend(struct global_t *global_p)
 {
+
+  
   global_p->simbox->destruct();
   delete global_p->simbox;
-  
+
   global_p->master->destruct();
   delete global_p->master;
 }
@@ -293,12 +303,17 @@ void usage(void)
 	printf("Usage: libdyn_generic_exec [<options>]\n"
 		" \n"
 		"  --baserate <rate/ms> A value of zero means as fast as possible\n"
+		"                       Root access is needed for baserates != 0 because\n"
+		"                       realtime preemption will be used.\n"
 		"  -d <divider> new baserate divider\n"
 		"  -s <name> name of schematic irpar files. .ipar and .rpar will be added to name\n"
 		"  -i schematic id\n"
-		"  -l <len> number of simulation steps. 0 is endless\n"
+		"  -l <len> number of simulation steps. 0 means endless\n"
+		"  -p / --master_tcpport <port> the portnumber of the remote control interface; default is 0,\n"
+		"                               which means no remote control is enabled\n"
 		" \n"
 		"Example: libdyn_generic_exec --baserate 0 -d 2 -d 10 -s schematic -i 1001 -l 1000\n"
+		"         this will load schematic.ipar and schematic.rpar and simulate 1000 steps\n"
 		"\n");
 		
 	exit(0);
@@ -313,6 +328,7 @@ int main(int argc, char *argv[])
   global_p->args.num_dividers = 0;
   global_p->args.schematic_id = 901;
   global_p->args.baserate = 0;
+  global_p->args.master_tcpport = 0;
   strcpy(global_p->args.schematic_fname_ipar, "generic.ipar");
   strcpy(global_p->args.schematic_fname_rpar, "generic.rpar");
   
@@ -328,14 +344,15 @@ int main(int argc, char *argv[])
 			{ "schematic_id", required_argument, 0, 'i' },
 			{ "schematic", required_argument, 0, 's' },
 			{ "baserate", required_argument, 0, 'b' },
-			{ "divider", no_argument, 0, 'd' },
-			{ "simlen", no_argument, 0, 'l' },
+			{ "divider", required_argument, 0, 'd' },
+			{ "simlen", required_argument, 0, 'l' },
+			{ "master_tcpport", required_argument, 0, 'p' },
 			{ "verbose", no_argument, NULL, 'v' },
 			{ "help", no_argument, NULL, 'h' },
 			{ NULL, no_argument, NULL, 0 }
 		};
 
-		opt = getopt_long(argc, argv, "s:d:i:l:b:d:vh", long_options, &idx);
+		opt = getopt_long(argc, argv, "s:d:i:l:p:b:d:vh", long_options, &idx);
 
 		if (opt == -1)
 			break;
@@ -395,6 +412,14 @@ int main(int argc, char *argv[])
 
 			global_p->args.simlen = strtoul(optarg, &endptr, 10);
 			printf("simlen set to %d\n", global_p->args.simlen);
+			break;
+		case 'p':
+			if (strnlen(optarg, 10) > 10) {
+				goto out;
+			}
+
+			global_p->args.master_tcpport = strtoul(optarg, &endptr, 10);
+			printf("master_tcpport set to %d\n", global_p->args.master_tcpport);
 			break;
 			
 

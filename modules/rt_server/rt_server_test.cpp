@@ -17,7 +17,10 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "rt_server.h"
+// #include "rt_server.h"
+// #include "directory.h"
+#include "parameter_manager.h"
+
 #include "malloc.h"
 #include <stdio.h>
 
@@ -30,16 +33,47 @@ int callback(rt_server_command *cmd, rt_server *rt_server_src)
 
 int main()
 {
+  directory_tree * dtree = new directory_tree();
+  
+/*  directory_leaf *root = dtree->root;
+  
+  root->add_entry("test1", NULL, (void*) 0x123);
+  root->add_entry("test2", NULL, (void*) 0x321);
+  
+  directory_entry::direntry *inode = root->access2("test1");
+  printf("%x\n", inode->userptr);*/
+
+  dtree->add_entry("test1", NULL, (void*) 0x123);
+  dtree->add_entry("test2", NULL, (void*) 0x456);
+  
+  directory_entry::direntry *inode = dtree->access( "test1", NULL );
+  printf("%x\n", inode->userptr);
+  
+//   root->destruct();
   
   
   rt_server_threads_manager * rts_mgr = new rt_server_threads_manager();
   rts_mgr->init_tcp(10000);
   
-  rts_mgr->add_command("cmd1", 1, &callback);
-  rts_mgr->add_command("cmd2", 2, &callback);
-  rts_mgr->add_command("cmd3", 3, &callback);
+  rts_mgr->add_command("cmd1", &callback, NULL);
+  rts_mgr->add_command("cmd2", &callback, NULL);
+  rts_mgr->add_command("cmd3", &callback, NULL);
 
-  rts_mgr->loop();
+
+  
+  parameter_manager * pmgr = new parameter_manager( rts_mgr, dtree );
+
+  parameter *p1 = pmgr->new_parameter("parameter1", DATATYPE_FLOAT, 10 );
+  
+  rts_mgr->start_main_loop_thread();
+
+  
+  
+  pmgr->destruct();
+  rts_mgr->destruct();
+  
+  for (;;) sleep(1);
+  
   
   
   

@@ -656,7 +656,7 @@ struct dynlib_block_t *new_sat_block_(struct dynlib_simulation_t *sim, double *c
 
 int compu_func_const(int flag, struct dynlib_block_t *block)
 {
- // printf("comp_func const: flag==%d\n", flag);
+  printf("comp_func const: flag==%d\n", flag);
   int Nout = 1;
   int Nin = 0;
 
@@ -667,23 +667,20 @@ int compu_func_const(int flag, struct dynlib_block_t *block)
 
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
-      //inp1 = (double *) libdyn_get_input_ptr(block,0);
       out = (double *) libdyn_get_output_ptr(block,0);
       
       *out = c;
-      //printf("const blk writing to ptr %x\n", out);
       return 0;
       break;
     case COMPF_FLAG_UPDATESTATES:
       return 0;
       break;
     case COMPF_FLAG_CONFIGURE:  // configure
-      //printf("expa2\n"); malloc(8);
-      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
-      //libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
-      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
       
-   //   printf("New const block %f fn ptr %x\n", c, &compu_func_const);
+      // BLOCKTYPE_STATIC enables makes sure that the output calculation is called only once 
+      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
+         
       return 0;
       break;
     case COMPF_FLAG_INIT:  // init
@@ -699,7 +696,6 @@ struct dynlib_block_t *new_const_block_(struct dynlib_simulation_t *sim, double 
   // 
   // c (rpar) is only available for initialisation
 
-  //printf("New const block\n");
   struct dynlib_block_t *block = libdyn_new_block(sim, &compu_func_const, 0, c, 0,  0);
 
   return block;
@@ -1008,7 +1004,7 @@ int compu_func_play_block(int flag, struct dynlib_block_t *block)
       return 0;
       break;
     case COMPF_FLAG_CONFIGURE:  // configure
-      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // BLOCKTYPE_DYNAMIC enables that the output calculation is called more than once 
       libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
       
       block->work = (void *) siso_sampler_new(Namples, r);

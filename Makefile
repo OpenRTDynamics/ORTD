@@ -12,7 +12,7 @@ ortd_root := $(shell pwd)
 
 ifeq ($(host-type),x86_64)
 # 64 Bit
-CFLAGS = -fPIC -O2
+CFLAGS = -fPIC -O2 -g
 LDFLAGS = -shared
 else
 # 32 Bit
@@ -21,8 +21,8 @@ LDFLAGS = -shared
 endif
 
 # create list of modules
-MODULES = scope template muparser basic_ldblocks
-#MODULES := $(shell ls modules)
+#MODULES = scope template muparser basic_ldblocks rt_server
+MODULES := $(shell ls modules)
 
 
 
