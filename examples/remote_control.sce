@@ -45,7 +45,7 @@
 
 
 
-thispath = get_absolute_file_path('oscillator.sce');
+thispath = get_absolute_file_path('remote_control.sce');
 cd(thispath);
 
 
