@@ -15,6 +15,7 @@ root_tlbx = strncpy( etc_tlbx, length(etc_tlbx)-length("\etc") );
 mprintf("\texec init\n");
 exec(root_tlbx + 'initialrun/irpar.sci');
 exec(root_tlbx + 'initialrun/libdyn.sci');
+exec(root_tlbx + 'initialrun/rt_server.sci');
 
 exec(root_tlbx + 'initialrun/modules_loader.sce');
 
