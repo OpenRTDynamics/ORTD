@@ -30,11 +30,11 @@
 //
 // NOTE: The "ld_toolbox" is needed
 //
-// Execute within scilab. The shell command "sudo libdyn_generic_exec --baserate=50 -s oscillator -i 901 -l 0"
+// Execute within scilab. The shell command "sudo libdyn_generic_exec --baserate=50 -s oscillator -i 901 -l 0 --master_tcpport 10000"
 // will start the realtime simulation.
 //
 //
-// Then you can use do for example:
+// Then you can do for example:
 //
 // $ netcat localhost 10000
 //
@@ -42,6 +42,16 @@
 //
 // set_param oscinput #  50
 // get_param oscinput
+//
+//
+// Alternatively do
+//
+//
+// ortd_remset_param_simple("localhost", 10000, "oscinput", 0);
+
+
+
+
 
 
 
