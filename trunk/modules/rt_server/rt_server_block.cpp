@@ -50,6 +50,8 @@ private:
    
    libdyn_master *master;
    parameter * par;
+   
+   bool deactivated;
 };
 
 compu_func_rt_server_param_class::compu_func_rt_server_param_class(dynlib_block_t* block)
@@ -59,15 +61,24 @@ compu_func_rt_server_param_class::compu_func_rt_server_param_class(dynlib_block_
 
 int compu_func_rt_server_param_class::init()
 {
+    deactivated = true;
+  
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
+    
 
     master = (libdyn_master *) block->sim->master;
     if (master == NULL) {
-      printf("libdyn: parameter block requires a libdyn master\n");
-      return -1;
+      fprintf(stderr, "WARNING: libdyn: parameter block requires a libdyn master\n");
+      return 0;
     }
+    
+    if (master->pmgr == NULL) {
+      fprintf(stderr, "WARNING: libdyn: parameter block requires a set-up parameter manager\nTurn on rmeote control\n");
+      return 0;
+    }
+
 
     int outsize = ipar[1];
 //     int parlen = ipar[2];
@@ -98,20 +109,33 @@ int compu_func_rt_server_param_class::init()
 
 void compu_func_rt_server_param_class::io(int update_states)
 {
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+  
+  double *output = (double*) libdyn_get_output_ptr(block, 0);
+
+  if (!deactivated) {
     if (update_states==0) {
-        double *output = (double*) libdyn_get_output_ptr(block, 0);
 	
-	par->atomic_buffer_copy( (void*) output );
+	par->atomic_buffer_copy( (void*) output ); // FIXME Maybe do this only when the parameter was actually updated
 // 	printf("parameter output = %f\n", output[0]);
     }
+  } else {
+    double *initial_par = &rpar[0];
+    int outsize = ipar[1];
+    
+    memcpy((void*) output, initial_par, sizeof(double) * outsize );
+  }
 }
 
 void compu_func_rt_server_param_class::destruct()
 {
+  if (!deactivated) {
     par->destruct();
     delete par;
-
+  
     free(str);
+  }
 }
 
 

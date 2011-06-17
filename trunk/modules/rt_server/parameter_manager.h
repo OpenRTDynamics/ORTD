@@ -1,3 +1,6 @@
+#ifndef _PARAMETER_MANAGER_H
+#define _PARAMETER_MANAGER_H 1
+
 #include "rt_server.h"
 #include "directory.h"
 
@@ -56,3 +59,5 @@ class parameter_manager {
     void callback_get(rt_server_command *cmd, rt_server *rt_server_src);
     
 };
+
+#endif

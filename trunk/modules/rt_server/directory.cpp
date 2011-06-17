@@ -23,6 +23,7 @@
 
 #include "directory.h"
 
+
 using namespace std;
 
 directory_entry::directory_entry()
@@ -88,7 +89,7 @@ bool directory_leaf::add_entry(char* name, void *belonges_to_class, void* userpt
   entry->content.userptr = userptr;
   entry->content.belonges_to_class = belonges_to_class;
     
-  entries[name] = entry;
+ // entries[name] = entry;
 }
 
 directory_entry* directory_leaf::get_entry(char* name)
@@ -140,6 +141,84 @@ directory_entry::direntry * directory_leaf::access2(char* path)
   return &entr->content;
 }
 
+void directory_leaf::list()
+{
+//   printf("begin list\n");
+  entry_map_t::iterator list_iterator;  
+  
+   for ( list_iterator = entries.begin() ; list_iterator != entries.end(); list_iterator++ ) {
+     directory_entry *entry = list_iterator->second;
+     
+     
+//      printf("  :%p\n", entry);
+     if (entry != NULL)
+       printf("  %s\n", entry->content.name);
+   }
+//  printf("end list\n");
+}
+
+void directory_leaf::begin_list()
+{
+//   printf("dumping list\n");
+  list_iterator = entries.begin();
+}
+
+directory_entry* directory_leaf::get_list_next()
+{
+  directory_entry *entry2;
+  
+//   printf("request for new element\n");
+  
+  do {
+    if (list_iterator == entries.end()) {
+//       printf("end of list\n");
+      return NULL;
+    }
+    
+    entry2 = list_iterator->second;
+    
+    list_iterator++;
+    
+    if (entry2 != NULL) {
+//       printf("return entry\n");
+      return entry2;
+    }
+    
+//     printf("skipping\n");
+    
+    
+  } while ( 1 );
+  
+  
+  
+  
+//   if (list_iterator != entries.end()) {
+//     directory_entry *entry = list_iterator->second;
+//     printf(".\n");
+//     
+//     list_iterator++;
+//     
+//     printf("___%p\n", entry);
+//     if (entry != NULL) {
+//       directory_entry::direntry ent =  entry->content;
+//     
+//       printf("..\n");
+//       printf(".a %p\n", ent.userptr);
+//     
+//     
+//       printf("next list entry: %s\n", entry->content.name);
+//       return entry;
+//     }
+//   }
+
+  return NULL;
+}
+
+
+void directory_leaf::end_list()
+{
+
+}
 
 
 
@@ -147,13 +226,32 @@ directory_entry::direntry * directory_leaf::access2(char* path)
 
 
 
+int callback_list_dir__(rt_server_command *cmd, rt_server *rt_server_src)
+{
+  directory_tree *pmgr = (directory_tree *) cmd->userdat;
+//   pmgr->callback_list( cmd, rt_server_src );
+  pmgr->callback_list_dir(cmd, rt_server_src);
+}
 
-// int callback_list_dir__(rt_server_command *cmd, rt_server *rt_server_src)
-// {
-//   parameter_manager *pmgr = (parameter_manager *) cmd->userdat;
-// //   pmgr->callback_list( cmd, rt_server_src );
-// }
 
+int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_server_src)
+{
+//   printf("Creating list\n");
+  
+//   cmd->send_answer(rt_server_src, "\n");
+  this->begin_list();
+  
+  directory_entry::direntry *entr;
+  while ( ( entr = this->get_list_next() ) != NULL ) {
+//     printf("*** %s\n", entr->name);
+    cmd->send_answer(rt_server_src, (char*) entr->name);
+    cmd->send_answer(rt_server_src, "\n");
+
+  }
+  
+  this->end_list();
+
+}
 
 
 
@@ -162,54 +260,109 @@ directory_tree::directory_tree()
   root = new directory_leaf();
   
   pwd = root; // start in the root directory
+  
+  pthread_mutex_init(&this->list_process_mutex, NULL);
 }
+
+directory_tree::directory_tree(rt_server_threads_manager* rts)
+{
+  root = new directory_leaf();
+  
+  pwd = root; // start in the root directory
+
+  printf("adding remote cmd ls\n");
+  rts->add_command("ls", &callback_list_dir__, this );
+
+  pthread_mutex_init(&this->list_process_mutex, NULL);
+}
+
 
 void directory_tree::destruct()
 {
+  lock();
+  
   root->destruct();
   delete root;
+  
+  pthread_mutex_destroy(&this->list_process_mutex);
 }
 
 directory_entry::direntry* directory_tree::access(char* path, void* belonges_to_class)
 {
-  return root->access2(path, belonges_to_class);
+  lock();
+  directory_entry::direntry *dentr = root->access2(path, belonges_to_class);
+  unlock();
+  
+  return dentr;
 }
 
 bool directory_tree::add_entry(char* name, void* belonges_to_class, void* userptr)
 {
+  lock();
   root->add_entry( name, belonges_to_class, userptr );
+  unlock();
 }
 
 
 // BAUstelle
 void directory_tree::begin_list()
 {
-  // FIXME: lock mutex
-  list_iterator = pwd->entries.begin();
   
-//   for ( list_iterator = pwd->entries.begin() ; list_iterator != pwd->entries.end(); list_iterator++ ) {
-//     directory_entry *entry = list_iterator->second;
-//   }
+/*  
+  pwd->list();
+  
+  printf("****\n");
+   
+  // FIXME: lock mutex
+   for ( list_iterator = pwd->entries.begin() ; list_iterator != pwd->entries.end(); list_iterator++ ) {
+     directory_entry *entry = list_iterator->second;
+     
+     
+     
+     printf(":%p\n", entry);
+     
+//      printf("%s\n", entry->content.name);
+   }
 
+
+list_iterator = pwd->entries.begin();
+  
+*/
+  lock();
+
+  pwd->begin_list();
+
+ 
 }
 
 directory_entry::direntry* directory_tree::get_list_next()
 {
-  if (list_iterator != pwd->entries.end()) {
-    directory_entry *entry = list_iterator->second;
-    
-    list_iterator++;
-    
-    printf("next list entry: %s\n", entry->content.name);
-    return &entry->content;
+  directory_entry *dentry = pwd->get_list_next();
+
+  if (dentry != NULL) {  
+    return &dentry->content;
+  } else {    
+    return NULL;
   }
 
-  return NULL;
+  
 }
 
 
 void directory_tree::end_list()
 {
 // unlock
+  unlock();
+}
+
+
+void directory_tree::lock()
+{
+   pthread_mutex_lock(&this->list_process_mutex);
+}
+
+void directory_tree::unlock()
+{
+   pthread_mutex_unlock(&this->list_process_mutex);
 }
 

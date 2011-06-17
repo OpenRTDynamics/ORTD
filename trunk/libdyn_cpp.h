@@ -93,7 +93,7 @@ class libdyn_master {
     
   public:
     // return communication_server variable
-    void *get_communication_server();
+    rt_server_threads_manager *get_communication_server();
     
     
     libdyn_master(int realtime_env, int remote_control_tcpport);
