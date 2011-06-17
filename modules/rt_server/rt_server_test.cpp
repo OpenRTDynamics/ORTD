@@ -65,12 +65,31 @@ int main()
 
   parameter *p1 = pmgr->new_parameter("parameter1", DATATYPE_FLOAT, 10 );
   
-  rts_mgr->start_main_loop_thread();
+//   dtree->pwd->list();
+  
+  
+  printf("------------\n");
+  dtree->begin_list();
+  
+  directory_entry::direntry *entr;
+  while ( ( entr = dtree->get_list_next() ) != NULL ) {
+    printf("*** %s\n", entr->name);
+
+  }
+  
+  dtree->end_list();
+  
+  
+  
+  
+//   rts_mgr->start_main_loop_thread();
 
   
   
   pmgr->destruct();
+  dtree->destruct();
   rts_mgr->destruct();
+  
   
   for (;;) sleep(1);
   

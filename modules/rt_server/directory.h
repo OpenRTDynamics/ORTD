@@ -1,3 +1,8 @@
+#ifndef _DIRECTORY_H
+#define _DIRECTORY_H 1
+
+
+
 #include <pthread.h>
 #include <stdio.h>
 #include <map>
@@ -5,7 +10,7 @@
 
 #include <pthread.h>
 
-
+#include "rt_server.h"
 
 class directory_leaf;
 
@@ -46,11 +51,21 @@ class directory_leaf {
     // if not returns NULL
     directory_entry::direntry *access2(char* path, void *belonges_to_class);
     directory_entry * access1(char* path);
-    
 
-    // list of entries
+     // list of entries
     typedef std::map<std::string, directory_entry *> entry_map_t;
     entry_map_t entries;
+
+    
+    // list entries
+    void list(); // printf list
+    
+    void begin_list();
+    directory_entry *get_list_next();
+    void end_list();
+    
+    entry_map_t::iterator list_iterator; // not public
+    
     
     // collapse all subdirs
     void destruct();
@@ -76,6 +91,7 @@ class directory_leaf {
 class directory_tree {
   public:
     directory_tree();
+    directory_tree( rt_server_threads_manager * rts );
     void destruct();
     
     bool add_entry(char *name, void *belonges_to_class, void* userptr);
@@ -86,6 +102,12 @@ class directory_tree {
     directory_entry::direntry* get_list_next();
     void end_list();
     
+    // the rt_server callback
+    int callback_list_dir(rt_server_command *cmd, rt_server *rt_server_src);
+    
+    
+    void lock();
+    void unlock();
 private:
     // list
     directory_leaf::entry_map_t::iterator list_iterator;
@@ -95,3 +117,6 @@ private:
     directory_leaf * root;
     directory_leaf * pwd; // current directory
 };
+
+
+#endif

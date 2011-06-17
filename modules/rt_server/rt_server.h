@@ -1,4 +1,7 @@
 //
+#ifndef _RT_SERVER_H
+#define _RT_SERVER_H 1
+
 
 #include <pthread.h>
 #include <stdio.h>
@@ -160,3 +163,5 @@ class rt_server_threads_manager {
     pthread_t mainloop_thread;
 
 };
+
+#endif

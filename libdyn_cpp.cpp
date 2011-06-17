@@ -467,7 +467,7 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
   this->realtime_environment = realtime_env;
   
   global_comp_func_list = libdyn_new_compfnlist();
-  printf("Created new libdyn master\n");
+  printf("Created new libdyn master; tcpport = %d \n", remote_control_tcpport);
   
 #ifdef REMOTE
   dtree = NULL;
@@ -486,16 +486,20 @@ int libdyn_master::init_communication(int tcpport)
 {
   // init communication_server
   
-    printf("Initialising remote control interface on port %d\n", tcpport);
-  
-   dtree = new directory_tree();
-  
-  
+    printf("*Initialising remote control interface on port %d\n", tcpport);
+
     this->rts_mgr = new rt_server_threads_manager();
+
+//     printf("rts_mgr = %p\n", rts_mgr);
+//     rts_mgr->command_map.clear();
     
-    printf("rts_mgr = %p\n", rts_mgr);
-    rts_mgr->command_map.clear();
-   rts_mgr->init_tcp(tcpport);
+    rts_mgr->init_tcp(tcpport);
+
+    printf("Creating directory\n");    
+    dtree = new directory_tree(this->rts_mgr);
+//   d
+  
+    
   
 // // //    rts_mgr->add_command("cmd1", &callback, NULL);
 
@@ -535,11 +539,14 @@ int libdyn_master::init_blocklist()
   // call modules
 }
 
-
-void* libdyn_master::get_communication_server()
+  
+#ifdef REMOTE
+rt_server_threads_manager* libdyn_master::get_communication_server()
 {
-  return communication_server;
+  return this->rts_mgr;
 }
+#endif
+
 
 void libdyn_master::destruct()
 {

@@ -38,8 +38,9 @@
 //
 // $ netcat localhost 10000
 //
-// Then issue some comands to your simulation
+// Then issue some comands to your simulation:
 //
+// ls
 // set_param oscinput #  50
 // get_param oscinput
 //
