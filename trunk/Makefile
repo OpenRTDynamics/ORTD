@@ -6,23 +6,27 @@ LD = g++
 SH = bash
 
 
+# create list of modules
+#MODULES = scope template muparser basic_ldblocks rt_server
+MODULES := $(shell ls modules)
+
+# if modules provide header file needed by the base component
+#MODULES_INCLUDE := modules/rt_server
+# -I$(MODULES_INCLUDE)
+
 # detect system type
 host-type := $(shell arch)
 ortd_root := $(shell pwd)
 
 ifeq ($(host-type),x86_64)
 # 64 Bit
-CFLAGS = -fPIC -O2 -g
+CFLAGS = -fPIC -O2 -g  
 LDFLAGS = -shared
 else
 # 32 Bit
-CFLAGS = -O2
+CFLAGS = -O2 
 LDFLAGS = -shared
 endif
-
-# create list of modules
-#MODULES = scope template muparser basic_ldblocks rt_server
-MODULES := $(shell ls modules)
 
 
 

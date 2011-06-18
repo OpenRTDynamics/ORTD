@@ -29,7 +29,8 @@ extern "C" {
 
 
 #ifdef REMOTE
-#include "modules/rt_server/parameter_manager.h"
+// #include "modules/rt_server/parameter_manager.h"
+#include "parameter_manager.h"
 #endif
 
 // The different realtime envoronments
@@ -118,6 +119,8 @@ class libdyn_master {
     
     // store the type of the realtime environment. rtp, rtai, simulation ...
     int realtime_environment;
+    
+    
 };
 
 class libdyn_nested {
@@ -127,10 +130,17 @@ class libdyn_nested {
     void set_buffer_inptrs();
     
     void* InputBuffer;
+    
+    libdyn_master * ld_master;
+
   public:
 
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
+    
+    void destruct();
+    
+    void set_master(libdyn_master *master);
     
   /**
     * \brief Configure pointer to input port source variables
@@ -171,7 +181,6 @@ class libdyn_nested {
     struct libdyn_io_config_t iocfg;
     
     
-    libdyn_master * ld_master;
 
 };
 
