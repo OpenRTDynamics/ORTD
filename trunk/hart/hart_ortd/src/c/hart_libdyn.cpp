@@ -17,6 +17,10 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+#include "libdyn_cpp.h"
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,8 +32,7 @@ extern "C" {
 #include <scicos_block4.h>
 #include "getstr.h"
 
-#include "irpar.h"
-#include "libdyn_cpp.h"
+// #include "irpar.h"
 
 /*
 
