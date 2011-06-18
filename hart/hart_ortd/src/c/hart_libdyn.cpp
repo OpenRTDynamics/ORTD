@@ -54,6 +54,7 @@ extern "C" {
 
 struct hart_libdynDev {
   libdyn_nested * simnest;
+  libdyn_master * master;
   irpar *param;
   
   int Nin; int Nout;
@@ -110,6 +111,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   comdev->intypes = NULL;
   comdev->outtypes = NULL;
  
+  // decode the filename
   #define MAX_FNAMELEN 256
   char fname[MAX_FNAMELEN];
   if (fname_len > MAX_FNAMELEN) {
@@ -119,9 +121,9 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   }
     
   par_getstr( fname, encfname_ptr, 0, fname_len );
-  printf("loading irpar files: %s\n", fname);
+  printf("using irpar files: %s\n", fname);
   
-  
+  // Configure in- and out port sizes
   int Nipar = GetNipar(block);
   int Nrpar = GetNrpar(block);
 
@@ -157,14 +159,22 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   }
 
 
-  bool use_buffered_input = true;  
+  bool use_buffered_input = true;  // in- and out port values are buffered
   comdev->simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
 
+  // Load parameters from the files
   comdev->param = new irpar();
   if (comdev->param->load_from_afile(fname) == false)
   {
     comdev->error = -1;
     return -1; 
+  }
+  
+  // If a master should be used install one
+  comdev->master = NULL;
+  if (use_master == 1) {
+    comdev->master = new libdyn_master(RTENV_UNDECIDED, master_tcp_port);
+    comdev->simnest->set_master(comdev->master);
   }
   
   printf("loading shematic id %d\n", shematic_id);
@@ -206,10 +216,18 @@ int hart_libdyn_bloc_ending(scicos_block *block,int flag)
 {
   struct hart_libdynDev * comdev = (struct hart_libdynDev *) (*block->work);
   
+  comdev->simnest->destruct();
+  delete comdev->simnest;
+  
   free_ifnotnull(comdev->insizes);
   free_ifnotnull(comdev->outsizes);
   free_ifnotnull(comdev->intypes);
   free_ifnotnull(comdev->outtypes);
+  
+  if (comdev->master != NULL) {
+    comdev->master->destruct();
+    delete comdev->master;
+  }
   
   comdev->param->destruct();
   delete comdev->param;

@@ -124,6 +124,10 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   // Initially there is no master
   this->ld_master = NULL;
   
+  // Initially there is no simulation
+  this->current_sim = NULL;
+  
+  
   return true;
 }
 
@@ -190,6 +194,22 @@ libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, i
   
 }
 
+void libdyn_nested::destruct()
+{
+  
+  // LAter: list management
+  if (current_sim != NULL) {
+    current_sim->destruct();
+    delete current_sim;
+  }
+}
+
+
+void libdyn_nested::set_master(libdyn_master* master)
+{
+  this->ld_master = master;
+}
+
 
 int libdyn_nested::add_simulation(irpar *param, int boxid)
 {
@@ -202,6 +222,7 @@ int libdyn_nested::add_simulation(dynlib_simulation_t* sim)
 
 }
 
+// Add a simulation based on provided irpar set
 int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
 {
   libdyn *sim;
