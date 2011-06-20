@@ -44,3 +44,6 @@ function ortd_remset_param_simple(ho, port, parname, val)
 endfunction
 
 
+function dls = ortd_rem_ls(ho, port)
+  dls = unix_g("echo ls" + "  | netcat " + ho + " " + string(port) );
+endfunction

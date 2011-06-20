@@ -79,6 +79,7 @@ int compu_func_rt_server_param_class::init()
       return 0;
     }
 
+    deactivated = false;
 
     int outsize = ipar[1];
 //     int parlen = ipar[2];

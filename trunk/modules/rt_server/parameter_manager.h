@@ -41,6 +41,9 @@ class parameter {
 };
 
 
+  /**
+    * \brief Parameter management class
+    */
 class parameter_manager {
   public:
     // register set and get commands to rt_server_threads_manager
@@ -51,13 +54,59 @@ class parameter_manager {
     
     rt_server_threads_manager * rts_thmng;
     
+    // create a new parameter within root_directory
     parameter * new_parameter( char *name, int type, int size );
-//     parameter_directory::direntry *access
+    
+    // create a new parameter within directory
+    parameter * new_parameter( char *name, int type, int size, directory_tree* directory );
+
 
 
     void callback_set(rt_server_command *cmd, rt_server *rt_server_src);
     void callback_get(rt_server_command *cmd, rt_server *rt_server_src);
     
 };
+
+
+
+
+
+
+
+class ortd_stream {
+  public:
+    ortd_stream(int type, int const_size);
+    
+    int parse_and_return(char * line);
+    
+    int datatype;
+    int nElements, byte_size;
+
+    
+    void destruct();
+    
+    
+  private:
+};
+
+  /**
+    * \brief Stream management class
+    */
+class ortd_stream_manager {
+  public:
+    // register set and get commands to rt_server_threads_manager
+    ortd_stream_manager( rt_server_threads_manager* rts_thmng, directory_tree* root_directory );
+    void destruct();
+    
+    directory_tree * directory;
+    
+    rt_server_threads_manager * rts_thmng;
+    
+    ortd_stream * new_stream( char *name, int type, int size, directory_tree* directory );
+
+    
+    void callback_get(rt_server_command *cmd, rt_server *rt_server_src);
+};
+
 
 #endif

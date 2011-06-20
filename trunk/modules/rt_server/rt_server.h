@@ -24,6 +24,10 @@ class rt_server_command;
 
 typedef std::map<int, rt_server_command *> command_map_t;
 
+  /**
+    * \brief One special command, which is registrated by the user
+    *        and may be called by the clients
+    */
 
 class rt_server_command {
   private:
@@ -55,7 +59,8 @@ class rt_server_command {
     
     void *userdat; // pointer to user definable data
 
-    int run_callback(rt_server *rt_server_i, char *param);
+    
+    int run_callback(rt_server *rt_server_src, char *param);
     char * get_parameter_str();
 };
 
@@ -94,17 +99,21 @@ class tcp_server {
     
 };
 
-// one rt_server instance handles one client
+  /**
+    * \brief Class for client handling 
+    * * one rt_server instance handles one client
+    */
+
 class rt_server {
   private:
     
     pthread_mutex_t buffer_mutex;
     pthread_cond_t thread_condition;
 
-
+/*
     rt_server_command *command_list_head;
     rt_server_command *command_list_tail;
-    
+    */
     
     char *rcv_buf;
     char *snd_buf;
@@ -137,24 +146,48 @@ class rt_server {
 
 
 */
+
+  /**
+    * \brief Manages many clients by maintaining a list of rt_server instances
+    *        starts its own management thread for accepting incoming network connections,
+    *        which creates new rt_server instances
+    */
+  
 class rt_server_threads_manager {
   public:
     rt_server_threads_manager();
+    
+   /**
+    * \brief Open TCP-Port
+    */
     int init_tcp(int port);
 
-    // register a command "name" with id and its callback function
+  /**
+    * \brief Registrates a new commmand, which can be called by clients
+    * * register a command "name" with id and its callback function
+    */
     void add_command(char* name, int (*callback)(rt_server_command*, rt_server *rt_server_src), void *userdat );
     
     
     void loop();
+    
+    
+  /**
+    * \brief Start main thread; Returns immediately
+    */
     bool start_main_loop_thread();
     
     void destruct();
 
+    void lock_commandmap();
         // A map of commands FIXME: use mutex for savety
     command_map_t command_map;
+    pthread_mutex_t command_map_mutex;
+    void unlock_commandmap();
 
   private:
+
+    
     tcp_server *iohelper;
     
     int command_id_counter;

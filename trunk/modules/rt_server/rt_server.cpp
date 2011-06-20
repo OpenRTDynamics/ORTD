@@ -44,10 +44,15 @@ void rt_server_command::send_answer(rt_server *rt_server_src , char* str)
 //   pthread_mutex_unlock(rt_server_i->send_mutex);
 }
 
-int rt_server_command::run_callback(rt_server *rt_server_i, char *param)
+int rt_server_command::run_callback(rt_server *rt_server_src, char *param)
 {
-  this->paramter_str = param;
-  return (*this->callback)(this, rt_server_i);
+  this->paramter_str = param; // The command line for the callback within rt_server_command 
+
+//   this->send_answer(rt_server_src, "-- BEGIN --\n");
+  int calb_ret = (*this->callback)(this, rt_server_src);
+  this->send_answer(rt_server_src, "--EOR--\n");
+  
+  return calb_ret;
 }
 
 char* rt_server_command::get_parameter_str()
@@ -391,13 +396,20 @@ void rt_server::init()
 
 rt_server_command * rt_server::get_commandby_id(int id)
 {
+  
+        mymanager->lock_commandmap();
+	
    	  command_map_t::iterator iter = mymanager->command_map.find(id);
  	
  	  if (iter != mymanager->command_map.end()) {
+	    mymanager->unlock_commandmap();
+	    
  	    rt_server_command *command = iter->second;
 	    
 	    return command;
 	  } else {
+	    mymanager->unlock_commandmap();
+	    
 	    return NULL;
 	  }
 
@@ -410,6 +422,9 @@ int rt_server::parse_line(char* line)
   char *line_parameter_part;
 
   // search command instance
+  
+  mymanager->lock_commandmap();
+  
   command_map_t::iterator iter = mymanager->command_map.begin();
   
   for ( iter = mymanager->command_map.begin() ; iter != mymanager->command_map.end(); iter++ ) {
@@ -426,11 +441,15 @@ int rt_server::parse_line(char* line)
     }
   }
   
+  mymanager->unlock_commandmap();
   return -1; // command not found
   
 foundcmd:
   // command 
+  mymanager->unlock_commandmap();
+  
   int calb_retval = command->run_callback(this, line_parameter_part);
+  return calb_retval;
   //command->
 }
 
@@ -455,8 +474,12 @@ rt_server_threads_manager::rt_server_threads_manager()
 int rt_server_threads_manager::init_tcp(int port)
 {
   iohelper =  new tcp_server(port);
-  iohelper->tcp_server_init();
+  int ret = iohelper->tcp_server_init();
   
+  if (ret < 0)
+    delete iohelper;
+  
+  return ret;
 //   printf("tcp started\n");
   
 }
@@ -531,4 +554,14 @@ void rt_server_threads_manager::destruct()
   }
 
   command_map.clear();
+}
+
+void rt_server_threads_manager::lock_commandmap()
+{
+
+}
+
+void rt_server_threads_manager::unlock_commandmap()
+{
+
 }

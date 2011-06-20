@@ -12,6 +12,13 @@
 
 #include "rt_server.h"
 
+
+
+#define ORTD_DIRECTORY_ENTRYTYPE_PARAMETER 1
+#define ORTD_DIRECTORY_ENTRYTYPE_STREAM 2
+#define ORTD_DIRECTORY_ENTRYTYPE_IPARDATA 3
+#define ORTD_DIRECTORY_ENTRYTYPE_RPARDATA 4
+
 class directory_leaf;
 
 class directory_entry {
@@ -40,7 +47,7 @@ class directory_leaf {
     void set_name(const char *name);
     
     double * get_double_value_ptr(char *parname); // FIXME: REMOVE?
-    bool add_entry(char *name, void *belonges_to_class, void* userptr);
+    bool add_entry(char *name, int type, void *belonges_to_class, void* userptr);
 
 
     //  if ret = 1 then  *object IS "direntry *"   , *object is "parameter_directory *dir"
@@ -94,7 +101,7 @@ class directory_tree {
     directory_tree( rt_server_threads_manager * rts );
     void destruct();
     
-    bool add_entry(char *name, void *belonges_to_class, void* userptr);
+    bool add_entry(char *name, int type, void *belonges_to_class, void* userptr);
     directory_entry::direntry* access(char* path, void* belonges_to_class);
     
     // list the pwd directory
