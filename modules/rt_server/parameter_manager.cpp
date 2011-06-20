@@ -156,13 +156,13 @@ void parameter::destruct()
 
 
 
-int callback_set__(rt_server_command *cmd, rt_server *rt_server_src)
+int ortd_callback_setpar__(rt_server_command *cmd, rt_server *rt_server_src)
 {
   parameter_manager *pmgr = (parameter_manager *) cmd->userdat;
   pmgr->callback_set( cmd, rt_server_src );
 }
 
-int callback_get__(rt_server_command *cmd, rt_server *rt_server_src)
+int ortd_callback_getpar__(rt_server_command *cmd, rt_server *rt_server_src)
 {
   parameter_manager *pmgr = (parameter_manager *) cmd->userdat;
   pmgr->callback_get( cmd, rt_server_src );
@@ -279,16 +279,11 @@ void parameter_manager::callback_set(rt_server_command* cmd, rt_server* rt_serve
 parameter_manager::parameter_manager(rt_server_threads_manager* rts_thmng, directory_tree* root_directory)
 {
   this->rts_thmng = rts_thmng;
-  
-/*  // create root directory
-  this->root_directory = new directory_leaf();
-  root_directory->set_name("root");*/
-
   this->directory = root_directory;
 
   // register commands
-  this->rts_thmng->add_command("set_param", &callback_set__, this );
-  this->rts_thmng->add_command("get_param", &callback_get__, this );
+  this->rts_thmng->add_command("set_param", &ortd_callback_setpar__, this );
+  this->rts_thmng->add_command("get_param", &ortd_callback_getpar__, this );
   
 }
 
@@ -297,7 +292,7 @@ parameter * parameter_manager::new_parameter( char *name, int type, int size )
   parameter * p = new parameter(type, size);
   
   // for now insert into root
-  this->directory->add_entry(name, this, (void*) p);
+  this->directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_PARAMETER, this, (void*) p);
   
   return p;
 }
@@ -306,4 +301,103 @@ void parameter_manager::destruct()
 {
 //    FIXME: TODO
 }
+
+
+/*
+
+  A Stream
+
+*/
+
+
+ortd_stream::ortd_stream(int type, int const_size)
+{
+
+}
+
+int ortd_stream::parse_and_return(char * line)
+{
+
+}
+
+void ortd_stream::destruct()
+{
+
+}
+
+
+
+/*
+
+ Stream Manager
+
+*/
+
+
+// C-callback function
+int ortd_callback_fetchstream__(rt_server_command *cmd, rt_server *rt_server_src)
+{
+  ortd_stream_manager *smgr = (ortd_stream_manager *) cmd->userdat;
+  smgr->callback_get( cmd, rt_server_src );
+}
+
+void ortd_stream_manager::callback_get(rt_server_command* cmd, rt_server* rt_server_src)
+{
+  char *parstr = cmd->get_parameter_str();
+  
+  // get the name of the stream
+  char *pardir;
+  int ret = sscanf(parstr, "%as ", &pardir);
+  if (ret == 1) {
+    printf("name of the stream = \"%s\"\n", pardir);
+    directory_entry::direntry* dentr = directory->access(pardir, this);
+    free(pardir);
+
+    if (dentr == NULL || dentr->type != ORTD_DIRECTORY_ENTRYTYPE_STREAM) {
+      printf("Error: stream not found\n"); 
+      goto error_pnf;
+    }
+    
+    ortd_stream *stream = (ortd_stream *) dentr->userptr;
+    
+    if (stream != NULL) {
+      stream->parse_and_return(parstr);
+      
+      return;
+    }
+
+  }
+  
+  cmd->send_answer(rt_server_src, "Error: parser error\n");
+  return;
+  
+  
+ error_pnf:
+  cmd->send_answer(rt_server_src, "Error: stream not found\n");
+  return;
+}
+
+ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, directory_tree* root_directory)
+{
+  this->rts_thmng = rts_thmng;
+  this->directory = root_directory;
+
+  // register commands
+  this->rts_thmng->add_command("stream_fetch", &ortd_callback_fetchstream__, this );
+}
+
+ortd_stream* ortd_stream_manager::new_stream(char* name, int type, int size, directory_tree* directory)
+{
+  ortd_stream * stream = new ortd_stream(type, size);
+  
+  directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, this, (void*) stream);
+  
+  return stream;
+}
+
+void ortd_stream_manager::destruct()
+{
+
+}
+
 

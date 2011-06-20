@@ -76,7 +76,7 @@ void directory_leaf::set_name(const char* name)
 }
 
 
-bool directory_leaf::add_entry(char* name, void *belonges_to_class, void* userptr)
+bool directory_leaf::add_entry(char* name, int type, void *belonges_to_class, void* userptr)
 {
   //std::string *n = new std::string(name); // FIXME geht das so?
   std::string n(name); // FIXME pot segfault???
@@ -88,6 +88,7 @@ bool directory_leaf::add_entry(char* name, void *belonges_to_class, void* userpt
   entry->set(paired.first.c_str(), userptr); // hopefully this is a const char*
   entry->content.userptr = userptr;
   entry->content.belonges_to_class = belonges_to_class;
+  entry->content.type = type;
     
  // entries[name] = entry;
 }
@@ -244,8 +245,14 @@ int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_serv
   directory_entry::direntry *entr;
   while ( ( entr = this->get_list_next() ) != NULL ) {
 //     printf("*** %s\n", entr->name);
-    cmd->send_answer(rt_server_src, (char*) entr->name);
-    cmd->send_answer(rt_server_src, "\n");
+
+    char str[512];
+    sprintf(str, "%s %d\n", (char*) entr->name, entr->type ); // FIXME POssible buffer overflow
+
+    cmd->send_answer(rt_server_src, str);
+    
+//     cmd->send_answer(rt_server_src, (char*) entr->name);
+//     cmd->send_answer(rt_server_src, "\n");
 
   }
   
@@ -296,10 +303,10 @@ directory_entry::direntry* directory_tree::access(char* path, void* belonges_to_
   return dentr;
 }
 
-bool directory_tree::add_entry(char* name, void* belonges_to_class, void* userptr)
+bool directory_tree::add_entry(char* name, int type, void* belonges_to_class, void* userptr)
 {
   lock();
-  root->add_entry( name, belonges_to_class, userptr );
+  root->add_entry( name, type, belonges_to_class, userptr );
   unlock();
 }
 

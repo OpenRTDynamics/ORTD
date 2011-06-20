@@ -45,10 +45,11 @@
 // get_param oscinput
 //
 //
-// Alternatively do
+// Within scilab you can also do
 //
 //
 // ortd_remset_param_simple("localhost", 10000, "oscinput", 0);
+// ortd_rem_ls("localhost", 10000);
 
 
 

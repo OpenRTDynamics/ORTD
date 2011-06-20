@@ -495,8 +495,9 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
   pmgr = NULL;
   rts_mgr = NULL;
 
-  if (remote_control_tcpport != 0) 
-    init_communication(remote_control_tcpport);
+  if (remote_control_tcpport != 0) {
+    init_communication(remote_control_tcpport);    
+  }
 #endif
 }
 
@@ -514,24 +515,23 @@ int libdyn_master::init_communication(int tcpport)
 //     printf("rts_mgr = %p\n", rts_mgr);
 //     rts_mgr->command_map.clear();
     
-    rts_mgr->init_tcp(tcpport);
+    int cret = rts_mgr->init_tcp(tcpport);
 
+    if (cret < 0) {
+      fprintf(stderr , "Initialisation of communication server failed\n");
+//       delete this->rts_mgr;  // FIXME INCLUDE THIS
+      return cret;
+    }
+
+    
     printf("Creating directory\n");    
     dtree = new directory_tree(this->rts_mgr);
-//   d
-  
-    
-  
-// // //    rts_mgr->add_command("cmd1", &callback, NULL);
-
-
   
    pmgr = new parameter_manager( rts_mgr, dtree );
-
-/*  if ((void*)pmgr == (void*)0x23)
-     parameter *p1 = pmgr->new_parameter("parameter1", DATATYPE_FLOAT, 10 );*/
   
     rts_mgr->start_main_loop_thread();
+    
+    return 1;
   
 }
 

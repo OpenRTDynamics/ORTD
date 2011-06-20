@@ -43,8 +43,8 @@ int main()
   directory_entry::direntry *inode = root->access2("test1");
   printf("%x\n", inode->userptr);*/
 
-  dtree->add_entry("test1", NULL, (void*) 0x123);
-  dtree->add_entry("test2", NULL, (void*) 0x456);
+  dtree->add_entry("test1", 0, NULL, (void*) 0x123);
+  dtree->add_entry("test2", 0, NULL, (void*) 0x456);
   
   directory_entry::direntry *inode = dtree->access( "test1", NULL );
   printf("%x\n", inode->userptr);
