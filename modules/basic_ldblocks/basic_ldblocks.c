@@ -33,71 +33,219 @@
 
 int compu_func_switch2to1(int flag, struct dynlib_block_t *block)
 {
-  //printf("comp_func switch: flag==%d\n", flag);
-  int Nout = 1;
-  int Nin = 3;
+    //printf("comp_func switch: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 3;
 
-  double *inp1, *inp2;
-  double *control_in;
-  double *out1;	
-  double *out2;	
+    double *inp1, *inp2;
+    double *control_in;
+    double *out1;
+    double *out2;
 
-  double *rpar = libdyn_get_rpar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
 
-  switch (flag) {
+    switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
-      control_in = (double *) libdyn_get_input_ptr(block,0);
-      inp1 = (double *) libdyn_get_input_ptr(block,1);
-      inp2 = (double *) libdyn_get_input_ptr(block,2);
-      out1 = (double *) libdyn_get_output_ptr(block,0);
-      
-      if (*control_in > 0) {
-	*out1 = *inp1;
-      } else {
-	*out1 = *inp2;
-      }
-      
-      return 0;
-      break;
+        control_in = (double *) libdyn_get_input_ptr(block,0);
+        inp1 = (double *) libdyn_get_input_ptr(block,1);
+        inp2 = (double *) libdyn_get_input_ptr(block,2);
+        out1 = (double *) libdyn_get_output_ptr(block,0);
+
+        if (*control_in > 0) {
+            *out1 = *inp1;
+        } else {
+            *out1 = *inp2;
+        }
+
+        return 0;
+        break;
     case COMPF_FLAG_UPDATESTATES:
-      return 0;
-      break;
+        return 0;
+        break;
     case COMPF_FLAG_CONFIGURE:  // configure
-      //printf("New switch Block\n");
-      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
-      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
-      libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype,     
-      libdyn_config_block_input(block, 2, 1, DATATYPE_FLOAT); // in, intype,     
-      
-      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
-      
-      return 0;
-      break;
+        //printf("New switch Block\n");
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 2, 1, DATATYPE_FLOAT); // in, intype,
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+        return 0;
+        break;
     case COMPF_FLAG_INIT:  // init
-      return 0;
-      break;
+        return 0;
+        break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
-      return 0;
-      break;
+        return 0;
+        break;
     case COMPF_FLAG_PRINTINFO:
-      printf("I'm a switch 2 to 1 block\n");
-      return 0;
-      break;
-      
-  }
+        printf("I'm a switch 2 to 1 block\n");
+        return 0;
+        break;
+
+    }
 }
+
+/*
+  Demultiplexer
+
+*/
+int compu_func_demux(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int datatype = ipar[1];    
+    int Nout = size;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+
+        int i;
+
+// 	printf("--");
+        for (i = 0; i < size; ++i) {
+            double *out = (double *) libdyn_get_output_ptr(block, i);
+            *out = in[i];
+// 	    printf("%f ", in[i]);
+        }
+//         printf("--\n");
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("Demux size cannot be smaller than 1\n");
+          printf("demux size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        int i;
+        for (i = 0; i < size; ++i) {
+            libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT,1 ); // in, intype,
+        }
+
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm demux block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+/*
+  Demultiplexer
+
+*/
+int compu_func_mux(int flag, struct dynlib_block_t *block)
+{
+  //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int datatype = ipar[1];
+    int Nout = 1;
+    int Nin = size;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+
+        int i;
+
+        for (i = 0; i < size; ++i) {
+            double *in = (double *) libdyn_get_input_ptr(block, i);
+            out[i] = *in;
+        }
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("Mux size cannot be smaller than 1\n");
+          printf("mux size = %d\n", size);
+
+	  return -1;
+	}
+      
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        int i;
+        for (i = 0; i < size; ++i) {
+            libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT); 
+        }
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm mux block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 
 
 //#include "block_lookup.h"
 
 int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
-  // printf("libdyn module siminit function called\n"); 
-  
-  // Register my blocks to the given simulation
-  
-  int blockid = 60001;
-  libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_switch2to1);
+    // printf("libdyn module siminit function called\n");
+
+    // Register my blocks to the given simulation
+
+    int blockid_ofs = 60001;
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_switch2to1);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_demux);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_mux);
 }
 
 
