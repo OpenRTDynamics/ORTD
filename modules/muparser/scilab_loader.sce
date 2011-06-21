@@ -26,6 +26,10 @@ endfunction
 
 
 
+//
+// Use: http://help.scilab.org/docs/5.3.2/en_US/strsubst.html
+//
+
 function [sim,out] = ld_muparser2(sim, events, inlist, str, invar, par)
   // 
   Nin = length(inlist);
