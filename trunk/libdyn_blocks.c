@@ -656,7 +656,7 @@ struct dynlib_block_t *new_sat_block_(struct dynlib_simulation_t *sim, double *c
 
 int compu_func_const(int flag, struct dynlib_block_t *block)
 {
-  printf("comp_func const: flag==%d\n", flag);
+//   printf("comp_func const: flag==%d\n", flag);
   int Nout = 1;
   int Nin = 0;
 

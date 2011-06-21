@@ -21,6 +21,39 @@ endfunction
 
 
 
+
+function [sim,outlist] = ld_demux(sim, events, vecsize, invec)
+  btype = 60001 + 1;	
+  ipar = [vecsize, 0]; rpar = [];
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(invec) );
+
+  // connect each outport
+  outlist = list();
+  for i = 1:vecsize
+    [sim,out] = libdyn_new_oport_hint(sim, blk, i-1);   // ith port
+    outlist(i) = out;
+  end
+endfunction
+
+
+
+function [sim,out] = ld_mux(sim, events, vecsize, inlist)
+  btype = 60001 + 2;	
+  ipar = [vecsize; 0]; rpar = [];
+//pause;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, inlist );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
 //
 // Macros
 //
