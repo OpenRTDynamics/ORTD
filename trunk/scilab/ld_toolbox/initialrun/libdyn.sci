@@ -796,6 +796,14 @@ function [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsiz
 
    [sim, outlist] = fn(sim, inlist);
    
+   if (length(outsizes) > length(outlist)) then
+      error("libdyn: libdyn_setup_schematic: your function did not provide enough outputs");
+   end
+   
+   if (length(outsizes) < length(outlist)) then
+      error("libdyn: libdyn_setup_schematic: your function provides too much outputs");
+   end
+
    // connect outputs
    for i = 1:length(outsizes);
 //       if exists(outlist(i)) then
@@ -943,7 +951,7 @@ endfunction
 
 
 //
-// Sample play block
+// Simple sample play block
 //
 // plays the sequence stored in r
 // each time event 0 occurs the next value of r is put out
