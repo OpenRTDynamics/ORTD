@@ -18,7 +18,7 @@ LDFLAGS = -shared
 endif
 
 
-all: lib rt_server_test
+all: lib
 	echo "Module rt_server done"
 
 lib: rt_server.o parameter_manager.o directory.o rt_server_block.o
@@ -32,7 +32,7 @@ clean:
 
 
 rt_server_test: rt_server.cpp parameter_manager.cpp directory.cpp rt_server_test.cpp
-	$(CPP) -I../.. -L. -O2 -lm -lpthread rt_server.cpp parameter_manager.cpp directory.cpp  rt_server_test.cpp -o rt_server_test
+	$(CPP) -I../.. -L. -O2 -lm -lpthread rt_server.cpp parameter_manager.cpp directory.cpp  rt_server_test.cpp ../../log.c -o rt_server_test
 
 rt_server_block.o: rt_server_block.cpp
 	$(CC) $(CFLAGS) -c rt_server_block.cpp

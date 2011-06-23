@@ -6,12 +6,32 @@
 
 class parameter_manager;
 
-// from libdyn.h
+// copy from libdyn.h
 #define DATATYPE_UNCONFIGURED -1
 #define DATATYPE_FLOAT 1
 #define DATATYPE_SHORTFLOAT 4
 #define DATATYPE_INT 2
 #define DATATYPE_BOOLEAN 3
+
+
+extern "C" {
+#include "log.h"
+}
+
+class ortd_ringbuffer {
+private:
+  ringbuffer_t *rb;
+  
+public:
+  ortd_ringbuffer(int element_size, int num_elements, int autoflushInterval);
+  ~ortd_ringbuffer();
+  
+  int read_nonblock(void* data);
+  int read_block(void *data);
+  void write(void* data, int numElements);
+  void flush();
+  
+};
 
 
 class parameter {
@@ -75,9 +95,10 @@ class parameter_manager {
 
 class ortd_stream {
   public:
-    ortd_stream(int type, int const_size);
+    ortd_stream(int datatype, int const_size, int numElements);
     
-    int parse_and_return(char * line);
+    int parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char * line);
+    void write_to_stream(void *data, int numElements);
     
     int datatype;
     int nElements, byte_size;
@@ -87,6 +108,8 @@ class ortd_stream {
     
     
   private:
+    ortd_ringbuffer *rb;
+    void *oneElementBuf;
 };
 
   /**
@@ -102,7 +125,7 @@ class ortd_stream_manager {
     
     rt_server_threads_manager * rts_thmng;
     
-    ortd_stream * new_stream( char *name, int type, int size, directory_tree* directory );
+    ortd_stream * new_stream( char* name, int type, int size, int numElements, directory_tree* directory );
 
     
     void callback_get(rt_server_command *cmd, rt_server *rt_server_src);
