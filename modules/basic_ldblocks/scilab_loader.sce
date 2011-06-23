@@ -52,6 +52,25 @@ function [sim,out] = ld_mux(sim, events, vecsize, inlist)
 endfunction
 
 
+function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout)
+// hysteresis - block
+//
+// switches out between onout and offout
+// initial state is either -1 (off) or 1 (on)
+//
+//
+
+  if (switch_off_level > switch_on_level) then
+    error("ld_hysteresis: setting switch_off_level > switch_on_level makes no sense\n");
+  end
+
+  btype = 60001 + 3;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [initial_state], [ switch_on_level, switch_off_level, onout, offout]);
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 
 
 //

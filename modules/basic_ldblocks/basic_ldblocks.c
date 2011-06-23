@@ -18,6 +18,7 @@
 */
 
 #include <stdio.h>
+#include <malloc.h>
 
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
@@ -233,6 +234,84 @@ int compu_func_mux(int flag, struct dynlib_block_t *block)
 
 
 
+int ortd_compu_func_hysteresis(int flag, struct dynlib_block_t *block)
+{
+ // printf("comp_func flipflop: flag==%d\n", flag);
+  int Nout = 1;
+  int Nin = 1;
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  double *rpar = libdyn_get_rpar_ptr(block);
+  
+  int initial_state = ipar[0];
+  double switch_on_level = rpar[0];
+  double switch_off_level = rpar[1];
+  double onout = rpar[2];
+  double offout = rpar[3];
+  
+  int *state = (void*) libdyn_get_work_ptr(block);
+
+  double *in;
+  double *output;
+
+
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+      in= (double *) libdyn_get_input_ptr(block,0);
+      output = (double *) libdyn_get_output_ptr(block,0);
+      
+      *output = (state[0] > 0) ? onout : offout ;
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      in = (double *) libdyn_get_input_ptr(block,0);
+      output = (double *) libdyn_get_output_ptr(block,0);
+
+      if (state[0] < 0 && *in > switch_on_level) {
+// 	printf("sw on\n");
+	state[0] = 1;
+      }
+      
+      if (state[0] > 0 && *in < switch_off_level) {
+// 	printf("sw off\n");
+	state[0] = -1;
+  }
+      
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      //printf("New flipflop Block\n");
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+      {
+        int *state = malloc(sizeof(int));
+        libdyn_set_work_ptr(block, (void *) state);
+	*state = initial_state;
+      }
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      void *buffer = (void*) libdyn_get_work_ptr(block);
+      free(buffer);      
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a hysteresis block. initial_state = %d\n", initial_state);
+      return 0;
+      break;      
+  }
+}
+
+
 
 //#include "block_lookup.h"
 
@@ -246,6 +325,10 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_switch2to1);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_demux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_mux);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 3, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_hysteresis);
+    
+    
+    
 }
 
 
