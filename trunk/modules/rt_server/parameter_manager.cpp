@@ -305,24 +305,99 @@ void parameter_manager::destruct()
 
 /*
 
+  Wrapper for log.c's ringbuffer
+
+*/
+
+
+
+
+ortd_ringbuffer::ortd_ringbuffer(int element_size, int num_elements, int autoflushInterval)
+{
+  rb = log_ringbuffer_new(element_size, num_elements, autoflushInterval);
+}
+
+ortd_ringbuffer::~ortd_ringbuffer()
+{
+  log_ringbuffer_del(rb);
+}
+
+int ortd_ringbuffer::read_block(void *data)
+{
+  return log_ringbuffer_read(rb, data, 0);
+}
+
+int ortd_ringbuffer::read_nonblock(void *data)
+{
+  return log_ringbuffer_read(rb, data, 0);
+}
+
+void ortd_ringbuffer::write(void* data, int numElements)
+{
+  log_ringbuffer_write(rb, data, numElements);
+}
+
+void ortd_ringbuffer::flush()
+{
+  log_ringbuffer_flush(rb);
+}
+
+
+
+
+
+
+/*
+
   A Stream
 
 */
 
 
-ortd_stream::ortd_stream(int type, int const_size)
+ortd_stream::ortd_stream(int datatype, int const_size, int numElements )
 {
-
+  rb = new ortd_ringbuffer(const_size, numElements, 0);
+  this->datatype = datatype;
+  oneElementBuf = malloc( sizeof(double) * const_size );
 }
 
-int ortd_stream::parse_and_return(char * line)
+int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char* line)
 {
+  int ret;
+  
+  while ( (ret = rb->read_nonblock(oneElementBuf)) >= 0 ) { // fetch new vector element
+    printf(".\n");
+    
+    char str[256];
+    
+    // decide on datatype
+    if (datatype == DATATYPE_FLOAT) {
+      double *vec = (double *) oneElementBuf;
+      
+      // print all elements of the vector
+      int i;
+      for (i = 0; i < 1; ++i) {
+        sprintf(str, "%f, ", vec[i]);
+        cmd->send_answer(rt_server_src, str);
+      }
+      
+      cmd->send_answer(rt_server_src, "\n");
 
+    }
+  }
+  
 }
+
+void ortd_stream::write_to_stream(void* data, int numElements)
+{
+  rb->write(data, numElements);
+}
+
 
 void ortd_stream::destruct()
 {
-
+  delete rb;
+  free(oneElementBuf);
 }
 
 
@@ -361,7 +436,7 @@ void ortd_stream_manager::callback_get(rt_server_command* cmd, rt_server* rt_ser
     ortd_stream *stream = (ortd_stream *) dentr->userptr;
     
     if (stream != NULL) {
-      stream->parse_and_return(parstr);
+      stream->parse_and_return(cmd, rt_server_src, parstr);
       
       return;
     }
@@ -386,9 +461,9 @@ ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, d
   this->rts_thmng->add_command("stream_fetch", &ortd_callback_fetchstream__, this );
 }
 
-ortd_stream* ortd_stream_manager::new_stream(char* name, int type, int size, directory_tree* directory)
+ortd_stream* ortd_stream_manager::new_stream(char* name, int type, int size, int numElements, directory_tree* directory)
 {
-  ortd_stream * stream = new ortd_stream(type, size);
+  ortd_stream * stream = new ortd_stream(type, size, numElements);
   
   directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, this, (void*) stream);
   

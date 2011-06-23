@@ -316,7 +316,7 @@ void *log_sink_thread(void *data)
       mydebug(0) printf("reader: flush\n");
       // Flush buffers
       int tmp;
-      while ((tmp = log_ringbuffer_read(sink->rb, sink->oneelebuf, 1)) != -1) { // Blocking read
+      while ((tmp = log_ringbuffer_read(sink->rb, sink->oneelebuf, 1)) != -1) { // Non Blocking read
 	 mydebug(0) printf("flush... %d\n", tmp);
          ret = (*sink->callback_func)(sink->oneelebuf, sink->callback_userdat, 2);	 
       }

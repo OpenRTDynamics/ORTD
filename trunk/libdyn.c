@@ -561,11 +561,8 @@ void libdyn_del_block(struct dynlib_block_t *block)
   //Output cache löschen
   if (block->outdata != 0) free(block->outdata);
 
-mydebug(0) fprintf(stderr, "bla0 %d\n", (int) block->inlist);
   if (block->inlist != 0) free(block->inlist);
-mydebug(0) fprintf(stderr, "bla1\n");
   if (block->outlist != 0) free(block->outlist);
-mydebug(0) fprintf(stderr, "bla2\n");
   free(block);
 }
 

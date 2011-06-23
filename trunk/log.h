@@ -50,11 +50,11 @@ struct ringbuffer_t {
   
 };
 
-struct ringbuffer_t *log_ringbuffer_new(int element_size, int num_elements, int autoflushInterval);
-void log_ringbuffer_flush(struct ringbuffer_t *rb);
-int log_ringbuffer_del(struct ringbuffer_t *rb);
-int log_ringbuffer_write(struct ringbuffer_t *rb, void *data, int numElements);
-int log_ringbuffer_read(struct ringbuffer_t *rb, void *data, int nonblocking);
+extern struct ringbuffer_t *log_ringbuffer_new(int element_size, int num_elements, int autoflushInterval);
+extern void log_ringbuffer_flush(struct ringbuffer_t *rb);
+extern int log_ringbuffer_del(struct ringbuffer_t *rb);
+extern int log_ringbuffer_write(struct ringbuffer_t *rb, void *data, int numElements);
+extern int log_ringbuffer_read(struct ringbuffer_t *rb, void *data, int nonblocking);
 
 /*
  * A Sink that calls a userdefined callback for data storage in a separate thread
