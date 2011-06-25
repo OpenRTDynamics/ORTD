@@ -6,16 +6,18 @@
 
 class parameter_manager;
 
-// copy from libdyn.h
-#define DATATYPE_UNCONFIGURED -1
-#define DATATYPE_FLOAT 1
-#define DATATYPE_SHORTFLOAT 4
-#define DATATYPE_INT 2
-#define DATATYPE_BOOLEAN 3
+// // copy from libdyn.h
+// #define DATATYPE_UNCONFIGURED 0
+// #define DATATYPE_FLOAT (1 | (sizeof(double) << 5))
+// #define DATATYPE_SHORTFLOAT 4
+// #define DATATYPE_INT 2
+// #define DATATYPE_BOOLEAN 3
+// #define DATATYPE_EVENT 4
 
 
 extern "C" {
 #include "log.h"
+#include "libdyn.h"  // uses datatypes
 }
 
 class ortd_ringbuffer {
@@ -80,6 +82,8 @@ class parameter_manager {
     // create a new parameter within directory
     parameter * new_parameter( char *name, int type, int size, directory_tree* directory );
 
+    void delete_parameter(parameter *par);
+
 
 
     void callback_set(rt_server_command *cmd, rt_server *rt_server_src);
@@ -95,13 +99,20 @@ class parameter_manager {
 
 class ortd_stream {
   public:
-    ortd_stream(int datatype, int const_size, int numElements);
+    ortd_stream(int datatype, int const_len, int numBufferElements );
+    
     
     int parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char * line);
-    void write_to_stream(void *data, int numElements);
+    void write_to_stream(void *data);
     
+    // ortd datatype
     int datatype;
-    int nElements, byte_size;
+    
+    // length of the vector
+    int nElements; 
+    
+    // number of byte required by the vector (depends on datatype and nElements)
+    int byte_size;
 
     
     void destruct();
@@ -110,6 +121,7 @@ class ortd_stream {
   private:
     ortd_ringbuffer *rb;
     void *oneElementBuf;
+    int numBytes; // number of bytes for the oneElementBuf
 };
 
   /**
@@ -118,14 +130,15 @@ class ortd_stream {
 class ortd_stream_manager {
   public:
     // register set and get commands to rt_server_threads_manager
-    ortd_stream_manager( rt_server_threads_manager* rts_thmng, directory_tree* root_directory );
+    ortd_stream_manager( rt_server_threads_manager* rts_thmng, directory_tree* directory );
     void destruct();
     
     directory_tree * directory;
     
     rt_server_threads_manager * rts_thmng;
     
-    ortd_stream * new_stream( char* name, int type, int size, int numElements, directory_tree* directory );
+    ortd_stream * new_stream( char* name, int datatype, int const_len, int numBufferElements );
+    void delete_stream(ortd_stream *stream);
 
     
     void callback_get(rt_server_command *cmd, rt_server *rt_server_src);

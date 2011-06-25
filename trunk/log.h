@@ -20,6 +20,10 @@
 
 //
 
+#ifndef _ORTD_LOG_H
+#define _ORTD_LOG_H 1
+
+
 #include <pthread.h>
 //#include <stdlib.h>
 #include <stdio.h>
@@ -109,3 +113,4 @@ void log_streamtrans_flush(struct streamtrans_t *st);
 int log_streamtrans_del(struct streamtrans_t *st);
 int log_streamtrans_log(struct streamtrans_t *st, void *bindata, int NumBytes);
 
+#endif

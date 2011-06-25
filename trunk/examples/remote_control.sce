@@ -30,8 +30,11 @@
 //
 // NOTE: The "ld_toolbox" is needed
 //
-// Execute within scilab. The shell command "sudo libdyn_generic_exec --baserate=50 -s oscillator -i 901 -l 0 --master_tcpport 10000"
-// will start the realtime simulation.
+// Execute within scilab. The shell command "sudo libdyn_generic_exec --baserate=50 -s oscillator_remote -i 901 -l 0 --master_tcpport 10000"
+// will start the realtime simulation and open an tcp-port 10000.
+//
+// Note: There are no security features at the moment!
+//       Everybode can connect to this port
 //
 //
 // Then you can do for example:
@@ -139,7 +142,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
     [sim, x,y] = oscillator(u);  
   end
   
-  
+  [sim] = ld_stream(sim, defaultevents, x, "osc_output", 1);
   
   [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
   
@@ -179,7 +182,7 @@ parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 par = combine_irparam(parlist);
 
 // save vectors to a file
-save_irparam(par, 'oscillator.ipar', 'oscillator.rpar');
+save_irparam(par, 'oscillator_remote.ipar', 'oscillator_remote.rpar');
 
 // clear
 par.ipar = [];
@@ -189,7 +192,7 @@ par.rpar = [];
 
 
 // optionally execute
-unix('libdyn_generic_exec -s oscillator -i 901 -l 1000');
+messages = unix_g('libdyn_generic_exec -s oscillator_remote -i 901 -l 100');
 
 
 // load results

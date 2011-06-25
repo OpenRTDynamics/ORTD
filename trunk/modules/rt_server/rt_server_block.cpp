@@ -37,6 +37,13 @@ extern "C" {
     int libdyn_module_rt_server_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
 }
 
+/*
+
+   Parameter Block
+   
+*/
+
+
 class compu_func_rt_server_param_class {
 public:
     compu_func_rt_server_param_class(struct dynlib_block_t *block);
@@ -210,7 +217,203 @@ int compu_func_rt_server_param(int flag, struct dynlib_block_t *block)
     }
 }
 
-//#include "block_lookup.h"
+/*
+
+   STream block
+
+*/
+
+class compu_func_rt_server_stream_class {
+public:
+    compu_func_rt_server_stream_class(struct dynlib_block_t *block);
+    void destruct();
+    void io(int update_states);
+    int init();
+private:
+   struct dynlib_block_t *block;
+
+   char *stream_name;
+   int datatype;
+   
+   libdyn_master *master;
+   ortd_stream *stream;
+   
+   bool deactivated;
+};
+
+
+compu_func_rt_server_stream_class::compu_func_rt_server_stream_class(dynlib_block_t* block)
+{
+  this->block = block;
+}
+
+
+
+int compu_func_rt_server_stream_class::init()
+{
+//   printf("New streamer block\n");
+  
+    deactivated = true;
+  
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int insize = ipar[1];    
+    datatype = ipar[2];
+    datatype = DATATYPE_FLOAT; // FIXME REMOVE
+
+    int bufferlen = ipar[3];
+    int exprlen = ipar[4];
+    int *coded_stream_name = &ipar[5];
+
+    master = (libdyn_master *) block->sim->master;
+    if (master == NULL) {
+      fprintf(stderr, "WARNING: libdyn: parameter block requires a libdyn master\n");
+      return 0;
+    }
+    
+    if (master->stream_mgr == NULL) {
+      fprintf(stderr, "WARNING: libdyn: parameter block requires a set-up stream manager\nTurn on rmeote control\n");
+      return 0;
+    }
+
+    //      Checked for possible errors, now this block can be activated
+    deactivated = false;
+
+
+    stream_name = (char *) malloc(exprlen+1);
+
+    // Decode filename
+    int i;
+    for (i = 0; i < exprlen; ++i)
+        stream_name[i] = coded_stream_name[i];
+
+    stream_name[i] = 0; // String termination
+
+    printf("New stream named %s\n", stream_name);
+
+    // set up a new stream
+    stream = master->stream_mgr->new_stream(stream_name, datatype, insize, 100 );
+    
+//     par = master-> (stream_name, DATATYPE_FLOAT , outsize);
+    
+  
+    return 0;
+
+}
+
+
+void compu_func_rt_server_stream_class::io(int update_states)
+{
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+  
+  void *input_port = libdyn_get_input_ptr(block, 0);
+
+  if (!deactivated) {
+    if (update_states==1) {
+ 	stream->write_to_stream( input_port  );
+
+    }
+  }
+
+}
+
+
+void compu_func_rt_server_stream_class::destruct()
+{
+  
+  if (!deactivated) {
+    
+    
+    stream->destruct();
+    delete stream;
+    
+    free(stream_name);
+  }
+
+}
+
+
+
+
+int compu_func_rt_server_strem(int flag, struct dynlib_block_t *block)
+{
+
+//      printf("comp_func rt_server_param: flag==%d\n", flag);
+
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int block_version = ipar[0];
+    int insize = ipar[1];
+    int datatype = ipar[2];
+    datatype = DATATYPE_FLOAT; // FIXME REMOVE
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        compu_func_rt_server_stream_class *worker = (compu_func_rt_server_stream_class *) libdyn_get_work_ptr(block);
+
+        worker->io(0);
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        compu_func_rt_server_stream_class *worker = (compu_func_rt_server_stream_class *) libdyn_get_work_ptr(block);
+
+        worker->io(1);
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        int i;
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, 0, 1, (void *) 0, 0);
+	
+        libdyn_config_block_input(block, 0, insize, datatype);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        compu_func_rt_server_stream_class *worker = new compu_func_rt_server_stream_class(block);
+        libdyn_set_work_ptr(block, (void*) worker);
+
+        int ret = worker->init();
+        if (ret < 0)
+            return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        compu_func_rt_server_stream_class *worker = (compu_func_rt_server_stream_class *) libdyn_get_work_ptr(block);
+
+        worker->destruct();
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a remote streamer block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+/*
+
+   Module constructor
+
+*/
+
 
 int libdyn_module_rt_server_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
@@ -219,6 +422,8 @@ int libdyn_module_rt_server_siminit(struct dynlib_simulation_t *sim, int bid_ofs
 
     int blockid = 14001;
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_rt_server_param);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_rt_server_strem);
+    
 
     printf("libdyn module rt_server initialised\n");
 

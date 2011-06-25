@@ -106,6 +106,7 @@ class libdyn_master {
 
 	  directory_tree * dtree;
 	  parameter_manager * pmgr;
+	  ortd_stream_manager *stream_mgr;
 
     int init_communication(int tcpport);
     void close_communication();
