@@ -92,6 +92,8 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   int sum, tmp, i;
   double *p;
 
+  iocfg.provided_outcaches = 0;
+  
   iocfg.inports = Nin;
   iocfg.outports = Nout;
   
@@ -371,6 +373,8 @@ libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
   int sum, tmp, i;
   double *p;
 
+  iocfg.provided_outcaches = 0;
+  
   iocfg.inports = Nin;
   iocfg.outports = Nout;
   
@@ -474,11 +478,13 @@ libdyn_master::libdyn_master()
   printf("Created new libdyn master\n");
   
 #ifdef REMOTE
+  // Initial subsystems (not available)
   dtree = NULL;
   pmgr = NULL;
+  stream_mgr = NULL;
   rts_mgr = NULL;
   
-   init_communication(10000);  // FIXME remove
+   init_communication(10000);  // FIXME remove as by default no remote interface is desired
 #endif
 }
 
@@ -493,10 +499,11 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 #ifdef REMOTE
   dtree = NULL;
   pmgr = NULL;
+  stream_mgr = NULL;
   rts_mgr = NULL;
 
   if (remote_control_tcpport != 0) {
-    init_communication(remote_control_tcpport);    
+    init_communication(remote_control_tcpport);   // FIXME: Handle return value 
   }
 #endif
 }
@@ -528,6 +535,7 @@ int libdyn_master::init_communication(int tcpport)
     dtree = new directory_tree(this->rts_mgr);
   
    pmgr = new parameter_manager( rts_mgr, dtree );
+   stream_mgr = new ortd_stream_manager(rts_mgr, dtree );
   
     rts_mgr->start_main_loop_thread();
     
@@ -537,19 +545,27 @@ int libdyn_master::init_communication(int tcpport)
 
 void libdyn_master::close_communication()
 {
-  if (rts_mgr != NULL) {
-  rts_mgr->destruct();
-  delete rts_mgr;
-  }
     
   if (pmgr != NULL) {
   pmgr->destruct();
   delete pmgr;
   }
+
+  if (stream_mgr != NULL) {
+    stream_mgr->destruct();
+    delete stream_mgr;
+  }
   
   if (dtree != NULL) {
   dtree->destruct();
   delete dtree;
+
+  if (rts_mgr != NULL) {
+  rts_mgr->destruct();
+  delete rts_mgr;
+  }
+  
+  
   }
 }
 

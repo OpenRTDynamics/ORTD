@@ -30,3 +30,33 @@ function [sim,out] = ld_parameter(sim, events, str, initial_param)
 endfunction
 
 
+function [sim] = ld_stream(sim, events, in, str, insize)
+  // Creates a new stream block that is remotely controlable via TCP
+  // It requires the set-up of a libdyn master
+  // 
+  // str - is a string of the stream name
+  // insize is the vector length of the input port
+  // 
+  bufferlen = 100; // how many vectors should be stored in the ringbuffer
+  datatype = -1; // FIXME set to FLOAT
+
+  btype = 14001 + 1;
+  str = ascii(str);
+
+//     int insize = ipar[1];    
+//     datatype = ipar[2];
+//     datatype = DATATYPE_FLOAT; // FIXME REMOVE
+// 
+//     int bufferlen = ipar[3];
+//     int exprlen = ipar[4];
+//     int *coded_stream_name = &ipar[5];
+
+  
+  ipar = [0, insize, datatype, bufferlen, length(str), str(:)'];
+  rpar = [];
+  
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+
+  // connect input port
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+endfunction

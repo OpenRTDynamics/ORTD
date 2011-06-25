@@ -65,6 +65,47 @@ void libdyn_free(struct dynlib_simulation_t *sim, void * p)
 }
 
 
+/*
+ * Datatype handling
+*/
+
+// #define DATATYPE_UNCONFIGURED 0
+// #define DATATYPE_FLOAT (1 | (sizeof(double) << 5))
+// #define DATATYPE_SHORTFLOAT 4
+// #define DATATYPE_INT 2
+// #define DATATYPE_BOOLEAN 3
+// #define DATATYPE_EVENT 5
+
+int libdyn_config_get_datatype_len(int datatype)
+{  // FIXME NEW 25.6. encode the datasize with bitoperations within datatype
+  //  BAUSTELLE !
+  //
+  // datatype = [ datatype_len, 5 Bits for datatype encoding ];
+  //
+  int datatype_len = datatype >> 5;
+
+  switch (datatype) {
+     case DATATYPE_FLOAT :
+       return sizeof(double);
+       break;
+     case DATATYPE_SHORTFLOAT :
+       return sizeof(float);
+       break;
+     case DATATYPE_INT :
+       return sizeof(int);
+       break;
+     case DATATYPE_BOOLEAN : // FIXME: Hmmm
+       return sizeof(char);
+       break;       
+     case DATATYPE_EVENT : // FIXME: Hmmm
+       return sizeof(char);
+       break;       
+  }
+}
+
+
+
+
 //
 // Simulation handling
 //
@@ -427,31 +468,6 @@ int libdyn_config_block_input(struct dynlib_block_t *block, int in, int len, int
 }
 
 //#define libdyn_config_block_output(block,out,len,datatype) libdyn_config_block_output_ext((block),(out),(len),(datatype),);
-
-
-#define DATATYPE_UNCONFIGURED -1
-#define DATATYPE_FLOAT 1
-#define DATATYPE_SHORTFLOAT 4
-#define DATATYPE_INT 2
-#define DATATYPE_BOOLEAN 3
-
-int libdyn_config_get_datatype_len(int datatype)
-{
-  switch (datatype) {
-     case DATATYPE_FLOAT :
-       return sizeof(double);
-       break;
-     case DATATYPE_SHORTFLOAT :
-       return sizeof(float);
-       break;
-     case DATATYPE_INT :
-       return sizeof(int);
-       break;
-     case DATATYPE_BOOLEAN : // FIXME: Hmmm
-       return sizeof(char);
-       break;       
-  }
-}
 
 int libdyn_config_block_output(struct dynlib_block_t *block, int out, int len, int datatype, int dinput_dependence)
 {

@@ -277,7 +277,12 @@ int ortd_compu_func_hysteresis(int flag, struct dynlib_block_t *block)
       if (state[0] > 0 && *in < switch_off_level) {
 // 	printf("sw off\n");
 	state[0] = -1;
-  }
+      }
+      
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES:
+      *state = initial_state;
       
       return 0;
       break;

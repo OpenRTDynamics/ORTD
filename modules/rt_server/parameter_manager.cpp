@@ -297,6 +297,12 @@ parameter * parameter_manager::new_parameter( char *name, int type, int size )
   return p;
 }
 
+void parameter_manager::delete_parameter(parameter* par)
+{
+//    FIXME TODO
+}
+
+
 void parameter_manager::destruct()
 {
 //    FIXME: TODO
@@ -329,7 +335,7 @@ int ortd_ringbuffer::read_block(void *data)
 
 int ortd_ringbuffer::read_nonblock(void *data)
 {
-  return log_ringbuffer_read(rb, data, 0);
+  return log_ringbuffer_read(rb, data, 1);
 }
 
 void ortd_ringbuffer::write(void* data, int numElements)
@@ -354,19 +360,26 @@ void ortd_ringbuffer::flush()
 */
 
 
-ortd_stream::ortd_stream(int datatype, int const_size, int numElements )
+ortd_stream::ortd_stream(int datatype, int const_len, int numBufferElements )
 {
-  rb = new ortd_ringbuffer(const_size, numElements, 0);
+  // const_len : number of vector elements
+  
+  nElements = const_len;
+  numBytes = const_len * libdyn_config_get_datatype_len(datatype);
+  rb = new ortd_ringbuffer(numBytes, numBufferElements, 0);
   this->datatype = datatype;
-  oneElementBuf = malloc( sizeof(double) * const_size );
+  oneElementBuf = malloc( numBytes );
 }
 
 int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char* line)
 {
   int ret;
+  int fetch_counter = 0;
+  int max_fetch = 10;
   
-  while ( (ret = rb->read_nonblock(oneElementBuf)) >= 0 ) { // fetch new vector element
-    printf(".\n");
+  while ( fetch_counter < max_fetch && (ret = rb->read_nonblock(oneElementBuf)) >= 0 ) { // fetch new vector element
+    fetch_counter++;
+//     printf(". ret=%d\n", ret);
     
     char str[256];
     
@@ -376,7 +389,8 @@ int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_s
       
       // print all elements of the vector
       int i;
-      for (i = 0; i < 1; ++i) {
+      for (i = 0; i < this->nElements; ++i) {
+// 	printf(str, "%f, ", vec[i]);
         sprintf(str, "%f, ", vec[i]);
         cmd->send_answer(rt_server_src, str);
       }
@@ -388,9 +402,10 @@ int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_s
   
 }
 
-void ortd_stream::write_to_stream(void* data, int numElements)
+// writes one vecotr to the stream
+void ortd_stream::write_to_stream(void* data)
 {
-  rb->write(data, numElements);
+  rb->write(data, 1);
 }
 
 
@@ -452,23 +467,29 @@ void ortd_stream_manager::callback_get(rt_server_command* cmd, rt_server* rt_ser
   return;
 }
 
-ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, directory_tree* root_directory)
+ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, directory_tree* directory)
 {
   this->rts_thmng = rts_thmng;
-  this->directory = root_directory;
+  this->directory = directory; // the directory tree subsystem
 
   // register commands
   this->rts_thmng->add_command("stream_fetch", &ortd_callback_fetchstream__, this );
 }
 
-ortd_stream* ortd_stream_manager::new_stream(char* name, int type, int size, int numElements, directory_tree* directory)
+ortd_stream* ortd_stream_manager::new_stream(char* name, int datatype, int const_len, int numBufferElements)
 {
-  ortd_stream * stream = new ortd_stream(type, size, numElements);
+  ortd_stream * stream = new ortd_stream(datatype, const_len, numBufferElements);
   
   directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, this, (void*) stream);
   
   return stream;
 }
+
+void ortd_stream_manager::delete_stream(ortd_stream* stream)
+{
+  // FIXME TODO
+}
+
 
 void ortd_stream_manager::destruct()
 {

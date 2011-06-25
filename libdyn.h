@@ -29,27 +29,37 @@
  *
  */
 
+#ifndef _LIBDYN_H
+#define _LIBDYN_H 1
+
+
+
 
 #include "block_lookup.h"
 
-#define LIBDYN_TF_FILTER 10
-#define LIBDYN_SHIFT_FILTER 11
-#define LIBDYN_DEJITTER_FILTER 12
-#define LIBDYN_IMPULSE_FILTER 13
 
 // Max connections to an summation or multiplication point
 #define INPUT_MAX_CONNECTIONS 10
 #define LIBDYN_MAX_BLOCK_EVENTS 32
 #define LIBDYN_MAX_EVENTS 32
 
+
+/*
+ * Datatype handling
+*/
+
 // Different datatypes  DATATYPE_UNCONFIGURED means Blocks PORt is not configured
-#define DATATYPE_UNCONFIGURED -1
-#define DATATYPE_FLOAT 1
+#define __libdyn_create_datatype(id, size) ( (id) | (size) << 5 ) 
+
+#define DATATYPE_UNCONFIGURED 0
+#define DATATYPE_FLOAT (1 | (sizeof(double) << 5))
 #define DATATYPE_SHORTFLOAT 4
 #define DATATYPE_INT 2
 #define DATATYPE_BOOLEAN 3
+#define DATATYPE_EVENT 5
 
-// Different types inputs
+
+// Different types inputs UNUSED 
 #define INTYPE_UNDEF -1
 #define INTYPE_DIRECT 1
 #define INTYPE_EXTERN 2
@@ -57,11 +67,9 @@
 #define INTYPE_SUMMATION 4
 #define INTYPE_MULTIPLICATION 5
 
+// Types for output ports
 #define OUTTYPE_UNDEF -1
 #define OUTTYPE_DIRECT 1
-
-//#define INOUT_CONNECTED -1
-//#define INOUT_CONNECTED 1
 
 
 // Types of Blocks
@@ -77,6 +85,7 @@
 #define COMPF_FLAG_SETEXTRAPAR 6
 #define COMPF_FLAG_INIT 7 // follows CONFIGURE
 #define COMPF_FLAG_RELOAD_IRPAR 8
+#define COMPF_FLAG_RESETSTATES 9 // NEW 25.6
 #define COMPF_FLAG_PRINTINFO 100
 
 
@@ -319,7 +328,7 @@ void libdyn_clock_event_generator(struct dynlib_simulation_t *simulation);
 // int libdyn_event_check(struct dynlib_block_t *block, int event);
 // #define __libdyn_event_check(block, event) ( libdyn_event_check((block),  (event))  )
 
-
+int libdyn_config_get_datatype_len(int datatype); // get number of bytes requires by one element of type datatype
 void libdyn_block_dumpinfo(struct dynlib_block_t *block);
 void libdyn_block_setid(struct dynlib_block_t *block, char *id);
 void libdyn_config_block(struct dynlib_block_t *block, int block_type, int Nout, int Nin, void *work, int own_outcache);
@@ -353,6 +362,18 @@ int libdyn_setup_executionlist(struct dynlib_simulation_t *simulation);
 
 
 void libdyn_dump_all_blocks(struct dynlib_simulation_t *sim);
+
+
+
+/*
+    Basic Filters
+
+*/
+// THis is from the basic filter stuff
+#define LIBDYN_TF_FILTER 10
+#define LIBDYN_SHIFT_FILTER 11
+#define LIBDYN_DEJITTER_FILTER 12
+#define LIBDYN_IMPULSE_FILTER 13
 
 
 
@@ -449,6 +470,9 @@ struct libdyn_io_config_t {
   int *insizes, *outsizes; // Size of each port
   double **inptr;
   double **outptr;
+  
+  char provided_outcaches; // If set to 1 libdyn does not need to alloc memory for outcaches, because the client already did
+			    // *outptr will be preset FIXME NEW 25.6.
 };
 
 int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double *rpar, int id, struct libdyn_io_config_t *iocfg);
@@ -489,6 +513,8 @@ struct libdyn_user_blocks_list_ele_t {
   int insizes83637[] = INsizes;    \
   int outsizes83637[] = OUTsizes;    \
       \
+  iocfg.provided_outcaches = 0; \
+      \
   (varname).iocfg.inports = (Ninp);    \
   (varname).iocfg.outports = (Noutp);    \
     \
@@ -521,7 +547,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   
   
 /*
- * Events stuff
+ * Events stuff FIXME not really used
  */
 
 struct libdyn_event_div_t {
@@ -543,3 +569,4 @@ int libdyn_event_div(struct libdyn_event_div_t *div, int update_states);
 void * libdyn_malloc(struct dynlib_simulation_t *sim, unsigned int size, int type);
 void libdyn_free(struct dynlib_simulation_t *sim, void * p);
 
+#endif
