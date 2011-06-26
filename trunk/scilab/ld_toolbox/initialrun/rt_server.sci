@@ -47,3 +47,16 @@ endfunction
 function dls = ortd_rem_ls(ho, port)
   dls = unix_g("echo ls" + "  | netcat " + ho + " " + string(port) );
 endfunction
+
+function vec = ortd_rem_readstream(ho, port, name, len)
+  msg = unix_g("echo stream_fetch " + name + " " + string(len) + "  | netcat " + ho + " " + string(port) );
+
+  // parse the string matrix
+  [n,m] = size(msg); 
+  n=n-1; // Do not use the last element because its the end marker
+  vec = zeros(n, 1);
+  for i = 1:(n)
+      vec(i) = msscanf( msg(i), " %f " );
+  end
+endfunction
+

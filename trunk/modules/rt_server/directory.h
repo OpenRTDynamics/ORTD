@@ -101,7 +101,9 @@ class directory_tree {
     directory_tree( rt_server_threads_manager * rts );
     void destruct();
     
+    // create a new file return true if successful
     bool add_entry(char *name, int type, void *belonges_to_class, void* userptr);
+    
     directory_entry::direntry* access(char* path, void* belonges_to_class);
     
     // list the pwd directory
