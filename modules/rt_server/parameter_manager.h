@@ -35,11 +35,13 @@ public:
   
 };
 
+class parameter_manager;
 
 class parameter {
   public:
     parameter();
-    parameter(int type, int const_size);
+    parameter(parameter_manager *p_mgr, char *name, int type, int const_size);
+    ~parameter();
     
     int parse_and_set(char * line);
     
@@ -93,16 +95,19 @@ class parameter_manager {
 
 
 
-
+class ortd_stream_manager;
 
 
 
 class ortd_stream {
   public:
-    ortd_stream(int datatype, int const_len, int numBufferElements );
+    ortd_stream(ortd_stream_manager * str_mgr, char *name, int datatype, int const_len, int numBufferElements );
+    ~ortd_stream();
     
+    // return the requested data (nElement datasets) to the client    
+    int parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char * line, int nElements);
     
-    int parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char * line);
+    // used by the stream source to inject data
     void write_to_stream(void *data);
     
     // ortd datatype
@@ -119,6 +124,7 @@ class ortd_stream {
     
     
   private:
+    ortd_stream_manager * str_mgr;
     ortd_ringbuffer *rb;
     void *oneElementBuf;
     int numBytes; // number of bytes for the oneElementBuf

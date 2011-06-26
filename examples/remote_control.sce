@@ -46,14 +46,15 @@
 // ls
 // set_param oscinput #  50
 // get_param oscinput
+// stream_fetch osc_output 12
 //
 //
 // Within scilab you can also do
 //
 //
 // ortd_remset_param_simple("localhost", 10000, "oscinput", 0);
-// ortd_rem_ls("localhost", 10000);
-
+// ortd_rem_ls("localhost", 10000)
+// vec = ortd_rem_readstream("localhost", 10000, 'osc_output', 100)
 
 
 

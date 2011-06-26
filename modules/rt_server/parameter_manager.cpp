@@ -27,7 +27,7 @@ parameter::parameter()
   data_loadbuffer = NULL;
 }
 
-parameter::parameter(int type, int const_size)
+parameter::parameter(parameter_manager *p_mgr, char *name, int type, int const_size)
 {
   data = NULL;
   
@@ -45,7 +45,16 @@ parameter::parameter(int type, int const_size)
     }
     
   }
+  
+    // for now insert into root
+  p_mgr->directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_PARAMETER, p_mgr, (void*) this);
 }
+
+parameter::~parameter()
+{
+
+}
+
 
 
 void parameter::lock_buffer()
@@ -184,13 +193,13 @@ void parameter_manager::callback_get(rt_server_command* cmd, rt_server* rt_serve
   char *pardir;
   int ret = sscanf(parstr, "%as ", &pardir);
   if (ret == 1) {
-    printf("pardir = \"%s\"\n", pardir);
+//     printf("pardir = \"%s\"\n", pardir);
 
     directory_entry::direntry* dentr = directory->access(pardir, this);
     free(pardir);
 
     if (dentr == NULL) {
-      printf("parameter not found\n"); 
+//       printf("parameter not found\n"); 
       goto error_pnf;
     }
     
@@ -203,7 +212,7 @@ void parameter_manager::callback_get(rt_server_command* cmd, rt_server* rt_serve
       double *par = (double*) param->data_loadbuffer;
 
       // send a list of values
-      cmd->send_answer(rt_server_src, "dataset = [ \n");
+//       cmd->send_answer(rt_server_src, "dataset = [ \n");
       
       for (i = 0; i < param->nElements; ++i) {
 	char returnstr[50];
@@ -212,7 +221,7 @@ void parameter_manager::callback_get(rt_server_command* cmd, rt_server* rt_serve
 	cmd->send_answer(rt_server_src, returnstr);
       }
 
-      cmd->send_answer(rt_server_src, "];\n");
+//       cmd->send_answer(rt_server_src, "];\n");
 
 
     }
@@ -245,13 +254,13 @@ void parameter_manager::callback_set(rt_server_command* cmd, rt_server* rt_serve
   char *pardir;
   int ret = sscanf(parstr, "%as ", &pardir);
   if (ret == 1) {
-    printf("pardir = \"%s\"\n", pardir);
+//     printf("pardir = \"%s\"\n", pardir);
 
     directory_entry::direntry* dentr = directory->access(pardir, this);
     free(pardir);
 
     if (dentr == NULL) {
-      printf("Error: parameter not found\n"); 
+//       printf("Error: parameter not found\n"); 
       goto error_pnf;
     }
     
@@ -289,11 +298,8 @@ parameter_manager::parameter_manager(rt_server_threads_manager* rts_thmng, direc
 
 parameter * parameter_manager::new_parameter( char *name, int type, int size )
 {
-  parameter * p = new parameter(type, size);
-  
-  // for now insert into root
-  this->directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_PARAMETER, this, (void*) p);
-  
+  parameter * p = new parameter(this, name, type, size);
+    
   return p;
 }
 
@@ -360,7 +366,7 @@ void ortd_ringbuffer::flush()
 */
 
 
-ortd_stream::ortd_stream(int datatype, int const_len, int numBufferElements )
+ortd_stream::ortd_stream(ortd_stream_manager * str_mgr, char *name, int datatype, int const_len, int numBufferElements )
 {
   // const_len : number of vector elements
   
@@ -369,13 +375,27 @@ ortd_stream::ortd_stream(int datatype, int const_len, int numBufferElements )
   rb = new ortd_ringbuffer(numBytes, numBufferElements, 0);
   this->datatype = datatype;
   oneElementBuf = malloc( numBytes );
+  
+//   Add directory entry
+  str_mgr->directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, str_mgr, (void*) this);
 }
 
-int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char* line)
+ortd_stream::~ortd_stream()
+{
+  // FIXME; remove file (also for parameter class)
+}
+
+void ortd_stream::destruct()
+{
+  delete rb;
+  free(oneElementBuf);
+}
+
+int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char* line, int ndatasets)
 {
   int ret;
   int fetch_counter = 0;
-  int max_fetch = 10;
+  int max_fetch = ndatasets;
   
   while ( fetch_counter < max_fetch && (ret = rb->read_nonblock(oneElementBuf)) >= 0 ) { // fetch new vector element
     fetch_counter++;
@@ -391,7 +411,7 @@ int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_s
       int i;
       for (i = 0; i < this->nElements; ++i) {
 // 	printf(str, "%f, ", vec[i]);
-        sprintf(str, "%f, ", vec[i]);
+        sprintf(str, "%f ", vec[i]);
         cmd->send_answer(rt_server_src, str);
       }
       
@@ -409,11 +429,6 @@ void ortd_stream::write_to_stream(void* data)
 }
 
 
-void ortd_stream::destruct()
-{
-  delete rb;
-  free(oneElementBuf);
-}
 
 
 
@@ -437,21 +452,22 @@ void ortd_stream_manager::callback_get(rt_server_command* cmd, rt_server* rt_ser
   
   // get the name of the stream
   char *pardir;
-  int ret = sscanf(parstr, "%as ", &pardir);
-  if (ret == 1) {
-    printf("name of the stream = \"%s\"\n", pardir);
+  int nElements; // number of elements to fetch
+  int ret = sscanf(parstr, "%as %d ", &pardir, &nElements);
+  if (ret == 2) {
+//     printf("name of the stream = \"%s\" fetch = %d \n", pardir, nElements);
     directory_entry::direntry* dentr = directory->access(pardir, this);
     free(pardir);
 
     if (dentr == NULL || dentr->type != ORTD_DIRECTORY_ENTRYTYPE_STREAM) {
-      printf("Error: stream not found\n"); 
+//       printf("Error: stream not found\n"); 
       goto error_pnf;
     }
     
     ortd_stream *stream = (ortd_stream *) dentr->userptr;
     
     if (stream != NULL) {
-      stream->parse_and_return(cmd, rt_server_src, parstr);
+      stream->parse_and_return(cmd, rt_server_src, parstr, nElements);
       
       return;
     }
@@ -478,9 +494,7 @@ ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, d
 
 ortd_stream* ortd_stream_manager::new_stream(char* name, int datatype, int const_len, int numBufferElements)
 {
-  ortd_stream * stream = new ortd_stream(datatype, const_len, numBufferElements);
-  
-  directory->add_entry(name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, this, (void*) stream);
+  ortd_stream * stream = new ortd_stream(this, name, datatype, const_len, numBufferElements);
   
   return stream;
 }

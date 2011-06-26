@@ -78,6 +78,8 @@ void directory_leaf::set_name(const char* name)
 
 bool directory_leaf::add_entry(char* name, int type, void *belonges_to_class, void* userptr)
 {
+  // FIXME: also check existance!
+  
   //std::string *n = new std::string(name); // FIXME geht das so?
   std::string n(name); // FIXME pot segfault???
   directory_entry *entry = new directory_entry(); 
@@ -168,11 +170,9 @@ directory_entry* directory_leaf::get_list_next()
 {
   directory_entry *entry2;
   
-//   printf("request for new element\n");
-  
   do {
     if (list_iterator == entries.end()) {
-//       printf("end of list\n");
+      // end of list
       return NULL;
     }
     
@@ -181,36 +181,15 @@ directory_entry* directory_leaf::get_list_next()
     list_iterator++;
     
     if (entry2 != NULL) {
-//       printf("return entry\n");
+      // got the next entry
       return entry2;
     }
-    
-//     printf("skipping\n");
     
     
   } while ( 1 );
   
   
   
-  
-//   if (list_iterator != entries.end()) {
-//     directory_entry *entry = list_iterator->second;
-//     printf(".\n");
-//     
-//     list_iterator++;
-//     
-//     printf("___%p\n", entry);
-//     if (entry != NULL) {
-//       directory_entry::direntry ent =  entry->content;
-//     
-//       printf("..\n");
-//       printf(".a %p\n", ent.userptr);
-//     
-//     
-//       printf("next list entry: %s\n", entry->content.name);
-//       return entry;
-//     }
-//   }
 
   return NULL;
 }
@@ -224,7 +203,10 @@ void directory_leaf::end_list()
 
 
 
-
+/*
+ *  Directory Tree class as interface to the outside
+ *
+ */
 
 
 int callback_list_dir__(rt_server_command *cmd, rt_server *rt_server_src)
@@ -235,25 +217,19 @@ int callback_list_dir__(rt_server_command *cmd, rt_server *rt_server_src)
 }
 
 
+// list pwd (current dir)
+// and send result to remote client
 int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_server_src)
 {
-//   printf("Creating list\n");
-  
-//   cmd->send_answer(rt_server_src, "\n");
+  // got through the list of the pwd directoy
   this->begin_list();
   
   directory_entry::direntry *entr;
   while ( ( entr = this->get_list_next() ) != NULL ) {
-//     printf("*** %s\n", entr->name);
-
     char str[512];
     sprintf(str, "%s %d\n", (char*) entr->name, entr->type ); // FIXME POssible buffer overflow
 
     cmd->send_answer(rt_server_src, str);
-    
-//     cmd->send_answer(rt_server_src, (char*) entr->name);
-//     cmd->send_answer(rt_server_src, "\n");
-
   }
   
   this->end_list();
@@ -262,7 +238,7 @@ int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_serv
 
 
 
-directory_tree::directory_tree()
+directory_tree::directory_tree() // FIXME remove
 {
   root = new directory_leaf();
   
@@ -277,7 +253,7 @@ directory_tree::directory_tree(rt_server_threads_manager* rts)
   
   pwd = root; // start in the root directory
 
-  printf("adding remote cmd ls\n");
+//   printf("adding remote cmd ls\n");
   rts->add_command("ls", &callback_list_dir__, this );
 
   pthread_mutex_init(&this->list_process_mutex, NULL);
