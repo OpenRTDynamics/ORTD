@@ -526,7 +526,8 @@ int libdyn_master::init_communication(int tcpport)
 
     if (cret < 0) {
       fprintf(stderr , "Initialisation of communication server failed\n");
-//       delete this->rts_mgr;  // FIXME INCLUDE THIS
+      rts_mgr->destruct();
+      delete this->rts_mgr;  // FIXME INCLUDE THIS
       return cret;
     }
 
