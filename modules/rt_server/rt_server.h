@@ -82,6 +82,7 @@ class tcp_connection {
 class tcp_server {
   public:
     tcp_server(int port);
+    ~tcp_server();
     
     volatile fd_set the_state;
     pthread_mutex_t mutex_state;
@@ -92,7 +93,7 @@ class tcp_server {
     int tcp_server_init2(int listen_fd);
     int tcp_server_write(int fd, char buf[], int buflen);
     void *tcp_server_read(void *arg);
-    void loop(int listen_fd);
+//     void loop(int listen_fd);
     tcp_connection * wait_for_connection();
     
     int port;
@@ -197,6 +198,7 @@ class rt_server_threads_manager {
     pthread_mutex_t command_map_mutex;
 
     int error;
+    bool mainloop_thread_started;
 };
 
 #endif

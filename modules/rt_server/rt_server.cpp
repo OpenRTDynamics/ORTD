@@ -229,6 +229,12 @@ int tcp_server::tcp_server_init2(int listen_fd)
 
 }
 
+tcp_server::~tcp_server()
+{
+  // FIXME fill in vlose sockets etc
+  close(listen_fd);
+}
+
 
 int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
 /* Schreibe auf die Client Socket Schnittstelle
@@ -245,73 +251,36 @@ int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
   return OKAY;
 }
 
-// void* tcp_server::tcp_server_read(void* arg)
-// /* Thread fuer einen CONNECT Port
-//  * Lese von der Client Socket Schnittstelle, schreibe an alle anderen Clients
-//  * in arg: Socket Filedescriptor zum lesen vom Client
-//  * return:
+
+// void tcp_server::loop(int listen_fd)
+// /* Server Endlosschleife - accept
+//  * in listen_fd: Socket Filedescriptor zum Verbindungsaufbau vom Client
 //  */
 // {
-//   int rfd;
-//   char buf[MAXLEN];
-//   int buflen;
-//   int wfd;
+//   pthread_t threads[MAXFD];
 //   
-//   rfd = (int)arg;
-//   for(;;) {
-//     /* lese Meldung */
-//     buflen = read(rfd, buf, sizeof(buf));
-//     if (buflen <= 0) {
-//       /* End of TCP Connection */
-//       pthread_mutex_lock(&mutex_state);
-//       FD_CLR(rfd, &the_state);      /* toten Client rfd entfernen */
-//       pthread_mutex_unlock(&mutex_state);
-//       close(rfd);
-//       pthread_exit(NULL);
-//     }
-//     
-//     /* Meldung an alle anderen Clients schreiben */
-//     pthread_mutex_lock(&mutex_state);
-//     for (wfd = 3; wfd < MAXFD; ++wfd) {
-//       if (FD_ISSET(wfd, &the_state) && (rfd != wfd)) {
-//         tcp_server_write(wfd, buf, buflen);
-//       }
-//     }
-//     pthread_mutex_unlock(&mutex_state);
-//   }
-//   return NULL;
+//   FD_ZERO(&the_state);
+//   
+// //   for (;;) {                    /* Endlosschleife */
+// //     int rfd;
+// //     void *arg;
+// //     
+// //     /* TCP Server LISTEN Port (Client connect) pruefen */
+// //     rfd = tcp_server_init2(listen_fd);
+// //     if (rfd >= 0) {
+// //       if (rfd >= MAXFD) {
+// //         close(rfd);
+// //         continue;
+// //       }
+// //       pthread_mutex_lock(&mutex_state);
+// //       FD_SET(rfd, &the_state);        /* neuen Client fd dazu */
+// //       pthread_mutex_unlock(&mutex_state);
+// //       arg = (void *) rfd;
+// //       pthread_create(&threads[rfd], NULL, tcp_server_read, arg);
+// //     }
+// //   }
 // 
 // }
-
-void tcp_server::loop(int listen_fd)
-/* Server Endlosschleife - accept
- * in listen_fd: Socket Filedescriptor zum Verbindungsaufbau vom Client
- */
-{
-  pthread_t threads[MAXFD];
-  
-  FD_ZERO(&the_state);
-  
-//   for (;;) {                    /* Endlosschleife */
-//     int rfd;
-//     void *arg;
-//     
-//     /* TCP Server LISTEN Port (Client connect) pruefen */
-//     rfd = tcp_server_init2(listen_fd);
-//     if (rfd >= 0) {
-//       if (rfd >= MAXFD) {
-//         close(rfd);
-//         continue;
-//       }
-//       pthread_mutex_lock(&mutex_state);
-//       FD_SET(rfd, &the_state);        /* neuen Client fd dazu */
-//       pthread_mutex_unlock(&mutex_state);
-//       arg = (void *) rfd;
-//       pthread_create(&threads[rfd], NULL, tcp_server_read, arg);
-//     }
-//   }
-
-}
 
 tcp_connection *tcp_server::wait_for_connection()
 {
@@ -485,6 +454,7 @@ rt_server_threads_manager::rt_server_threads_manager()
 {
   command_id_counter = 0;
   pthread_mutex_init(&command_map_mutex, NULL);
+  mainloop_thread_started = false;
 }
 
 int rt_server_threads_manager::init_tcp(int port)
@@ -493,17 +463,13 @@ int rt_server_threads_manager::init_tcp(int port)
   int ret = iohelper->tcp_server_init();
   
   this->error = ret;
-  
-  if (ret < 0)
-    delete iohelper;
-  
+    
   return ret;
 //   printf("tcp started\n");
   
 }
 
 // when the callback is called userdat will be available within cmd->userdat
-// FIXME: id raus und slebst hochzählen
 void rt_server_threads_manager::add_command(char* name, int (*callback)(rt_server_command*, rt_server *rt_server_src), void *userdat)
 {
   lock_commandmap();
@@ -565,6 +531,7 @@ bool rt_server_threads_manager::start_main_loop_thread()
 	return false;
     }
     
+    mainloop_thread_started = true;
     return true;
 }
 
@@ -573,10 +540,18 @@ void rt_server_threads_manager::destruct()
   // DONE FIXME: destruct all rt_server_command instances DONE
 //    TODO abort loop() running in thread
 
+  if (mainloop_thread_started) {
   printf("Killing mainloop_thread\n");
   pthread_cancel(mainloop_thread);
+  }
+  
+  
+  // FIXME Close sockets
+//   iohelper->destruct();
+  delete iohelper;  
   
   lock_commandmap();
+
   
   command_map_t::iterator iter = command_map.begin();
   
@@ -585,6 +560,7 @@ void rt_server_threads_manager::destruct()
     command->destruct();
     delete command;
   }
+
 
   command_map.clear();
   
