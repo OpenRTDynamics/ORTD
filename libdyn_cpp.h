@@ -19,6 +19,10 @@
 
 
 //
+#ifndef _LIBDYN_CPP_H
+#define _LIBDYN_CPP_H 1
+
+
 
 extern "C" {
   #include "libdyn.h"  
@@ -294,3 +298,5 @@ public:
   void dump_all_blocks();
 };
 
+
+#endif
