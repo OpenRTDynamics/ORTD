@@ -180,9 +180,9 @@ class rt_server_threads_manager {
     void destruct();
 
     void lock_commandmap();
-        // A map of commands FIXME: use mutex for savety
+    // A map of commands 
+    // You have to lock commmand_map via lock_commandmap and unlock_commandmap before accessing!
     command_map_t command_map;
-    pthread_mutex_t command_map_mutex;
     void unlock_commandmap();
 
   private:
@@ -194,7 +194,9 @@ class rt_server_threads_manager {
 //     tcp_connection *tcpc;
     
     pthread_t mainloop_thread;
+    pthread_mutex_t command_map_mutex;
 
+    int error;
 };
 
 #endif

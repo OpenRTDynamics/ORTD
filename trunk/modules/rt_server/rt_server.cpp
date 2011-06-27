@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <bits/sigthread.h>
 
 rt_server_command::rt_server_command(char* name, int id, int (*callback)(rt_server_command*, rt_server *rt_server_src) )
 {
@@ -174,11 +175,15 @@ int tcp_server::tcp_server_init()
   int yes = 1;
 
   listen_fd = socket(PF_INET, SOCK_STREAM, 0);
-  exit_if(listen_fd < 0);
+  if (listen_fd < 0)
+    goto error;
+//   exit_if(listen_fd < 0);
 
   /* vermeide "Error Address already in use" Fehlermeldung */
   ret = setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-  exit_if(ret < 0);
+  if (ret < 0)
+    goto error;
+//   exit_if(ret < 0);
 
   memset((char *) &sock, 0, sizeof(sock));
   sock.sin_family = AF_INET;
@@ -186,14 +191,24 @@ int tcp_server::tcp_server_init()
   sock.sin_port = htons(port);
 
   ret = bind(listen_fd, (struct sockaddr *) &sock, sizeof(sock));
-  exit_if(ret != 0);
+  if (ret < 0)
+    goto error;
+//   exit_if(ret != 0);
 
   ret = listen(listen_fd, 5);
-  exit_if(ret < 0);
+  if (ret < 0)
+    goto error;
+//   exit_if(ret < 0);
 
   this->listen_fd = listen_fd;
   
   return listen_fd;
+  
+  
+  error:
+    fprintf(stderr, "Error opening socket\n");
+    
+    return -1;
 }
 
 int tcp_server::tcp_server_init2(int listen_fd)
@@ -469,12 +484,15 @@ void rt_server::destruct()
 rt_server_threads_manager::rt_server_threads_manager()
 {
   command_id_counter = 0;
+  pthread_mutex_init(&command_map_mutex, NULL);
 }
 
 int rt_server_threads_manager::init_tcp(int port)
 {
   iohelper =  new tcp_server(port);
   int ret = iohelper->tcp_server_init();
+  
+  this->error = ret;
   
   if (ret < 0)
     delete iohelper;
@@ -488,12 +506,15 @@ int rt_server_threads_manager::init_tcp(int port)
 // FIXME: id raus und slebst hochzählen
 void rt_server_threads_manager::add_command(char* name, int (*callback)(rt_server_command*, rt_server *rt_server_src), void *userdat)
 {
+  lock_commandmap();
+  
   rt_server_command *cmd = new rt_server_command(name, command_id_counter, callback);
   cmd->userdat = userdat;
   
   command_map.insert(std::make_pair(command_id_counter, cmd));
-  
   command_id_counter++;
+  
+  unlock_commandmap();
 }
 
 
@@ -514,6 +535,8 @@ void rt_server_threads_manager::loop()
 
   for (;;) { // FIXME how to abort?
     tcp_connection *tcpc = iohelper->wait_for_connection();
+    
+    printf("Wait for connec returned\n");
       
     rt_server *rt_server_i = new rt_server(this);
     rt_server_i->set_tcp(tcpc);
@@ -529,14 +552,20 @@ bool rt_server_threads_manager::start_main_loop_thread()
 //     pthread_mutex_init(&send_mutex, NULL);
 //     printf("starting rt_server therad\n");
     
+    // if there was a previous error
+    if (this->error < 0)
+      return false;
+    
     int rc = pthread_create(&mainloop_thread, NULL, rt_server_thread_mainloop, (void *) this);
 
     if (rc)
     {
         printf("rt_server: ERROR; return code from pthread_create() is %d\n", rc);
-	exit(1);
-        //return -1;
+	this->error = -1;
+	return false;
     }
+    
+    return true;
 }
 
 void rt_server_threads_manager::destruct()
@@ -544,6 +573,10 @@ void rt_server_threads_manager::destruct()
   // DONE FIXME: destruct all rt_server_command instances DONE
 //    TODO abort loop() running in thread
 
+  printf("Killing mainloop_thread\n");
+  pthread_cancel(mainloop_thread);
+  
+  lock_commandmap();
   
   command_map_t::iterator iter = command_map.begin();
   
@@ -554,6 +587,10 @@ void rt_server_threads_manager::destruct()
   }
 
   command_map.clear();
+  
+  unlock_commandmap();
+  
+  pthread_mutex_destroy(&command_map_mutex);
 }
 
 void rt_server_threads_manager::lock_commandmap()
