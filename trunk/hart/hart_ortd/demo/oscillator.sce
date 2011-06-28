@@ -49,7 +49,7 @@ function [sim, x,v] = oscillator(u)
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
     // use this as a normal signal
-    [sim,a] = ld_sum(sim, defaultevents, list(u, x_feedback), 1, -1);
+    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
     [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
     [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
     
@@ -71,8 +71,8 @@ function [sim, x,v] = damped_oscillator(u)
     [sim,v_feedback] = libdyn_new_feedback(sim);
 
     // use this as a normal signal
-    [sim,a] = ld_sum(sim, defaultevents, list(u, x_feedback), 1, -1);
-    [sim,a] = ld_sum(sim, defaultevents, list(a, v_feedback), 1, -1);
+    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
+    [sim,a] = ld_add(sim, defaultevents, list(a, v_feedback), [1, -1]);
     
     [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
     

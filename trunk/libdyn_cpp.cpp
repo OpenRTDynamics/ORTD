@@ -179,11 +179,13 @@ bool libdyn_nested::allocate_inbuffers()
 
 libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
 {
+  this->sim_slots = NULL;
   this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
 }
 
 libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes, bool use_buffered_input)
 {
+  this->sim_slots = NULL;
   this->use_buffered_input = use_buffered_input;
    
   this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
@@ -204,6 +206,30 @@ void libdyn_nested::destruct()
     current_sim->destruct();
     delete current_sim;
   }
+
+  free_slots();
+  
+}
+
+
+void libdyn_nested::allocate_slots(int n)
+{
+  this->Nslots = n;
+  this->sim_slots = (libdyn **) malloc(n * sizeof( libdyn * ));
+  
+  slot_addsim_pointer = 0;
+  current_slot = 0;
+}
+
+void libdyn_nested::free_slots()
+{
+  if (this->sim_slots != NULL)
+    free(sim_slots);
+}
+
+int libdyn_nested::slots_available()
+{
+  return Nslots - slot_addsim_pointer;
 }
 
 
@@ -213,20 +239,22 @@ void libdyn_nested::set_master(libdyn_master* master)
 }
 
 
-int libdyn_nested::add_simulation(irpar *param, int boxid)
+int libdyn_nested::add_simulation(irpar* param, int boxid)
 {
+  if (slots_available() <= 0)
+    return -1;
+  
   return this->add_simulation(param->ipar, param->rpar, boxid);
 }
 
 
-int libdyn_nested::add_simulation(dynlib_simulation_t* sim)
-{
-
-}
 
 // Add a simulation based on provided irpar set
 int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
 {
+  if (slots_available() <= 0)
+    return -1;
+
   libdyn *sim;
   
   sim = new libdyn(&iocfg);
@@ -244,12 +272,37 @@ int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
     return err;
   }
 
+  if (this->add_simulation(sim) < 0)
+    return -1;
   
-  // later: list management
-  current_sim = sim;
   
   return err;
 }
+
+int libdyn_nested::add_simulation(libdyn* sim)
+{
+  if (slots_available() <= 0)
+    return -1;
+
+  // later: list management
+  current_sim = sim;
+  
+  
+  // add simulation to the next slot
+  sim_slots[ slot_addsim_pointer ] = sim;
+  slot_addsim_pointer++;
+  
+  return 1;
+
+}
+
+
+bool libdyn_nested::set_current_simulation(int nSim)
+{
+  current_sim = this->sim_slots[nSim];
+}
+
+
 
 void libdyn_nested::copy_outport_vec(int nPort, void* dest)
 {

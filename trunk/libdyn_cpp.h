@@ -138,10 +138,24 @@ class libdyn_nested {
     
     libdyn_master * ld_master;
 
+    // slot management
+    void allocate_slots(int n);
+    void free_slots();
+    int slots_available();
+    
+    // Array of size  Nslots
+    libdyn **sim_slots;
+    int Nslots;
+    int slot_addsim_pointer;
+    int current_slot;
+
+//     bool set_current_simulation(struct dynlib_simulation_t *sim);
+    
   public:
 
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
+
     
     void destruct();
     
@@ -157,14 +171,15 @@ class libdyn_nested {
     // uses a buffer for copies of the input data - necessary within scicos blocks or for a threaded nested simulation
     bool use_buffered_input;
     
-    int add_simulation(irpar* param, int boxid);
+    // Add a simulation into the next free slot
+    int add_simulation(irpar* param, int boxid); // used at the moment
     int add_simulation(int *ipar, double *rpar, int boxid);
-    int add_simulation(struct dynlib_simulation_t *sim);
+    int add_simulation(libdyn* sim);
     
 
-    bool set_current_simulation(struct dynlib_simulation_t *sim);
     bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
 
+    // Activate a simulation from the slots
     bool set_current_simulation(int nSim);
     bool reset_states_of_simulation(int nSim);
     

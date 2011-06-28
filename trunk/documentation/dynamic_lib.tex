@@ -214,7 +214,7 @@ Its also possible to combine certain blocks to a new block to gain some advance 
 function [sim,y] = add_ofs(sim, events, u, ofs)
   [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
   
-  [sim,y] = ld_sum(sim, events, list(u,0, ofs_const,0), 1,1);
+  [sim,y] = ld_add(sim, events, list(u,0, ofs_const,0), [1,1]);
 endfunction
 \end{verbatim}
 
@@ -234,7 +234,7 @@ function [sim, x,v] = oscillator(u)
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
     // use this as a normal signal
-    [sim,a] = ld_sum(sim, defaultevents, list(u, x_feedback), 1, -1);
+    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
     [sim,v] = ld_ztf(sim, defaultevents, list(a), 1/(z-1) * T_a ); // Integrator approximation
     [sim,x] = ld_ztf(sim, defaultevents, list(v), 1/(z-1) * T_a ); // Integrator approximation  
     
