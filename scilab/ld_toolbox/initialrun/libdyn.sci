@@ -835,19 +835,40 @@ function [sim,c] = ld_const(sim, events, val)
     [sim,c] = libdyn_new_oport_hint(sim, c, 0);    
 endfunction
 
-function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2)
+function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2) // FIXME obsolete
     [sim,sum_] = libdyn_new_blk_sum(sim, events, fak1, fak2);
     [sim,sum_] = libdyn_conn_equation(sim, sum_, inp_list);  
     [sim,sum_] = libdyn_new_oport_hint(sim, sum_, 0);    
 endfunction
 
+// Add signals (linear combination)
+// inp_list = list( in1, in2 )  ; fak_list = [ c1, c2 ]
+// sum_ = in1 * c1 + in2 * c2
+function [sim,sum_] = ld_add(sim, events, inp_list, fak_list)
+    [sim,sum_] = libdyn_new_blk_sum(sim, events, fak_list(1), fak_list(2));
+    [sim,sum_] = libdyn_conn_equation(sim, sum_, inp_list);  
+    [sim,sum_] = libdyn_new_oport_hint(sim, sum_, 0);    
+endfunction
+
+
 // Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+ // FIXME obsolete
 function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
     [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1, muldiv2);
     [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
 endfunction
+
+// Multiplication 
+// muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+// inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
+function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
+    [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1_list(1), muldiv1_list(2) );
+    [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
+    [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
+endfunction
+
 
 function [sim,gain] = ld_gain(sim, events, inp_list, gain)
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
