@@ -640,12 +640,12 @@ err:
 int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void *external_data, int portsize)
 {
   if ((inNr < 0) || (inNr >= blockto->Nin)) {
-    fprintf(stderr, "Faild to connect external of block %d; invalid port num\n", blockto->numID);
+    fprintf(stderr, "Faild to connect external of block irparid=%d; invalid port num inNr = %d not in [0,%d]\n", blockto->irpar_config_id, inNr, blockto->Nin);
     return -1;
   }
   
   if (portsize != blockto->inlist[inNr].len) {
-    fprintf(stderr, "Faild to connect external of block %d; invalid port sizes\n", blockto->numID);
+    fprintf(stderr, "Faild to connect external of block irparid=%d; invalid port sizes %d (extern in) != %d (blockto)\n", blockto->irpar_config_id, portsize, blockto->inlist[inNr].len );
     return -2;
   }
 

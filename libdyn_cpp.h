@@ -183,8 +183,9 @@ class libdyn_nested {
     bool set_current_simulation(int nSim);
     bool reset_states_of_simulation(int nSim);
     
-    // laods all schematics from an irpar container and call add_simulation for each
-    bool load_simulations(int *ipar, double *rpar, int boxid);
+    // laods NSimulations schematics from an irpar container with increasing irparid starting irparid = at start_boxid.
+    // add_simulation is called for each
+    bool load_simulations(int *ipar, double *rpar, int start_boxid, int NSimulations);
     
     // length of one element depends on datatype
     void copy_outport_vec(int nPort, void *dest);

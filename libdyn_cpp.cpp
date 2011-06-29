@@ -296,6 +296,17 @@ int libdyn_nested::add_simulation(libdyn* sim)
 
 }
 
+bool libdyn_nested::load_simulations(int* ipar, double* rpar, int start_boxid, int NSimulations)
+{
+  int irparid;
+  
+  // add all simulations
+  for (irparid = start_boxid; irparid < start_boxid + NSimulations; ++irparid) {
+    this->add_simulation(ipar, rpar, irparid);
+  }
+}
+
+
 
 bool libdyn_nested::set_current_simulation(int nSim)
 {
