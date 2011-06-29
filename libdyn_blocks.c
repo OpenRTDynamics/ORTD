@@ -1428,7 +1428,7 @@ int compu_func_flipflop(int flag, struct dynlib_block_t *block)
 int compu_func_printf(int flag, struct dynlib_block_t *block)
 {
   
-  //printf("comp_func gain: flag==%d\n", flag);
+//   printf("comp_func printf: flag==%d\n", flag);
   int Nout = 0;
   int Nin = 1;
 
@@ -1445,6 +1445,20 @@ int compu_func_printf(int flag, struct dynlib_block_t *block)
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {  
+/*      in = (double *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      printf("%s [", str);
+      int i;
+      for (i = 0; i < vlen; ++i) {
+	printf("%f, ", in[i]);
+      }
+      printf("].\n"); */
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
       in = (double *) libdyn_get_input_ptr(block,0);
       char *str = (char *) block->work;
 
@@ -1454,34 +1468,22 @@ int compu_func_printf(int flag, struct dynlib_block_t *block)
 	printf("%f, ", in[i]);
       }
       printf("].\n"); 
-    }
-      return 0;
-      break;
-    case COMPF_FLAG_UPDATESTATES:
-    {
-/*      in = (double *) libdyn_get_input_ptr(block,0);
-      char *str = (char *) block->work;
-
-      printf("%s [", str);
-      int i;
-      for (i = 0; i < vlen; ++i) {
-	printf("%f, ", in[i]);
-      }
-      printf("]\n");*/
     } 
       return 0;
       break;
     case COMPF_FLAG_CONFIGURE:  // configure
     {
-//      char filename[250];
+
+      // one Port of length vlen
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, vlen, DATATYPE_FLOAT); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+    {
       char *str = (char *) malloc(fnamelen+1);
           
-      
-/*      if (fnamelen > 250) {
-	printf("compu_func_printf: ERROR: string too long\n");
-	return -1;*/
-      
-      
       // Decode filename
       int i;
       for (i = 0; i < fnamelen; ++i)
@@ -1489,18 +1491,10 @@ int compu_func_printf(int flag, struct dynlib_block_t *block)
       
       str[i] = 0; // String termination
       
+      libdyn_set_work_ptr(block, (void*) str);
+      
 //      printf("Decoded filename = %s\n", filename);
-      
-      // FIXME: Fehler abfangen
-//      printf("fwh=%x\n", filewriter);
-      
-      // one Port of length vlen
-      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) str, 0); 
-      libdyn_config_block_input(block, 0, vlen, DATATYPE_FLOAT); 
-    } 
-      return 0;
-      break;
-    case COMPF_FLAG_INIT:  // init
+    }
       return 0;
       break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
