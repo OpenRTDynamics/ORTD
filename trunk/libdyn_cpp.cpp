@@ -313,7 +313,11 @@ bool libdyn_nested::load_simulations(int* ipar, double* rpar, int start_boxid, i
 
 bool libdyn_nested::set_current_simulation(int nSim)
 {
-  current_sim = this->sim_slots[nSim];
+  if (sim_slots != NULL) {
+    current_sim = this->sim_slots[nSim];
+  } else {
+    printf(stderr, "libdyn_nested: slots not configured\n"); 
+  }
 }
 
 
