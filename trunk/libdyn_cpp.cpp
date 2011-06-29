@@ -185,7 +185,7 @@ libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, i
 
 libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes, bool use_buffered_input)
 {
-  this->sim_slots = NULL;
+  this->sim_slots = NULL; // initially slots are not used
   this->use_buffered_input = use_buffered_input;
    
   this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
@@ -289,8 +289,11 @@ int libdyn_nested::add_simulation(libdyn* sim)
   
   
   // add simulation to the next slot
-  sim_slots[ slot_addsim_pointer ] = sim;
-  slot_addsim_pointer++;
+  if (sim_slots != NULL) {
+    // slots should be used
+    sim_slots[ slot_addsim_pointer ] = sim;
+    slot_addsim_pointer++;
+  }
   
   return 1;
 
