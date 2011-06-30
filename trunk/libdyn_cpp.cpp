@@ -92,6 +92,9 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   int sum, tmp, i;
   double *p;
 
+  printf("begining Internal init\n");
+
+  
   iocfg.provided_outcaches = 0;
   
   iocfg.inports = Nin;
@@ -129,6 +132,7 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   // Initially there is no simulation
   this->current_sim = NULL;
   
+  printf("Internal init finished\n");
   
   return true;
 }
@@ -190,8 +194,12 @@ libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, i
    
   this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
 
-  if (use_buffered_input)
+  
+  if (use_buffered_input) {
+    printf("Allocate buffers\n");
+
     this->allocate_inbuffers();
+  }
 
   
   //this->libdyn_nested(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
