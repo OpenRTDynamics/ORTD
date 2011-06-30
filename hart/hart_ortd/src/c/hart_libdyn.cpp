@@ -166,12 +166,17 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   comdev->simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
 
   // Load parameters from the files
+
+  printf("Loading irpar files\n");
+
   comdev->param = new irpar();
   if (comdev->param->load_from_afile(fname) == false)
   {
     comdev->error = -1;
     return -1; 
   }
+  
+  printf("Loaded irpar files\n");
   
   // If a master should be used install one
   comdev->master = NULL;
