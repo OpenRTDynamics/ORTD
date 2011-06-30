@@ -241,8 +241,9 @@ void libdyn_nested::set_master(libdyn_master* master)
 
 int libdyn_nested::add_simulation(irpar* param, int boxid)
 {
-  if (slots_available() <= 0)
-    return -1;
+  if (sim_slots != NULL)
+    if (slots_available() <= 0)
+      return -1;
   
   return this->add_simulation(param->ipar, param->rpar, boxid);
 }
@@ -252,8 +253,10 @@ int libdyn_nested::add_simulation(irpar* param, int boxid)
 // Add a simulation based on provided irpar set
 int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
 {
-  if (slots_available() <= 0)
-    return -1;
+  if (sim_slots != NULL)
+    if (slots_available() <= 0)
+      return -1;
+
 
   libdyn *sim;
   
@@ -281,8 +284,9 @@ int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
 
 int libdyn_nested::add_simulation(libdyn* sim)
 {
-  if (slots_available() <= 0)
-    return -1;
+  if (sim_slots != NULL)
+    if (slots_available() <= 0)
+      return -1;
 
   // later: list management
   current_sim = sim;
@@ -316,7 +320,7 @@ bool libdyn_nested::set_current_simulation(int nSim)
   if (sim_slots != NULL) {
     current_sim = this->sim_slots[nSim];
   } else {
-    printf(stderr, "libdyn_nested: slots not configured\n"); 
+    fprintf(stderr, "libdyn_nested: slots are not configured\n"); 
   }
 }
 
