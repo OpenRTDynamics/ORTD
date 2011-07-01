@@ -34,6 +34,8 @@ struct lindyn_comp_func_list_ele_t {
   int blockid;
   int comp_fn_type;  // libdyn block or scicos block
   void *comp_fn;
+  void *user_ptr; // Pointer which is filled in by the user for 
+		  // storing personal data that can be fetched by the computational functions
   
   struct lindyn_comp_func_list_ele_t * next;  
 };
