@@ -263,35 +263,7 @@ int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
 }
 
 
-// void tcp_server::loop(int listen_fd)
-// /* Server Endlosschleife - accept
-//  * in listen_fd: Socket Filedescriptor zum Verbindungsaufbau vom Client
-//  */
-// {
-//   pthread_t threads[MAXFD];
-//   
-//   FD_ZERO(&the_state);
-//   
-// //   for (;;) {                    /* Endlosschleife */
-// //     int rfd;
-// //     void *arg;
-// //     
-// //     /* TCP Server LISTEN Port (Client connect) pruefen */
-// //     rfd = tcp_server_init2(listen_fd);
-// //     if (rfd >= 0) {
-// //       if (rfd >= MAXFD) {
-// //         close(rfd);
-// //         continue;
-// //       }
-// //       pthread_mutex_lock(&mutex_state);
-// //       FD_SET(rfd, &the_state);        /* neuen Client fd dazu */
-// //       pthread_mutex_unlock(&mutex_state);
-// //       arg = (void *) rfd;
-// //       pthread_create(&threads[rfd], NULL, tcp_server_read, arg);
-// //     }
-// //   }
-// 
-// }
+
 
 
 // calls accept on socket in order to do a blocking wait for a new connection
@@ -333,38 +305,60 @@ rt_server::rt_server(rt_server_threads_manager *manager)
   this->mymanager = manager;
 }
 
+
+// Dummy signal handling function
+void *rt_server_gotsig(int sig, siginfo_t *info, void *ucontext)
+{
+    return NULL;
+}
+
+
 // One thread per client.
 void *rt_server_thread(void *data)
 {
   rt_server *rt_server_i = (rt_server *) data;
   
-  
-//   printf("Thread started\n");
-  
-  char buf[256];
+//   
+//   Install signal handler  
+//   
+    int hdlsig = (int)SIGUSR1;
+
+    struct sigaction sa;
+    sa.sa_handler = NULL;
+    sa.sa_sigaction = (void (*)(int, siginfo_t*, void*)) rt_server_gotsig;
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(hdlsig, &sa, NULL) < 0) {
+        perror("sigaction");
+	pthread_exit(NULL);
+    }
+
+//
+// Start main readout loop
+//
+
+  char buf[1024]; // The line buffer
   
   for (;;) {
+    // wait for input
     int ret = rt_server_i->iohelper->readln(sizeof(buf), buf);
     
+    // check for read error or signal
     if (ret < 0)
       goto out;
     
-    if (ret > 0) {
-//       printf("received %s\n", buf);
-    }
-    
+//      parse the received line
     ret = rt_server_i->parse_line(buf);
+    
+    // if parsing faild return an error message to the client
     if (ret < 0)
       rt_server_i->iohelper->writeln("Command not found\n");
-    
-    // write something
-    //rt_server_i->iohelper->writeln(buf);
-   
   }
   
-  out:
+  out: // break loop
   
-//   printf("Client disconnected\n");
+  printf("Client disconnected\n");
 
   // FIXME correct ???
   delete rt_server_i;

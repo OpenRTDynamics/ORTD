@@ -794,6 +794,8 @@ function [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsiz
      inlist(i) = key;
    end
 
+   // let the user defined function describe the schematic
+   // It will fill in sim
    [sim, outlist] = fn(sim, inlist);
    
    if (length(outsizes) > length(outlist)) then
