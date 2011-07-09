@@ -22,9 +22,25 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <malloc.h>
+
 #include "irpar.h"
 
 #define irpar_get_n_ele(ipar) ( (ipar)[1] )
+
+void irpar_getstr(char ** ret_str, int par[], int init, int len)
+{
+  int i;
+  int j=0;
+
+  *ret_str = malloc(len);
+  char *str = *ret_str;
+  
+  for(i = init; i < init + len; i++)
+    str[j++] = (char) par[i];
+
+  str[j] = '\0';
+}
 
 int irpar_get_nele( int *ipar, double *rpar)
 { // INLINE

@@ -71,6 +71,14 @@ struct irpar_tf_t { // tf
 
 //#define irpar_get_ipar(ipar, rpar, i) ( ipar[0]*IRPAR_HEADER_ELEMENT_LEN )
 
+
+/**
+  * \brief Convert int[] to char[] (decode ascii characters)
+  * 		Allocates memedor for ret_str, which you shoud free()
+  */
+void irpar_getstr(char ** ret_str, int par[], int init, int len);
+
+
 int irpar_get_nele(int *ipar, double *rpar);
 
 /**

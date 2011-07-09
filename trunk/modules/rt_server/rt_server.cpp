@@ -22,7 +22,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <bits/sigthread.h>
+
+// #include <pthread.h>
+// #include <bits/sigthread.h>
+// #include <bits/pthreadtypes.h>
+// #include <signal.h>
+
+#include <unistd.h>
+#include <bits/pthreadtypes.h>
+#include <pthread.h>
+#include <string.h>
+#include "signal.h"
 
 rt_server_command::rt_server_command(char* name, int id, int (*callback)(rt_server_command*, rt_server *rt_server_src) )
 {
@@ -162,6 +172,7 @@ if(expr) { \
 #define OKAY 0
 #define ERROR (-1)
 
+
 tcp_server::tcp_server(int port)
 {
   this->port = port;
@@ -282,6 +293,9 @@ int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
 // 
 // }
 
+
+// calls accept on socket in order to do a blocking wait for a new connection
+// interunption is done via signals
 tcp_connection *tcp_server::wait_for_connection()
 {
      int rfd;
@@ -305,7 +319,7 @@ tcp_connection *tcp_server::wait_for_connection()
     }
       
    out:
-     return 0;
+     return NULL;   // Got signal
 }
 
 
@@ -496,14 +510,47 @@ void *rt_server_thread_mainloop(void *data)
   return NULL;
 }
 
+// Dummy signal handling function
+void *rt_server_thread_gotsig(int sig, siginfo_t *info, void *ucontext)
+{
+    return NULL;
+}
+
+
 void rt_server_threads_manager::loop()
 {
+//   
+//   Install signal handler  
+//   
+    int hdlsig = (int)SIGUSR1;
+
+    struct sigaction sa;
+    sa.sa_handler = NULL;
+    sa.sa_sigaction = (void (*)(int, siginfo_t*, void*)) rt_server_thread_gotsig;
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(hdlsig, &sa, NULL) < 0) {
+        perror("sigaction");
+//         return (void*) -1;
+	pthread_exit(NULL);
+    }
+
+
+//   
+//    Start loop, which accepts incoming connectionns
+// 
 
   for (;;) { // FIXME how to abort?
     tcp_connection *tcpc = iohelper->wait_for_connection();
     
-    printf("Wait for connec returned\n");
-      
+    printf("Wait for connect returned\n");
+    
+    if (tcpc == NULL) {
+      printf("rt_server: Exiting thread\n"); 
+      pthread_exit(NULL);
+    }
+    
     rt_server *rt_server_i = new rt_server(this);
     rt_server_i->set_tcp(tcpc);
     
@@ -540,10 +587,20 @@ void rt_server_threads_manager::destruct()
   // DONE FIXME: destruct all rt_server_command instances DONE
 //    TODO abort loop() running in thread
 
+
   if (mainloop_thread_started) {
+    printf("rt_server: Trying to kill tcp accept thread\n");
+    pthread_kill( mainloop_thread, SIGUSR1 );
+    printf("rt_server: joining thread...\n");
+    pthread_join( mainloop_thread, NULL );
+    
+    printf("rt_server: joined thread\n");
+  }
+
+/*  if (mainloop_thread_started) {
   printf("Killing mainloop_thread\n");
   pthread_cancel(mainloop_thread);
-  }
+  }*/
   
   
   // FIXME Close sockets
