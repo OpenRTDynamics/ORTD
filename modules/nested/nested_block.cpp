@@ -22,7 +22,7 @@
 extern "C" {
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
-
+#include "irpar.h"
 }
 
 
@@ -116,14 +116,29 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
+//         int irpar_get_ivec(struct irpar_ivec_t *ret, int *ipar, double *rpar, int id);
+
+        struct irpar_ivec_t insizes, outsizes, intypes, outtypes, param;
+	
+	irpar_get_ivec(&insizes, ipar, rpar, 10);
+	irpar_get_ivec(&outsizes, ipar, rpar, 11);
+	irpar_get_ivec(&intypes, ipar, rpar, 12);
+	irpar_get_ivec(&outtypes, ipar, rpar, 13);
+	irpar_get_ivec(&param, ipar, rpar, 20);
+	
+	int dfeed = param.v[1];
+	
+	int Ninports = insizes.n;
+	int Noutports = outsizes.n;
+       
         int i;
-        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Noutports, Ninports, (void *) 0, 0);
 
-        for (i = 0; i < Nin; ++i)
-            libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT);
+        for (i = 0; i < Ninports; ++i)
+            libdyn_config_block_input(block, i, insizes.v[i], DATATYPE_FLOAT);
 
-        for (i = 0; i < Nin; ++i)
-            libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT, 1);
+        for (i = 0; i < Ninports; ++i)
+            libdyn_config_block_output(block, i, outsizes.v[i], DATATYPE_FLOAT, dfeed);
 
 
     }
