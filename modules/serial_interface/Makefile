@@ -19,10 +19,10 @@ endif
 
 
 all: lib
-	echo "Module template done"
+	echo "Module serial done"
 
-lib: template.o
-	ar rvs module.a template.o   # Will always be included
+lib: serial_block.o ortd_serial_linux.o
+	ar rvs module.a serial_block.o ortd_serial_linux.o  # Will always be included
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 
@@ -30,12 +30,11 @@ clean:
 	rm -f *.o module.a module_Linux.a
 
 
-template.o: template.c
-	$(CC) $(CFLAGS) -c template.c 
 
 
+serial_block.o: serial_block.cpp
+	$(CC) $(CFLAGS) -c serial_block.cpp
 
-#template_block.o: template_block.cpp
-#	$(CC) $(CFLAGS) -c template_block.cpp
-
+ortd_serial_linux.o: ortd_serial_linux.cpp
+	$(CC) $(CFLAGS) -c ortd_serial_linux.cpp
 
