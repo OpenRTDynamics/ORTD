@@ -1,4 +1,4 @@
-mprintf("LibDynamic Toolbox - (0.1)\n");
+mprintf("OpenRTdynamics Toolbox - (0.99)\n");
 
 if isdef("ld_toolboxlib") then
 	warning("NaN Toolbox library is already loaded");

@@ -205,6 +205,7 @@ int compu_func_rt_server_param(int flag, struct dynlib_block_t *block)
         compu_func_rt_server_param_class *worker = (compu_func_rt_server_param_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
+	delete worker;
 
     }
     return 0;
@@ -395,6 +396,7 @@ int compu_func_rt_server_strem(int flag, struct dynlib_block_t *block)
         compu_func_rt_server_stream_class *worker = (compu_func_rt_server_stream_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
+	delete worker;
 
     }
     return 0;

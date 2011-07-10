@@ -145,6 +145,7 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
         compu_func_template_class *worker = (compu_func_template_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
+	delete worker;
 
     }
     return 0;

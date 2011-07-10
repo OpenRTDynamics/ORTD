@@ -44,7 +44,7 @@ T_a = 0.1;
 // Set up simulation schematic
 //
 
-function [sim, x,v] = oscillator(u)
+function [sim, x,v] = oscillator(sim, u)
     // create a feedback signal
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
@@ -65,7 +65,7 @@ function [sim, x,v] = oscillator(u)
 //    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
 endfunction
 
-function [sim, x,v] = damped_oscillator(u)
+function [sim, x,v] = damped_oscillator(sim, u)
     // create a feedback signal
     [sim,x_feedback] = libdyn_new_feedback(sim);
     [sim,v_feedback] = libdyn_new_feedback(sim);
@@ -101,37 +101,47 @@ endfunction
 function [sim, outlist] = nested1_schematic_fn(sim, inlist)
   u = inlist(1);
 
-  [sim, x,y] = oscillator(u);  
+  [sim, x,y] = oscillator(sim, u);  
+
+  [sim] = ld_printf(sim, defaultevents, x, "nested: x = ", 1);
+
 
   // output of schematic
-  outlist = list(x);
+  outlist = list(x,y);
 endfunction
 
 function [sim, outlist] = nested2_schematic_fn(sim, inlist)
   u = inlist(1);
 
-  [sim, x,y] = damped_oscillator(u);  
+  [sim, x,y] = damped_oscillator(sim, u);  
+
+  [sim] = ld_printf(sim, defaultevents, x, "nested: x = ", 1);
 
   // output of schematic
-  outlist = list(x);
+  outlist = list(x,y);
 endfunction
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
   [sim,u] = ld_const(sim, defaultevents, 1);
+  [sim,u2] = ld_const(sim, defaultevents, 2);
   
   [sim,switch] = ld_const(sim, defaultevents, 1);
+  [sim,reset] = ld_const(sim, defaultevents, 0);
 
-  [sim, outlist] = ld_simnest(sim, defaultevents, switch_signal=switch, ...
-                              inlist=list(u), ...
-                              insizes=[1], outsizes=[1], ...
-                              intypes=[1], outtypes=[1], ...
+  [sim, outlist] = ld_simnest(sim, defaultevents, ...
+                              switch_signal=switch, reset_signal=reset, ...
+                              inlist=list(u, u2), ...
+                              insizes=[1, 1], outsizes=[1, 1], ...
+                              intypes=[1, 1], outtypes=[1, 1], ...
                               fn_list=list(nested1_schematic_fn, nested2_schematic_fn), ...
                               dfeed=1, synchron_simsteps=0);
   
   x = outlist(1);
+  y = outlist(2);
   
   [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
+  [sim] = ld_printf(sim, defaultevents, y, "y = ", 1);
   
   // save result to file
   [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", x);

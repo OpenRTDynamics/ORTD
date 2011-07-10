@@ -20,11 +20,12 @@
 #include <malloc.h>
 
 extern "C" {
-#include "libdyn.h"
+
 #include "libdyn_scicos_macros.h"
 #include "irpar.h"
 }
 
+#include "libdyn_cpp.h"
 
 
 
@@ -41,7 +42,19 @@ public:
     void io(int update_states);
     int init();
 private:
-   struct dynlib_block_t *block;
+    struct dynlib_block_t *block;
+
+
+    libdyn_nested * simnest;
+    libdyn_master * master;
+    irpar *param;
+
+    int Nin;
+    int Nout;
+    int *insizes, *outsizes;
+    int *intypes, *outtypes;
+
+    int error;
 
 };
 
@@ -55,28 +68,101 @@ int compu_func_nested_class::init()
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    double Nin = ipar[0];
-    double Nout = ipar[1];
+    struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, param;
+
+
+    irpar_get_ivec(&insizes_irp, ipar, rpar, 10);
+    irpar_get_ivec(&outsizes_irp, ipar, rpar, 11);
+    irpar_get_ivec(&intypes_irp, ipar, rpar, 12);
+    irpar_get_ivec(&outtypes_irp, ipar, rpar, 13);
+    irpar_get_ivec(&param, ipar, rpar, 20);
 
 
 
-  
+    this->insizes = insizes_irp.v;
+    this->outsizes = outsizes_irp.v;
+    this->intypes = intypes_irp.v;
+    this->outtypes = outtypes_irp.v;
+
+
+// 	int dfeed = param.v[1];
+
+    Nin = insizes_irp.n;
+    Nout = outsizes_irp.n;
+
+    /*
+
+
+
+      */
+
+
+    bool use_buffered_input = true;  // in- and out port values are buffered
+    simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+
+    printf("simnest = %p\n", simnest);
+
+    // If there is a libdyn master : use it
+    master = (libdyn_master *) block->sim->master;
+    if (master == NULL) {  // no master available
+//       fprintf(stderr, "WARNING: libdyn: parameter block requires a libdyn master\n");
+    }
+
+    simnest->set_master(master);
+
+    int shematic_id = 900;
+
+    printf("loading shematic id %d\n", 900);
+    if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
+        return -1;  // An error
+    }
+
+    printf("added schematic\n");
+
+
+
     return 0;
 }
 
 
 void compu_func_nested_class::io(int update_states)
 {
-    if (update_states==0) {
-        double *output = (double*) libdyn_get_output_ptr(block, 0);
-	
-	*output = 1;
+  
+  int i,j;
+
+  
+  for (i=0; i< Nin ; ++i) {
+    double *in_p = (double*) libdyn_get_input_ptr(block, i);
+//     printf(".. %p %d\n", in_p, block->Nin);
+    simnest->copy_inport_vec(i, in_p);
+  }
+  
+  // map scicos events to libdyn events
+  // convert scicos events to libdyn events (acutally there is no conversion)
+  int eventmask = __libdyn_event_get_block_events(block);
+  simnest->event_trigger_mask(eventmask);
+  
+  if (update_states == 1) {
+    simnest->simulation_step(1);
+//        printf("neszed sup\n");
+  } else {
+    simnest->simulation_step(0);
+    
+    for (i=0; i< Nout ; ++i) {
+      double *out_p = (double*) libdyn_get_output_ptr(block, i);
+      simnest->copy_outport_vec(i, out_p);
+      
+//       printf("nested outp %f\n", out_p[0]);
     }
+    
+  }
+
 }
 
 void compu_func_nested_class::destruct()
 {
-    
+    simnest->destruct();
+    delete simnest;
 }
 
 
@@ -119,26 +205,32 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
 //         int irpar_get_ivec(struct irpar_ivec_t *ret, int *ipar, double *rpar, int id);
 
         struct irpar_ivec_t insizes, outsizes, intypes, outtypes, param;
-	
-	irpar_get_ivec(&insizes, ipar, rpar, 10);
-	irpar_get_ivec(&outsizes, ipar, rpar, 11);
-	irpar_get_ivec(&intypes, ipar, rpar, 12);
-	irpar_get_ivec(&outtypes, ipar, rpar, 13);
-	irpar_get_ivec(&param, ipar, rpar, 20);
-	
-	int dfeed = param.v[1];
-	
-	int Ninports = insizes.n;
-	int Noutports = outsizes.n;
-       
+
+        irpar_get_ivec(&insizes, ipar, rpar, 10);
+        irpar_get_ivec(&outsizes, ipar, rpar, 11);
+        irpar_get_ivec(&intypes, ipar, rpar, 12);
+        irpar_get_ivec(&outtypes, ipar, rpar, 13);
+        irpar_get_ivec(&param, ipar, rpar, 20);
+
+        int dfeed = param.v[1];
+
+        int Ninports = insizes.n;
+        int Noutports = outsizes.n;
+
+		
         int i;
-        libdyn_config_block(block, BLOCKTYPE_STATIC, Noutports, Ninports, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Noutports, Ninports + 2, (void *) 0, 0);
 
-        for (i = 0; i < Ninports; ++i)
+        for (i = 0; i < Ninports; ++i) {
             libdyn_config_block_input(block, i, insizes.v[i], DATATYPE_FLOAT);
+	}
 
-        for (i = 0; i < Ninports; ++i)
+	libdyn_config_block_input(block, Ninports, 1, DATATYPE_FLOAT); // switch signal input
+	libdyn_config_block_input(block, Ninports+1, 1, DATATYPE_FLOAT); // reset signal input
+
+        for (i = 0; i < Noutports; ++i) {
             libdyn_config_block_output(block, i, outsizes.v[i], DATATYPE_FLOAT, dfeed);
+	}
 
 
     }
@@ -160,6 +252,7 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
         compu_func_nested_class *worker = (compu_func_nested_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
+	delete worker;
 
     }
     return 0;

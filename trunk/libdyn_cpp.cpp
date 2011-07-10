@@ -215,6 +215,7 @@ void libdyn_nested::destruct()
     delete current_sim;
   }
 
+
   free_slots();
   
 }
