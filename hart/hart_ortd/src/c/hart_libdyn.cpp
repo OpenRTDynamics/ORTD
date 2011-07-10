@@ -17,6 +17,10 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ * This is the computational function for the ortd generic Scicos/Xcos - Block
+ *
+*/
 
 #include "libdyn_cpp.h"
 

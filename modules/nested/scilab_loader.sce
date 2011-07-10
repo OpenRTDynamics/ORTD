@@ -16,7 +16,7 @@
 
 
 
-function [sim, outlist] = ld_simnest(sim, ev, switch_signal, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, synchron_simsteps)
+function [sim, outlist] = ld_simnest(sim, ev, switch_signal,reset_signal, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, synchron_simsteps)
 // 
 // ld_simnest -- create one (or multiple) nested libdyn simulation within a normal libdyn block
 // 		 it is possible to switch between them by an special input signal
@@ -54,6 +54,9 @@ function [sim, outlist] = ld_simnest(sim, ev, switch_signal, inlist, insizes, ou
 
   // check for sizes
   // ...
+  if (length(inlist) ~= N1) then
+    error("length inlist invalid\n");
+  end
 
    parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
    parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
@@ -106,8 +109,13 @@ function [sim, outlist] = ld_simnest(sim, ev, switch_signal, inlist, insizes, ou
   btype = 15001;
   [sim,blk] = libdyn_new_blk_generic(sim, ev, btype, [blockparam.ipar], [blockparam.rpar] );
 // 
+  // add switch and reset input signals
+  blocks_inlist = inlist;
+  blocks_inlist($+1) = switch_signal;
+  blocks_inlist($+1) = reset_signal;
+
   // connect all inputs
-  [sim,blk] = libdyn_conn_equation(sim, blk, inlist );
+  [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
  
   // connect all outputs
   Noutp = length(outsizes);
@@ -115,7 +123,7 @@ function [sim, outlist] = ld_simnest(sim, ev, switch_signal, inlist, insizes, ou
   outlist = list();
   for i = 0:(Noutp-1)
     [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
-    outlist(i) = out;
+    outlist(i+1) = out;
   end
 
 endfunction

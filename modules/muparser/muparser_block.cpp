@@ -242,6 +242,7 @@ int compu_func_muparser(int flag, struct dynlib_block_t *block)
         compu_func_muparser_class *worker = (compu_func_muparser_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
+	delete worker;
 
     }
     return 0;

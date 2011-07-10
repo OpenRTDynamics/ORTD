@@ -19,9 +19,9 @@
 
 
 /*
- * libdyn.c - Library for simple realtime controller implementations
+ * libdyn.c - Library for realtime controller implementations
  *
- * Author: Christian Klauer 2009-2010
+ * Author: Christian Klauer 2009-2011
  *
  * This library interpretes schematics of connected blocks
  * in realtime similar to scicos or simulink
@@ -124,12 +124,13 @@ struct dynlib_simulation_t *libdyn_new_simulation()
     sim->stepcounter = 0;
     sim->numID_counter = 0;
 
-    sim->execution_list_head = 0; // noch keine Exec listen verfügbar
-    sim->execution_list_tail = 0;
-    sim->execution_sup_list_head = 0;
-    sim->execution_sup_list_tail = 0;
-    sim->allblocks_list_head = 0;
-    sim->allblocks_list_tail = 0;
+    // Initialise the used lists
+    sim->execution_list_head = NULL; // noch keine Exec listen verfügbar
+    sim->execution_list_tail = NULL;
+    sim->execution_sup_list_head = NULL;
+    sim->execution_sup_list_tail = NULL;
+    sim->allblocks_list_head = NULL;
+    sim->allblocks_list_tail = NULL;
 
 
     // events
@@ -143,7 +144,7 @@ struct dynlib_simulation_t *libdyn_new_simulation()
 
     // New comp_func list (computaional function list)
     sim->private_comp_func_list = libdyn_new_compfnlist();
-    sim->global_comp_func_list = 0; // noting set for now
+    sim->global_comp_func_list = NULL; // noting set for now
     
     // WENN VERERBUNG NICHT AKTIV
     // BEGIN
@@ -197,7 +198,7 @@ void libdyn_simulation_IOlist_add(struct dynlib_simulation_t *sim, int inout, st
 
 void libdyn_del_simulation(struct dynlib_simulation_t *sim)
 {
-  mydebug(2) fprintf(stderr, stderr, "Traversing through allblock list:\n");
+  mydebug(2) fprintf(stderr, "Traversing through allblock list:\n");
   struct dynlib_block_t *current = sim->allblocks_list_head;
 
   // FIXME: was wenn current = 0, ist das initialisiert? - Ja
@@ -215,6 +216,8 @@ void libdyn_del_simulation(struct dynlib_simulation_t *sim)
   libdyn_del_compfnlist(sim->private_comp_func_list);
   
   free(sim);
+  
+  
 }
 
 // Print all Blocks to stdout
@@ -576,9 +579,9 @@ void libdyn_del_block(struct dynlib_block_t *block)
 
   //Output cache löschen
   if (block->outdata != 0) free(block->outdata);
-
   if (block->inlist != 0) free(block->inlist);
   if (block->outlist != 0) free(block->outlist);
+  
   free(block);
 }
 

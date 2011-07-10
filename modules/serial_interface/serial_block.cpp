@@ -443,6 +443,7 @@ int compu_func_serial_interface(int flag, struct dynlib_block_t *block)
         compu_func_serial_interface_class *worker = (compu_func_serial_interface_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
+	delete worker;
 
     }
     return 0;
