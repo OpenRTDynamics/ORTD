@@ -513,7 +513,7 @@ struct libdyn_user_blocks_list_ele_t {
   int insizes83637[] = INsizes;    \
   int outsizes83637[] = OUTsizes;    \
       \
-  iocfg.provided_outcaches = 0; \
+  (varname).iocfg.provided_outcaches = 0; \
       \
   (varname).iocfg.inports = (Ninp);    \
   (varname).iocfg.outports = (Noutp);    \
