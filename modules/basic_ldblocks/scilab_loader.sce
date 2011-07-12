@@ -72,6 +72,46 @@ function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_
 endfunction
 
 
+function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod)
+// Modulo Counter - Block
+//
+// A counter that increases its value for each timestep where in > 0.
+// if the counter value >= mod then it is reset to counter = initial_count
+//
+//
+
+  if (mod < 0) then
+    error("ld_modcounter: mod is less than zero\n");
+  end
+
+  btype = 60001 + 4;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [ initial_state, mod ], [  ]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+function [sim,out] = ld_jumper(sim, events, in, steps)
+// hysteresis - block
+//
+// switches out between onout and offout
+// initial state is either -1 (off) or 1 (on)
+//
+//
+
+  if (steps <= 0) then
+    error("ld_jumper: steps must be greater than zero\n");
+  end
+
+  btype = 60001 + 5;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [ steps ], [  ]);
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
 
 //
 // Macros
