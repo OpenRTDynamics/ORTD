@@ -349,8 +349,9 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
       in = (double *) libdyn_get_input_ptr(block,0);
       output = (double *) libdyn_get_output_ptr(block,0);
 
+//       printf("in=%f\n", *in);
       if (*in > 0) {
-        *state++;
+        *state = *state + 1;
 	if (*state >= mod)
 	  *state = 0;
       }
@@ -382,7 +383,7 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_DESTUCTOR: // destroy instance
     {
       void *buffer = (void*) libdyn_get_work_ptr(block);
-      free(buffer);      
+      free(buffer);
     }
       return 0;
       break;
@@ -393,7 +394,7 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
   }
 }
 
-int compu_func_jumper(int flag, struct dynlib_block_t *block)
+int ortd_compu_func_jumper(int flag, struct dynlib_block_t *block)
 {
   //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
     int *ipar = libdyn_get_ipar_ptr(block);
@@ -478,6 +479,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_mux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 3, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_hysteresis);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 4, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_modcounter);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 5, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_jumper);
     
     
     
