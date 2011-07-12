@@ -871,6 +871,15 @@ function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
 endfunction
 
+// Multiplication 
+// muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+// inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
+function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list)
+    [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1_list(1), muldiv1_list(2) );
+    [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
+    [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
+endfunction
+
 
 function [sim,gain] = ld_gain(sim, events, inp_list, gain)
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
