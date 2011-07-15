@@ -128,13 +128,13 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   }
     
   par_getstr( fname, encfname_ptr, 0, fname_len );
-  printf("using irpar files: %s\n", fname);
+  printf("ORTD-Block: using irpar files: %s\n", fname);
   
   // Configure in- and out port sizes
   int Nipar = GetNipar(block);
   int Nrpar = GetNrpar(block);
 
-  printf("Nin %d, Nout %d\n", GetNin(block), GetNout(block));
+//   printf("Nin %d, Nout %d\n", GetNin(block), GetNout(block));
 
   int Nin = GetNin(block);
   int Nout = GetNout(block);
@@ -155,12 +155,12 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
 
   int i;
   for (i=0; i<Nin; ++i) {
-    printf("insize[%d]=%d\n", i, GetInPortRows(block,i+1));
+//     printf("insize[%d]=%d\n", i, GetInPortRows(block,i+1));
     insizes[i] = GetInPortRows(block,i+1);
     intypes[i] = 0; // FIXME
   }
   for (i=0; i<Nout; ++i) {
-    printf("outsize[%d]=%d\n", i, GetOutPortRows(block,i+1));
+//     printf("outsize[%d]=%d\n", i, GetOutPortRows(block,i+1));
     outsizes[i] = GetOutPortRows(block,i+1);
     outtypes[i] = 0; // FIXME
   }
@@ -171,7 +171,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
 
   // Load parameters from the files
 
-  printf("Loading irpar files\n");
+  printf("ORTD-Block: Loading irpar files\n");
 
   comdev->param = new irpar();
   if (comdev->param->load_from_afile(fname) == false)
@@ -180,7 +180,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
     return -1; 
   }
   
-  printf("Loaded irpar files\n");
+  printf("ORTD-Block: Loaded irpar files\n");
   
   // If a master should be used install one
   comdev->master = NULL;
@@ -189,7 +189,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
     comdev->simnest->set_master(comdev->master);
   }
   
-  printf("loading shematic id %d\n", shematic_id);
+  printf("ORTD-Block: loading shematic id %d\n", shematic_id);
   if (comdev->simnest->add_simulation(comdev->param, shematic_id) < 0) {
     comdev->error = -2;
     return -1; 
