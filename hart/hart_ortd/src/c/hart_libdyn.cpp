@@ -141,7 +141,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
 
   int *insizes = (int*) malloc(sizeof(int) * Nin);
   int *outsizes = (int*) malloc(sizeof(int) * Nout);
-  int *intypes = (int*) malloc(sizeof(int) * Nout);
+  int *intypes = (int*) malloc(sizeof(int) * Nin);
   int *outtypes = (int*) malloc(sizeof(int) * Nout);
 
   comdev->Nin = Nin;
