@@ -20,7 +20,7 @@ ortd_root := $(shell pwd)
 
 ifeq ($(host-type),x86_64)
 # 64 Bit
-CFLAGS = -fPIC -O2 -g  
+CFLAGS = -fPIC -O2
 LDFLAGS = -shared
 else
 # 32 Bit

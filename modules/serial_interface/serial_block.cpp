@@ -39,7 +39,19 @@ class compu_func_serial_interface_class;
 // special parser function adjust to your device
 
 int SerialCommandFormer_arduino_1(FILE *stream, double *input, compu_func_serial_interface_class *serialblock) {
-    fprintf(stream, "r all 4\r\n");
+    int pwm1 = input[0]; 
+    int pwm2 = input[1];
+  
+    fprintf(stream, "w d 8 1\r\n" 
+		    "w d 9 0\r\n"
+		    "w d 10 1\r\n"
+		    "w d 11 0\r\n"
+		    "w d 12 1\r\n"
+		    
+		    "w a 5 %d\r\n"
+		    "w a 6 %d\r\n"
+		    
+		    " r all 4\r\n", pwm1, pwm2);
 
     double *v = input;
     printf("sending %f\n", v[0]);

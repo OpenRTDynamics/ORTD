@@ -139,15 +139,16 @@ class libdyn_nested {
     libdyn_master * ld_master;
 
     // slot management
-    void allocate_slots(int n);
     void free_slots();
     int slots_available();
+    bool slotindexOK(int nSim); // Test if nSim is in correct range
     
     // Array of size  Nslots
     libdyn **sim_slots;
     int Nslots;
     int slot_addsim_pointer;
     int current_slot;
+    int usedSlots; // The number of slots with actually contain simulations (index from 0 to usedSlots-1)
 
 //     bool set_current_simulation(struct dynlib_simulation_t *sim);
     
@@ -156,20 +157,26 @@ class libdyn_nested {
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
 
-    
     void destruct();
     
     void set_master(libdyn_master *master);
     
   /**
     * \brief Configure pointer to input port source variables
+    *        only usefull if use_buffered_input == false
+    *        This function has to be called BEFORE add_simulation
+    * 
     * \param in number of input port
     * \param inptr array of a double variables that will be used as input vector
     */
-    bool cfg_inptr(int in, double *inptr);    
+    bool cfg_inptr(int in, void *inptr);
+
     
     // uses a buffer for copies of the input data - necessary within scicos blocks or for a threaded nested simulation
     bool use_buffered_input;
+
+    // slot management; call BEFORE add_simulation
+    void allocate_slots(int n);
     
     // Add a simulation into the next free slot
     int add_simulation(irpar* param, int boxid); // used at the moment
@@ -231,6 +238,9 @@ private:
   // Fehler ??
   int error;
   
+  // main construtor
+  void libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_);
+  
 public:
   // NEU set a new master
   void set_master(libdyn_master *ld_master);
@@ -243,7 +253,9 @@ public:
   * \param outsizes_ an array of size Nout containing port sizes for the output ports
   */
   libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_);
+  libdyn(int Nin, const int* insizes_, const int*intypes, int Nout, const int* outsizes_, const int *outtypes);
   
+  // FIXME does not work.
   libdyn(libdyn_io_config_t * iocfg);
   
  /**
