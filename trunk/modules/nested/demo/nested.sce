@@ -101,10 +101,23 @@ endfunction
 function [sim, outlist] = nested1_schematic_fn(sim, inlist)
   u = inlist(1);
 
-  [sim, x,y] = oscillator(sim, u);  
+  [sim] = ld_printf(sim, defaultevents, u, "nested1: u = ", 1);
 
-  [sim] = ld_printf(sim, defaultevents, x, "nested: x = ", 1);
+//  [sim, x,y] = oscillator(sim, u);  
 
+//
+//  // WARNING: THE FOLLOWING DOESN'T WORK, because you cannot 
+//  // connect sim inputs directly to sim outputs
+//  x = u;
+//  y = u;
+//
+
+  [sim,x] = ld_gain(sim, defaultevents, u, 5);
+  [sim,y] = ld_gain(sim, defaultevents, u, 1);
+  
+  [sim] = ld_printf(sim, defaultevents, x, "nested1: x = ", 1);
+
+//  [sim,x] = ld_const(sim, defaultevents, 100);
 
   // output of schematic
   outlist = list(x,y);
@@ -112,10 +125,16 @@ endfunction
 
 function [sim, outlist] = nested2_schematic_fn(sim, inlist)
   u = inlist(1);
+  
+  [sim] = ld_printf(sim, defaultevents, u, "nested2: u = ", 1);
+  
 
   [sim, x,y] = damped_oscillator(sim, u);  
 
-  [sim] = ld_printf(sim, defaultevents, x, "nested: x = ", 1);
+
+  [sim] = ld_printf(sim, defaultevents, x, "nested2: x = ", 1);
+
+//  [sim,x] = ld_const(sim, defaultevents, 200);
 
   // output of schematic
   outlist = list(x,y);
@@ -123,11 +142,15 @@ endfunction
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
-  [sim,u] = ld_const(sim, defaultevents, 1);
+  [sim,u] = ld_const(sim, defaultevents, 1.123525);
   [sim,u2] = ld_const(sim, defaultevents, 2);
   
-  [sim,switch] = ld_const(sim, defaultevents, 1);
-  [sim,reset] = ld_const(sim, defaultevents, 0);
+//  [sim,switch] = ld_const(sim, defaultevents, 0.76);
+  [sim,reset] = ld_const(sim, defaultevents, 1.23);
+  
+  // A signal that switches between simulations
+  slice = ones(100,1);
+  [sim, switch] = ld_play_simple(sim, defaultevents, [ slice, slice*0,  slice, slice*0, slice, slice*0 ]);
 
   [sim, outlist] = ld_simnest(sim, defaultevents, ...
                               switch_signal=switch, reset_signal=reset, ...

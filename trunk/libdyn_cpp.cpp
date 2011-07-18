@@ -92,9 +92,6 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   int sum, tmp, i;
   double *p;
 
-  printf("begining Internal init\n");
-
-  
   iocfg.provided_outcaches = 0;
   
   iocfg.inports = Nin;
@@ -115,6 +112,8 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   // List of Pointers to in vectors
   iocfg.inptr = (double **) malloc(sizeof(double *) * iocfg.inports);
   
+  for (i=0; i<iocfg.inports; ++i)
+    iocfg.inptr[i] = (double*) NULL;
   
   //
   // Alloc list of pointers for outvalues comming from libdyn
@@ -124,7 +123,7 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
   iocfg.outptr = (double **) malloc(sizeof(double *) * iocfg.outports);
 
   for (i=0; i<iocfg.outports; ++i)
-    iocfg.outptr[i] = (double*) 0x0;
+    iocfg.outptr[i] = (double*) NULL;
   
   // Initially there is no master
   this->ld_master = NULL;
@@ -179,11 +178,29 @@ bool libdyn_nested::allocate_inbuffers()
   return true;
 }
 
+bool libdyn_nested::cfg_inptr(int in, void* inptr)
+{
+  if (this->use_buffered_input == true) {
+    fprintf(stderr, "cfg_inptr: You configured buffered input\n");
+    return false; 
+  }
+  
+  if ( (iocfg.inports <= in) || (in < 0) ) {
+    fprintf(stderr, "cfg_inptr: in out of range\n");
+    return false;
+  }
+  
+  iocfg.inptr[in] = (double*) inptr;
+  
+  return true;
+}
+
 
 
 libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
 {
   this->sim_slots = NULL;
+  this->usedSlots = 0;
   this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
 }
 
@@ -191,13 +208,14 @@ libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, i
 {
   this->sim_slots = NULL; // initially slots are not used
   this->use_buffered_input = use_buffered_input;
+  this->usedSlots = 0;
    
   this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
 
   
   if (use_buffered_input) {
-    printf("Allocate buffers\n");
-
+/*    printf("Allocate buffers\n");
+*/
     this->allocate_inbuffers();
   }
 
@@ -209,8 +227,23 @@ libdyn_nested::libdyn_nested(int Nin, const int* insizes_, const int* intypes, i
 void libdyn_nested::destruct()
 {
   
-  // LAter: list management
-  if (current_sim != NULL) {
+  if ( (sim_slots != NULL) ) {
+
+    // slots are used
+    // destruct all nested simulations
+    int i;
+    
+    for (i = 0; i < Nslots; i++) {
+      libdyn * sim = sim_slots[i];
+      if (sim != NULL) {
+	sim->destruct();
+	delete sim;
+      }
+    }
+    
+  } else if (current_sim != NULL) {
+    // the is only one simulation to destruct
+    
     current_sim->destruct();
     delete current_sim;
   }
@@ -223,8 +256,20 @@ void libdyn_nested::destruct()
 
 void libdyn_nested::allocate_slots(int n)
 {
+  if (this->sim_slots != NULL) {
+     printf("nested: slotes are already allocated!\n");
+    return;
+  }
+    
+    
   this->Nslots = n;
+  this->usedSlots = 0;
   this->sim_slots = (libdyn **) malloc(n * sizeof( libdyn * ));
+  
+  int i;
+  for (i = 0; i < n; ++i) {
+    this->sim_slots[i] = NULL;
+  }
   
   slot_addsim_pointer = 0;
   current_slot = 0;
@@ -239,6 +284,17 @@ void libdyn_nested::free_slots()
 int libdyn_nested::slots_available()
 {
   return Nslots - slot_addsim_pointer;
+}
+
+bool libdyn_nested::slotindexOK(int nSim)
+{
+  if (nSim < 0)
+    return false;
+  
+  if (nSim >= this->usedSlots)
+    return false;
+  
+  return true;
 }
 
 
@@ -269,10 +325,17 @@ int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
 
   libdyn *sim;
   
-  sim = new libdyn(&iocfg);
+//    sim = new libdyn(&iocfg);
+  sim = new libdyn( iocfg.inports, iocfg.insizes, iocfg.outports, iocfg.outsizes );
   sim->set_master(ld_master);
+
+  // set pointers to inputs
+  int i;
+  for (i = 0; i < iocfg.inports; ++i) {
+    sim->cfg_inptr(i, iocfg.inptr[i]);
+  }
   
-  
+  // set-up schematic
   int err;
   err = sim->irpar_setup(ipar, rpar, boxid); // compilation of schematic
 
@@ -292,10 +355,13 @@ int libdyn_nested::add_simulation(int* ipar, double* rpar, int boxid)
 }
 
 int libdyn_nested::add_simulation(libdyn* sim)
+// main add_simulation function that is called by the two other derivates
 {
   if (sim_slots != NULL)
-    if (slots_available() <= 0)
+    if (slots_available() <= 0) {
+      printf("nested: no more slots available\n");
       return -1;
+    }
 
   // later: list management
   current_sim = sim;
@@ -305,7 +371,13 @@ int libdyn_nested::add_simulation(libdyn* sim)
   if (sim_slots != NULL) {
     // slots should be used
     sim_slots[ slot_addsim_pointer ] = sim;
+    
+//     printf("added sim %p to slot %d\n", sim, slot_addsim_pointer);
+    
     slot_addsim_pointer++;
+    usedSlots++;
+    
+    
   }
   
   return 1;
@@ -326,8 +398,11 @@ bool libdyn_nested::load_simulations(int* ipar, double* rpar, int start_boxid, i
 
 bool libdyn_nested::set_current_simulation(int nSim)
 {
-  if (sim_slots != NULL) {
-    current_sim = this->sim_slots[nSim];
+  if ( (sim_slots != NULL) ) {
+    if (slotindexOK(nSim)) {
+      current_sim = this->sim_slots[nSim];
+//       printf("switching simulation to %d  cs = %p\n", nSim, current_sim);      
+    }
   } else {
     fprintf(stderr, "libdyn_nested: slots are not configured\n"); 
   }
@@ -341,6 +416,8 @@ void libdyn_nested::copy_outport_vec(int nPort, void* dest)
   int len = this->iocfg.outsizes[nPort];
   int datasize = sizeof(double); // FIXME
   
+//   printf("copying src from cs=%p, dptr=%p\n", current_sim, src);
+  
   memcpy(dest, src, len*datasize);
 }
 
@@ -348,7 +425,7 @@ void libdyn_nested::copy_outport_vec(int nPort, void* dest)
 void libdyn_nested::copy_inport_vec(int nPort, void* src)
 {
   if (use_buffered_input == false) {
-    fprintf(stderr, "Hmmm\n");
+    fprintf(stderr, "You are not using buffered_input\n");
     return;
   }
   
@@ -450,7 +527,8 @@ double * libdyn::get_vec_out(int out)
   return iocfg.outptr[out];
 }
 
-libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
+
+void libdyn::libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 {
   error = 0;
   
@@ -492,6 +570,18 @@ libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
   this->ld_master = NULL;
 }
 
+libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
+{
+  libdyn_internal_constructor(Nin, insizes_, Nout, outsizes_);
+}
+
+libdyn::libdyn(int Nin, const int* insizes_, const int*intypes, int Nout, const int* outsizes_, const int *outtypes)
+{
+  libdyn_internal_constructor(Nin, insizes_, Nout, outsizes_);
+}
+
+
+// FIXME: geht so nicht
 libdyn::libdyn(struct libdyn_io_config_t * iocfg)
 {
   error = 0;

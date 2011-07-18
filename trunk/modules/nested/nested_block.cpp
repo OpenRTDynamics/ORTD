@@ -53,6 +53,8 @@ private:
     int Nout;
     int *insizes, *outsizes;
     int *intypes, *outtypes;
+    
+    int Nsimulations, dfeed, synchron_simsteps;
 
     int error;
 
@@ -65,19 +67,27 @@ compu_func_nested_class::compu_func_nested_class(dynlib_block_t* block)
 
 int compu_func_nested_class::init()
 {
+    int simCreateCount;
+    int i;
+
+   
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
     struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, param;
 
 
-    irpar_get_ivec(&insizes_irp, ipar, rpar, 10);
-    irpar_get_ivec(&outsizes_irp, ipar, rpar, 11);
-    irpar_get_ivec(&intypes_irp, ipar, rpar, 12);
-    irpar_get_ivec(&outtypes_irp, ipar, rpar, 13);
-    irpar_get_ivec(&param, ipar, rpar, 20);
+    int error = 0; // FIXME Länge prüfen
+    if ( irpar_get_ivec(&insizes_irp, ipar, rpar, 10) < 0 ) error = 1 ;
+    if ( irpar_get_ivec(&outsizes_irp, ipar, rpar, 11) < 0 ) error = 1 ;
+    if ( irpar_get_ivec(&intypes_irp, ipar, rpar, 12) < 0 ) error = 1 ;
+    if ( irpar_get_ivec(&outtypes_irp, ipar, rpar, 13) < 0 ) error = 1 ;
+    if ( irpar_get_ivec(&param, ipar, rpar, 20) < 0 ) error = 1 ;
 
-
+    if (error == 1) {
+      printf("nested: could not get parameter from irpar set\n");
+      return -1;
+    }
 
     this->insizes = insizes_irp.v;
     this->outsizes = outsizes_irp.v;
@@ -90,6 +100,9 @@ int compu_func_nested_class::init()
     Nin = insizes_irp.n;
     Nout = outsizes_irp.n;
 
+    Nsimulations = param.v[0];
+    dfeed = param.v[1];
+    synchron_simsteps = param.v[2];
     /*
 
 
@@ -97,10 +110,16 @@ int compu_func_nested_class::init()
       */
 
 
-    bool use_buffered_input = true;  // in- and out port values are buffered
+    bool use_buffered_input = false;  // in- and out port values are buffered
     simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+    simnest->allocate_slots(Nsimulations);
+    
+    // set pointers to the input ports of this block
+    for (i = 0; i < Nin; ++i) {
+      double *in_p = (double*) libdyn_get_input_ptr(block, i);
+      simnest->cfg_inptr(i, (void*) in_p);
+    }
 
-    printf("simnest = %p\n", simnest);
 
     // If there is a libdyn master : use it
     master = (libdyn_master *) block->sim->master;
@@ -110,18 +129,29 @@ int compu_func_nested_class::init()
 
     simnest->set_master(master);
 
-    int shematic_id = 900;
+    for (simCreateCount = 0; simCreateCount < Nsimulations; ++simCreateCount) {
+      int shematic_id = 900 + simCreateCount;
 
-    printf("loading shematic id %d\n", 900);
-    if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
-        return -1;  // An error
+      printf("loading shematic id %d\n", shematic_id);
+      if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
+	  goto destruct_simulations;  // An error
+      }
+
+      printf("added schematic\n");
     }
-
-    printf("added schematic\n");
 
 
 
     return 0;
+    
+  destruct_simulations:
+    printf("nested: Destructing all simulations\n");
+    for (i = 0; i < simCreateCount; ++i) {
+      
+    }
+    ;
+    return -1;
+    
 }
 
 
@@ -131,11 +161,10 @@ void compu_func_nested_class::io(int update_states)
   int i,j;
 
   
-  for (i=0; i< Nin ; ++i) {
+/*  for (i=0; i< Nin ; ++i) {
     double *in_p = (double*) libdyn_get_input_ptr(block, i);
-//     printf(".. %p %d\n", in_p, block->Nin);
     simnest->copy_inport_vec(i, in_p);
-  }
+  }*/
   
   // map scicos events to libdyn events
   // convert scicos events to libdyn events (acutally there is no conversion)
@@ -146,6 +175,8 @@ void compu_func_nested_class::io(int update_states)
     simnest->simulation_step(1);
 //        printf("neszed sup\n");
   } else {
+    
+    
     simnest->simulation_step(0);
     
     for (i=0; i< Nout ; ++i) {
@@ -154,6 +185,14 @@ void compu_func_nested_class::io(int update_states)
       
 //       printf("nested outp %f\n", out_p[0]);
     }
+    
+
+    double *switch_inp = (double*) libdyn_get_input_ptr(block, Nin+0);
+    double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
+
+    int nSim = *switch_inp;
+//     printf("switch sig=%f reset=%f sw=%d\n", *switch_inp, *reset_inp, nSim);
+    simnest->set_current_simulation(nSim);
     
   }
 
