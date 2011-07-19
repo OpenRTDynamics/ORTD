@@ -942,6 +942,33 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
 
 }
 
+
+/*
+ *  Reset all Blocks in the Simulation
+ */
+void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim)
+{
+  struct dynlib_block_t *current = sim->allblocks_list_head;
+  
+  if (current != 0) {
+    do { // Destroy all blocks
+      struct dynlib_block_t *block = current;
+      
+//      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
+      
+      int ret = (*block->comp_func)(COMPF_FLAG_RESETSTATES, block);
+       if (ret == -1) {
+	 ;
+       }
+    
+      current = current->allblocks_list_next; // step to the next block in list
+    } while (current != 0); // while there is a next block in this list
+  }
+  
+}
+
+
+
 //
 //
 // Algorithm which sets-up the correct order of block execution for output calculation
