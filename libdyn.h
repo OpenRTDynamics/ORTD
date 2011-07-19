@@ -351,6 +351,7 @@ int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void
 
 int libdyn_simulation_init(struct dynlib_simulation_t * sim);
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
+void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);
 
 int libdyn_add_to_execution_list(struct dynlib_simulation_t *simulation, struct dynlib_block_t *block);
 
