@@ -41,6 +41,7 @@
 
 #define PRINT_DEBUG_HINTS
 
+// FIXME REMOVE THIS
 int compu_func_bilinearint(int flag, struct dynlib_block_t *block)
 {
  // printf("comp_func bilint: flag==%d\n", flag);
@@ -101,7 +102,7 @@ int compu_func_bilinearint(int flag, struct dynlib_block_t *block)
 
 
 
-
+// FIXME REMOVE THIS
 int compu_func_TP1(int flag, struct dynlib_block_t *block)
 {
  // printf("comp_func TP1: flag==%d\n", flag);
@@ -174,6 +175,7 @@ struct dynlib_block_t *new_TP1_block_(struct dynlib_simulation_t *sim, double z_
 }
 
 
+// FIXME: Reimplement this
 int compu_func_zTF(int flag, struct dynlib_block_t *block)
 {
   //printf("comp_func zTF: flag==%d\n", flag);
@@ -187,8 +189,6 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
   double *out;	
 
   int *ipar = libdyn_get_ipar_ptr(block);
-  //printf("ipar = %d\n", ipar);
-  //printf("ipar_ = %d\n", ipar[0]);
   double *rpar = libdyn_get_rpar_ptr(block);
   
   int degn = (ipar[0]);
@@ -200,37 +200,44 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
   int dfeed = 0;  
 
  // printf("degn = %d, degd = %d\n", degn, degd);
+
+  
   
   switch (flag) {
-    case COMPF_FLAG_CALCOUTPUTS:
+    case COMPF_FLAG_CALCOUTPUTS:      
       inp = (double *) libdyn_get_input_ptr(block,0);
       out = (double *) libdyn_get_output_ptr(block,0);
       filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
       *out = libdyn_out(filter, *inp, 0);
       
-/*      if (block->irpar_config_id == 219) {
-	printf("OOUT in=%f, out=%f\n", inp[0], out[0]);
-      }*/
+//             printf("filter=%p\n", filter);
+
+//  	printf("OOUT in=%f, out=%f\n", inp[0], out[0]);
       
       
       return 0;
       break;
     case COMPF_FLAG_UPDATESTATES:
+      
+//          	  printf(" SUP\n");
+		  
       inp = (double *) libdyn_get_input_ptr(block,0);
       out = (double *) libdyn_get_output_ptr(block,0);
       filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
       
       if (__libdyn_event_check(block, 1)) {
-	#ifdef PRINT_DEBUG_HINTS
+ 	#ifdef PRINT_DEBUG_HINTS
 	printf("nullstates irparid=%d\n", block->irpar_config_id);
-	#endif
+ 	#endif
 	libdyn_null_states(filter);
       }
       if (__libdyn_event_check(block, 0)) {
         double tmp = libdyn_out(filter, *inp, 1);
 
+// 	printf("filter=%p\n", filter);
+
 //         if (block->irpar_config_id == 203) {
-//   	  printf("OUT in=%f, out=%f SUP\n", inp[0], out[0]);
+//     	  printf("OUT in=%f, out=%f SUP\n", inp[0], out[0]);
 //         }
 
 	
@@ -238,7 +245,7 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
   //	  printf("SUP in=%f, out=%f\n", inp[0], tmp);
 
 //       if (block->irpar_config_id == 219) {
-// 	printf("SOUT in=%f, out=%f\n", inp[0], out[0]);
+//  	printf("SOUT in=%f, out=%f\n", inp[0], tmp);
 //       }
 
   
@@ -246,6 +253,13 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
       
       return 0;
       break;
+    case COMPF_FLAG_RESETSTATES:
+//       printf("00000000\n");
+      filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+      libdyn_null_states(filter);
+      
+      return 0;
+      break;      
     case COMPF_FLAG_CONFIGURE:  // configure
       if (degn == degd) 
         dfeed = 1;
@@ -263,6 +277,11 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
       return 0;
       break;
     case COMPF_FLAG_INIT:  // init
+// printf("ztf init\n");
+
+
+//       printf("filter=%p\n", filter);
+      
       return 0;
       break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
@@ -280,6 +299,7 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
       break;
   }
 }
+
 
 struct dynlib_block_t *new_zTF_block_(struct dynlib_simulation_t *sim, int degn, int degd, double *qn, double *qd)
 {
@@ -776,7 +796,6 @@ struct dynlib_block_t *new_mul_block_(struct dynlib_simulation_t *sim, int *d)
 
 
 
-
 struct fn_gen_t {
   int counter;
   int shape;
@@ -806,7 +825,7 @@ int compu_func_fn_gen(int flag, struct dynlib_block_t *block)
       
       int p = ceil(*period);
       double mod = work->counter % p;
-      *out = *amp * sin( mod / p * 2*3.1418 );
+      *out = *amp * sin( mod / p * 2*M_PI );
       
       return 0;
       break;
@@ -820,16 +839,17 @@ int compu_func_fn_gen(int flag, struct dynlib_block_t *block)
       libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
       libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype, 
       libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
-      
+           
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
       block->work = (void *) malloc(sizeof(struct fn_gen_t));
       work = (struct fn_gen_t *) block->work;
 
       work->counter = 0;
-      
+
       //printf("New fn_gen block shape = %d\n", shape);
-      return 0;
-      break;
-    case COMPF_FLAG_INIT:  // init
+
       return 0;
       break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
@@ -856,6 +876,8 @@ struct dynlib_block_t *new_fn_gen_block_(struct dynlib_simulation_t *sim, int *s
 
 
 
+
+// MOVE, untested
 struct ser2par_t {
   int z;
   double *buf;
@@ -1007,16 +1029,19 @@ int compu_func_play_block(int flag, struct dynlib_block_t *block)
       libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // BLOCKTYPE_DYNAMIC enables that the output calculation is called more than once 
       libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
       
-      block->work = (void *) siso_sampler_new(Namples, r);
-      
-      siso_sampler_special_cfg(block->work, hold_last_value, mute_afterstop);
-      if (initial_play==1)
-	siso_sampler_init_sampling(block->work);
       
      // printf("New sampler block r = [%f,%f,%f] len = %d\n", r[0],r[1],r[2], Namples);
       return 0;
       break;
     case COMPF_FLAG_INIT:  // init
+      block->work = (void *) siso_sampler_new(Namples, r);
+      
+      siso_sampler_special_cfg(block->work, hold_last_value, mute_afterstop);
+      if (initial_play==1)
+	siso_sampler_init_sampling(block->work);
+
+//       siso_sampler_stop_sampling(sampler);
+
       return 0;
       break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
@@ -1024,6 +1049,15 @@ int compu_func_play_block(int flag, struct dynlib_block_t *block)
       
       return 0;
       break;
+    case COMPF_FLAG_RESETSTATES:
+//       printf("00000000\n");
+      
+      siso_sampler_stop_sampling(sampler);
+      if (initial_play==1)
+	siso_sampler_init_sampling(sampler);
+      
+      return 0;
+      break;            
     case COMPF_FLAG_PRINTINFO:
       printf("I'm a sampler block\n");
       return 0;
@@ -1163,39 +1197,45 @@ int compu_func_filedump(int flag, struct dynlib_block_t *block)
       break;
     case COMPF_FLAG_CONFIGURE:  // configure
     {
-      char filename[250];
-      
-      if (fnamelen > 250) {
-	printf("compu_func_filedump: ERROR: Filename too long\n");
-	return -1;
-      }
-      
-      // Decode filename
-      int i;
-      for (i = 0; i < fnamelen; ++i)
-	filename[i] = codedfname[i];
-      
-      filename[i] = 0; // String termination
-      
-//      printf("Decoded filename = %s\n", filename);
-
-      int num_elements = 10000 / vlen; // Buffersize is alwas aroud 10000 * sizeof(double)
-      
-      struct filewriter_t *filewriter = log_dfilewriter_new(vlen, num_elements, filename);
-      if (filewriter == 0) {
-	printf("compu_func_filedump: ERROR: Connot create filewriter - maybe check filename\n");
-	return -1;
-      }
-      // FIXME: Fehler abfangen
-//      printf("fwh=%x\n", filewriter);
       
       // one Port of length vlen
-      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) filewriter, 0); 
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
       libdyn_config_block_input(block, 0, vlen, DATATYPE_FLOAT); 
     } 
       return 0;
       break;
     case COMPF_FLAG_INIT:  // init
+      { 
+	char filename[250];
+	
+	if (fnamelen > sizeof(filename)) {
+	  printf("compu_func_filedump: ERROR: Filename too long\n");
+	  return -1;
+	}
+	
+	// Decode filename
+	int i;
+	for (i = 0; i < fnamelen; ++i)
+	  filename[i] = codedfname[i];
+	
+	filename[i] = 0; // String termination
+	
+  //      printf("Decoded filename = %s\n", filename);
+
+	int num_elements = 10000 / vlen; // Buffersize is alwas aroud 10000 * sizeof(double)
+	
+	struct filewriter_t *filewriter = log_dfilewriter_new(vlen, num_elements, filename);
+	if (filewriter == 0) {
+	  printf("compu_func_filedump: ERROR: Connot create filewriter - maybe check filename\n");
+	  return -1;
+	}
+
+	libdyn_set_work_ptr(block, (void *) filewriter);
+
+	// FIXME: Fehler abfangen
+  
+      }
+
       return 0;
       break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
@@ -1274,6 +1314,7 @@ int compu_func_compare(int flag, struct dynlib_block_t *block)
 }
 
 // FIXME: UNTESTED!
+// MOVE
 int compu_func_delay(int flag, struct dynlib_block_t *block)
 {
   //printf("comp_func zTF: flag==%d\n", flag);

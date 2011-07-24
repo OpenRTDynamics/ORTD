@@ -188,7 +188,11 @@ class libdyn_nested {
 
     // Activate a simulation from the slots
     bool set_current_simulation(int nSim);
-    bool reset_states_of_simulation(int nSim);
+
+    /**
+    * \brief reset the states of all block in the current simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)
+    */
+    void reset_blocks();
     
     // laods NSimulations schematics from an irpar container with increasing irparid starting irparid = at start_boxid.
     // add_simulation is called for each
@@ -301,6 +305,12 @@ public:
   */
   void simulation_step(int update_states);
 
+  
+  /**
+  * \brief reset the states of all block in the simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)
+  */
+  void reset_blocks();
+  
  /**
   * \brief Get a simulation output value (only for output ports of size one)
   * \param out Number of output port

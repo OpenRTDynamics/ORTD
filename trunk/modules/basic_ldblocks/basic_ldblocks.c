@@ -319,9 +319,8 @@ int ortd_compu_func_hysteresis(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
 {
- // printf("comp_func flipflop: flag==%d\n", flag);
-  int Nout = 1;
-  int Nin = 1;
+  int Nout = 1; // # input ports
+  int Nin = 1; // # output ports
 
   int *ipar = libdyn_get_ipar_ptr(block);
   double *rpar = libdyn_get_rpar_ptr(block);
@@ -333,8 +332,6 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
 
   double *in;
   double *output;
-
-
   
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
@@ -349,23 +346,20 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
       in = (double *) libdyn_get_input_ptr(block,0);
       output = (double *) libdyn_get_output_ptr(block,0);
 
-//       printf("in=%f\n", *in);
       if (*in > 0) {
         *state = *state + 1;
 	if (*state >= mod)
 	  *state = 0;
       }
-
       
       return 0;
       break;
-    case COMPF_FLAG_RESETSTATES:
+    case COMPF_FLAG_RESETSTATES: // reset states
       *state = initial_state;
       
       return 0;
       break;
     case COMPF_FLAG_CONFIGURE:  // configure
-      //printf("New flipflop Block\n");
       libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
       libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
       libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
