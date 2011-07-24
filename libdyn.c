@@ -1937,13 +1937,6 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
       break;
       
       
-/*    case LIBDYN_BLOCK_ID_SCOPE :
-      {       
-       block = libdyn_new_block(sim, &compu_func_scope, &bipar[0], &brpar[0], 0,  0);
-      }
-      break;*/
-      
-      
       
       
       
@@ -2013,15 +2006,6 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
   mydebug(7) libdyn_block_dumpinfo(block);
   
   return block;
-  
-  /*
-  ret->degnum = ret_.ipar_ptr[0]; // length
-  ret->degden = ret_.ipar_ptr[1]; // length  
-
-  ret->num = &ret_.rpar_ptr[0];  // 
-  ret->den = &ret_.rpar_ptr[ret->degnum];  // 
-  
-  */
 }
 
 // Traverse block connection list based on irpar structure and create blocks and connect them

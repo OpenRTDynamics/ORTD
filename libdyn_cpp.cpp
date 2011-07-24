@@ -442,6 +442,12 @@ void libdyn_nested::simulation_step(int update_states)
   current_sim->simulation_step(update_states);
 }
 
+void libdyn_nested::reset_blocks()
+{
+  current_sim->reset_blocks();
+}
+
+
 void libdyn_nested::event_trigger_mask(int mask)
 {
   current_sim->event_trigger_mask(mask);
@@ -474,6 +480,12 @@ void libdyn::simulation_step(int update_states)
   
   libdyn_simulation_step(sim, update_states);    
 }
+
+void libdyn::reset_blocks()
+{
+  libdyn_simulation_resetblocks(sim);
+}
+
 
 int libdyn::irpar_setup(int* ipar, double* rpar, int boxid)
 {

@@ -115,6 +115,9 @@ function [sim, outlist] = nested1_schematic_fn(sim, inlist)
   [sim,x] = ld_gain(sim, defaultevents, u, 5);
   [sim,y] = ld_gain(sim, defaultevents, u, 1);
   
+  [sim, x] = ld_play_simple(sim, defaultevents, [ linspace(0,5,90) ]);
+
+  
   [sim] = ld_printf(sim, defaultevents, x, "nested1: x = ", 1);
 
 //  [sim,x] = ld_const(sim, defaultevents, 100);
@@ -150,7 +153,11 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   
   // A signal that switches between simulations
   slice = ones(100,1);
-  [sim, switch] = ld_play_simple(sim, defaultevents, [ slice, slice*0,  slice, slice*0, slice, slice*0 ]);
+  [sim, switch] = ld_play_simple(sim, defaultevents, [ slice; slice*1;  slice; slice*0; slice; slice*0 ]);
+
+//  [sim, reset] = ld_play_simple(sim, defaultevents, [ slice*0;1; slice*0; slice*0; 0;0;0;1;slice*0; slice*0; slice*0 ]);
+  
+  [sim, reset] = ld_ztf(sim, defaultevents, switch, (z-1)/z );
 
   [sim, outlist] = ld_simnest(sim, defaultevents, ...
                               switch_signal=switch, reset_signal=reset, ...

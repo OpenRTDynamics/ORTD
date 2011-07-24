@@ -44,7 +44,7 @@ T_a = 0.1;
 // Set up simulation schematic
 //
 
-function [sim, x,v] = oscillator(u)
+function [sim, x,v] = oscillator(sim, u)
     // create a feedback signal
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
@@ -65,7 +65,7 @@ function [sim, x,v] = oscillator(u)
 //    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
 endfunction
 
-function [sim, x,v] = damped_oscillator(u)
+function [sim, x,v] = damped_oscillator(sim, u)
     // create a feedback signal
     [sim,x_feedback] = libdyn_new_feedback(sim);
     [sim,v_feedback] = libdyn_new_feedback(sim);
@@ -106,9 +106,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   damped = 1; // please choose 1 or 0
   
   if (damped == 1) then
-    [sim, x,y] = damped_oscillator(u);
+    [sim, x,y] = damped_oscillator(sim, u);
   else
-    [sim, x,y] = oscillator(u);  
+    [sim, x,y] = oscillator(sim, u);  
   end
   
   

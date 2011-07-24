@@ -443,11 +443,16 @@ struct filewriter_t *log_dfilewriter_new(int vlen, int bufsize, char *fname)
 {
   struct filewriter_t *fw = (struct filewriter_t *) malloc(sizeof(struct filewriter_t));
  
+  if (strlen(fname) > sizeof(fw->fname)) {
+    printf("log.c dfilewriter: Filename too long\n");
+    return NULL;
+  }
+  
   strcpy(fw->fname, fname); // FIXME: Possible Buffer overflow
   fw->sink = log_sink_new(sizeof(double)*vlen, bufsize, &log_dfilewriter_callback, (void*) fw, 20);
   if (fw->sink == 0) {
     free(fw);
-    return 0;
+    return NULL;
   }
   
   fw->vlen = vlen;

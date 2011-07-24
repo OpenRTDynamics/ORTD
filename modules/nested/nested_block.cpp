@@ -190,6 +190,11 @@ void compu_func_nested_class::io(int update_states)
     double *switch_inp = (double*) libdyn_get_input_ptr(block, Nin+0);
     double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
 
+    if (*reset_inp > 0) {
+      printf("reset states\n");
+      simnest->reset_blocks();
+    }
+    
     int nSim = *switch_inp;
 //     printf("switch sig=%f reset=%f sw=%d\n", *switch_inp, *reset_inp, nSim);
     simnest->set_current_simulation(nSim);
