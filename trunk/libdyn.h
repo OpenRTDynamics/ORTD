@@ -349,6 +349,7 @@ void libdyn_block_notify_extrapar(struct dynlib_block_t *block, void *par);
 int libdyn_block_connect(struct dynlib_block_t *blockfrom, int outNr, struct dynlib_block_t *blockto, int inNr);
 int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void *external_data, int portsize);
 
+int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim);
 int libdyn_simulation_init(struct dynlib_simulation_t * sim);
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
 void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);
