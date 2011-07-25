@@ -3,6 +3,12 @@ List of Blocks
 --------------
 
 
+BLOCKS defined within modules
+-----------------------------
+
+Documentation can be found within modules/*/scilab_loader.sce
+
+
 
 BLOCKS CODED IN C
 -----------------

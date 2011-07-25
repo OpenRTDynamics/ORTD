@@ -1,4 +1,4 @@
-OpenRTDynamics v0.99d -- Real Time Dynamic Toolbox suitable for
+OpenRTDynamics v0.99d -- Real Time Dynamics Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos.
@@ -19,7 +19,8 @@ LGPL, see COPYING / COPYING.LESSER
 Requirements
 ------------
 
-Scilab 5 or above
+Scilab 5 or above. The toolbox will only load with Scilab 5.3.0 at the moment 
+                   (maybe a builder.sce problem?)
 Scilab 4.1.2 also works, but the toolbox will not load. Manually loading
              the *sci is required.
 
@@ -52,8 +53,21 @@ Tools
 -----
 
 - libdyn_generic_exec
-    executes schematics in realtime / as fast as possible
+    executes schematics in realtime (rt_preempt) OR as fast as possible
+    Schematics are getting some dummy in and outputs
     type "libdyn_generic_exec --help" for help
+
+Modules
+-------
+
+Modules are placed within the modules subdirectory. For now, you will find the
+following:
+
+- muparser: Evaluation of mathematical expressions
+- rt_server: Remote control of your controller via an TCP-Interface (Experimental)
+- nested: includind and switching of ORTD-Simulations within ORTD-Simulations
+- basic_ldblocks: Basic Blocks (hysteresis, modulo counter, (de)multiplexer, 2to1 switch ...)
+- template: A module template for creating your own blocks
 
 Examples
 --------
@@ -90,9 +104,9 @@ TODO
 - Better Documentation (the provided one is out of date)
 
 - Wrapper block for backgroud computations for state updates
-- nestet schematics
-- exchangable schematics
-- tcp server for remote control, parameter uploading ...
+- nestet schematics (done)
+- exchangable schematics (done)
+- tcp server for remote control, parameter uploading ... (experimental)
 - block interpreting math formula (done; with help of muParser)
 - wrapper for scicos blocks and inclusion of hart toolbox
 - a dynamical linker that loads *so files as it might be described
@@ -107,7 +121,8 @@ BUGS
 - Transfer function blocks are limited by a order of max 20 for the given tf
   No error catching
 - Objects created by libdyn_new_feedback can by ONLY used once
-- Otherwise it works quite stable (Used for many controller implementations)
+- Otherwise it works quite stable (Used for many controller implementations in medical
+  control at TU-Berlin)
 
 CONTACT
 -------

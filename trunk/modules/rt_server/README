@@ -1,0 +1,11 @@
+rt_server module:
+-----------------
+
+Aim: TCP Remote control interface to ORTD
+
+Provides:
+
+- scopes for getting out measurement data.
+- parameters that can be set remotely
+
+A Demostration is found within demo
