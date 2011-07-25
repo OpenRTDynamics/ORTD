@@ -34,7 +34,7 @@
 /*
  TODO:
  
- - check wheter all blocks are fully connected
+ - check wheter all blocks are fully connected - 25.7.11 done not tested for now
  - check wheter an inport was already connected before? - Maybe done?
 
 */
@@ -770,6 +770,41 @@ void libdyn_clock_event_generator(struct dynlib_simulation_t *simulation)
       libdyn_event_trigger(simulation, i);
     }
   }
+}
+
+
+/*
+ *  Check whether all inputs are connected
+ */
+int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim)
+{
+  int fault = 0;
+  
+  struct dynlib_block_t *current = sim->allblocks_list_head;
+  
+  if (current != 0) {
+    do { // Destroy all blocks
+      struct dynlib_block_t *block = current;
+      
+
+      int i;
+      for (i = 0; i<block->Nin; ++i) {
+	if (block->inlist[i].data == NULL) {
+	  fprintf(stderr, "libdyn: error: port %d of block with irparid=%d is not connected\n", i, block->irpar_config_id);
+	  
+	  fault = -1;
+	}
+      }
+/*      int ret = (*block->comp_func)(COMPF_FLAG_RESETSTATES, block);
+       if (ret == -1) {
+	 ;
+       }*/
+    
+      current = current->allblocks_list_next; // step to the next block in list
+    } while (current != 0); // while there is a next block in this list
+  }
+
+  return fault;
 }
 
 
@@ -2297,7 +2332,15 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   
   //libdyn_block_dumpinfo((*sim)->allblocks_list_head->allblocks_list_next); //->allblocks_list_next
 
-
+  err = libdyn_simulation_checkinputs(*sim);
+  if (err < -0) {
+    fprintf(stderr, "Error checking input ports of all blocks\n");
+    
+    libdyn_del_simulation(*sim);
+    
+    return -1;
+  }
+  
   
   //
   // Build exec list

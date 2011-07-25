@@ -21,8 +21,8 @@ endif
 all: lib
 	echo "Module rt_server done"
 
-lib: rt_server.o parameter_manager.o directory.o rt_server_block.o
-	ar rvs module.a rt_server.o parameter_manager.o directory.o  rt_server_block.o # scope_block.o
+lib: rt_server.o parameter_manager.o directory.o rt_server_block.o remote_decoder.o
+	ar rvs module.a rt_server.o parameter_manager.o directory.o  rt_server_block.o remote_decoder.o # scope_block.o
 #	ar rvs module_Linux.a scope_block.o   # Only include for "Linux" Target
 #	$(LD) -static -o scope.o rt_preempt_scope.o rt_preempt_scope_decoder.o
 
@@ -45,3 +45,7 @@ parameter_manager.o: parameter_manager.cpp
 
 directory.o: directory.cpp
 	$(CC) $(CFLAGS) -c directory.cpp
+
+remote_decoder.o: remote_decoder.cpp
+	$(CC) $(CFLAGS) -c remote_decoder.cpp
+
