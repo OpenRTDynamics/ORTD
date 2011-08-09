@@ -35,15 +35,279 @@ extern "C" {
     int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
 }
 
+template <class compute_instance> class background_computation {
+public:
+  
+    // the class compute_instance should provide a method int computer()
+    background_computation(compute_instance *ci);
+    ~background_computation();
+
+    bool start_computation();
+
+    void join_computation();
+
+    bool get_finished();
+    void set_finished();
+
+    void loop();
+
+private:
+
+    compute_instance * ci;
+  
+    int signal;
+
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+
+    pthread_t thread;
+
+    bool finished;
+    pthread_mutex_t finished_mutex;
+
+    pthread_mutex_t comp_active_mutex;
+
+
+    static void * start_thread(void *obj);
+};
+
+
+
+// void * background_computation_thread(void *data)
+// {
+//     background_computation * inst = (background_computation *) data;
+// 
+//     printf("comp thread started\n");
+// 
+//     inst->loop();
+// 
+//     pthread_exit(NULL);
+// }
+
+template <class compute_instance> void * background_computation<compute_instance>::start_thread(void *obj)
+{
+    background_computation<compute_instance> *ci;
+  
+    ci = (background_computation<compute_instance> *) obj;
+    
+    ci->loop();
+//     reinterpret_cast<compute_instance *>(obj)->loop();
+}
+
+template <class compute_instance> void background_computation<compute_instance>::loop()
+// void background_computation::loop()
+{
+    for (;;) {
+
+        pthread_mutex_lock(&mutex);
+
+        while (signal == 0) { // FIXME do { .. } while() ???
+            pthread_cond_wait(&cond, &mutex);
+        }
+        int sig = signal;
+	signal = 0;
+
+        pthread_mutex_unlock(&mutex);
+
+
+        // do something based on sig
+        if (sig == 1) {
+
+            pthread_mutex_lock(&comp_active_mutex);
+
+            // Run the function computer() of the given class, which type is parametrised by this template
+	    ci->computer();
+
+            pthread_mutex_unlock(&comp_active_mutex);
+
+
+// 	     computation finished
+            set_finished();
+        }
+
+        if (sig == -1)
+            return;
+
+    }
+}
+
+template <class compute_instance> bool background_computation<compute_instance>::start_computation()
+// bool background_computation::start_computation()
+{
+
+    bool finished_cpy = get_finished();
+
+//   only if computation is not running
+    if (finished_cpy == true) {
+
+        signal = 1;
+        pthread_cond_signal(&cond); // Notify reader thread
+    }
+
+}
+
+// void background_computation::join_computation()
+template <class compute_instance> void background_computation<compute_instance>::join_computation()
+{
+    // wait until computation is complete
+//    TODO
+}
+
+template <class compute_instance> bool background_computation<compute_instance>::get_finished()
+// bool background_computation::get_finished()
+{
+
+    pthread_mutex_lock(&finished_mutex);
+    bool finished_cpy = finished;
+    pthread_mutex_unlock(&finished_mutex);
+
+    return finished_cpy;
+}
+
+template <class compute_instance> void background_computation<compute_instance>::set_finished()
+// void background_computation::set_finished()
+{
+    pthread_mutex_lock(&finished_mutex);
+    finished = true;
+    pthread_mutex_unlock(&finished_mutex);
+}
+
+
+template <class compute_instance> background_computation<compute_instance>::background_computation(compute_instance *ci)
+// background_computation::background_computation(compute_instance *ci)
+{
+    this->ci = ci;
+    signal = 0;
+    finished = true;
+
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
+
+    pthread_mutex_init(&finished_mutex, NULL);
+    pthread_mutex_init(&comp_active_mutex, NULL);
+
+//     int rc = pthread_create(&thread, NULL, background_computation_thread, (void *) this);
+     int rc = pthread_create(&thread, NULL, &background_computation<compute_instance>::start_thread, (void *) this);
+     if (rc) {
+         printf("ERROR; return code from pthread_create() is %d\n", rc);
+     }
+
+
+}
+
+
+template <class compute_instance> background_computation<compute_instance>::~background_computation()
+// background_computation::~background_computation()
+{
+    signal = -1;
+    pthread_cond_signal(&cond); // Notify reader thread
+
+//     printf("comp: joining\n");
+    pthread_join(thread, NULL);
+    printf("background computer: joinined\n");
+
+
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
+
+    pthread_mutex_destroy(&finished_mutex);
+    pthread_mutex_destroy(&comp_active_mutex);
+
+}
+
+
+
+
+
+/*
+class ortd_asychronous_computation_thread {
+  public:
+    
+    
+  private:
+    
+  
+};*/
+
+
+class ortd_asychronous_computation {
+private:
+
+    libdyn_nested * simnest;
+    libdyn *sim;
+
+    background_computation< ortd_asychronous_computation > *computer_mgr;
+public:
+    // simnest: a ready to use set-up schematic
+    ortd_asychronous_computation(libdyn_nested * simnest);
+    ortd_asychronous_computation(libdyn * simnest);
+
+    ~ortd_asychronous_computation();
+
+    int computeNSteps(int N);
+    bool computation_finished();
+    void join_computation();
+    
+    
+    int computer();
+};
+
+
+ortd_asychronous_computation::ortd_asychronous_computation(libdyn_nested* simnest)
+{
+    this->simnest = simnest;
+    this->sim = simnest->current_sim;
+
+    computer_mgr = new background_computation< ortd_asychronous_computation > (this);
+
+    computer_mgr->start_computation();
+}
+
+ortd_asychronous_computation::~ortd_asychronous_computation()
+{
+    delete computer_mgr;
+}
+
+
+int ortd_asychronous_computation::computeNSteps(int N)
+{
+    // trigger computation
+
+    computer_mgr->start_computation();
+
+}
+
+int ortd_asychronous_computation::computer()
+{
+  printf("running computer\n");
+  sleep(1);
+  printf("finished\n");
+}
+
+
+
+
+
+
+
+
+
+
 class compu_func_nested_class {
 public:
     compu_func_nested_class(struct dynlib_block_t *block);
     void destruct();
     void io(int update_states);
+    void io_sync(int update_states);
+    void io_async(int update_states);
+
     int init();
 private:
     struct dynlib_block_t *block;
 
+    // Used when asyn computation is desired
+    bool async_comp;
+    ortd_asychronous_computation * async_comp_mgr;
 
     libdyn_nested * simnest;
     libdyn_master * master;
@@ -53,7 +317,7 @@ private:
     int Nout;
     int *insizes, *outsizes;
     int *intypes, *outtypes;
-    
+
     int Nsimulations, dfeed, synchron_simsteps;
 
     int error;
@@ -70,7 +334,7 @@ int compu_func_nested_class::init()
     int simCreateCount;
     int i;
 
-   
+
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
@@ -85,8 +349,8 @@ int compu_func_nested_class::init()
     if ( irpar_get_ivec(&param, ipar, rpar, 20) < 0 ) error = 1 ;
 
     if (error == 1) {
-      printf("nested: could not get parameter from irpar set\n");
-      return -1;
+        printf("nested: could not get parameter from irpar set\n");
+        return -1;
     }
 
     this->insizes = insizes_irp.v;
@@ -103,6 +367,7 @@ int compu_func_nested_class::init()
     Nsimulations = param.v[0];
     dfeed = param.v[1];
     synchron_simsteps = param.v[2];
+
     /*
 
 
@@ -110,14 +375,20 @@ int compu_func_nested_class::init()
       */
 
 
-    bool use_buffered_input = false;  // in- and out port values are buffered
+    bool use_buffered_input = false;  // in- and out port values are not buffered (default)
+    if (synchron_simsteps < 0) {
+        use_buffered_input == true;  // with async computation buffered inputs have to be used
+    }
+
     simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
     simnest->allocate_slots(Nsimulations);
-    
+
+    //
     // set pointers to the input ports of this block
+    //
     for (i = 0; i < Nin; ++i) {
-      double *in_p = (double*) libdyn_get_input_ptr(block, i);
-      simnest->cfg_inptr(i, (void*) in_p);
+        double *in_p = (double*) libdyn_get_input_ptr(block, i);
+        simnest->cfg_inptr(i, (void*) in_p);
     }
 
 
@@ -130,81 +401,159 @@ int compu_func_nested_class::init()
     simnest->set_master(master);
 
     for (simCreateCount = 0; simCreateCount < Nsimulations; ++simCreateCount) {
-      int shematic_id = 900 + simCreateCount;
+        int shematic_id = 900 + simCreateCount;
 
-      printf("loading shematic id %d\n", shematic_id);
-      if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
-	  goto destruct_simulations;  // An error
-      }
+        printf("loading shematic id %d\n", shematic_id);
+        if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
+            goto destruct_simulations;  // An error
+        }
 
-      printf("added schematic\n");
+        printf("added schematic\n");
     }
 
+
+    //
+    // start async computation manager if desired
+    //
+
+    if (synchron_simsteps < 0) {
+        this->async_comp = false;
+    } else {
+        // Initialise async computation manager
+        printf("nested: Using async\n");
+        
+        this->async_comp = true;
+        this->async_comp_mgr = new ortd_asychronous_computation(simnest);
+    }
 
 
     return 0;
-    
-  destruct_simulations:
+
+destruct_simulations:
     printf("nested: Destructing all simulations\n");
     for (i = 0; i < simCreateCount; ++i) {
-      
+
     }
     ;
     return -1;
-    
+
+}
+
+void compu_func_nested_class::io_sync(int update_states)
+{
+    int i,j;
+
+
+
+    // map scicos events to libdyn events
+    // convert scicos events to libdyn events (acutally there is no conversion)
+    int eventmask = __libdyn_event_get_block_events(block);
+    simnest->event_trigger_mask(eventmask);
+
+    if (update_states == 1) {
+        //
+        // update states
+        //
+
+        simnest->simulation_step(1);
+
+        //        printf("neszed sup\n");
+    } else {
+        //
+        // calc outputs
+        //
+
+
+        simnest->simulation_step(0);
+
+        for (i=0; i< Nout ; ++i) {
+            double *out_p = (double*) libdyn_get_output_ptr(block, i);
+            simnest->copy_outport_vec(i, out_p);
+
+//       printf("nested outp %f\n", out_p[0]);
+        }
+
+        // Some control signal input analysis
+        double *switch_inp = (double*) libdyn_get_input_ptr(block, Nin+0);
+        double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
+
+        if (*reset_inp > 0) {
+            printf("reset states\n");
+            simnest->reset_blocks();
+        }
+
+        int nSim = *switch_inp;
+//     printf("switch sig=%f reset=%f sw=%d\n", *switch_inp, *reset_inp, nSim);
+        simnest->set_current_simulation(nSim);
+
+    }
+
+
+}
+
+void compu_func_nested_class::io_async(int update_states)
+{
+    int i;
+  
+    // map scicos events to libdyn events
+    // convert scicos events to libdyn events (acutally there is no conversion)
+    int eventmask = __libdyn_event_get_block_events(block);
+    simnest->event_trigger_mask(eventmask);
+
+    if (update_states == 1) {
+        //
+        // update states
+        //
+
+       this->async_comp_mgr->computeNSteps(10);
+
+//         // Some control signal input analysis
+//         double *switch_inp = (double*) libdyn_get_input_ptr(block, Nin+0);
+//         double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
+// 
+//         if (*reset_inp > 0) {
+//             printf("reset states\n");
+//             simnest->reset_blocks();
+//         }
+
+
+    } else {
+        //
+        // copy outputs (if result is available)
+        //
+
+
+
+        for (i=0; i< Nout ; ++i) {
+            double *out_p = (double*) libdyn_get_output_ptr(block, i);
+            simnest->copy_outport_vec(i, out_p);
+
+//       printf("nested outp %f\n", out_p[0]);
+        }
+
+
+    }
+
+
 }
 
 
 void compu_func_nested_class::io(int update_states)
 {
-  
-  int i,j;
-
-  
-/*  for (i=0; i< Nin ; ++i) {
-    double *in_p = (double*) libdyn_get_input_ptr(block, i);
-    simnest->copy_inport_vec(i, in_p);
-  }*/
-  
-  // map scicos events to libdyn events
-  // convert scicos events to libdyn events (acutally there is no conversion)
-  int eventmask = __libdyn_event_get_block_events(block);
-  simnest->event_trigger_mask(eventmask);
-  
-  if (update_states == 1) {
-    simnest->simulation_step(1);
-//        printf("neszed sup\n");
-  } else {
-    
-    
-    simnest->simulation_step(0);
-    
-    for (i=0; i< Nout ; ++i) {
-      double *out_p = (double*) libdyn_get_output_ptr(block, i);
-      simnest->copy_outport_vec(i, out_p);
-      
-//       printf("nested outp %f\n", out_p[0]);
+    if (async_comp == false) {
+        io_sync(update_states);
+    } else {
+        io_async(update_states);
     }
-    
-
-    double *switch_inp = (double*) libdyn_get_input_ptr(block, Nin+0);
-    double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
-
-    if (*reset_inp > 0) {
-      printf("reset states\n");
-      simnest->reset_blocks();
-    }
-    
-    int nSim = *switch_inp;
-//     printf("switch sig=%f reset=%f sw=%d\n", *switch_inp, *reset_inp, nSim);
-    simnest->set_current_simulation(nSim);
-    
-  }
 
 }
 
 void compu_func_nested_class::destruct()
 {
+
+    if (this->async_comp)
+        delete async_comp_mgr;
+
     simnest->destruct();
     delete simnest;
 }
@@ -261,20 +610,20 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
         int Ninports = insizes.n;
         int Noutports = outsizes.n;
 
-		
+
         int i;
         libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Noutports, Ninports + 2, (void *) 0, 0);
 
         for (i = 0; i < Ninports; ++i) {
             libdyn_config_block_input(block, i, insizes.v[i], DATATYPE_FLOAT);
-	}
+        }
 
-	libdyn_config_block_input(block, Ninports, 1, DATATYPE_FLOAT); // switch signal input
-	libdyn_config_block_input(block, Ninports+1, 1, DATATYPE_FLOAT); // reset signal input
+        libdyn_config_block_input(block, Ninports, 1, DATATYPE_FLOAT); // switch signal input
+        libdyn_config_block_input(block, Ninports+1, 1, DATATYPE_FLOAT); // reset signal input
 
         for (i = 0; i < Noutports; ++i) {
             libdyn_config_block_output(block, i, outsizes.v[i], DATATYPE_FLOAT, dfeed);
-	}
+        }
 
 
     }
@@ -296,7 +645,7 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
         compu_func_nested_class *worker = (compu_func_nested_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
-	delete worker;
+        delete worker;
 
     }
     return 0;
