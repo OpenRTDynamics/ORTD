@@ -25,7 +25,9 @@ endfunction
 function [sim,outlist] = ld_demux(sim, events, vecsize, invec)
   btype = 60001 + 1;	
   ipar = [vecsize, 0]; rpar = [];
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, ...
+                       insizes=[vecsize], outsizes=[ones(vecsize,1)], ...
+                       intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT*ones(vecsize,1)]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(invec) );
 
@@ -179,3 +181,8 @@ function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
 endfunction
 
 
+// Convert an angle in rad to degree and print to console
+function [sim] = ld_print_angle(sim, ev, alpha, text)
+    [sim, alpha_deg] = ld_gain(sim, ev, alpha, 1/%pi*180);
+    [sim] = ld_printf(sim, ev, alpha_deg, text, 1);
+endfunction
