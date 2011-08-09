@@ -43,6 +43,17 @@
 
 
 
+// 
+// Datatypes
+// 
+
+ORTD.DATATYPE_UNCONFIGURED = 0;
+ORTD.DATATYPE_FLOAT = (1 + (8 * 2^5));
+ORTD.DATATYPE_SHORTFLOAT = 4;
+ORTD.DATATYPE_INT = 2;
+ORTD.DATATYPE_BOOLEAN = 3;
+ORTD.DATATYPE_EVENT = 5;
+
 
 
 // Globale variable which gives each simulation a unique and random id
@@ -82,7 +93,7 @@ endfunction
 
 // blocks that may be added by the user
 // btype is the kind of block - the comp fn is determined based on this integer
-function [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar)
+function [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, insizes, outsizes, intypes, outtypes)
   [sim,oid] = libdyn_new_objectid(sim); // get new object id
   blk.oid = oid;
   blk.simid = sim.simid;
@@ -97,11 +108,21 @@ function [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar)
   
   header = [ btype; oid; Nbipar; Nbrpar; eventlist_len ]; // add header parameters
   header = [ header; events(:) ]; // Add eventlist
+
+  if (exists('insizes') == %T) then
+printf("insizes exisi\n");
+    blk.insizes = insizes;
+    blk.outsizes = outsizes;
+    blk.intypes = intypes;
+    blk.outtypes = outtypes;
+  else
+//     printf("no insizes exisi\n"); // put out a warning later
+  end
   
   // store parameters
   sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [header; ipar(:)], [rpar(:)]);
   
-  // stort block structure
+  // stort block structure in objectlist
   sim.objectlist(oid) = blk;
 endfunction
 
@@ -1018,6 +1039,10 @@ function [sim,save_]=ld_dumptoiofile(sim, events, fname, source)
   [sim,save_] = libdyn_new_blk_filedump(sim, events, fname, 1, 0, 1);
   [sim,save_] = libdyn_conn_equation(sim, save_, list(source) );
 endfunction
+
+
+
+
 
 
 //////////////////////////////////////////////////////////
