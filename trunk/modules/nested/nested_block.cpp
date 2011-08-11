@@ -230,17 +230,19 @@ class ortd_asychronous_computation_thread {
 };*/
 
 
-class ortd_asychronous_computation {
+template <class callback_class> class ortd_asychronous_computation {
 private:
 
     libdyn_nested * simnest;
     libdyn *sim;
 
+    callback_class *cb;
+    
     background_computation< ortd_asychronous_computation > *computer_mgr;
 public:
     // simnest: a ready to use set-up schematic
-    ortd_asychronous_computation(libdyn_nested * simnest);
-    ortd_asychronous_computation(libdyn * simnest);
+    ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest);
+    ortd_asychronous_computation(callback_class *cb, libdyn * simnest);
 
     ~ortd_asychronous_computation();
 
@@ -253,7 +255,8 @@ public:
 };
 
 
-ortd_asychronous_computation::ortd_asychronous_computation(libdyn_nested* simnest)
+template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest)
+//ortd_asychronous_computation::ortd_asychronous_computation(libdyn_nested* simnest)
 {
     this->simnest = simnest;
     this->sim = simnest->current_sim;
@@ -263,13 +266,15 @@ ortd_asychronous_computation::ortd_asychronous_computation(libdyn_nested* simnes
     computer_mgr->start_computation();
 }
 
-ortd_asychronous_computation::~ortd_asychronous_computation()
+template <class callback_class> ortd_asychronous_computation<callback_class>::~ortd_asychronous_computation()
+// ortd_asychronous_computation::~ortd_asychronous_computation()
 {
     delete computer_mgr;
 }
 
 
-int ortd_asychronous_computation::computeNSteps(int N)
+template <class callback_class> int ortd_asychronous_computation<callback_class>::computeNSteps(int N)
+// int ortd_asychronous_computation::computeNSteps(int N)
 {
     // trigger computation
 
@@ -277,10 +282,32 @@ int ortd_asychronous_computation::computeNSteps(int N)
 
 }
 
-int ortd_asychronous_computation::computer()
+template <class callback_class> bool ortd_asychronous_computation<callback_class>::computation_finished()
+// bool ortd_asychronous_computation::computation_finished()
 {
+  computer_mgr->get_finished();
+}
+
+template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
+// int ortd_asychronous_computation::computer()
+{
+  
   printf("running computer\n");
-  sleep(1);
+  
+  sim->simulation_step(0);
+  sim->simulation_step(1);
+
+  
+//   	  for (i=0; i< Nout ; ++i) {
+// 	      double *out_p = (double*) libdyn_get_output_ptr(block, i);
+// 	      simnest->copy_outport_vec(i, out_p);
+// 
+//   //       printf("nested outp %f\n", out_p[0]);
+// 	  }
+
+  cb->async_copy_output_callback();
+  
+//   sleep(1);
   printf("finished\n");
 }
 
@@ -301,13 +328,15 @@ public:
     void io_sync(int update_states);
     void io_async(int update_states);
 
+    void async_copy_output_callback();
+    
     int init();
 private:
     struct dynlib_block_t *block;
 
     // Used when asyn computation is desired
     bool async_comp;
-    ortd_asychronous_computation * async_comp_mgr;
+    ortd_asychronous_computation<compu_func_nested_class> * async_comp_mgr;
 
     libdyn_nested * simnest;
     libdyn_master * master;
@@ -423,7 +452,7 @@ int compu_func_nested_class::init()
         printf("nested: Using async\n");
         
         this->async_comp = true;
-        this->async_comp_mgr = new ortd_asychronous_computation(simnest);
+        this->async_comp_mgr = new ortd_asychronous_computation<compu_func_nested_class>(this, simnest);
     }
 
 
@@ -523,19 +552,28 @@ void compu_func_nested_class::io_async(int update_states)
         //
 
 
+       if (this->async_comp_mgr->computation_finished()) {
 
-        for (i=0; i< Nout ; ++i) {
-            double *out_p = (double*) libdyn_get_output_ptr(block, i);
-            simnest->copy_outport_vec(i, out_p);
+	  for (i=0; i< Nout ; ++i) {
+	      double *out_p = (double*) libdyn_get_output_ptr(block, i);
+	      simnest->copy_outport_vec(i, out_p);
 
-//       printf("nested outp %f\n", out_p[0]);
-        }
+  //       printf("nested outp %f\n", out_p[0]);
+	  }
+	  
+       }
 
 
     }
 
 
 }
+
+void compu_func_nested_class::async_copy_output_callback()
+{
+  printf("copy outputs\n ");
+}
+
 
 
 void compu_func_nested_class::io(int update_states)
