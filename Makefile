@@ -24,7 +24,7 @@ CFLAGS = -fPIC -O2
 LDFLAGS = -shared
 else
 # 32 Bit
-CFLAGS = -O2 
+CFLAGS = -O2  -g
 LDFLAGS = -shared
 endif
 

@@ -286,6 +286,13 @@ bool directory_tree::add_entry(char* name, int type, void* belonges_to_class, vo
   unlock();
 }
 
+bool directory_tree::delete_entry(char* name)
+{
+  // FIXME: fill in
+  
+  return true;
+}
+
 
 // BAUstelle
 void directory_tree::begin_list()

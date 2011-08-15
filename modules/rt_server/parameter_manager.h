@@ -40,7 +40,7 @@ class parameter_manager;
 class parameter {
   public:
     parameter();
-    parameter(parameter_manager *p_mgr, char *name, int type, int const_size);
+    parameter(parameter_manager* p_mgr, const char* name, int type, int const_size);
     ~parameter();
     
     int parse_and_set(char * line);
@@ -62,6 +62,12 @@ class parameter {
     
   private:
     void atomic_buffer_copy_b2d();  // FIXME mutex protection
+    
+    parameter_manager *p_mgr;
+    const char *name;
+    
+    // buffer mutex
+    pthread_mutex_t buffer_mutex;
 };
 
 
@@ -101,11 +107,16 @@ class ortd_stream_manager;
 
 class ortd_stream {
   public:
-    ortd_stream(ortd_stream_manager * str_mgr, char *name, int datatype, int const_len, int numBufferElements );
+    // NOTE: name must be a preallocated string that stays constant during the lifetime of
+    // an instance of ortd_stream
+    ortd_stream(ortd_stream_manager* str_mgr, const char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval );
     ~ortd_stream();
     
     // return the requested data (nElement datasets) to the client    
     int parse_and_return(rt_server_command* cmd, rt_server* rt_server_src, char * line, int nElements);
+    
+    // return some information on the stream to the client
+    int send_info(rt_server_command* cmd, rt_server* rt_server_src, char * line, int nElements);
     
     // used by the stream source to inject data
     void write_to_stream(void *data);
@@ -128,6 +139,14 @@ class ortd_stream {
     ortd_ringbuffer *rb;
     void *oneElementBuf;
     int numBytes; // number of bytes for the oneElementBuf
+    
+    // how often to flush the tcp-stream
+    int autoflushInterval;
+    
+    // the name the stream in the directory.h filesystem
+    const char * name;
+    
+    pthread_mutex_t mutex_readstream;
 };
 
   /**
@@ -143,11 +162,12 @@ class ortd_stream_manager {
     
     rt_server_threads_manager * rts_thmng;
     
-    ortd_stream * new_stream( char* name, int datatype, int const_len, int numBufferElements );
+    ortd_stream * new_stream( char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval );
     void delete_stream(ortd_stream *stream);
 
-    
+//      callbacks for rt_server commands
     void callback_get(rt_server_command *cmd, rt_server *rt_server_src);
+
 };
 
 

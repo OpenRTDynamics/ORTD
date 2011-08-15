@@ -37,38 +37,40 @@
 rt_server_command::rt_server_command(char* name, int id, int (*callback)(rt_server_command*, rt_server *rt_server_src) )
 {
 //   this->rt_server_i = rt_server_i;
-  this->command_name = name;
-  this->command_id = id;
-  this->callback = callback;
+    this->command_name = name;
+    this->command_id = id;
+    this->callback = callback;
 }
 
-void rt_server_command::send_answer(rt_server *rt_server_src , char* str)
+int rt_server_command::send_answer(rt_server *rt_server_src , char* str)
 {
 //   printf("answer to cmd %s is %s\n", command_name, str);
- 
+
 //   pthread_mutex_lock(rt_server_i->send_mutex);
-  
-  // signal the sender thread
-  
-  rt_server_src->iohelper->writeln(str);
-  
+
+    // signal the sender thread
+
+    int ret = rt_server_src->iohelper->writeln(str);
+
+    return ret;
+
 //   pthread_mutex_unlock(rt_server_i->send_mutex);
 }
 
 int rt_server_command::run_callback(rt_server *rt_server_src, char *param)
 {
-  this->paramter_str = param; // The command line for the callback within rt_server_command 
+    this->paramter_str = param; // The command line for the callback within rt_server_command
 
 //   this->send_answer(rt_server_src, "-- BEGIN --\n");
-  int calb_ret = (*this->callback)(this, rt_server_src);
-  this->send_answer(rt_server_src, "--EOR--\n");
-  
-  return calb_ret;
+    int calb_ret = (*this->callback)(this, rt_server_src);
+    this->send_answer(rt_server_src, "--EOR--\n");
+
+    return calb_ret;
 }
 
 char* rt_server_command::get_parameter_str()
 {
-  return paramter_str;
+    return paramter_str;
 }
 
 
@@ -79,76 +81,105 @@ void rt_server_command::destruct()
 
 
 tcp_connection::tcp_connection(tcp_server* tcps, int fd)
-{
-  this->tcps = tcps;
-  this->fd = fd;
-  this->bfd = fdopen(fd, "r+"); // use buffered io
+{   
+  this->error_state = false;
+  
+    this->usage_counter = 0;
+
+    this->tcps = tcps;
+    this->fd = fd;
+    this->bfd = fdopen(fd, "r+"); // use buffered io
 //   printf("opened buffered io\n");
 }
 
+void tcp_connection::register_usage()
+{
+
+}
+
+void tcp_connection::unregister_usage()
+{
+
+}
+
+bool tcp_connection::check_error()
+{
+  return error_state;
+}
+
+
 void tcp_connection::destruct()
 {
-  fflush(this->bfd);
-  fclose(this->bfd);
+/*    fflush(this->bfd);
+    fclose(this->bfd);*/
 }
 
 
 int tcp_connection::readln(int nb, void* data)
 {
-  int buflen;
-  char *rvp;  
+    int buflen;
+    char *rvp;
     /* lese Meldung */
-    
-    
-/*    buflen = read(fd, data, nb);
-    if (buflen <= 0) {*/
-      
+
+
+    /*    buflen = read(fd, data, nb);
+        if (buflen <= 0) {*/
+
     rvp = fgets((char*) data, nb, bfd);
     if (NULL == rvp) {
-      
-                    // Gegenseite hat Verbindung beendet oder Fehler
-    
- 
-      
-      /* End of TCP Connection */
-//       printf("Tcp connection died\n");
-      
 
-      
-      pthread_mutex_lock(&this->tcps->mutex_state);
-      FD_CLR(fd, &this->tcps->the_state);      /* toten Client rfd entfernen */
-      pthread_mutex_unlock(&this->tcps->mutex_state);
-      close(fd);
-      
-      return -1;
+        // Gegenseite hat Verbindung beendet oder Fehler
+        printf("Tcp connection died\n");
+	error_state = true;
+
+
+        pthread_mutex_lock(&this->tcps->mutex_state);
+        FD_CLR(fd, &this->tcps->the_state);      /* toten Client rfd entfernen */
+        pthread_mutex_unlock(&this->tcps->mutex_state);
+//       close(fd);
+        fclose(bfd);
+
+        return -1;
     }
-    
+
     return 1;
 }
 
-int tcp_connection::writeln(const void* data) // FIXME remove nb
+int tcp_connection::writeln(const void* data)
 {
-  int ret;
+    int ret;
 
-/*  ret = write(fd, data, nb);
-  if (ret != nb) 
-    return -1;*/
+    printf("write to tcp..\n");
+    
+    ret = fputs((char*) data, bfd);
 
-  ret = fputs((char*) data, bfd);  
+    printf("ok\n");
+    
+    if (ret < 0) {
+        printf("error writing\n");
+	error_state = true;
+        return -1;
+    }
 
-  if (ret < 0) {
-//     printf("error writing\n");
-    return -1;
-  }
-  
-  return 1;
+    return 1;
+}
+
+FILE* tcp_connection::get_io_fd()
+{
+  return bfd;
+}
+
+
+int tcp_connection::send_flush_buffer()
+{
+  fflush(bfd);
 }
 
 
 /* Die Makros exit_if() und return_if() realisieren das Error Handling
  * der Applikation. Wenn die exit_if() Bedingung wahr ist, wird
  * das Programm mit Fehlerhinweis Datei: Zeile: Funktion: errno beendet.
- * Wenn die return_if() Bedingung wahr ist, wird die aktuelle Funktion 
+ * Wenn die return_if() Bedingung wahr ist, wird die aktuelle Funktion
  * beendet. Dabei wird der als Parameter 2 angegebene Returnwert benutzt.
  */
 
@@ -175,50 +206,50 @@ if(expr) { \
 
 tcp_server::tcp_server(int port)
 {
-  this->port = port;
+    this->port = port;
 }
 
 int tcp_server::tcp_server_init()
 {
-  int listen_fd;
-  int ret;
-  struct sockaddr_in sock;
-  int yes = 1;
+    int listen_fd;
+    int ret;
+    struct sockaddr_in sock;
+    int yes = 1; // FIXME Constant???
 
-  listen_fd = socket(PF_INET, SOCK_STREAM, 0);
-  if (listen_fd < 0)
-    goto error;
+    listen_fd = socket(PF_INET, SOCK_STREAM, 0);
+    if (listen_fd < 0)
+        goto error;
 //   exit_if(listen_fd < 0);
 
-  /* vermeide "Error Address already in use" Fehlermeldung */
-  ret = setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-  if (ret < 0)
-    goto error;
+    /* vermeide "Error Address already in use" Fehlermeldung */
+    ret = setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    if (ret < 0)
+        goto error;
 //   exit_if(ret < 0);
 
-  memset((char *) &sock, 0, sizeof(sock));
-  sock.sin_family = AF_INET;
-  sock.sin_addr.s_addr = htonl(INADDR_ANY);
-  sock.sin_port = htons(port);
+    memset((char *) &sock, 0, sizeof(sock));
+    sock.sin_family = AF_INET;
+    sock.sin_addr.s_addr = htonl(INADDR_ANY);
+    sock.sin_port = htons(port);
 
-  ret = bind(listen_fd, (struct sockaddr *) &sock, sizeof(sock));
-  if (ret < 0)
-    goto error;
+    ret = bind(listen_fd, (struct sockaddr *) &sock, sizeof(sock));
+    if (ret < 0)
+        goto error;
 //   exit_if(ret != 0);
 
-  ret = listen(listen_fd, 5);
-  if (ret < 0)
-    goto error;
+    ret = listen(listen_fd, 5);
+    if (ret < 0)
+        goto error;
 //   exit_if(ret < 0);
 
-  this->listen_fd = listen_fd;
-  
-  return listen_fd;
-  
-  
-  error:
+    this->listen_fd = listen_fd;
+
+    return listen_fd;
+
+
+error:
     fprintf(stderr, "Error opening socket\n");
-    
+
     return -1;
 }
 
@@ -228,22 +259,22 @@ int tcp_server::tcp_server_init2(int listen_fd)
  * return: wenn okay Socket Filedescriptor zum lesen vom Client, ERROR sonst
  */
 {
-  int fd;
-  struct sockaddr_in sock;
-  socklen_t socklen;
+    int fd;
+    struct sockaddr_in sock;
+    socklen_t socklen;
 
-  socklen = sizeof(sock);
-  fd = accept(listen_fd, (struct sockaddr *) &sock, &socklen);
-  return_if(fd < 0, ERROR);
+    socklen = sizeof(sock);
+    fd = accept(listen_fd, (struct sockaddr *) &sock, &socklen);
+//     return_if(fd < 0, ERROR);
 
-  return fd;
+    return fd;
 
 }
 
 tcp_server::~tcp_server()
 {
-  // FIXME fill in vlose sockets etc
-  close(listen_fd);
+    // FIXME fill in vlose sockets etc
+    close(listen_fd);
 }
 
 
@@ -255,11 +286,11 @@ int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
  * return: OKAY wenn Schreiben vollstaendig, ERROR sonst
  */
 {
-  int ret;
+    int ret;
 
-  ret = write(fd, buf, buflen);
-  return_if(ret != buflen, ERROR);
-  return OKAY;
+    ret = write(fd, buf, buflen);
+    return_if(ret != buflen, ERROR);
+    return OKAY;
 }
 
 
@@ -270,28 +301,30 @@ int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
 // interunption is done via signals
 tcp_connection *tcp_server::wait_for_connection()
 {
-     int rfd;
-     void *arg;
+    int rfd;
+    void *arg;
 
-     /* TCP Server LISTEN Port (Client connect) pruefen */
+    /* TCP Server LISTEN Port (Client connect) pruefen */
+    
+    // Accept connection
     rfd = tcp_server_init2(listen_fd);
     if (rfd >= 0) {
-/*      if (rfd >= MAXFD) {
-        close(rfd);
-        goto out;
-      }*/
-      pthread_mutex_lock(&mutex_state);
-      FD_SET(rfd, &the_state);        /* neuen Client fd dazu */
-      pthread_mutex_unlock(&mutex_state);
-      
-      tcp_connection *tcpc = new tcp_connection(this, rfd);
-      //tcpc->fd = rfd;
-      
-      return tcpc;
+        /*      if (rfd >= MAXFD) {
+                close(rfd);
+                goto out;
+              }*/
+        pthread_mutex_lock(&mutex_state);
+        FD_SET(rfd, &the_state);        /* neuen Client fd dazu */
+        pthread_mutex_unlock(&mutex_state);
+
+        tcp_connection *tcpc = new tcp_connection(this, rfd);
+        //tcpc->fd = rfd;
+
+        return tcpc;
     }
-      
-   out:
-     return NULL;   // Got signal
+
+out:
+    return NULL;   // Got signal
 }
 
 
@@ -299,14 +332,13 @@ tcp_connection *tcp_server::wait_for_connection()
 
 rt_server::rt_server(rt_server_threads_manager *manager)
 {
-/*  snd_buf = (char *) malloc(1000);
-  rcv_buf = (char *) malloc(1000);*/
-  
-  this->mymanager = manager;
+    this->mymanager = manager;
+    
+    hangup_state = false;
 }
 
 
-// Dummy signal handling function
+// Dummy signal handling function called when rt_server should hangup the connection
 void *rt_server_gotsig(int sig, siginfo_t *info, void *ucontext)
 {
     return NULL;
@@ -316,11 +348,11 @@ void *rt_server_gotsig(int sig, siginfo_t *info, void *ucontext)
 // One thread per client.
 void *rt_server_thread(void *data)
 {
-  rt_server *rt_server_i = (rt_server *) data;
-  
-//   
-//   Install signal handler  
-//   
+    rt_server *rt_server_i = (rt_server *) data;
+
+//
+//   Install signal handler
+//
     int hdlsig = (int)SIGUSR1;
 
     struct sigaction sa;
@@ -331,53 +363,76 @@ void *rt_server_thread(void *data)
 
     if (sigaction(hdlsig, &sa, NULL) < 0) {
         perror("sigaction");
-	pthread_exit(NULL);
+        pthread_exit(NULL);
     }
 
 //
 // Start main readout loop
 //
 
-  char buf[1024]; // The line buffer
-  
-  for (;;) {
-    // wait for input
-    int ret = rt_server_i->iohelper->readln(sizeof(buf), buf);
-    
-    // check for read error or signal
-    if (ret < 0)
-      goto out;
-    
-//      parse the received line
-    ret = rt_server_i->parse_line(buf);
-    
-    // if parsing faild return an error message to the client
-    if (ret < 0)
-      rt_server_i->iohelper->writeln("Command not found\n");
-  }
-  
-  out: // break loop
-  
-  printf("Client disconnected\n");
+    char buf[1024]; // The line buffer
 
-  // FIXME correct ???
-  delete rt_server_i;
-  
-  return NULL;
+    for (;;) {
+        rt_server_i->iohelper->register_usage(); // Tell that the iohelper is in use
+	
+        // wait for input
+        int ret = rt_server_i->iohelper->readln(sizeof(buf), buf);
+
+        // check for read error or signal
+        if (ret < 0)
+            goto out;
+
+	
+	
+//      parse the received line and run the apropriate callback
+        ret = rt_server_i->parse_line(buf);
+
+        // if parsing faild return an error message to the client
+        if (ret == -1) {
+            if ( rt_server_i->iohelper->writeln("Command not found....\n") < 0) {
+   	      // Error while writing to the client.
+	      goto out; 
+	    }
+	}
+	
+	if (ret < 0 && rt_server_i->iohelper->check_error() ) {
+	  goto out; 
+	}
+	
+
+        rt_server_i->iohelper->unregister_usage();// Tell that the iohelper is not used any more
+
+    }
+
+out: // break loop
+
+    printf("Client disconnected\n");
+
+    // FIXME correct ???
+    if (rt_server_i->hangup_state == false) { // If client closed connection this is executed
+//       printf("***********************\n");
+      rt_server_i->destruct();
+      delete rt_server_i;
+    }
+
+//     pthread_exit(NULL);
+    return NULL;
 }
 
 void rt_server::set_tcp(tcp_connection *tcpc)
 {
-  
-  
-  iohelper = tcpc ;
+
+
+    iohelper = tcpc ;
 }
 
 void rt_server::init()
 {
     pthread_mutex_init(&send_mutex, NULL);
-    
+
     int rc = pthread_create(&thread_receiver, NULL, rt_server_thread, (void *) this);
+    
+    pthread_detach(thread_receiver); // FIXME !!!!
 
     if (rc)
     {
@@ -388,71 +443,99 @@ void rt_server::init()
 
 rt_server_command * rt_server::get_commandby_id(int id)
 {
-  
-        mymanager->lock_commandmap();
-	
-   	  command_map_t::iterator iter = mymanager->command_map.find(id);
- 	
- 	  if (iter != mymanager->command_map.end()) {
-	    mymanager->unlock_commandmap();
-	    
- 	    rt_server_command *command = iter->second;
-	    
-	    return command;
-	  } else {
-	    mymanager->unlock_commandmap();
-	    
-	    return NULL;
-	  }
+
+    mymanager->lock_commandmap();
+
+    command_map_t::iterator iter = mymanager->command_map.find(id);
+
+    if (iter != mymanager->command_map.end()) {
+        mymanager->unlock_commandmap();
+
+        rt_server_command *command = iter->second;
+
+        return command;
+    } else {
+        mymanager->unlock_commandmap();
+
+        return NULL;
+    }
 
 }
 
 int rt_server::parse_line(char* line)
 {
 //   printf("parse line = <%s>\n", line);
-  rt_server_command *command;
-  char *line_parameter_part;
+    rt_server_command *command;
+    char *line_parameter_part;
 
-  // search command instance
-  
-  mymanager->lock_commandmap();
-  
-  command_map_t::iterator iter = mymanager->command_map.begin();
-  
-  for ( iter = mymanager->command_map.begin() ; iter != mymanager->command_map.end(); iter++ ) {
-    command = iter->second;
-  
+    // search command instance
+
+    mymanager->lock_commandmap();
+
+    command_map_t::iterator iter = mymanager->command_map.begin();
+
+    for ( iter = mymanager->command_map.begin() ; iter != mymanager->command_map.end(); iter++ ) {
+        command = iter->second;
+
 //     printf("testing for command %s\n", command->command_name);
-    char *ret = strstr(line, command->command_name);
-    
-    if (ret == line) { // string an erster stelle gefunden
+        char *ret = strstr(line, command->command_name);
+
+        if (ret == line) { // string an erster stelle gefunden
 //       printf("found!\n");
-      line_parameter_part = line + strlen(command->command_name);
-      
-      goto foundcmd;
+            line_parameter_part = line + strlen(command->command_name);
+
+            goto foundcmd;
+        }
     }
-  }
-  
-  mymanager->unlock_commandmap();
-  return -1; // command not found
-  
+
+    mymanager->unlock_commandmap();
+    return -1; // command not found
+
 foundcmd:
-  // command 
-  mymanager->unlock_commandmap();
-  
-  int calb_retval = command->run_callback(this, line_parameter_part);
-  return calb_retval;
-  //command->
+    // command
+    mymanager->unlock_commandmap();
+    
+    // 
+    // Run the  callback for the command_id
+    //     
+    
+    int calb_retval = command->run_callback(this, line_parameter_part);
+    
+    
+    return calb_retval;
+    //command->
 }
+
+void rt_server::hangup()
+{
+  hangup_state = true; // No mutex protection
+  
+      printf("rt_server: Trying to close connection\n");
+
+    pthread_kill( thread_receiver, SIGUSR1 );
+    pthread_join( thread_receiver, NULL );
+    
+    printf("rt_server: joined thread\n");
+
+}
+
 
 
 
 void rt_server::destruct()
 {
-  free(snd_buf);
-  free(rcv_buf);
+    iohelper->destruct();
+//     printf("a\n");
+    delete iohelper;
+//     printf("b\n");
   
-  pthread_mutex_destroy(&send_mutex);
+//     free(snd_buf);
+//         printf("c\n");
+// 
+//     free(rcv_buf);
+//     printf("d\n");
+
+    pthread_mutex_destroy(&send_mutex);
 }
 
 
@@ -460,48 +543,48 @@ void rt_server::destruct()
 
 rt_server_threads_manager::rt_server_threads_manager()
 {
-  command_id_counter = 0;
-  pthread_mutex_init(&command_map_mutex, NULL);
-  mainloop_thread_started = false;
+    command_id_counter = 0;
+    pthread_mutex_init(&command_map_mutex, NULL);
+    mainloop_thread_started = false;
 }
 
 int rt_server_threads_manager::init_tcp(int port)
 {
-  iohelper =  new tcp_server(port);
-  int ret = iohelper->tcp_server_init();
-  
-  this->error = ret;
-    
-  return ret;
+    iohelper =  new tcp_server(port);
+    int ret = iohelper->tcp_server_init();
+
+    this->error = ret;
+
+    return ret;
 //   printf("tcp started\n");
-  
+
 }
 
 // when the callback is called userdat will be available within cmd->userdat
 void rt_server_threads_manager::add_command(char* name, int (*callback)(rt_server_command*, rt_server *rt_server_src), void *userdat)
 {
-  lock_commandmap();
-  
-  rt_server_command *cmd = new rt_server_command(name, command_id_counter, callback);
-  cmd->userdat = userdat;
-  
-  command_map.insert(std::make_pair(command_id_counter, cmd));
-  command_id_counter++;
-  
-  unlock_commandmap();
+    lock_commandmap();
+
+    rt_server_command *cmd = new rt_server_command(name, command_id_counter, callback);
+    cmd->userdat = userdat;
+
+    command_map.insert(std::make_pair(command_id_counter, cmd));
+    command_id_counter++;
+
+    unlock_commandmap();
 }
 
 
 
 void *rt_server_thread_mainloop(void *data)
 {
-  rt_server_threads_manager *rtsthmgr = (rt_server_threads_manager *) data;
+    rt_server_threads_manager *rtsthmgr = (rt_server_threads_manager *) data;
 
 //   printf("Thread started\n");
-  
-  rtsthmgr->loop();
-  
-  return NULL;
+
+    rtsthmgr->loop();
+
+    return NULL;
 }
 
 // Dummy signal handling function
@@ -513,9 +596,9 @@ void *rt_server_thread_gotsig(int sig, siginfo_t *info, void *ucontext)
 
 void rt_server_threads_manager::loop()
 {
-//   
-//   Install signal handler  
-//   
+//
+//   Install signal handler
+//
     int hdlsig = (int)SIGUSR1;
 
     struct sigaction sa;
@@ -527,30 +610,30 @@ void rt_server_threads_manager::loop()
     if (sigaction(hdlsig, &sa, NULL) < 0) {
         perror("sigaction");
 //         return (void*) -1;
-	pthread_exit(NULL);
+        pthread_exit(NULL);
     }
 
 
-//   
+//
 //    Start loop, which accepts incoming connectionns
-// 
+//
 
-  for (;;) { // FIXME how to abort?
-    tcp_connection *tcpc = iohelper->wait_for_connection();
-    
-    printf("Wait for connect returned\n");
-    
-    if (tcpc == NULL) {
-      printf("rt_server: Exiting thread\n"); 
-      pthread_exit(NULL);
+    for (;;) { // FIXME how to abort?
+        tcp_connection *tcpc = iohelper->wait_for_connection();
+
+        printf("Wait for connect returned\n");
+
+        if (tcpc == NULL) {
+            printf("rt_server: Exiting thread\n");
+            pthread_exit(NULL);
+        }
+
+        rt_server *rt_server_i = new rt_server(this);
+        rt_server_i->set_tcp(tcpc);
+
+
+        rt_server_i->init(); // the class will start its receiver thread
     }
-    
-    rt_server *rt_server_i = new rt_server(this);
-    rt_server_i->set_tcp(tcpc);
-    
-    
-    rt_server_i->init(); // the class will start its receiver thread
-  }
 
 }
 
@@ -558,66 +641,66 @@ bool rt_server_threads_manager::start_main_loop_thread()
 {
 //     pthread_mutex_init(&send_mutex, NULL);
 //     printf("starting rt_server therad\n");
-    
+
     // if there was a previous error
     if (this->error < 0)
-      return false;
-    
+        return false;
+
     int rc = pthread_create(&mainloop_thread, NULL, rt_server_thread_mainloop, (void *) this);
 
     if (rc)
     {
         printf("rt_server: ERROR; return code from pthread_create() is %d\n", rc);
-	this->error = -1;
-	return false;
+        this->error = -1;
+        return false;
     }
-    
+
     mainloop_thread_started = true;
     return true;
 }
 
 void rt_server_threads_manager::destruct()
 {
-  // DONE FIXME: destruct all rt_server_command instances DONE
+    // DONE FIXME: destruct all rt_server_command instances DONE
 //    TODO abort loop() running in thread
 
 
-  if (mainloop_thread_started) {
-    printf("rt_server: Trying to kill tcp accept thread\n");
-    pthread_kill( mainloop_thread, SIGUSR1 );
-    printf("rt_server: joining thread...\n");
-    pthread_join( mainloop_thread, NULL );
-    
-    printf("rt_server: joined thread\n");
-  }
+    if (mainloop_thread_started) {
+        printf("rt_server: Trying to kill tcp accept thread\n");
+        pthread_kill( mainloop_thread, SIGUSR1 );
+        printf("rt_server: joining thread...\n");
+        pthread_join( mainloop_thread, NULL );
 
-/*  if (mainloop_thread_started) {
-  printf("Killing mainloop_thread\n");
-  pthread_cancel(mainloop_thread);
-  }*/
-  
-  
-  // FIXME Close sockets
+        printf("rt_server: joined thread\n");
+    }
+
+    /*  if (mainloop_thread_started) {
+      printf("Killing mainloop_thread\n");
+      pthread_cancel(mainloop_thread);
+      }*/
+
+
+    // FIXME Close sockets
 //   iohelper->destruct();
-  delete iohelper;  
-  
-  lock_commandmap();
+    delete iohelper;
 
-  
-  command_map_t::iterator iter = command_map.begin();
-  
-  for ( iter = command_map.begin() ; iter != command_map.end(); iter++ ) {
-    rt_server_command *command = iter->second;
-    command->destruct();
-    delete command;
-  }
+    lock_commandmap();
 
 
-  command_map.clear();
-  
-  unlock_commandmap();
-  
-  pthread_mutex_destroy(&command_map_mutex);
+    command_map_t::iterator iter = command_map.begin();
+
+    for ( iter = command_map.begin() ; iter != command_map.end(); iter++ ) {
+        rt_server_command *command = iter->second;
+        command->destruct();
+        delete command;
+    }
+
+
+    command_map.clear();
+
+    unlock_commandmap();
+
+    pthread_mutex_destroy(&command_map_mutex);
 }
 
 void rt_server_threads_manager::lock_commandmap()

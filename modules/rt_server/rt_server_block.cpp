@@ -294,7 +294,9 @@ int compu_func_rt_server_stream_class::init()
     printf("New stream named %s\n", stream_name);
 
     // set up a new stream
-    stream = master->stream_mgr->new_stream(stream_name, datatype, insize, 100 );
+    int autoflushInterval = 5;
+    int numBufferElements = 100;
+    stream = master->stream_mgr->new_stream(stream_name, datatype, insize, numBufferElements, autoflushInterval );
     
 //     par = master-> (stream_name, DATATYPE_FLOAT , outsize);
     
