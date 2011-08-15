@@ -1,7 +1,9 @@
 OpenRTDynamics v0.99d -- Real Time Dynamics Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
-                         Simulink or Scicos.
+                         Simulink or Scicos. 
+
+                         (openrtdynamics.sf.net)
 
 
 OS Dependency

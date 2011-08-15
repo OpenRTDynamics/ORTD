@@ -37,7 +37,7 @@ extern "C" {
 
 template <class compute_instance> class background_computation {
 public:
-  
+
     // the class compute_instance should provide a method int computer()
     background_computation(compute_instance *ci);
     ~background_computation();
@@ -47,14 +47,14 @@ public:
     void join_computation();
 
     bool get_finished();
-    void set_finished();
+    void set_finished(bool f);
 
     void loop();
 
 private:
 
     compute_instance * ci;
-  
+
     int signal;
 
     pthread_mutex_t mutex;
@@ -76,20 +76,20 @@ private:
 // void * background_computation_thread(void *data)
 // {
 //     background_computation * inst = (background_computation *) data;
-// 
+//
 //     printf("comp thread started\n");
-// 
+//
 //     inst->loop();
-// 
+//
 //     pthread_exit(NULL);
 // }
 
 template <class compute_instance> void * background_computation<compute_instance>::start_thread(void *obj)
 {
     background_computation<compute_instance> *ci;
-  
+
     ci = (background_computation<compute_instance> *) obj;
-    
+
     ci->loop();
 //     reinterpret_cast<compute_instance *>(obj)->loop();
 }
@@ -97,16 +97,25 @@ template <class compute_instance> void * background_computation<compute_instance
 template <class compute_instance> void background_computation<compute_instance>::loop()
 // void background_computation::loop()
 {
+  signal = 0;
+  
     for (;;) {
 
         pthread_mutex_lock(&mutex);
 
-        while (signal == 0) { // FIXME do { .. } while() ???
+	printf("lock\n");
+	
+        while (signal == 0) {
             pthread_cond_wait(&cond, &mutex);
         }
         int sig = signal;
-	signal = 0;
+        signal = 0;
 
+	set_finished(false);
+	
+		printf("proceed\n");
+
+	
         pthread_mutex_unlock(&mutex);
 
 
@@ -116,13 +125,13 @@ template <class compute_instance> void background_computation<compute_instance>:
             pthread_mutex_lock(&comp_active_mutex);
 
             // Run the function computer() of the given class, which type is parametrised by this template
-	    ci->computer();
+            ci->computer();
 
             pthread_mutex_unlock(&comp_active_mutex);
 
 
 // 	     computation finished
-            set_finished();
+            set_finished(true);
         }
 
         if (sig == -1)
@@ -139,8 +148,10 @@ template <class compute_instance> bool background_computation<compute_instance>:
 
 //   only if computation is not running
     if (finished_cpy == true) {
+      
+      printf("trig\n");
 
-        signal = 1;
+        signal = 1; // FIXME mutex
         pthread_cond_signal(&cond); // Notify reader thread
     }
 
@@ -164,11 +175,11 @@ template <class compute_instance> bool background_computation<compute_instance>:
     return finished_cpy;
 }
 
-template <class compute_instance> void background_computation<compute_instance>::set_finished()
+template <class compute_instance> void background_computation<compute_instance>::set_finished(bool f)
 // void background_computation::set_finished()
 {
     pthread_mutex_lock(&finished_mutex);
-    finished = true;
+    finished = f;
     pthread_mutex_unlock(&finished_mutex);
 }
 
@@ -187,10 +198,10 @@ template <class compute_instance> background_computation<compute_instance>::back
     pthread_mutex_init(&comp_active_mutex, NULL);
 
 //     int rc = pthread_create(&thread, NULL, background_computation_thread, (void *) this);
-     int rc = pthread_create(&thread, NULL, &background_computation<compute_instance>::start_thread, (void *) this);
-     if (rc) {
-         printf("ERROR; return code from pthread_create() is %d\n", rc);
-     }
+    int rc = pthread_create(&thread, NULL, &background_computation<compute_instance>::start_thread, (void *) this);
+    if (rc) {
+        printf("ERROR; return code from pthread_create() is %d\n", rc);
+    }
 
 
 }
@@ -222,11 +233,11 @@ template <class compute_instance> background_computation<compute_instance>::~bac
 /*
 class ortd_asychronous_computation_thread {
   public:
-    
-    
+
+
   private:
-    
-  
+
+
 };*/
 
 
@@ -237,7 +248,7 @@ private:
     libdyn *sim;
 
     callback_class *cb;
-    
+
     background_computation< ortd_asychronous_computation > *computer_mgr;
 public:
     // simnest: a ready to use set-up schematic
@@ -249,8 +260,8 @@ public:
     int computeNSteps(int N);
     bool computation_finished();
     void join_computation();
-    
-    
+
+
     int computer();
 };
 
@@ -258,12 +269,12 @@ public:
 template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest)
 //ortd_asychronous_computation::ortd_asychronous_computation(libdyn_nested* simnest)
 {
+    this->cb = cb;
     this->simnest = simnest;
     this->sim = simnest->current_sim;
 
     computer_mgr = new background_computation< ortd_asychronous_computation > (this);
 
-    computer_mgr->start_computation();
 }
 
 template <class callback_class> ortd_asychronous_computation<callback_class>::~ortd_asychronous_computation()
@@ -285,30 +296,32 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 template <class callback_class> bool ortd_asychronous_computation<callback_class>::computation_finished()
 // bool ortd_asychronous_computation::computation_finished()
 {
-  computer_mgr->get_finished();
+    computer_mgr->get_finished();
 }
 
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
 // int ortd_asychronous_computation::computer()
 {
-  
-  printf("running computer\n");
-  
-  sim->simulation_step(0);
-  sim->simulation_step(1);
 
-  
-//   	  for (i=0; i< Nout ; ++i) {
-// 	      double *out_p = (double*) libdyn_get_output_ptr(block, i);
-// 	      simnest->copy_outport_vec(i, out_p);
-// 
-//   //       printf("nested outp %f\n", out_p[0]);
-// 	  }
+    printf("running computer\n");
+    sleep(8);
 
-  cb->async_copy_output_callback();
-  
+    sim->simulation_step(0);
+    sim->simulation_step(1);
+    
+
+
+// //   	  for (i=0; i< Nout ; ++i) {
+// // 	      double *out_p = (double*) libdyn_get_output_ptr(block, i);
+// // 	      simnest->copy_outport_vec(i, out_p);
+// //
+// //   //       printf("nested outp %f\n", out_p[0]);
+// // 	  }
+
+    cb->async_copy_output_callback();
+
 //   sleep(1);
-  printf("finished\n");
+    printf("finished\n");
 }
 
 
@@ -329,10 +342,14 @@ public:
     void io_async(int update_states);
 
     void async_copy_output_callback();
-    
+
     int init();
 private:
     struct dynlib_block_t *block;
+
+    void lock_output();
+    void unlock_output();
+    pthread_mutex_t output_mutex;
 
     // Used when asyn computation is desired
     bool async_comp;
@@ -362,6 +379,7 @@ int compu_func_nested_class::init()
 {
     int simCreateCount;
     int i;
+
 
 
     double *rpar = libdyn_get_rpar_ptr(block);
@@ -450,9 +468,11 @@ int compu_func_nested_class::init()
     } else {
         // Initialise async computation manager
         printf("nested: Using async\n");
-        
+
         this->async_comp = true;
         this->async_comp_mgr = new ortd_asychronous_computation<compu_func_nested_class>(this, simnest);
+
+        pthread_mutex_init(&this->output_mutex, NULL);
     }
 
 
@@ -523,27 +543,24 @@ void compu_func_nested_class::io_sync(int update_states)
 void compu_func_nested_class::io_async(int update_states)
 {
     int i;
-  
+
     // map scicos events to libdyn events
     // convert scicos events to libdyn events (acutally there is no conversion)
     int eventmask = __libdyn_event_get_block_events(block);
     simnest->event_trigger_mask(eventmask);
 
+//     printf("io_async up=%d\n", update_states);
+    
     if (update_states == 1) {
         //
         // update states
         //
+         double *comptrigger_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
+        
+//         if (*comptrigger_inp > 0) {
 
-       this->async_comp_mgr->computeNSteps(10);
-
-//         // Some control signal input analysis
-//         double *switch_inp = (double*) libdyn_get_input_ptr(block, Nin+0);
-//         double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
-// 
-//         if (*reset_inp > 0) {
-//             printf("reset states\n");
-//             simnest->reset_blocks();
-//         }
+        this->async_comp_mgr->computeNSteps(1);
+// 	}
 
 
     } else {
@@ -551,17 +568,14 @@ void compu_func_nested_class::io_async(int update_states)
         // copy outputs (if result is available)
         //
 
+double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
 
-       if (this->async_comp_mgr->computation_finished()) {
-
-	  for (i=0; i< Nout ; ++i) {
-	      double *out_p = (double*) libdyn_get_output_ptr(block, i);
-	      simnest->copy_outport_vec(i, out_p);
-
-  //       printf("nested outp %f\n", out_p[0]);
-	  }
-	  
-       }
+        // If the background computation is finished the the output to 1
+        if (this->async_comp_mgr->computation_finished()) {
+            *comp_finished = 2;
+        } else {
+            *comp_finished = 1;
+        }
 
 
     }
@@ -571,7 +585,28 @@ void compu_func_nested_class::io_async(int update_states)
 
 void compu_func_nested_class::async_copy_output_callback()
 {
-  printf("copy outputs\n ");
+    printf("copy outputs\n ");
+
+    int i;
+
+     lock_output();
+
+
+      Nout;
+     for (i=0; i< Nout ; ++i) {
+         double *out_p = (double*) libdyn_get_output_ptr(block, i);
+
+         simnest->copy_outport_vec(i, out_p);
+
+
+        //       printf("nested outp %f\n", out_p[0]);
+    }
+
+
+     unlock_output();
+
+         printf("done\n ");
+
 }
 
 
@@ -589,12 +624,28 @@ void compu_func_nested_class::io(int update_states)
 void compu_func_nested_class::destruct()
 {
 
-    if (this->async_comp)
+    if (this->async_comp) {
         delete async_comp_mgr;
+        pthread_mutex_destroy(&this->output_mutex);
+    }
 
     simnest->destruct();
     delete simnest;
+
+
+
 }
+
+void compu_func_nested_class::lock_output()
+{
+    pthread_mutex_lock(&this->output_mutex);
+}
+
+void compu_func_nested_class::unlock_output()
+{
+    pthread_mutex_unlock(&this->output_mutex);
+}
+
 
 
 int compu_func_nested(int flag, struct dynlib_block_t *block)
@@ -648,9 +699,18 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
         int Ninports = insizes.n;
         int Noutports = outsizes.n;
 
+        int synchron_simsteps = param.v[2];
+
+        int Noutextra = 0;
+
+        if (synchron_simsteps > 0) {
+            ;  // with async computation
+            Noutextra = 1;
+        }
+
 
         int i;
-        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Noutports, Ninports + 2, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Noutports+Noutextra, Ninports + 2, (void *) 0, 0);
 
         for (i = 0; i < Ninports; ++i) {
             libdyn_config_block_input(block, i, insizes.v[i], DATATYPE_FLOAT);
@@ -662,6 +722,9 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
         for (i = 0; i < Noutports; ++i) {
             libdyn_config_block_output(block, i, outsizes.v[i], DATATYPE_FLOAT, dfeed);
         }
+
+        if (Noutextra == 1)
+            libdyn_config_block_output(block, Noutports, 1, DATATYPE_FLOAT, dfeed); // computation ready output. (when using async comp)
 
 
     }
