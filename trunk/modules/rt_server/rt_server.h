@@ -50,7 +50,7 @@ class rt_server_command {
     
 //     rt_server_command(rt_server* rt_server_i, char* name, int id, function int* (rt_server_command*), int* callback );
     rt_server_command(char* name, int id, int (*callback)(rt_server_command*, rt_server *rt_server_src) );
-    void send_answer(rt_server *rt_server_src , char* str);
+    int send_answer(rt_server *rt_server_src , char* str);
     void destruct();
 
     int command_id;
@@ -71,11 +71,26 @@ class tcp_connection {
    
    int readln(int nb, void *data);
    int writeln(const void* data);
+   FILE *get_io_fd();
+   int send_flush_buffer();
    
    void destruct();
    
+   void register_usage();
+   void unregister_usage();
+   
+   // check for ioerror. true if there is one
+   bool check_error();
+   
   private:
     FILE *bfd;
+    
+    // Count how many users of this class instance are pending
+    // the instance can be only destroyed if this is zero
+    int usage_counter;
+    
+    // true if there was an ioerror
+    bool error_state;   // FIXME PROTECTION
 };
 
 class tcp_server {
@@ -91,9 +106,13 @@ class tcp_server {
     int tcp_server_init();
     int tcp_server_init2(int listen_fd);
     int tcp_server_write(int fd, char buf[], int buflen);
+    
+    
     void *tcp_server_read(void *arg);
-//     void loop(int listen_fd);
+
     tcp_connection * wait_for_connection();
+    
+
     
     int port;
     
@@ -101,7 +120,7 @@ class tcp_server {
 
   /**
     * \brief Class for client handling 
-    * * one rt_server instance handles one client
+    * * one rt_server instance handles one client in a separate thread
     */
 
 class rt_server {
@@ -134,7 +153,20 @@ class rt_server {
     void init();
     
     rt_server_command *get_commandby_id(int id);
+    
+    // Parse the received line and run callback
+    // returns -1 on parsing error
+    // returns -2 on io error
     int parse_line(char *line);
+    
+    // close connection
+    void hangup();
+    
+    // if true the thread terminates on the next return from io
+    // is set to true by hangup()
+    // default is false;
+    bool hangup_state; 
+
     
     void destruct();
 };

@@ -92,8 +92,7 @@ class directory_leaf {
 
 
 
-// FIXME Add mutex for this class
-// which is the *only* user interface!
+// This class is the *only* user interface!
 
 class directory_tree {
   public:
@@ -103,6 +102,9 @@ class directory_tree {
     
     // create a new file return true if successful
     bool add_entry(char *name, int type, void *belonges_to_class, void* userptr);
+
+    // remove a file
+    bool delete_entry(char *name);
     
     directory_entry::direntry* access(char* path, void* belonges_to_class);
     
