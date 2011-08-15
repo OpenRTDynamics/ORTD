@@ -16,7 +16,7 @@
 
 
 
-function [sim, outlist] = ld_simnest(sim, ev, switch_signal,reset_signal, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, synchron_simsteps)
+function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signal,reset_signal, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, synchron_simsteps)
 // 
 // ld_simnest -- create one (or multiple) nested libdyn simulation within a normal libdyn block
 // 		 it is possible to switch between them by an special input signal
@@ -42,6 +42,7 @@ function [sim, outlist] = ld_simnest(sim, ev, switch_signal,reset_signal, inlist
 // OUTPUTS:
 // 
 // outlist - list( ) of output signals
+// computation_finished - optional and only meanful if synchron_simsteps > 0 (means async computation)
 // 
 
 
@@ -124,6 +125,12 @@ function [sim, outlist] = ld_simnest(sim, ev, switch_signal,reset_signal, inlist
   for i = 0:(Noutp-1)
     [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
     outlist(i+1) = out;
+  end
+
+  if (synchron_simsteps > 0) then
+    [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp);   // the last port
+  else
+    computation_finished = 0; // dummy value
   end
 
 endfunction

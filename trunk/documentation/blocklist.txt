@@ -1,6 +1,6 @@
 
-List of Blocks
---------------
+List of Blocks (incomplete)
+---------------------------
 
 
 BLOCKS defined within modules
@@ -20,19 +20,21 @@ c = val
 
 
 
+function [sim,sum_] = ld_add(sim, events, inp_list, fak_list)
 
-function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2)
-
-sum_ = inp_list(1) * fak1 + inp_list(2) * fak2
-
-
-
+Add signals (linear combination)
+inp_list = list( in1, in2 )  ; fak_list = [ c1, c2 ]
+sum_ = in1 * c1 + in2 * c2
 
 
-function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
 
-// Multiplication/Division of inp_list(1) inp_list(2)
-// muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+
+function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list)
+
+Multiplication 
+muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
+
 
 
 

@@ -1031,7 +1031,8 @@ function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source)
   [sim,save_] = libdyn_conn_equation(sim, save_, list(source, 0) );
 endfunction
 
-// Quick and easy dumping of signals to files in one line of code
+// Quick and easy dumping of signals to files
+// source is of size 1 at the moment
 function [sim,save_]=ld_dumptoiofile(sim, events, fname, source)
   [inp] = libdyn_extrakt_obj( source ); // compatibility
 

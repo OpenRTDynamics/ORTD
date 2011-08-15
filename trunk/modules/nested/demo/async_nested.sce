@@ -159,7 +159,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   
   [sim, reset] = ld_ztf(sim, defaultevents, switch, (z-1)/z );
 
-  [sim, outlist] = ld_simnest(sim, defaultevents, ...
+  [sim, outlist, computation_finished] = ld_simnest(sim, defaultevents, ...
                               switch_signal=switch, reset_signal=reset, ...
                               inlist=list(u, u2), ...
                               insizes=[1, 1], outsizes=[1, 1], ...
@@ -172,6 +172,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   
   [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
   [sim] = ld_printf(sim, defaultevents, y, "y = ", 1);
+  [sim] = ld_printf(sim, defaultevents, computation_finished, "comp finished? = ", 1);
+  
+  
   
   // save result to file
   [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", x);
