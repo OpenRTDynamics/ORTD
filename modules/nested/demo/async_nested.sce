@@ -153,11 +153,12 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   
   // A signal that switches between simulations
   slice = ones(100,1);
-  [sim, switch] = ld_play_simple(sim, defaultevents, [ slice; slice*1;  slice; slice*0; slice; slice*0 ]);
+  [sim, switch] = ld_play_simple(sim, defaultevents, 1.56*[ slice; slice*1;  slice; slice*0; slice; slice*0 ]);
+  [sim, reset] = ld_play_simple(sim, defaultevents, [ 0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0 ]);
 
 //  [sim, reset] = ld_play_simple(sim, defaultevents, [ slice*0;1; slice*0; slice*0; 0;0;0;1;slice*0; slice*0; slice*0 ]);
   
-  [sim, reset] = ld_ztf(sim, defaultevents, switch, (z-1)/z );
+//  [sim, reset] = ld_ztf(sim, defaultevents, switch, (z-1)/z );
 
   [sim, outlist, computation_finished] = ld_simnest(sim, defaultevents, ...
                               switch_signal=switch, reset_signal=reset, ...
@@ -222,12 +223,12 @@ par.rpar = [];
 
 
 // optionally execute
-messages = unix_g('libdyn_generic_exec -s oscillator -i 901 -l 1000');
+//messages = unix_g('libdyn_generic_exec -s oscillator -i 901 -l 1000');
 
 
 // load results
-A = fscanfMat('result.dat');
+//A = fscanfMat('result.dat');
 
-scf(1);clf;
-plot(A(:,1), 'k');
+//scf(1);clf;
+//plot(A(:,1), 'k');
 

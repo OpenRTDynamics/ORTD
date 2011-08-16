@@ -69,53 +69,39 @@ private:
 
 
     static void * start_thread(void *obj);
+    void signal_thread(int sig);
 };
 
 
-
-// void * background_computation_thread(void *data)
-// {
-//     background_computation * inst = (background_computation *) data;
-//
-//     printf("comp thread started\n");
-//
-//     inst->loop();
-//
-//     pthread_exit(NULL);
-// }
 
 template <class compute_instance> void * background_computation<compute_instance>::start_thread(void *obj)
 {
     background_computation<compute_instance> *ci;
 
     ci = (background_computation<compute_instance> *) obj;
-
     ci->loop();
 //     reinterpret_cast<compute_instance *>(obj)->loop();
 }
 
 template <class compute_instance> void background_computation<compute_instance>::loop()
-// void background_computation::loop()
 {
-  signal = 0;
-  
+    signal = 0;
+
     for (;;) {
 
         pthread_mutex_lock(&mutex);
 
-	printf("lock\n");
-	
+
         while (signal == 0) {
             pthread_cond_wait(&cond, &mutex);
         }
         int sig = signal;
         signal = 0;
 
-	set_finished(false);
-	
-		printf("proceed\n");
+        set_finished(false);
 
-	
+
+
         pthread_mutex_unlock(&mutex);
 
 
@@ -140,56 +126,72 @@ template <class compute_instance> void background_computation<compute_instance>:
     }
 }
 
+template <class compute_instance> void background_computation<compute_instance>::signal_thread(int sig)
+{
+    pthread_mutex_lock(&mutex);
+    signal = sig;
+    pthread_mutex_unlock(&mutex);
+    pthread_cond_signal(&cond); // Notify reader thread
+
+}
+
 template <class compute_instance> bool background_computation<compute_instance>::start_computation()
-// bool background_computation::start_computation()
 {
 
     bool finished_cpy = get_finished();
 
 //   only if computation is not running
     if (finished_cpy == true) {
-      
-      printf("trig\n");
 
-        signal = 1; // FIXME mutex
-        pthread_cond_signal(&cond); // Notify reader thread
+        printf("trig\n");
+
+        /*        pthread_mutex_lock(&mutex);
+                signal = 1; // FIXME mutex
+                pthread_mutex_unlock(&mutex);
+                pthread_cond_signal(&cond); // Notify reader thread*/
+        signal_thread(1);
     }
 
 }
 
-// void background_computation::join_computation()
 template <class compute_instance> void background_computation<compute_instance>::join_computation()
 {
+//    TODO: kill computation
+  
     // wait until computation is complete
-//    TODO
+    signal_thread(-1);
+    
+    pthread_join(thread, NULL);
 }
 
 template <class compute_instance> bool background_computation<compute_instance>::get_finished()
-// bool background_computation::get_finished()
 {
 
     pthread_mutex_lock(&finished_mutex);
     bool finished_cpy = finished;
     pthread_mutex_unlock(&finished_mutex);
 
+//      printf("get finished %d\n", finished_cpy ? 1 : 0);
+
     return finished_cpy;
 }
 
 template <class compute_instance> void background_computation<compute_instance>::set_finished(bool f)
-// void background_computation::set_finished()
 {
     pthread_mutex_lock(&finished_mutex);
     finished = f;
+//     printf("set finished to %d\n", f ? 1 : 0);
     pthread_mutex_unlock(&finished_mutex);
 }
 
 
 template <class compute_instance> background_computation<compute_instance>::background_computation(compute_instance *ci)
-// background_computation::background_computation(compute_instance *ci)
 {
     this->ci = ci;
     signal = 0;
-    finished = true;
+
+    set_finished(true);
+
 
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
@@ -210,11 +212,12 @@ template <class compute_instance> background_computation<compute_instance>::back
 template <class compute_instance> background_computation<compute_instance>::~background_computation()
 // background_computation::~background_computation()
 {
-    signal = -1;
-    pthread_cond_signal(&cond); // Notify reader thread
+/*    signal = -1;
+    pthread_cond_signal(&cond); // Notify reader thread       
+    pthread_join(thread, NULL);*/
 
-//     printf("comp: joining\n");
-    pthread_join(thread, NULL);
+   join_computation();
+
     printf("background computer: joinined\n");
 
 
@@ -267,7 +270,6 @@ public:
 
 
 template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest)
-//ortd_asychronous_computation::ortd_asychronous_computation(libdyn_nested* simnest)
 {
     this->cb = cb;
     this->simnest = simnest;
@@ -278,14 +280,12 @@ template <class callback_class> ortd_asychronous_computation<callback_class>::or
 }
 
 template <class callback_class> ortd_asychronous_computation<callback_class>::~ortd_asychronous_computation()
-// ortd_asychronous_computation::~ortd_asychronous_computation()
 {
     delete computer_mgr;
 }
 
 
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computeNSteps(int N)
-// int ortd_asychronous_computation::computeNSteps(int N)
 {
     // trigger computation
 
@@ -294,34 +294,25 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 }
 
 template <class callback_class> bool ortd_asychronous_computation<callback_class>::computation_finished()
-// bool ortd_asychronous_computation::computation_finished()
 {
-    computer_mgr->get_finished();
+    return computer_mgr->get_finished();
 }
 
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
-// int ortd_asychronous_computation::computer()
 {
 
-    printf("running computer\n");
-    sleep(8);
+//     printf("running computer\n");
+//     sleep(8);
 
     sim->simulation_step(0);
     sim->simulation_step(1);
-    
 
 
-// //   	  for (i=0; i< Nout ; ++i) {
-// // 	      double *out_p = (double*) libdyn_get_output_ptr(block, i);
-// // 	      simnest->copy_outport_vec(i, out_p);
-// //
-// //   //       printf("nested outp %f\n", out_p[0]);
-// // 	  }
 
+//     call the callback to copy the results
     cb->async_copy_output_callback();
 
-//   sleep(1);
-    printf("finished\n");
+//     printf("finished\n");
 }
 
 
@@ -550,17 +541,17 @@ void compu_func_nested_class::io_async(int update_states)
     simnest->event_trigger_mask(eventmask);
 
 //     printf("io_async up=%d\n", update_states);
-    
+
     if (update_states == 1) {
         //
         // update states
         //
-         double *comptrigger_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
-        
-//         if (*comptrigger_inp > 0) {
+        double *comptrigger_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
+//         printf("starting comp = %f\n", *comptrigger_inp);
 
-        this->async_comp_mgr->computeNSteps(1);
-// 	}
+        if (*comptrigger_inp > 0) {
+            this->async_comp_mgr->computeNSteps(1);
+        }
 
 
     } else {
@@ -568,13 +559,13 @@ void compu_func_nested_class::io_async(int update_states)
         // copy outputs (if result is available)
         //
 
-double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
+        double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
 
         // If the background computation is finished the the output to 1
         if (this->async_comp_mgr->computation_finished()) {
-            *comp_finished = 2;
-        } else {
             *comp_finished = 1;
+        } else {
+            *comp_finished = 0;
         }
 
 
@@ -585,27 +576,24 @@ double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
 
 void compu_func_nested_class::async_copy_output_callback()
 {
-    printf("copy outputs\n ");
-
+// async copy of outputs
     int i;
 
-     lock_output();
+    lock_output();
 
 
-      Nout;
-     for (i=0; i< Nout ; ++i) {
-         double *out_p = (double*) libdyn_get_output_ptr(block, i);
+    Nout;
+    for (i=0; i< Nout ; ++i) {
+        double *out_p = (double*) libdyn_get_output_ptr(block, i);
 
-         simnest->copy_outport_vec(i, out_p);
+        simnest->copy_outport_vec(i, out_p);
 
 
         //       printf("nested outp %f\n", out_p[0]);
     }
 
 
-     unlock_output();
-
-         printf("done\n ");
+    unlock_output();
 
 }
 
