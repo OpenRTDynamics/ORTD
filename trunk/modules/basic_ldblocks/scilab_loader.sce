@@ -114,6 +114,36 @@ function [sim,out] = ld_jumper(sim, events, in, steps)
 endfunction
 
 
+function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state)
+// memory - block
+//
+// If rememberin > 0 then
+//   remember in, which is then feed to the output out until it is overwritten by a new value
+//
+// initial output out = initial_state
+// 
+
+  btype = 60001 + 6;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [  ], [ initial_state ]);
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, rememberin) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+function [sim,out] = ld_abs(sim, events, in)
+// abs - block
+//
+// out = abs(in)
+// 
+
+  btype = 60001 + 7;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [  ], [  ]);
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 
 //
 // Macros
@@ -153,9 +183,9 @@ endfunction
 
 
 
+function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta)
 // Implements a time discrete integrator with saturation of the output between min__ and max__
 // y(k+1) = sat( y(k) + Ta*u , min__, max__ )
-function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta)
     [sim, u__] = ld_gain(sim, ev, u, Ta);
     
     [sim,z_fb] = libdyn_new_feedback(sim);
@@ -168,10 +198,10 @@ function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta)
 endfunction
 
 
+function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
 // linear controller with anti reset windup implemented by bounding the integral state:
 // e = r-y
 // u = ld_limited_integrator( e, min__, max__ ) + tfR*e
-function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
     [sim, e] = ld_sum(sim, ev, list(r, y), 1, -1);
     
     [sim,u1] = ld_limited_integrator(sim, ev, e, min__, max__, Ta);
@@ -181,8 +211,8 @@ function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
 endfunction
 
 
-// Convert an angle in rad to degree and print to console
 function [sim] = ld_print_angle(sim, ev, alpha, text)
+// Convert an angle in rad to degree and print to console
     [sim, alpha_deg] = ld_gain(sim, ev, alpha, 1/%pi*180);
     [sim] = ld_printf(sim, ev, alpha_deg, text, 1);
 endfunction

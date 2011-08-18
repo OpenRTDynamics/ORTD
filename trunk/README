@@ -49,7 +49,11 @@ HART-Module installation
 ------------------------
 
 Link hart/hart_ortd to the modules/ directory of your HART-Toolbox. 
-NOTE: Do not make a copy!
+
+  ln -s hart/hart_ortd <hart-dir>/modules
+
+WARNING: Do not make a copy -- otherwise some header files are not found
+         during compilation.
 
 Tools
 -----
