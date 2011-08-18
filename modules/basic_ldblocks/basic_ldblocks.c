@@ -455,6 +455,127 @@ int ortd_compu_func_jumper(int flag, struct dynlib_block_t *block)
 }
 
 
+int ortd_compu_func_memory(int flag, struct dynlib_block_t *block)
+{
+ // printf("comp_func flipflop: flag==%d\n", flag);
+  int Nout = 1;
+  int Nin = 2;
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  double *rpar = libdyn_get_rpar_ptr(block);
+  
+  double initial_state = rpar[0];
+  
+  double *state = (void*) libdyn_get_work_ptr(block);
+
+  double *in, *rememberin;
+  double *output;
+
+
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+      in= (double *) libdyn_get_input_ptr(block,0);
+      output = (double *) libdyn_get_output_ptr(block,0);
+      
+      *output = state[0];
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      in = (double *) libdyn_get_input_ptr(block,0);
+      rememberin = (double *) libdyn_get_input_ptr(block,1);
+      output = (double *) libdyn_get_output_ptr(block,0);
+
+      if (*rememberin > 0)
+	state[0] = *in;
+      
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES:
+      *state = initial_state;
+      
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+      {
+        double *state__ = malloc(sizeof(double));
+        libdyn_set_work_ptr(block, (void *) state__);
+	*state__ = initial_state;
+      }
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      void *buffer = (void*) libdyn_get_work_ptr(block);
+      free(buffer);      
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a memory block. initial_state = %f\n", initial_state);
+      return 0;
+      break;      
+  }
+}
+
+
+
+int compu_func_abs(int flag, struct dynlib_block_t *block)
+{
+  //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+            double *out = (double *) libdyn_get_output_ptr(block,0);
+            double *in = (double *) libdyn_get_input_ptr(block, 0);
+	    
+            out[0] = (*in > 0) ? *in : -(*in) ;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); 
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm an abs() block\n");
+        return 0;
+        break;
+
+    }
+}
+
 
 
 //#include "block_lookup.h"
@@ -474,6 +595,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 3, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_hysteresis);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 4, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_modcounter);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 5, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_jumper);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 6, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_memory);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 7, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_abs);
     
     
     
