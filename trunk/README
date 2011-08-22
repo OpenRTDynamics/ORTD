@@ -1,4 +1,4 @@
-OpenRTDynamics v0.99d -- Real Time Dynamics Toolbox suitable for
+OpenRTDynamics v0.99f -- Real Time Dynamics Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos. 
@@ -156,10 +156,15 @@ v0.99d
 
 v0.99e
   - Modules support
-  - muParser (http://muparser.sourceforge.net/) Block support for using math formula within simulations
+  - muParser (http://muparser.sourceforge.net/) Block supporting math formula within simulations
     there is an example within examples/muparser.sce
   - HART-module (hart.sf.net) for using ORTD in Scicos simulations
   - remote control interface via TCP to set parameters via a new "ld_parameter" block
     enable it in libdyn_generic_exec by the --master_tcpport <port> option
     an example can be found under examples/remote_control.sce
   - Scicos block for integration of ortd schematics
+
+v0.99f
+  - sync and async nested ortd simulations (Module nested)
+  - going on with rt_server
+
