@@ -33,7 +33,7 @@ void irpar_getstr(char ** ret_str, int par[], int init, int len)
   int i;
   int j=0;
 
-  *ret_str = malloc(len);
+  *ret_str = malloc(len+1); // +1 for the \0 termination
   char *str = *ret_str;
   
   for(i = init; i < init + len; i++)
