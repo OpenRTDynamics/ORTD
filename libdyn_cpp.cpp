@@ -238,6 +238,8 @@ void libdyn_nested::destruct()
       if (sim != NULL) {
 	sim->destruct();
 	delete sim;
+	
+	sim_slots[i] = NULL;
       }
     }
     
@@ -246,6 +248,8 @@ void libdyn_nested::destruct()
     
     current_sim->destruct();
     delete current_sim;
+    
+    current_sim == NULL;
   }
 
 

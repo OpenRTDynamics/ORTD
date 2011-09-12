@@ -9,11 +9,11 @@ host-type := $(shell arch)
 
 ifeq ($(host-type),x86_64)
 # 64 Bit
-CFLAGS = -fPIC -O2 -I../.. 
+CFLAGS = -g -fPIC -O2 -I../.. 
 LDFLAGS = -shared
 else
 # 32 Bit
-CFLAGS = -I../..
+CFLAGS = -g -I../..
 LDFLAGS = -shared 
 endif
 

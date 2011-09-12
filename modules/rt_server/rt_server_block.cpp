@@ -264,8 +264,10 @@ int compu_func_rt_server_stream_class::init()
     datatype = DATATYPE_FLOAT; // FIXME REMOVE
 
     int bufferlen = ipar[3];
-    int exprlen = ipar[4];
-    int *coded_stream_name = &ipar[5];
+    int autoflushInterval = ipar[4];
+    double autoflushtimeout = rpar[0];
+    int coded_stream_name_len = ipar[5];
+    int *coded_stream_name = &ipar[6];
 
     master = (libdyn_master *) block->sim->master;
     if (master == NULL) {
@@ -282,11 +284,11 @@ int compu_func_rt_server_stream_class::init()
     deactivated = false;
 
 
-    stream_name = (char *) malloc(exprlen+1);
+    stream_name = (char *) malloc(coded_stream_name_len+1);
 
     // Decode filename
     int i;
-    for (i = 0; i < exprlen; ++i)
+    for (i = 0; i < coded_stream_name_len; ++i)
         stream_name[i] = coded_stream_name[i];
 
     stream_name[i] = 0; // String termination
@@ -294,7 +296,6 @@ int compu_func_rt_server_stream_class::init()
     printf("New stream named %s\n", stream_name);
 
     // set up a new stream
-    int autoflushInterval = 5;
     int numBufferElements = 100;
     stream = master->stream_mgr->new_stream(stream_name, datatype, insize, numBufferElements, autoflushInterval );
     

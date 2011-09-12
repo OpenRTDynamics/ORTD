@@ -33,11 +33,11 @@ endif
 libdyn_generic_exec: lib
 	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
  
-lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o libilc.o
-	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o libilc.o Linux_Target/*.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
-	ar rvs libortd.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o libilc.o Linux_Target/*.o all_Targets/*.o
-	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o libilc.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
-	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o libilc.o all_Targets/*.o
+lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
+	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
+	ar rvs libortd.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o
+	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
+	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o realtime.o libilc.o all_Targets/*.o
 
 clean:
 	rm -f *.o *.so *.a libdyn_generic_exec Linux_Target/* all_Targets/*
@@ -126,6 +126,9 @@ irpar.o: irpar.c
 
 log.o: log.c
 	$(CC) $(CFLAGS) -c log.c
+
+realtime.o: realtime.c
+	$(CC) $(CFLAGS) -c realtime.c
 
 libilc.o: libilc.c
 	$(CC) $(CFLAGS) -c libilc.c

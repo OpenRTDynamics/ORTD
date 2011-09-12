@@ -66,11 +66,14 @@ class rt_server_command {
 class tcp_connection {
   public:
    tcp_connection(tcp_server* tcps, int fd);
-   int fd;
+   int fd;  // raw fd for writing
+   int raw_fdread; // raw fd for reading
    tcp_server *tcps;
    
    int readln(int nb, void *data);
-   int writeln(const void* data);
+   int writeln(const void* data);  // FIXME: Zwischen Verbindung abgebrochen und Puffer voll unterscheiden
+   int writelnff(const void* data);  // FIXME: Zwischen Verbindung abgebrochen und Puffer voll unterscheiden
+   
    FILE *get_io_fd();
    int send_flush_buffer();
    
@@ -83,11 +86,15 @@ class tcp_connection {
    bool check_error();
    
   private:
-    FILE *bfd;
+    FILE *bfd; // buffered io for writing
+    FILE *bfdread; // buffered io for reading
     
     // Count how many users of this class instance are pending
     // the instance can be only destroyed if this is zero
     int usage_counter;
+    bool request_for_destruct;
+    pthread_mutex_t used_mutex, useage_counter_mutex;
+   void destruct_wait_until_unused(); // blocks until this class is not used any more
     
     // true if there was an ioerror
     bool error_state;   // FIXME PROTECTION
@@ -105,7 +112,7 @@ class tcp_server {
     
     int tcp_server_init();
     int tcp_server_init2(int listen_fd);
-    int tcp_server_write(int fd, char buf[], int buflen);
+//     int tcp_server_write(int fd, char buf[], int buflen);
     
     
     void *tcp_server_read(void *arg);
@@ -230,6 +237,15 @@ class rt_server_threads_manager {
 
     int error;
     bool mainloop_thread_started;
+    
+    /// client management
+    void hangup_all_clients();
+    pthread_mutex_t client_list_mutex;
+    void lock_client_list();
+    void unlock_client_list();    
+    void add_to_client_list(rt_server * rt_server_i);
+    void del_from_client_list(rt_server * rt_server_i);
+    
 };
 
 #endif

@@ -51,30 +51,39 @@ function [sim,out] = ld_parameter(sim, events, str, initial_param)
 endfunction
 
 
-function [sim] = ld_stream(sim, events, in, str, insize)
+function [sim] = ld_stream(sim, events, in, str, insize, autoflushInterval, autoflushTimeout, bufferlen)
   // Creates a new stream block that is remotely controlable via TCP
   // It requires the set-up of a libdyn master
   // 
   // str - is a string of the stream name
   // insize is the vector length of the input port
-  // 
-  bufferlen = 100; // how many vectors should be stored in the ringbuffer
+  // [autoflushInterval] how often (in samples) to flush the send buffers
+  // [autoflushTimeout] how often to flush the send buffers (time difference) (not implemented)
+  // [bufferlen] number of samples within the ringbuffer
+  //
+
+  // set some defeult values for optional variables if not present
+  if (exists('bufferlen') == 0)
+    bufferlen = 1000; // how many vectors should be stored in the ringbuffer
+  end
+
+  if (exists('autoflushInterval') == 0)
+    autoflushInterval = 1;
+  end
+
+  if (exists('autoflushTimeout') == 0)
+    autoflushTimeout = 0.1;
+  end
+
   datatype = -1; // FIXME set to FLOAT
+
 
   btype = 14001 + 1;
   str = ascii(str);
 
-//     int insize = ipar[1];    
-//     datatype = ipar[2];
-//     datatype = DATATYPE_FLOAT; // FIXME REMOVE
-// 
-//     int bufferlen = ipar[3];
-//     int exprlen = ipar[4];
-//     int *coded_stream_name = &ipar[5];
-
   
-  ipar = [0, insize, datatype, bufferlen, length(str), str(:)'];
-  rpar = [];
+  ipar = [0, insize, datatype, bufferlen, autoflushInterval, length(str), str(:)'];
+  rpar = [autoflushTimeout ];
   
   [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
 
