@@ -100,9 +100,12 @@ public:
     void lock_buf();
     void unlock_buf();
 private:
+//     Buffered io for writing
     FILE *fd;
-
+    
+//     Buffered io for reading
     FILE *fdread;
+    
     int raw_fdread;
 
     pthread_t read_thread;
@@ -192,10 +195,12 @@ serial_asynchronus_bufferedIO::serial_asynchronus_bufferedIO(FILE *fd, void *rea
 
     this->fd = fd;
 
+    // because it is not possible to have a pending read on the fd
+    // and at the same time to write to fd within another thread
     // create a new bufferd io for reading
     int rawfd = fileno(fd);
 
-    raw_fdread = dup(rawfd);
+    raw_fdread = dup(rawfd);   // FIXME this and the one belov are not lcosed!
     fdread = fdopen(raw_fdread, "r+");
 
     

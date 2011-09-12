@@ -140,16 +140,10 @@ template <class compute_instance> bool background_computation<compute_instance>:
 
     bool finished_cpy = get_finished();
 
-//   only if computation is not running
+    //   only if computation is not running
     if (finished_cpy == true) {
-
-        printf("trig\n");
-
-        /*        pthread_mutex_lock(&mutex);
-                signal = 1; // FIXME mutex
-                pthread_mutex_unlock(&mutex);
-                pthread_cond_signal(&cond); // Notify reader thread*/
-        signal_thread(1);
+//         printf("trig\n");
+        signal_thread(1); // start the computation
     }
 
 }
@@ -187,19 +181,21 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 template <class compute_instance> background_computation<compute_instance>::background_computation(compute_instance *ci)
 {
-    this->ci = ci;
-    signal = 0;
-
-    set_finished(true);
-
-
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
 
     pthread_mutex_init(&finished_mutex, NULL);
     pthread_mutex_init(&comp_active_mutex, NULL);
 
-//     int rc = pthread_create(&thread, NULL, background_computation_thread, (void *) this);
+  
+    this->ci = ci; // the callback class
+    
+    signal = 0; // ???
+
+    set_finished(true); // initially the computation is finished
+
+
+
     int rc = pthread_create(&thread, NULL, &background_computation<compute_instance>::start_thread, (void *) this);
     if (rc) {
         printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -304,12 +300,15 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 //     printf("running computer\n");
 //     sleep(8);
 
+    // Simulate
+    
+    // do
     sim->simulation_step(0);
     sim->simulation_step(1);
+    // while (some abort criterion set by the schematic sim)
 
 
-
-//     call the callback to copy the results
+    // call the callback to copy the results
     cb->async_copy_output_callback();
 
 //     printf("finished\n");
@@ -355,7 +354,7 @@ private:
     int *insizes, *outsizes;
     int *intypes, *outtypes;
 
-    int Nsimulations, dfeed, synchron_simsteps;
+    int Nsimulations, dfeed, asynchron_simsteps;
 
     int error;
 
@@ -404,7 +403,7 @@ int compu_func_nested_class::init()
 
     Nsimulations = param.v[0];
     dfeed = param.v[1];
-    synchron_simsteps = param.v[2];
+    asynchron_simsteps = param.v[2];
 
     /*
 
@@ -414,7 +413,7 @@ int compu_func_nested_class::init()
 
 
     bool use_buffered_input = false;  // in- and out port values are not buffered (default)
-    if (synchron_simsteps < 0) {
+    if (asynchron_simsteps > 0) {
         use_buffered_input == true;  // with async computation buffered inputs have to be used
     }
 
@@ -454,7 +453,7 @@ int compu_func_nested_class::init()
     // start async computation manager if desired
     //
 
-    if (synchron_simsteps < 0) {
+    if (asynchron_simsteps <= 0) {
         this->async_comp = false;
     } else {
         // Initialise async computation manager
@@ -463,18 +462,26 @@ int compu_func_nested_class::init()
         this->async_comp = true;
         this->async_comp_mgr = new ortd_asychronous_computation<compu_func_nested_class>(this, simnest);
 
+//	printf("--\n");
         pthread_mutex_init(&this->output_mutex, NULL);
+//	printf("..\n");
     }
 
+    printf("nested was set-up\n");
 
     return 0;
 
 destruct_simulations:
     printf("nested: Destructing all simulations\n");
-    for (i = 0; i < simCreateCount; ++i) {
+/*    for (i = 0; i < simCreateCount; ++i) {
 
     }
-    ;
+    
+    ;*/
+
+    simnest->destruct(); // all simulations are destructed
+    delete simnest;
+
     return -1;
 
 }
@@ -518,7 +525,7 @@ void compu_func_nested_class::io_sync(int update_states)
         double *reset_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
 
         if (*reset_inp > 0) {
-            printf("reset states\n");
+            //printf("reset states\n");
             simnest->reset_blocks();
         }
 
@@ -556,12 +563,13 @@ void compu_func_nested_class::io_async(int update_states)
 
     } else {
         //
-        // copy outputs (if result is available)
+        // set comp_finieshed output to 1 if result is available
         //
 
         double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
 
         // If the background computation is finished the the output to 1
+	// nonblocking check for a result
         if (this->async_comp_mgr->computation_finished()) {
             *comp_finished = 1;
         } else {

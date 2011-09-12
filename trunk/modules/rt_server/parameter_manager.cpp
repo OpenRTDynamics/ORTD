@@ -382,6 +382,269 @@ void ortd_ringbuffer::flush()
 
 
 
+
+/*
+
+  A Stream multiplexer
+
+*/
+
+
+ortd_stream_multiplexer::ortd_stream_multiplexer(ortd_stream* stream, void* dataptr, int datatype, int vlen, int autoflushInterval, double autoflushtimeout)
+{
+    this->stream = stream;
+    this->dataptr = dataptr;
+    this->datatype = datatype;
+    this->nElements = vlen;
+
+    this->autoflushtimeout = autoflushtimeout;
+    this->autoflushInterval = autoflushInterval;
+    autoflushInterval_counter = 0;
+
+//      init list (comes later)
+    rt_server_i = NULL;
+    pthread_mutex_init(&client_list_mutex, NULL);
+
+//  initialise log.h sink infrastructure
+    int bufsize = 100;
+    int numElementsToWrite = 1;
+    int element_size  = sizeof(double) * nElements;
+
+//    FIXME decide on the datatype
+    sink = log_sink_new(element_size, bufsize, (void*) &ortd_stream_multiplexer::callback_c,
+                        (void*) this, numElementsToWrite);
+    if (sink == 0) {
+//      return 0;
+    }
+
+}
+
+ortd_stream_multiplexer::~ortd_stream_multiplexer()
+{
+    log_sink_del(sink);
+
+    pthread_mutex_destroy(&client_list_mutex);
+}
+
+int ortd_stream_multiplexer::callback_cpp(void* data, int flag)
+{
+    int ret;
+
+
+    switch (flag) {
+    case 1: {
+
+        printf("stream transmission: open fifo \n");
+
+    }
+    return 0;
+    break;
+    case 2: {  // process data
+        void *vec = (char *) data;
+//   printf("calback\n");
+//  	  printf("process\n");
+        multiplex(data);
+
+    }
+    return 0;
+    break;
+    case 4: {  // flush
+    }
+    return 0;
+    break;
+    case 3:  // close
+    {
+        printf("stream transmission: close fifo\n");
+    }
+    return 0;
+    break;
+    }
+
+}
+
+
+int ortd_stream_multiplexer::callback_c(void* data, void* calbdata, int flag)
+{
+    ortd_stream_multiplexer * mux = (ortd_stream_multiplexer *) calbdata;
+
+    //   just run the c++ version of the calback function
+    mux->callback_cpp(data, flag);
+}
+
+
+
+
+void ortd_stream_multiplexer::add_client(rt_server* rt_server_i)
+{
+
+    printf("resistering new client\n");
+
+    rt_server_i->iohelper->register_usage();
+
+    // muxtex
+    lock_client_list();
+    this->rt_server_i = rt_server_i;
+
+
+    unlock_client_list();
+    // increase usage counter
+//   rt_server_i->register_usage();
+}
+
+void ortd_stream_multiplexer::remove_client(rt_server* rt_server_i)
+{
+//   rt_server_i->unregister_usage();
+
+    lock_client_list();
+    this->rt_server_i = NULL;
+    unlock_client_list();
+
+    rt_server_i->iohelper->unregister_usage();
+
+}
+
+void ortd_stream_multiplexer::lock_client_list()
+{
+//   pthread_mutex_lock(&client_list_mutex);
+}
+
+void ortd_stream_multiplexer::unlock_client_list()
+{
+//   pthread_mutex_unlock(&client_list_mutex);
+}
+
+
+int ortd_stream_multiplexer::feed_data(void *data)
+{
+    log_ringbuffer_write(sink->rb, data, 1);
+}
+
+int ortd_stream_multiplexer::multiplex(void *data)
+{
+    // go through list
+
+    lock_client_list();
+
+    if (this->rt_server_i == NULL) {
+//        printf("no rt_server was set-up\n");
+
+        return 0;
+    }
+
+//      printf("sending data\n");
+
+    rt_server *rt_server_client;
+
+    rt_server_client = this->rt_server_i;
+
+    char str[256];
+    int ret;
+
+    // decide on datatype
+    if (datatype == DATATYPE_FLOAT) {
+        double *vec = (double *) data;
+
+//          printf("send\n");
+
+        // print all elements of the vector
+        int i;
+        for (i = 0; i < this->nElements; ++i) {
+
+// 	   	printf(str, "%f, ", vec[i]);
+            sprintf(str, "%f ", vec[i]);  // FIXME possible buffer overflow
+
+//                printf("sending %s\n", str);
+
+
+            ret = rt_server_client->iohelper->writeln(str);
+            if (ret < 0) goto ioerror;
+
+        }
+
+        ret = rt_server_client->iohelper->writeln("\n");
+        if (ret < 0) goto ioerror;
+
+    }
+
+    //
+    // autoflush of buffer to the client if needed
+    //
+
+
+    autoflushInterval_counter++;
+
+    if (autoflushInterval_counter >= autoflushInterval) {
+        autoflushInterval_counter = 0;
+        // flush data_loadbuffer
+
+        rt_server_client->iohelper->send_flush_buffer();
+    }
+
+
+
+    unlock_client_list();
+    return 0;
+
+ioerror:
+
+    printf("ioerror\n");
+
+//      Client not available any more. close connection
+    this->remove_client(rt_server_client);
+
+    unlock_client_list();
+    return -1;
+
+}
+
+
+
+//
+// A threaded bindata to socket writer that uses sinks defined above
+//
+
+
+
+// struct streamtrans_t *log_streamtrans_new(int bufsize, int numElementsToWrite, char *fname)
+// {
+//   struct streamtrans_t *st = (struct streamtrans_t *) malloc(sizeof(struct streamtrans_t));
+//
+//   strcpy(st->fname, fname); // FIXME: Possible Buffer overflow
+//   st->sink = log_sink_new(sizeof(char), bufsize, &log_streamtrans_callback, (void*) st, numElementsToWrite);
+//   if (st->sink == 0) {
+//     free(st);
+//     return 0;
+//   }
+//
+//  // printf("new streamtrans created\n");
+//
+//   return st;
+// }
+//
+// void log_streamtrans_flush(struct streamtrans_t *st)
+// {
+//   log_sink_flush(st->sink);
+// }
+//
+// int log_streamtrans_del(struct streamtrans_t *st)
+// {
+//   log_sink_del(st->sink);
+//   free(st);
+// }
+//
+//
+// int log_streamtrans_log(struct streamtrans_t *st, void *bindata, int NumBytes)
+// // write NumBytes from bindata to the stream refered to by st
+// {
+//   log_ringbuffer_write(st->sink->rb, bindata, NumBytes);
+// }
+//
+
+
+
+
+
+
 /*
 
   A Stream
@@ -403,6 +666,11 @@ ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int dat
     this->name = name;
     this->str_mgr = str_mgr;
 
+//     Create the stream multiplexer
+    multiplexer = new ortd_stream_multiplexer(this, NULL, this->datatype, nElements, autoflushInterval, 0.0);
+
+
+
     // reader mutex init
     pthread_mutex_init(&mutex_readstream, NULL);
 
@@ -413,11 +681,12 @@ ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int dat
 
 ortd_stream::~ortd_stream()
 {
+    delete multiplexer;
 }
 
 void ortd_stream::destruct()
 {
-  // remove file entry
+    // remove file entry
     str_mgr->directory->delete_entry((char*) name);
 
     delete rb;
@@ -490,7 +759,7 @@ int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_s
 
         //
         // autoflush of buffer to the client if needed
-        // 
+        //
 
 // stream_fetch osc_output 12
 
@@ -505,7 +774,7 @@ int ortd_stream::parse_and_return(rt_server_command* cmd, rt_server* rt_server_s
 //  	       cmd->send_flush_buffer();
             }
         }
-        
+
     }
 
 
@@ -525,14 +794,14 @@ int ortd_stream::send_info(rt_server_command* cmd, rt_server* rt_server_src, cha
 //  lock stream
 //     pthread_mutex_lock(&mutex_readstream);
 
-  FILE *fd = rt_server_src->iohelper->get_io_fd();
+    FILE *fd = rt_server_src->iohelper->get_io_fd();
 
-  fprintf(fd, "Stream information for %s\n", this->name);
+    fprintf(fd, "Stream information for %s\n", this->name);
 //   rt_server_src->iohelper->writeln("scope information\n");
 
-    
+
 //     pthread_mutex_unlock(&mutex_readstream);
-      return 0;
+    return 0;
 
 ioerror:
 
@@ -546,8 +815,21 @@ ioerror:
 // writes one vecotr to the stream
 void ortd_stream::write_to_stream(void* data)
 {
+    multiplexer->feed_data(data);
+
     rb->write(data, 1);
 }
+
+void ortd_stream::add_client(rt_server* rt_server_i)
+{
+    multiplexer->add_client(rt_server_i);
+}
+
+void ortd_stream::remove_client(rt_server* rt_server_i)
+{
+    multiplexer->remove_client(rt_server_i);
+}
+
 
 
 
@@ -588,14 +870,20 @@ void ortd_stream_manager::callback_get(rt_server_command* cmd, rt_server* rt_ser
         ortd_stream *stream = (ortd_stream *) dentr->userptr;
 
         if (stream != NULL) {
-	  
+
 // 	  send stream data
-	  if (nElements >= 0)
-            stream->parse_and_return(cmd, rt_server_src, parstr, nElements);
-	  
-// 	  send some information on the stream
-	  if (nElements < 0)
-	    stream->send_info(cmd, rt_server_src, parstr, nElements);
+            if (nElements > 0)
+                stream->parse_and_return(cmd, rt_server_src, parstr, nElements);
+
+            if (nElements == 0) // register the client for receiving the stream automatically
+                stream->add_client(rt_server_src);
+
+            if (nElements == -1) // register the client for receiving the stream automatically
+                stream->remove_client(rt_server_src);
+
+// 	  send some information about the stream
+            if (nElements == -2)
+                stream->send_info(cmd, rt_server_src, parstr, nElements);
 
             return;
         }

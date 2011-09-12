@@ -16,7 +16,7 @@
 
 
 
-function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signal,reset_signal, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, synchron_simsteps)
+function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal  )
 // 
 // ld_simnest -- create one (or multiple) nested libdyn simulation within a normal libdyn block
 // 		 it is possible to switch between them by an special input signal
@@ -24,6 +24,8 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signa
 // INPUTS: 
 //
 // switch_signal: signal used to switch between different nested simulations
+// reset_trigger_signal: when 1 the current simulation is reset (sync)
+//                       OR when 1 the current simulation is triggered (async)
 // inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)
 //
 // PARAMETERS:
@@ -35,14 +37,14 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signa
 // outtypes -
 // fn_list - list( ) of scilab functions defining sub-schematics
 // dfeed - the block containing all sub-schematics is configured with dfeed
-// synchron_simsteps - if > 0 synchron_simsteps steps will be simulated in a thread
+// asynchron_simsteps - if > 0 asynchron_simsteps steps will be simulated in a thread
 //                     when finished the result becomes available to the blocks outports
 //                     if == 0 the nested simulation runns synchronous to the upper level simulation.
 // 
 // OUTPUTS:
 // 
 // outlist - list( ) of output signals
-// computation_finished - optional and only meanful if synchron_simsteps > 0 (means async computation)
+// computation_finished - optional and only meanful if asynchron_simsteps > 0 (means async computation)
 // 
 
 
@@ -69,13 +71,13 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signa
     error("dfeed should be of size 1\n");
   end
 
-  if (length(synchron_simsteps) ~= 1) then
-    error("synchron_simsteps should be of size 1\n");
+  if (length(asynchron_simsteps) ~= 1) then
+    error("asynchron_simsteps should be of size 1\n");
   end
 
 
   Nsimulations = length(fn_list);
-   parlist = new_irparam_elemet_ivec(parlist, [Nsimulations, dfeed, synchron_simsteps], 20); 
+   parlist = new_irparam_elemet_ivec(parlist, [Nsimulations, dfeed, asynchron_simsteps], 20); 
 
 
 
@@ -87,7 +89,7 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signa
   for i = 1:Nsimulations
 
     fn = fn_list(i);
-//    [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsizes, intypes, outtypes); // outtypes and intypes are not handled at the moment
+    //    [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsizes, intypes, outtypes); // outtypes and intypes are not handled at the moment
     [sim_container_irpar, nested_sim] = libdyn_setup_schematic(fn, insizes, outsizes); 
 
     // pack simulations into irpar container with id = 901
@@ -113,7 +115,14 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signa
   // add switch and reset input signals
   blocks_inlist = inlist;
   blocks_inlist($+1) = switch_signal;
-  blocks_inlist($+1) = reset_signal;
+
+  if asynchron_simsteps == 0 then
+    // connect reset input
+    blocks_inlist($+1) = reset_trigger_signal; //reset_signal;
+  else
+    // connect trigger input
+    blocks_inlist($+1) = reset_trigger_signal; //trigger_signal;
+  end
 
   // connect all inputs
   [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
@@ -127,7 +136,7 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, switch_signa
     outlist(i+1) = out;
   end
 
-  if (synchron_simsteps > 0) then
+  if (asynchron_simsteps > 0) then
     [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp);   // the last port
   else
     computation_finished = 0; // dummy value
