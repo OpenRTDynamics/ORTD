@@ -43,39 +43,41 @@ sock.setblocking(0)
 # Mainloop
 
 while 1:
-	for e in pygame.event.get(): # iterate over event stack
-		print 'event : ' + str(e.type)
-		if e.type == pygame.locals.JOYAXISMOTION: # 7
-			x , y = j.get_axis(0), j.get_axis(1)
-			print 'x and y : ' + str(x) +' , '+ str(y)
-			
-			sock.send("set_param joystick_x # %f \n" % (x))
+#	for e in pygame.event.get(): # iterate over event stack
+	e = pygame.event.wait()  # iterate over event stack
 
-			#print 'read from tcp1'
+	print 'event : ' + str(e.type)
+	if e.type == pygame.locals.JOYAXISMOTION: # 7
+		x , y = j.get_axis(0), j.get_axis(1)
+		print 'x and y : ' + str(x) +' , '+ str(y)
+		
+		sock.send("set_param joystick_x # %f \n" % (x))
 
-			try:
-				data=sock.recv(1000)
-			except:
-				print 'nothing to read'
+		#print 'read from tcp1'
 
-			sock.send("set_param joystick_y # %f \n" % (y))
+		try:
+			data=sock.recv(1000)
+		except:
+			print 'nothing to read'
 
-			#print 'read from tcp2'
+		sock.send("set_param joystick_y # %f \n" % (y))
 
-			try:
-				data=sock.recv(1000)
-			except:
-				print 'nothing to read'
+		#print 'read from tcp2'
+
+		try:
+			data=sock.recv(1000)
+		except:
+			print 'nothing to read'
 
 
-		elif e.type == pygame.locals.JOYBALLMOTION: # 8
-			print 'ball motion'
-		elif e.type == pygame.locals.JOYHATMOTION: # 9
-			print 'hat motion'
-		elif e.type == pygame.locals.JOYBUTTONDOWN: # 10
-			print 'button down'
-		elif e.type == pygame.locals.JOYBUTTONUP: # 11
-			print 'button up'
+	elif e.type == pygame.locals.JOYBALLMOTION: # 8
+		print 'ball motion'
+	elif e.type == pygame.locals.JOYHATMOTION: # 9
+		print 'hat motion'
+	elif e.type == pygame.locals.JOYBUTTONDOWN: # 10
+		print 'button down'
+	elif e.type == pygame.locals.JOYBUTTONUP: # 11
+		print 'button up'
 
 
 
