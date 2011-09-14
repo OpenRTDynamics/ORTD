@@ -71,9 +71,17 @@ following:
 
 - muparser: Evaluation of mathematical expressions
 - rt_server: Remote control of your controller via an TCP-Interface (Experimental)
-- nested: includind and switching of ORTD-Simulations within ORTD-Simulations
+- nested: includind and switching of ORTD-Simulations within ORTD-Simulations (Experimental)
 - basic_ldblocks: Basic Blocks (hysteresis, modulo counter, (de)multiplexer, 2to1 switch ...)
 - template: A module template for creating your own blocks
+
+Additional Stuff
+----------------
+
+Within additional/joystick, there is a seperate Python-Script to read out a connected
+joystick and feed the data directly to ORTD-schematics via the rt_server infrastructure.
+It can be used for an example to easily integrate other input devices. Only one simple 
+Python-Script is needed for that.
 
 Examples
 --------
@@ -165,6 +173,7 @@ v0.99e
   - Scicos block for integration of ortd schematics
 
 v0.99f
-  - sync and async nested ortd simulations (Module nested)
+  - sync and async nested ortd simulations (Module nested, experimental)
   - going on with rt_server
+  - Joystick integration via a small Python-Script and the rt_server module
 
