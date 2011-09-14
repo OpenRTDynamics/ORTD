@@ -165,7 +165,7 @@ int parameter::parse_and_set(char* line)
                 param[valcounter] = v; // store the new values
 
                 ++valcounter;
-                printf("%f\n", v);
+                //printf("%f\n", v);
             }
 
         }
