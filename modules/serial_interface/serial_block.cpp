@@ -41,6 +41,7 @@ class compu_func_serial_interface_class;
 int SerialCommandFormer_arduino_1(FILE *stream, double *input, compu_func_serial_interface_class *serialblock) {
     int pwm1 = input[0]; 
     int pwm2 = input[1];
+    int dig1 = input[2];
   
     fprintf(stream, "w d 8 1\r\n" 
 		    "w d 9 0\r\n"
@@ -48,10 +49,13 @@ int SerialCommandFormer_arduino_1(FILE *stream, double *input, compu_func_serial
 		    "w d 11 0\r\n"
 		    "w d 12 1\r\n"
 		    
+		    "p m 13 1\r\n"		    
+		    "w d 13 %d\r\n"		    
+		    
 		    "w a 5 %d\r\n"
 		    "w a 6 %d\r\n"
 		    
-		    " r all 4\r\n", pwm1, pwm2);
+		    " r all 4\r\n", dig1, pwm1, pwm2);
 
     double *v = input;
     printf("sending %f\n", v[0]);
