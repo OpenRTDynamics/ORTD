@@ -77,7 +77,7 @@ endfunction
 function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod)
 // Modulo Counter - Block
 //
-// A counter that increases its value for each timestep where in > 0.
+// A counter that increases its value for each timestep for which in > 0 is true.
 // if the counter value >= mod then it is reset to counter = initial_count
 //
 //

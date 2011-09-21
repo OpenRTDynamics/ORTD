@@ -854,48 +854,51 @@ endfunction
 //////////////////////////////////////////////////////////
 
 function [sim,c] = ld_const(sim, events, val)
+// A constant val
+
     [sim,c] = libdyn_new_blk_const(sim, events, val); // Instead of event a predefined initial event that only occurs once should be used
     [sim,c] = libdyn_new_oport_hint(sim, c, 0);    
 endfunction
 
-function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2) // FIXME obsolete
+function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2) 
+// FIXME obsolete
     [sim,sum_] = libdyn_new_blk_sum(sim, events, fak1, fak2);
     [sim,sum_] = libdyn_conn_equation(sim, sum_, inp_list);  
     [sim,sum_] = libdyn_new_oport_hint(sim, sum_, 0);    
 endfunction
 
+function [sim,sum_] = ld_add(sim, events, inp_list, fak_list)
 // Add signals (linear combination)
 // inp_list = list( in1, in2 )  ; fak_list = [ c1, c2 ]
 // sum_ = in1 * c1 + in2 * c2
-function [sim,sum_] = ld_add(sim, events, inp_list, fak_list)
     [sim,sum_] = libdyn_new_blk_sum(sim, events, fak_list(1), fak_list(2));
     [sim,sum_] = libdyn_conn_equation(sim, sum_, inp_list);  
     [sim,sum_] = libdyn_new_oport_hint(sim, sum_, 0);    
 endfunction
 
 
+function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
 // Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
  // FIXME obsolete
-function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
     [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1, muldiv2);
     [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
 endfunction
 
+function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
 // Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
 // inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
-function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
     [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1_list(1), muldiv1_list(2) );
     [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
 endfunction
 
+function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list)
 // Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
 // inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
-function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list)
     [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1_list(1), muldiv1_list(2) );
     [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
@@ -903,6 +906,7 @@ endfunction
 
 
 function [sim,gain] = ld_gain(sim, events, inp_list, gain)
+// A simple gain
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
   [sim,gain] = libdyn_new_blk_gain(sim, events, gain);  
@@ -911,6 +915,8 @@ function [sim,gain] = ld_gain(sim, events, inp_list, gain)
 endfunction
 
 function [sim,sign_] = ld_sign(sim, events, inp_list, thr)
+// return the sign of the input sigal
+// either 1 or -1
     [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
     [sim,sign_] = libdyn_new_compare(sim, events, thr);
@@ -919,6 +925,12 @@ function [sim,sign_] = ld_sign(sim, events, inp_list, thr)
 endfunction
 
 function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
+// lookup table
+//
+// inp_list - input signal
+// table - a vector of values to look up
+// the input is mapped between lower_b and upper_b to the
+// index within table
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
     [sim,lkup] = libdyn_new_blk_lkup(sim, events, lower_b, upper_b, table);
@@ -927,6 +939,8 @@ function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
 endfunction
   
 function [sim,fngen] = ld_fngen(sim, events, inp_list, shape_)
+// function generator
+// need cleanup
     [sim,fngen] = libdyn_new_blk_fngen(sim, events, shape_)
     [sim,fngen] = libdyn_conn_equation(sim, fngen, inp_list);
     [sim,fngen] = libdyn_new_oport_hint(sim, fngen, 0);
@@ -942,6 +956,8 @@ function [sim,delay] = ld_delay(sim, events, inp_list, delay_len)
 endfunction
 
 function [sim,y] = ld_ztf(sim, events, inp_list, H)
+// Time discrete transfer function
+// H is give as a Scilab rational
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
     [sim,tf] = libdyn_new_blk_zTF(sim, events, H);
@@ -950,6 +966,7 @@ function [sim,y] = ld_ztf(sim, events, inp_list, H)
 endfunction
 
 function [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit)
+// Saturation between lowerlimit and upperlimit
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
     [sim,sat] = libdyn_new_blk_sat(sim, events, lowerlimit, upperlimit);
@@ -964,37 +981,47 @@ function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state)
 endfunction
 
 function [sim] = ld_printf(sim, events, in, str, insize)
-//    [sim,blk] = libdyn_new_printf(sim, events, inlist);
+// Print data to stdout (the console)
+// str is a string that is printed followed by the signal vektor in
+// of size insize
   [sim,blk] = libdyn_new_printf(sim, events, str, insize);
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
 endfunction
 
 
-// compare block. If input > thr: output = 1; else -1
-//function [sim,bid] = libdyn_new_compare(sim, events, thr)
 function [sim,y] = ld_compare(sim, events, in,  thr)
+// compare block. 
+//   thr - constant
+//   in - signal
+// If input > thr: output = 1; else -1
+//
+
     [sim,blk] = libdyn_new_compare(sim, events, thr);
     [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
 
-// compare block. If input > thr: output = 1; else 0
 function [sim,y] = ld_compare_01(sim, events, in,  thr)
+// compare block. 
+//   thr - constant
+//   in - signal
+// compare block. If input > thr: output = 1; else 0
+//
+
     [sim,blk] = libdyn_new_compare(sim, events, thr, 1); // mode = 1
     [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
 
 
+
+function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in)
 //
 // A switching Block
 // inputs = [control_in, signal_in]
 // if control_in > 0 : signal_in is directed to output 1; output_2 is set to zero
 // if control_in < 0 : signal_in is directed to output 2; output_1 is set to zero
 //
-//function [sim,bid] = libdyn_new_blk_switch(sim, events)
-
-function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in)
     [sim,blk] = libdyn_new_blk_switch(sim, events);
     [sim,blk] = libdyn_conn_equation(sim, blk, list(cntrl,0, in,0));
     
@@ -1003,6 +1030,7 @@ function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in)
 endfunction
 
 
+function [sim,y] = ld_play_simple(sim, events, r)
 //
 // Simple sample play block
 //
@@ -1015,15 +1043,14 @@ endfunction
 //function [sim,bid] = libdyn_new_blk_play(sim, events, r, initial_play, hold_last_value, mute_afterstop)
 
 // Play vektor r 
-function [sim,y] = ld_play_simple(sim, events, r)
   [sim,y] = libdyn_new_blk_play(sim, events, r, 1, 1, 0);
   [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
 
+function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source)
 // Quick and easy dumping of signals to files in one line of code
 // obsolete version
-function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source)
   [source] = libdyn_extrakt_obj( source ); // compatibility
 
   // source: a list with a block + a port
@@ -1031,9 +1058,9 @@ function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source)
   [sim,save_] = libdyn_conn_equation(sim, save_, list(source, 0) );
 endfunction
 
+function [sim,save_]=ld_dumptoiofile(sim, events, fname, source)
 // Quick and easy dumping of signals to files
 // source is of size 1 at the moment
-function [sim,save_]=ld_dumptoiofile(sim, events, fname, source)
   [inp] = libdyn_extrakt_obj( source ); // compatibility
 
   // source: a list with a block + a port
@@ -1050,8 +1077,8 @@ endfunction
 // More complex blocks based on elementary blocks
 //////////////////////////////////////////////////////////
 
-// Add a constant "ofs" to the signal u; y = u + const(ofs)
 function [sim,y] = ld_add_ofs(sim, events, u, ofs)
+// Add a constant "ofs" to the signal u; y = u + const(ofs)
   [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
   
   [sim,y] = ld_sum(sim, events, list(u,0, ofs_const,0), 1,1);
@@ -1061,21 +1088,21 @@ endfunction
 // Generic controllers
 //
 
-// normal controller
 function [sim,u] = ld_standard_controller(sim, event, r, y, K)
+// classic linear controller
     [sim,e] = ld_sum(sim, event, list(r,0, y,0), 1,-1 );
     [sim,u] = ld_ztf(sim, event, list(e,0), K);
 endfunction
 
-// like normal controller but with a measurement filter M
 function [sim,u] = ld_standard_controller_2dof(sim, event, r, y, K, M)
+// like classic controller but with a measurement filter M
     [sim,y_] = ld_ztf(sim, event, list(y,0), M);
     [sim,e] = ld_sum(sim, event, list(r,0, y_,0), 1,-1 );
     [sim,u] = ld_ztf(sim, event, list(e,0), K);
 endfunction
 
-// controller with a feedforwad part
 function [sim,u,u_fb,u_ff] = ld_standard_controller_ffw(sim, event, r, y, K, Gm1, T)
+// controller with a feedforwad part
     [sim,r_] = ld_ztf(sim, event, list(r,0), T); // closed loop model
     
     [sim,e] = ld_sum(sim, event, list(r_,0, y,0), 1,-1 );
