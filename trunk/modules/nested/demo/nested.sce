@@ -49,20 +49,20 @@ function [sim, x,v] = oscillator(sim, u)
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
     // use this as a normal signal
-    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
-    [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
-    [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
+    [sim,a] = ld_add(sim, sim.ev.defev, list(u, x_feedback), [1, -1]);
+    [sim,v] = ld_ztf(sim, sim.ev.defev, a, 1/(z-1) * T_a ); // Integrator approximation
+    [sim,x] = ld_ztf(sim, sim.ev.defev, v, 1/(z-1) * T_a ); // Integrator approximation  
     
     // feedback gain
-    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+    [sim,x_gain] = ld_gain(sim, sim.ev.defev, x, 0.6);
     
     // close loop x_gain = x_feedback
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
 
 //pause;
     
-//    [sim] = ld_printf(sim, defaultevents, x_gain, "fb = ", 1);
-//    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
+//    [sim] = ld_printf(sim, sim.ev.defev, x_gain, "fb = ", 1);
+//    [sim] = ld_printf(sim, sim.ev.defev, a, "a = ", 1);
 endfunction
 
 function [sim, x,v] = damped_oscillator(sim, u)
@@ -71,73 +71,73 @@ function [sim, x,v] = damped_oscillator(sim, u)
     [sim,v_feedback] = libdyn_new_feedback(sim);
 
     // use this as a normal signal
-    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
-    [sim,a] = ld_add(sim, defaultevents, list(a, v_feedback), [1, -1]);
+    [sim,a] = ld_add(sim, sim.ev.defev, list(u, x_feedback), [1, -1]);
+    [sim,a] = ld_add(sim, sim.ev.defev, list(a, v_feedback), [1, -1]);
     
-    [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
+    [sim,v] = ld_ztf(sim, sim.ev.defev, a, 1/(z-1) * T_a ); // Integrator approximation
     
     // feedback gain
-    [sim,v_gain] = ld_gain(sim, defaultevents, v, 0.1);
+    [sim,v_gain] = ld_gain(sim, sim.ev.defev, v, 0.1);
     
     // close loop v_gain = v_feedback
     [sim] = libdyn_close_loop(sim, v_gain, v_feedback);
     
     
-    [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
+    [sim,x] = ld_ztf(sim, sim.ev.defev, v, 1/(z-1) * T_a ); // Integrator approximation  
     
     // feedback gain
-    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+    [sim,x_gain] = ld_gain(sim, sim.ev.defev, x, 0.6);
     
     // close loop x_gain = x_feedback
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
 
 //pause;
     
-//    [sim] = ld_printf(sim, defaultevents, x_gain, "fb = ", 1);
-//    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
+//    [sim] = ld_printf(sim, sim.ev.defev, x_gain, "fb = ", 1);
+//    [sim] = ld_printf(sim, sim.ev.defev, a, "a = ", 1);
 endfunction
 
 
 function [sim, outlist] = nested1_schematic_fn(sim, inlist)
-  u = inlist(1);
+  sim.ev.defev = 0; // define the events
+  u = inlist(1); // the inputs to the nested simulation
 
-  [sim] = ld_printf(sim, defaultevents, u, "nested1: u = ", 1);
-
-//  [sim, x,y] = oscillator(sim, u);  
+  [sim] = ld_printf(sim, sim.ev.defev, u, "nested1: u = ", 1);
 
 //
 //  // WARNING: THE FOLLOWING DOESN'T WORK, because you cannot 
 //  // connect sim inputs directly to sim outputs
 //  x = u;
 //  y = u;
+// 
+// use [sim, x] = ld_gain(sim, sim.ev.defev, u, 1);
+//
+// as a work around
 //
 
-  [sim,x] = ld_gain(sim, defaultevents, u, 5);
-  [sim,y] = ld_gain(sim, defaultevents, u, 1);
-  
-  [sim, x] = ld_play_simple(sim, defaultevents, [ linspace(0,5,90) ]);
 
+  // just put out something
+  [sim,y] = ld_gain(sim, sim.ev.defev, u, 1);
+  [sim, x] = ld_play_simple(sim, sim.ev.defev, [ linspace(0,5,90) ]);
   
-  [sim] = ld_printf(sim, defaultevents, x, "nested1: x = ", 1);
-
-//  [sim,x] = ld_const(sim, defaultevents, 100);
+  [sim] = ld_printf(sim, sim.ev.defev, x, "nested1: x = ", 1);
 
   // output of schematic
   outlist = list(x,y);
 endfunction
 
 function [sim, outlist] = nested2_schematic_fn(sim, inlist)
-  u = inlist(1);
+  sim.ev.defev = 0; // define the events
+  u = inlist(1); // the inputs to the nested simulation
   
-  [sim] = ld_printf(sim, defaultevents, u, "nested2: u = ", 1);
+  [sim] = ld_printf(sim, sim.ev.defev, u, "nested2: u = ", 1);
   
-
+  // simulate some model
   [sim, x,y] = damped_oscillator(sim, u);  
 
 
-  [sim] = ld_printf(sim, defaultevents, x, "nested2: x = ", 1);
+  [sim] = ld_printf(sim, sim.ev.defev, x, "nested2: x = ", 1);
 
-//  [sim,x] = ld_const(sim, defaultevents, 200);
 
   // output of schematic
   outlist = list(x,y);
@@ -145,36 +145,40 @@ endfunction
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
-  [sim,u] = ld_const(sim, defaultevents, 1.123525);
-  [sim,u2] = ld_const(sim, defaultevents, 2);
+  sim.ev.defev = 0;
+    
+  [sim,u1] = ld_const(sim, sim.ev.defev, 1.123525);
+  [sim,u2] = ld_const(sim, sim.ev.defev, 2);
   
-//  [sim,switch] = ld_const(sim, defaultevents, 0.76);
-  [sim,reset] = ld_const(sim, defaultevents, 1.23);
   
   // A signal that switches between simulations
   slice = ones(100,1);
-  [sim, switch] = ld_play_simple(sim, defaultevents, [ slice; slice*1;  slice; slice*0; slice; slice*0 ]);
-
-//  [sim, reset] = ld_play_simple(sim, defaultevents, [ slice*0;1; slice*0; slice*0; 0;0;0;1;slice*0; slice*0; slice*0 ]);
+  [sim, switch] = ld_play_simple(sim, sim.ev.defev, [ slice; slice*1;  slice; slice*0; slice; slice*0 ]);
   
-  [sim, reset] = ld_ztf(sim, defaultevents, switch, (z-1)/z );
+  // generate a reset impuls for every switch between the nested simulations
+  // Thus simulations are reset after they are deactivated when switching
+  // (The computational functions inside are called with flag=COMPF_FLAG_RESETSTATES)
+  [sim, reset] = ld_ztf(sim, sim.ev.defev, switch, (z-1)/z );
+  [sim, reset] = ld_abs(sim, sim.ev.defev, reset);
 
-  [sim, outlist] = ld_simnest(sim, defaultevents, ...
-                              inlist=list(u, u2), ...
+  // The block, which contains multiple nested simulations
+  [sim, outlist] = ld_simnest(sim, sim.ev.defev, ...
+                              inlist=list(u1, u2), ...
                               insizes=[1, 1], outsizes=[1, 1], ...
                               intypes=[1, 1], outtypes=[1, 1], ...
                               fn_list=list(nested1_schematic_fn, nested2_schematic_fn), ...
                               dfeed=1, asynchron_simsteps=0, ...
                               switch_signal=switch, reset_trigger_signal=reset           );
-  
+                              
+  // get the outputs
   x = outlist(1);
   y = outlist(2);
   
-  [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
-  [sim] = ld_printf(sim, defaultevents, y, "y = ", 1);
+  [sim] = ld_printf(sim, sim.ev.defev, x, "x = ", 1);
+  [sim] = ld_printf(sim, sim.ev.defev, y, "y = ", 1);
   
   // save result to file
-  [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", x);
+  [sim, save0] = ld_dumptoiofile(sim, sim.ev.defev, "result.dat", x);
   
   // output of schematic
   outlist = list(x);
@@ -188,7 +192,7 @@ endfunction
 //
 
 // defile events
-defaultevents = [0]; // main event
+sim.ev.defev = [0]; // main event
 
 // set-up schematic by calling the user defined function "schematic_fn"
 insizes = [1,1]; outsizes=[1];
