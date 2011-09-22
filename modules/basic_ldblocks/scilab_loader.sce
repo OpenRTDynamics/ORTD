@@ -296,3 +296,22 @@ function [sim] = ld_print_angle(sim, ev, alpha, text)
     [sim, alpha_deg] = ld_gain(sim, ev, alpha, 1/%pi*180);
     [sim] = ld_printf(sim, ev, alpha_deg, text, 1);
 endfunction
+
+function [sim,pwm] = ld_pwm(sim, ev, plen, u)
+// 
+// PWM generator
+// 
+// plen - period length
+// u - modulation signal between 0 and 1
+//
+
+    [sim,u] = ld_gain(sim, ev, u, plen);
+    
+    [sim,one] = ld_const(sim, ev, 1);
+    
+    [sim,modcount] = ld_modcounter(sim, ev, in=one, initial_count=0, mod=plen);
+    
+    [sim, test] = ld_add(sim, ev, list(modcount, u), [-1,1] );
+    [sim,pwm] = ld_compare_01(sim, ev, test,  thr=0);
+endfunction
+
