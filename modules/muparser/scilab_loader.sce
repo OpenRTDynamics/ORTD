@@ -56,7 +56,15 @@ endfunction
 //str = 'sin(par1) + par2';
 //
 function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, parNames)
-  // 
+// 
+// Bug within this scilab function
+// 
+// subtitution: haveing names like "phi" and "phi_u" does not work
+//              names "u1", "u2", ... and "c1", "c2", ... also does not work right now
+// 
+// 
+// 
+
   Nin = length(inlist);
   Nout = 1;
   
@@ -65,7 +73,9 @@ function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, p
   
   [NinNames, tmp] = size(inNames);
   [NparNames, tmp] = size(parNames);
-  
+
+//printf("--------- BEGIN MUPARSER BLOCK -----------\n");  
+
 //  pause;
 
   if length(inlist) ~= NinNames then
@@ -76,10 +86,11 @@ function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, p
       error("parNames and par have to have equal length");
   end
 
+  // substitute variable names for the inputs
   i = 1;
   while i <= Nin 
     if typeof(inNames(i)) ~= 'string' then
-      error("ld_muparser2: Did not find a sting in invar");
+      error("ld_muparser2: Did not find a string in invar");
     end
 
 
@@ -87,14 +98,17 @@ function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, p
       error("mu_parser2: Did not find a libdyn object at some entry within inlist");
     end
 
+
+    // replace the variable name
     replacement = 'u' + string(i);
- //   printf("subst %s with %s\n", inNames(i), replacement);
+    //printf("subst %s with %s\n", inNames(i), replacement);
     str = strsubst( str, inNames(i), replacement );
+    //printf("result is " + str + "\n");
 
     i = i + 1;
   end
   
-
+  // substitute variable names for the parameters
   i = 1;
   while i <= length(par) 
     if typeof(parNames(i)) ~= 'string' then

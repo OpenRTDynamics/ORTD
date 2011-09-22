@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <malloc.h>
+#include <string.h>
 
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
@@ -578,6 +579,206 @@ int compu_func_abs(int flag, struct dynlib_block_t *block)
 
 
 
+/*
+  extract_element block
+*/
+int compu_func_extract_element(int flag, struct dynlib_block_t *block)
+{
+//     printf("comp_func eele: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int vecsize = ipar[0];
+    int datatype = ipar[1];    
+    int Nout = 1;
+    int Nin = 2;
+
+    double *invec, *inpointer;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        invec = (double *) libdyn_get_input_ptr(block,0);
+        inpointer = (double *) libdyn_get_input_ptr(block,1);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+	
+	int index = *inpointer - 1;
+	
+	// prevent out of bounds access 
+	if (index < 0)
+	  index = 0;
+	if (index > vecsize-1)
+	  index = vecsize-1;
+	
+        *out = invec[ index ];
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (vecsize < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", vecsize);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+
+	libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a oneelementextractor block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+int compu_func_constvec(int flag, struct dynlib_block_t *block)
+{
+//   printf("comp_func const: flag==%d\n", flag);
+  int Nout = 1;
+  int Nin = 0;
+
+  double *out;	
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+  
+  int veclen = ipar[0];
+  int datatype = ipar[1];
+  
+  double *vec = &rpar[0];
+
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+      out = (double *) libdyn_get_output_ptr(block,0);
+
+      memcpy((void*) out, (void*) vec, veclen*sizeof(double) );
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      
+      // BLOCKTYPE_STATIC enabled makes sure that the output calculation is called only once, since there is no input to rely on
+      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_output(block, 0, veclen, DATATYPE_FLOAT, 0);
+         
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+      return 0;
+      break;
+  }
+}
+
+int ortd_compu_func_counter(int flag, struct dynlib_block_t *block)
+{
+  int Nin = 3; // # output ports
+  int Nout = 1; // # input ports
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  double *rpar = libdyn_get_rpar_ptr(block);
+  
+  double initial_state = rpar[0];
+  
+  double *state = (void*) libdyn_get_work_ptr(block);
+
+  double *incount, *inreset, *inresetto;
+  double *output;
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+/*      incount = (double *) libdyn_get_input_ptr(block,0);
+      inreset = (double *) libdyn_get_input_ptr(block,1);
+      inresetto = (double *) libdyn_get_input_ptr(block,2);*/
+
+      output = (double *) libdyn_get_output_ptr(block,0);
+      
+      *output = state[0];
+//       printf("out = %f\n", *output);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      incount = (double *) libdyn_get_input_ptr(block,0);
+      inreset = (double *) libdyn_get_input_ptr(block,1);
+      inresetto = (double *) libdyn_get_input_ptr(block,2);
+
+      
+      state[0] += incount[0];
+//       printf("upd %f %f\n", state[0], incount[0]);
+      
+      if (inreset[0] > 0)
+	state[0] = inresetto[0];
+      
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // reset states
+      *state = initial_state;
+      
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      
+      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_input(block, 2, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+      {
+        double *state = malloc(sizeof(double));
+        libdyn_set_work_ptr(block, (void *) state);
+	*state = initial_state;
+      }
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      void *buffer = (void*) libdyn_get_work_ptr(block);
+      free(buffer);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a counter block. initial_state = %f\n", initial_state);
+      return 0;
+      break;      
+  }
+}
+
+
+
+
 //#include "block_lookup.h"
 
 int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
@@ -597,6 +798,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 5, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_jumper);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 6, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_memory);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 7, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_abs);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 8, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_extract_element);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constvec);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
     
     
     

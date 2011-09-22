@@ -95,12 +95,16 @@ endfunction
 
 
 function [sim,out] = ld_jumper(sim, events, in, steps)
-// hysteresis - block
+// jumper - block
 //
-// switches out between onout and offout
-// initial state is either -1 (off) or 1 (on)
+// out - vector of size steps
+// in - switching input
 //
-//
+// The vector out always contains one "1", the rest is zero.
+// The "1" moves to the right if in > 0. If the end is reached
+// it "1" flips back to the left side
+// 
+// 
 
   if (steps <= 0) then
     error("ld_jumper: steps must be greater than zero\n");
@@ -143,6 +147,82 @@ function [sim,out] = ld_abs(sim, events, in)
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
+
+
+function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize )
+  //
+  // Extract one element of a vector
+  //
+  // invec - the input vector signal
+  // pointer - the index signal
+  // vecsize - length of input vector
+  // 
+  // out = invec[pointer], the first element is at pointer = 1
+  //
+
+  btype = 60001 + 8;	
+  ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
+
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, ...
+                       insizes=[vecsize], outsizes=[1], ...
+                       intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+//   [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar               );
+
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(invec, pointer) );
+
+  // connect each outport
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
+endfunction
+
+
+function [sim,out] = ld_constvec(sim, events, vec)
+// 
+// a constant vector
+// 
+// vec - the vector
+// 
+  btype = 60001 + 9;	
+  ipar = [length(vec); 0]; rpar = [vec];
+
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+ 
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial)
+// 
+// A resetable counter block
+//
+// count - signal
+// reset - signal
+// resetto - signal
+// initial - constant
+// 
+// increases out by count (out = out + count)
+// 
+// if reset > 0 then
+//   out = resetto
+//
+// initially out is set to initial
+// 
+// 
+
+  btype = 60001 + 10;
+  ipar = [  ]; rpar = [ initial ];
+
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, ...
+                       insizes=[1,1,1], outsizes=[1], ...
+                       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], ...
+                       outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( count, reset, resetto ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
 
 
 //
