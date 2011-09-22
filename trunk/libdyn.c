@@ -465,7 +465,7 @@ int libdyn_config_block_input(struct dynlib_block_t *block, int in, int len, int
     mydebug(1) fprintf(stderr, "confiured inport #%d\n", in);
     return 0;
   } else {
-    mydebug(4) fprintf(stderr, "ASSERTION FAILD: TRIED TO CONFIGURE A NON-AVAILABLE INPUT\n");
+    fprintf(stderr, "ASSERTION FAILD: TRIED TO CONFIGURE A NON-AVAILABLE INPUT\n  You made a mistake in your computational c-function\n");
     return -1;
   }
 }
@@ -2009,7 +2009,7 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
   }
   
   if (block == 0) {
-    fprintf(stderr, "Did not found any block for this block id %d!\n", btype);
+    fprintf(stderr, "Could not find any block for this block; id = %d!\n", btype);
     return 0;
   }
   
