@@ -24,7 +24,7 @@ CFLAGS = -fPIC -O2
 LDFLAGS = -shared
 else
 # 32 Bit
-CFLAGS = -O2  -g
+CFLAGS = -O2
 LDFLAGS = -shared
 endif
 
@@ -45,6 +45,8 @@ clean:
 	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done
 	#for d in $(MODULES); do (echo "cd to modules/$$d"; cd modules/$$d; pwd; cd $(ortd_root)  ); done
 
+superclean:
+	find . -name "*~" -print0 | xargs -0 rm
 
 #$(MODULES)clean:
 #	$(MAKE) --directory=modules/$@ clean
