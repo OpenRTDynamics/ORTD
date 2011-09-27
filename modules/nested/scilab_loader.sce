@@ -61,7 +61,7 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
     error("length inlist invalid or length of insizes invalid\n");
   end
 
-  if N1 ~= N2 then
+  if N4 ~= N2 then
     error("length of outsizes invalid\n");
   end
 
@@ -69,9 +69,6 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
     error("length of intypes invalid\n");
   end
 
-  if N1 ~= N4 then
-    error("length of outtypes invalid\n");
-  end
 
    parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
    parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 

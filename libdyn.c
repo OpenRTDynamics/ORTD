@@ -1000,6 +1000,8 @@ void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim)
     } while (current != 0); // while there is a next block in this list
   }
   
+  // reset the  simulation step counter
+  sim->stepcounter = 0;
 }
 
 
