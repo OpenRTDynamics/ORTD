@@ -40,7 +40,7 @@
 // 4) Port Hint Objects können nicht mit den Simulationsausgängen verbunden werden! DONE
 // 5) libdyn_check_object könnte objecte die mit list(obj) eingepackt sind auspacken, wenn es sich um einer Liste mit einem Object handelt. (Kompatiblität)
 // 6) list(obj, 0...) aus shortcuts rausnehmen um warnungen zu verhindern
-
+// 7) libdyn_close_loop sollte prüfen, ob auch tatsächlich eine Feedback variable übergeben wird, die von libdyn_new_feedback erzeugt wurde
 
 
 // 

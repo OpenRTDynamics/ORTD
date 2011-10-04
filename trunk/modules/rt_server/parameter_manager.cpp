@@ -878,7 +878,7 @@ void ortd_stream_manager::callback_get(rt_server_command* cmd, rt_server* rt_ser
             if (nElements == 0) // register the client for receiving the stream automatically
                 stream->add_client(rt_server_src);
 
-            if (nElements == -1) // register the client for receiving the stream automatically
+            if (nElements == -1) // deregister the client for receiving the stream automatically
                 stream->remove_client(rt_server_src);
 
 // 	  send some information about the stream
