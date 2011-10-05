@@ -17,6 +17,8 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define DEBUG 1
+
 #include "parameter_manager.h"
 
 #include <malloc.h>
@@ -173,7 +175,10 @@ int parameter::parse_and_set(char* line)
 
     } while ( valcounter < nElements );
 
-
+    printf("pm: pause...\n");
+//     sleep(1);
+    printf("pm: pause finished\n");
+    
     atomic_buffer_copy_b2d();
 
 }
@@ -192,6 +197,9 @@ int ortd_callback_setpar__(rt_server_command *cmd, rt_server *rt_server_src)
 {
     parameter_manager *pmgr = (parameter_manager *) cmd->userdat;
     pmgr->callback_set( cmd, rt_server_src );
+    
+    	    if (DEBUG==1) printf("rt_server, pm: return from ortd_callback_setpar__\n");
+
 }
 
 int ortd_callback_getpar__(rt_server_command *cmd, rt_server *rt_server_src)
@@ -292,7 +300,13 @@ void parameter_manager::callback_set(rt_server_command* cmd, rt_server* rt_serve
         if (param != NULL) {
             param->parse_and_set(parstr);
 
+	    if (DEBUG==1) printf("rt_server, pm: sinding ok\n");
+
+	    
             cmd->send_answer(rt_server_src, "Parameter was set\n");
+
+	    if (DEBUG==1) printf("rt_server, pm: ok was sent\n");
+
             return;
         }
 
@@ -546,12 +560,16 @@ int ortd_stream_multiplexer::multiplex(void *data)
 
 //          printf("send\n");
 
+	sprintf(str, "stream %d %d ", 1, this->stream->StreamId );
+        ret = rt_server_client->iohelper->writeln(str);
+        if (ret < 0) goto ioerror;
+	
         // print all elements of the vector
         int i;
         for (i = 0; i < this->nElements; ++i) {
 
 // 	   	printf(str, "%f, ", vec[i]);
-            sprintf(str, "%f ", vec[i]);  // FIXME possible buffer overflow
+            sprintf(str, "%f ", vec[i]);
 
 //                printf("sending %s\n", str);
 
@@ -652,7 +670,7 @@ ioerror:
 */
 
 
-ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval )
+ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval, int StreamId )
 {
     // const_len : number of vector elements
 
@@ -665,6 +683,7 @@ ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int dat
     this->autoflushInterval = autoflushInterval;
     this->name = name;
     this->str_mgr = str_mgr;
+    this->StreamId = StreamId;
 
 //     Create the stream multiplexer
     multiplexer = new ortd_stream_multiplexer(this, NULL, this->datatype, nElements, autoflushInterval, 0.0);
@@ -903,6 +922,7 @@ ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, d
 {
     this->rts_thmng = rts_thmng;
     this->directory = directory; // the directory tree subsystem
+    this->StreamId_counter = 22;
 
     // register commands
     this->rts_thmng->add_command("stream_fetch", &ortd_callback_fetchstream__, this );
@@ -910,7 +930,9 @@ ortd_stream_manager::ortd_stream_manager(rt_server_threads_manager* rts_thmng, d
 
 ortd_stream* ortd_stream_manager::new_stream(char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval)
 {
-    ortd_stream * stream = new ortd_stream(this, name, datatype, const_len, numBufferElements, autoflushInterval);
+    this->StreamId_counter++;
+    
+    ortd_stream * stream = new ortd_stream(this, name, datatype, const_len, numBufferElements, autoflushInterval, this->StreamId_counter);
 
     return stream;
 }

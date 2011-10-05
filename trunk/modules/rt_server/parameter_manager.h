@@ -155,7 +155,7 @@ class ortd_stream {
 public:
     // NOTE: name must be a preallocated string that stays constant during the lifetime of
     // an instance of ortd_stream
-    ortd_stream(ortd_stream_manager* str_mgr, const char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval );
+    ortd_stream(ortd_stream_manager* str_mgr, const char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval, int StreamId );
     ~ortd_stream();
 
     // return the requested data (nElement datasets) to the client
@@ -183,6 +183,7 @@ public:
     void add_client( rt_server * rt_server_i );
     void remove_client( rt_server * rt_server_i );
 
+    int StreamId;
     
 private:
     ortd_stream_manager * str_mgr;
@@ -220,6 +221,8 @@ public:
 //      callbacks for rt_server commands
     void callback_get(rt_server_command *cmd, rt_server *rt_server_src);
 
+private:
+  int StreamId_counter;
 };
 
 
