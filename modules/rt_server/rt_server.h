@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <list>
 
 class rt_server;
 class tcp_server;
@@ -241,6 +242,11 @@ class rt_server_threads_manager {
     /// client management
     void hangup_all_clients();
     pthread_mutex_t client_list_mutex;
+//     std::list<rt_server *> client_list;
+//     std::map<rt_server *, rt_server *> client_list;
+    typedef std::map<rt_server *, rt_server *> client_map_t;
+    client_map_t client_list;
+    
     void lock_client_list();
     void unlock_client_list();    
     void add_to_client_list(rt_server * rt_server_i);

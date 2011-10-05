@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <map>
 
-class rt_server_decoder_iohelper;
+class ortd_tcpclient;
 class rt_server_decoder;
 
 class rt_server_decoder_scope {
@@ -22,14 +22,14 @@ class rt_server_decoder_scope {
     rt_server_decoder* decoder;
 };
 
-class rt_server_decoder_iohelper {
+class ortd_tcpclient {
   private:
     int sd;
     FILE *buffer_fd;
     
   public:
-    rt_server_decoder_iohelper();
-    ~rt_server_decoder_iohelper();
+    ortd_tcpclient();
+    ~ortd_tcpclient();
     
     bool tcpconnect(char *hostname, int port);
     
