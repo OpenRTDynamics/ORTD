@@ -2,6 +2,8 @@
 #ifndef _RT_SERVER_H
 #define _RT_SERVER_H 1
 
+#include "ortd_buffered_io.h"
+
 
 #include <stdio.h>
 #include <map>
@@ -16,6 +18,7 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include <list>
+
 
 class rt_server;
 class tcp_server;
@@ -87,8 +90,10 @@ class tcp_connection {
    bool check_error();
    
   private:
-    FILE *bfd; // buffered io for writing
-    FILE *bfdread; // buffered io for reading
+//     FILE *bfd; // buffered io for writing
+//     FILE *bfdread; // buffered io for reading
+    
+    ortd_buffered_io *bufferedio;
     
     // Count how many users of this class instance are pending
     // the instance can be only destroyed if this is zero

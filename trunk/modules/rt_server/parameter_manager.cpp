@@ -17,7 +17,7 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define DEBUG 1
+#define DEBUG 0
 
 #include "parameter_manager.h"
 

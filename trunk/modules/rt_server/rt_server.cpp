@@ -17,7 +17,7 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define DEBUG 1
+#define DEBUG 0
 
 #include "rt_server.h"
 #include "malloc.h"
@@ -35,6 +35,10 @@
 #include <pthread.h>
 #include <string.h>
 #include "signal.h"
+#include <stdio.h>
+#include <iostream> 
+#include <sstream>
+
 
 rt_server_command::rt_server_command(char* name, int id, int (*callback)(rt_server_command*, rt_server *rt_server_src) )
 {
@@ -93,6 +97,9 @@ void rt_server_command::destruct()
 }
 
 
+
+
+
 tcp_connection::tcp_connection(tcp_server* tcps, int fd)
 {
     this->error_state = false;
@@ -102,20 +109,19 @@ tcp_connection::tcp_connection(tcp_server* tcps, int fd)
     this->tcps = tcps;
     this->fd = fd;
     
-//#ifdef OLDIO
-    this->bfd = fdopen(fd, "r+"); // use buffered io
-
-
-    // because it is not possible to have a pending read on the fd
-    // and at the same time to write to fd within another thread
-    // create a new bufferd io for reading
-
-    raw_fdread = dup(fd);
-    bfdread = fdopen(raw_fdread, "r+");
-//#else
+    bufferedio = new ortd_buffered_io(fd);
     
+//     this->bfd = fdopen(fd, "r+"); // use buffered io
+// 
+// 
+//     // because it is not possible to have a pending read on the fd
+//     // and at the same time to write to fd within another thread
+//     // create a new bufferd io for reading
+// 
+//     raw_fdread = dup(fd);
+//     bfdread = fdopen(raw_fdread, "r+");
+
     
-//#endif
     
     request_for_destruct = false;
     usage_counter = 0;
@@ -172,13 +178,15 @@ void tcp_connection::destruct()
     destruct_wait_until_unused(); // blocks until this class is not used any more
     printf("tcp_connection now unused\n");
 
-    // close buffered io
-    fclose(bfd);
-    fclose(bfdread);
+//     // close buffered io
+//     fclose(bfd);
+//     fclose(bfdread);
 
     // remove mutexes
     pthread_mutex_destroy(&useage_counter_mutex);
     pthread_mutex_destroy(&used_mutex);
+    
+    delete bufferedio;
 }
 
 
@@ -194,23 +202,37 @@ int tcp_connection::readln(int nb, void* data)
 
 
     /* lese Meldung */
-    rvp = fgets((char*) data, nb, bfdread);
-    if (NULL == rvp) {
-
+    int ret = bufferedio->waitforaline();
+    if (ret < 0) {
         // Gegenseite hat Verbindung beendet oder Fehler
         printf("Tcp connection died\n");
         error_state = true;
 
-//         FIXME DIES HIER RAUS
-        pthread_mutex_lock(&this->tcps->mutex_state);
-        FD_CLR(fd, &this->tcps->the_state);      /* toten Client rfd entfernen */
-        pthread_mutex_unlock(&this->tcps->mutex_state);
-// 	bis hier
-
-
-
         return -1;
     }
+
+    std::string input_line;
+    getline(bufferedio->sstream_in, input_line);
+
+    std::cout << "iohelper got " << input_line;
+    
+    if (strlen(input_line.c_str()) >= nb)
+      return -1;
+    
+    strcpy((char*) data, (char*) input_line.c_str() );
+    
+    
+//     rvp = fgets((char*) data, nb, bfdread);
+//     if (NULL == rvp) {
+// 
+//         // Gegenseite hat Verbindung beendet oder Fehler
+//         printf("Tcp connection died\n");
+//         error_state = true;
+// 
+// 
+// 
+//         return -1;
+//     }
 
     if (DEBUG==1)      printf("rt_server: read returned\n");
 
@@ -228,8 +250,10 @@ int tcp_connection::writeln(const void* data)
 
     if (DEBUG==1) printf("rt_server: write to tcp..\n");
 
+    ret = bufferedio->writeln((char*) data);
 
-    ret = fputs((char*) data, bfd);
+    
+//    ret = fputs((char*) data, bfd);
     if (ret < 0) {
         if (DEBUG==1) printf("error writing\n");
         error_state = true;
@@ -237,65 +261,72 @@ int tcp_connection::writeln(const void* data)
     }
 
     if (DEBUG==1) printf("done\n");
-    if (ferror(bfd) < 0 )
-        printf("er\n");
+//     if (ferror(bfd) < 0 )
+//         printf("er\n");
 
     return 1;
 }
 
 int tcp_connection::writelnff(const void* data)
 {
-    int ret;
 
-    if (error_state == true)
-        return -1;
-
-    if (DEBUG==1) printf("rt_server: write to tcp..\n");
-
-
-    ret = fputs((char*) data, bfd);
-    if (ret < 0) {
-        printf("error writing\n");
-        error_state = true;
-        return -1;
-    }
-
-    if (DEBUG==1) printf("done, now flushing\n");
-
-
-    ret = fflush(bfd);
-    if (ret < 0) {
-        printf("error writing\n");
-        error_state = true;
-        return -1;
-    }
-
-    if (ferror(bfd) < 0 )
-        printf("er\n");
-
-    if (DEBUG==1) printf("done\n");
-
-    return 1;
-
+  this->writeln(data);
 }
+
+// int tcp_connection::writelnff(const void* data)
+// {
+//     int ret;
+// 
+//     if (error_state == true)
+//         return -1;
+// 
+//     if (DEBUG==1) printf("rt_server: write to tcp..\n");
+// 
+// 
+//     ret = fputs((char*) data, bfd);
+//     if (ret < 0) {
+//         printf("error writing\n");
+//         error_state = true;
+//         return -1;
+//     }
+// 
+//     if (DEBUG==1) printf("done, now flushing\n");
+// 
+// 
+//     ret = fflush(bfd);
+//     if (ret < 0) {
+//         printf("error writing\n");
+//         error_state = true;
+//         return -1;
+//     }
+// 
+//     if (ferror(bfd) < 0 )
+//         printf("er\n");
+// 
+//     if (DEBUG==1) printf("done\n");
+// 
+//     return 1;
+// 
+// }
 
 
 FILE* tcp_connection::get_io_fd()
 {
-    return bfd;
+//     return bfd;
+  return NULL;
 }
 
 
 int tcp_connection::send_flush_buffer()
 {
-    if (ferror(bfd) < 0 )
-        printf("er\n");
-
-    if (DEBUG==1) printf("rt_server: flushing buffers\n");
-
-    fflush(bfd);
-    
-    if (DEBUG==1) printf("rt_server: flush done\n");
+//     if (ferror(bfd) < 0 )
+//         printf("er\n");
+// 
+//     if (DEBUG==1) printf("rt_server: flushing buffers\n");
+// 
+//     fflush(bfd);
+//     
+//     if (DEBUG==1) printf("rt_server: flush done\n");
 
   
 }
