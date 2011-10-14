@@ -137,6 +137,8 @@ BUGS
 - Objects created by libdyn_new_feedback can by ONLY used once
 - Otherwise it works quite stable (Used for many controller implementations in medical
   control at TU-Berlin)
+- The IO-Performance of the rt_server module is quite suboptimal.
+  Needs a better implementation of buffered io.
 
 CONTACT
 -------

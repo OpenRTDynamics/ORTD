@@ -531,6 +531,9 @@ void ortd_stream_multiplexer::unlock_client_list()
 int ortd_stream_multiplexer::feed_data(void *data)
 {
     log_ringbuffer_write(sink->rb, data, 1);
+    
+// TODO:      call only each "autoflushInterval" samples
+    log_sink_flush(sink);
 }
 
 int ortd_stream_multiplexer::multiplex(void *data)
@@ -614,52 +617,6 @@ ioerror:
     return -1;
 
 }
-
-
-
-//
-// A threaded bindata to socket writer that uses sinks defined above
-//
-
-
-
-// struct streamtrans_t *log_streamtrans_new(int bufsize, int numElementsToWrite, char *fname)
-// {
-//   struct streamtrans_t *st = (struct streamtrans_t *) malloc(sizeof(struct streamtrans_t));
-//
-//   strcpy(st->fname, fname); // FIXME: Possible Buffer overflow
-//   st->sink = log_sink_new(sizeof(char), bufsize, &log_streamtrans_callback, (void*) st, numElementsToWrite);
-//   if (st->sink == 0) {
-//     free(st);
-//     return 0;
-//   }
-//
-//  // printf("new streamtrans created\n");
-//
-//   return st;
-// }
-//
-// void log_streamtrans_flush(struct streamtrans_t *st)
-// {
-//   log_sink_flush(st->sink);
-// }
-//
-// int log_streamtrans_del(struct streamtrans_t *st)
-// {
-//   log_sink_del(st->sink);
-//   free(st);
-// }
-//
-//
-// int log_streamtrans_log(struct streamtrans_t *st, void *bindata, int NumBytes)
-// // write NumBytes from bindata to the stream refered to by st
-// {
-//   log_ringbuffer_write(st->sink->rb, bindata, NumBytes);
-// }
-//
-
-
-
 
 
 
