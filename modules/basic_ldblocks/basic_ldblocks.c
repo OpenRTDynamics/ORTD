@@ -477,6 +477,7 @@ int ortd_compu_func_memory(int flag, struct dynlib_block_t *block)
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
       in= (double *) libdyn_get_input_ptr(block,0);
+      rememberin = (double *) libdyn_get_input_ptr(block,1);
       output = (double *) libdyn_get_output_ptr(block,0);
       
       if (*rememberin > 0)

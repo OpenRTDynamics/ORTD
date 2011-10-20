@@ -139,6 +139,8 @@ BUGS
   control at TU-Berlin)
 - The IO-Performance of the rt_server module is quite suboptimal.
   Needs a better implementation of buffered io.
+- If an ld_stream block is not connected with another block
+  the initialisation of the parameter is not done (but its actually not needed in this case)
 
 CONTACT
 -------
