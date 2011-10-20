@@ -20,11 +20,11 @@ ortd_root := $(shell pwd)
 
 ifeq ($(host-type),x86_64)
 # 64 Bit
-CFLAGS = -fPIC -O2
+CFLAGS = -fPIC -O2 -g
 LDFLAGS = -shared
 else
 # 32 Bit
-CFLAGS = -O2
+CFLAGS = -O2 -g
 LDFLAGS = -shared
 endif
 
