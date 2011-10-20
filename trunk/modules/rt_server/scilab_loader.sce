@@ -43,7 +43,9 @@ function [sim,out] = ld_parameter(sim, events, str, initial_param)
   ipar = [0, nparam, length(str), str(:)'];
   rpar = [initial_param(:)];
   
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[], outsizes=[nparam], ...
+                       intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
 
 //   [sim,blk] = libdyn_conn_equation(sim, blk, inlist);
@@ -85,7 +87,9 @@ function [sim] = ld_stream(sim, events, in, str, insize, autoflushInterval, auto
   ipar = [0, insize, datatype, bufferlen, autoflushInterval, length(str), str(:)'];
   rpar = [autoflushTimeout ];
   
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[insize], outsizes=[], ...
+                       intypes=[ORTD.DATATYPE_FLOAT], outtypes=[]  );
 
   // connect input port
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
