@@ -4,15 +4,18 @@
 
 
 
+function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2)
 //
 // A 2 to 1 switching Block
 // inputs = [control_in, signal_in1, signal_in2]
 // if control_in > 0 : out = signal_in1
 // if control_in < 0 : out = signal_in2
 //
-function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2)
   btype = 60001;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [], []);
+  [sim,blk] = libdyn_new_block(sim, events, btype, [], [], ...
+                   insizes=[1, 1, 1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], ...
+                   outtypes=[ORTD.DATATYPE_FLOAT]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(cntrl, in1, in2) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -23,9 +26,18 @@ endfunction
 
 
 function [sim,outlist] = ld_demux(sim, events, vecsize, invec)
+//
+// Demultiplexer
+//
+// Splits the input vector signal "invec" of size "vecsize" up into 
+//
+// outlist(1)
+// outlist(1)
+//  ....
+//    
   btype = 60001 + 1;	
   ipar = [vecsize, 0]; rpar = [];
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, ...
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                        insizes=[vecsize], outsizes=[ones(vecsize,1)], ...
                        intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT*ones(vecsize,1)]  );
 
@@ -42,10 +54,18 @@ endfunction
 
 
 function [sim,out] = ld_mux(sim, events, vecsize, inlist)
+//    
+// Multiplexer
+//
+// combines inlist(1), inlist(2), ...    
+// to a vector signal "out" of size "vecsize"
+//    
   btype = 60001 + 2;	
   ipar = [vecsize; 0]; rpar = [];
-//pause;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[ones(1,vecsize)], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT*ones(1,vecsize) ], outtypes=[ORTD.DATATYPE_FLOAT] );
  
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, inlist );
@@ -67,7 +87,9 @@ function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_
   end
 
   btype = 60001 + 3;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [initial_state], [ switch_on_level, switch_off_level, onout, offout]);
+  [sim,blk] = libdyn_new_block(sim, events, btype, [initial_state], [ switch_on_level, switch_off_level, onout, offout] , ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -87,7 +109,9 @@ function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod)
   end
 
   btype = 60001 + 4;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [ initial_count, mod ], [  ]  );
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ initial_count, mod ], [  ],  ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]   );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -111,7 +135,9 @@ function [sim,out] = ld_jumper(sim, events, in, steps)
   end
 
   btype = 60001 + 5;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [ steps ], [  ]);
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ steps ], [  ], ...
+                   insizes=[1], outsizes=[ steps ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -128,7 +154,9 @@ function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state)
 // 
 
   btype = 60001 + 6;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [  ], [ initial_state ]);
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [ initial_state ],  ...
+                   insizes=[1, 1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]   );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in, rememberin) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -142,7 +170,9 @@ function [sim,out] = ld_abs(sim, events, in)
 // 
 
   btype = 60001 + 7;
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [  ], [  ]);
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -163,7 +193,7 @@ function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize )
   btype = 60001 + 8;	
   ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
 
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, ...
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                        insizes=[vecsize], outsizes=[1], ...
                        intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
@@ -186,7 +216,9 @@ function [sim,out] = ld_constvec(sim, events, vec)
   btype = 60001 + 9;	
   ipar = [length(vec); 0]; rpar = [vec];
 
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[1], outsizes=[ length(vec) ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
  
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
@@ -213,7 +245,7 @@ function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial)
   btype = 60001 + 10;
   ipar = [  ]; rpar = [ initial ];
 
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, ...
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                        insizes=[1,1,1], outsizes=[1], ...
                        intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], ...
                        outtypes=[ORTD.DATATYPE_FLOAT]  );

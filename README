@@ -1,4 +1,4 @@
-OpenRTDynamics v0.99f -- Real Time Dynamics Toolbox suitable for
+OpenRTDynamics v0.99g -- Real Time Dynamics Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos. 
@@ -181,3 +181,7 @@ v0.99f
   - going on with rt_server
   - Joystick integration via a small Python-Script and the rt_server module
 
+v0.99g
+  - Improved rt_server module
+  - Implented port size checking during schematic generation within Scilab
+  - Fixed bugs in nested and basic_blocks module
