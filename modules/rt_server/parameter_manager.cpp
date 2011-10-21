@@ -770,9 +770,18 @@ int ortd_stream::send_info(rt_server_command* cmd, rt_server* rt_server_src, cha
 //  lock stream
 //     pthread_mutex_lock(&mutex_readstream);
 
-    FILE *fd = rt_server_src->iohelper->get_io_fd();
+//     FILE *fd = rt_server_src->iohelper->get_io_fd();
+//      fprintf(fd, "Stream information for %s\n", this->name);
 
-    fprintf(fd, "Stream information for %s\n", this->name);
+  // FIXME: some locks missing?
+//     rt_server_src->iohelper->register_usage();
+  
+    char tmp[1024];
+    sprintf(tmp, "Stream information for streamname=\"%s\", veclen=%d, datatype=%d\n", this->name, this->nElements, this->datatype);
+
+    rt_server_src->iohelper->writelnff(tmp);
+
+
 //   rt_server_src->iohelper->writeln("scope information\n");
 
 

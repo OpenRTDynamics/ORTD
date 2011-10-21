@@ -185,3 +185,6 @@ v0.99g
   - Improved rt_server module
   - Implented port size checking during schematic generation within Scilab
   - Fixed bugs in nested and basic_blocks module
+  - libdyn_generic_exec: Now runns also without RT-Preempt (no root access needed);
+    there is now a static version libdyn_generic_exec_static
+  - starting with scilab5/Xcos hart module

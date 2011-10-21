@@ -9,3 +9,45 @@ Provides:
 - parameters that can be set remotely
 
 A Demostration is found within demo
+
+
+
+A sample session of the protocoll may look like:
+
+
+--> ls
+
+m_processing1 1
+m_processing2 1
+mundus_env 1
+mundus_interface 2
+mundus_moveactive 1
+--EOR--
+
+--> stream_fetch mundus_interface -2
+
+Stream information for streamname="mundus_interface", veclen=10, datatype=257
+--EOR--
+
+--> stream_fetch mundus_interface 0
+
+--EOR--
+stream 1 23 557.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 558.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 559.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 560.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 561.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 562.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 563.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+stream 1 23 564.000000 0.000000 -0.000000 0.000000 -0.000000 1.000000 1.000000 1.000000 1.000000 1.000000 
+
+--> stream_fetch mundus_interface -1
+
+--EOR--
+
+--> set_param m_processing1 # 1.23
+
+Parameter was set
+--EOR--
+
+

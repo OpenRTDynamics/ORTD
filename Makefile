@@ -28,19 +28,27 @@ CFLAGS = -O2 -g
 LDFLAGS = -shared
 endif
 
+all: libdyn_generic_exec_static libdyn_generic_exec lib
+	echo "------- Build finished: Now you can do > make install <  -------"
 
-
-libdyn_generic_exec: lib
-	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
+libdyn_generic_exec_static: lib libdyn_generic_exec.o
+	$(LD) -lm -lpthread -lrt -ldl   libdyn_generic_exec.o libortd.a -o libdyn_generic_exec_static
  
+libdyn_generic_exec: lib libdyn_generic_exec.o
+#	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
+	$(LD) -L. -lm -lpthread -lrt -ldl -lortd libdyn_generic_exec.o -o libdyn_generic_exec
+ 
+libdyn_generic_exec.o: libdyn_generic_exec.cpp
+	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
+
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
 	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
-	ar rvs libortd.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o
+	ar rvs libortd.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o                 irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o
 	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
 	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o realtime.o libilc.o all_Targets/*.o
 
 clean:
-	rm -f *.o *.so *.a libdyn_generic_exec Linux_Target/* all_Targets/*
+	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/*
 	rm -f module_list module_list__.c module_list__.h
 	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done
 	#for d in $(MODULES); do (echo "cd to modules/$$d"; cd modules/$$d; pwd; cd $(ortd_root)  ); done
