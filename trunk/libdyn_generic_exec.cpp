@@ -243,7 +243,8 @@ void *rt_task(void *p)
     param.sched_priority = prio;
     if (sched_setscheduler(0, SCHED_FIFO, &param)==-1) {
         perror("sched_setscheduler failed");
-        exit(-1);
+	printf("Running without RT-Preemption\n");
+//         exit(-1);
     }
 
     mlockall(MCL_CURRENT | MCL_FUTURE);
