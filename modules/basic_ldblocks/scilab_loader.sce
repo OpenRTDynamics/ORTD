@@ -257,6 +257,166 @@ endfunction
 
 
 
+// 
+//  Vector functions
+// 
+
+
+function [sim,out] = ld_vector_diff(sim, events, in, vecsize)
+//    
+// Vector differentiation
+//
+//    
+  btype = 60001 + 50;	
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[vecsize-1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize)
+//    
+// find values greater than threshold "thr" in vector signal "in", when greater > 0
+// find values less than threshold "thr" in vector signal "in", when greater =< 0
+// 
+//
+//    
+  btype = 60001 + 51;	
+  ipar = [vecsize; greater]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1], outsizes=[1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, thr ) );
+
+  [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_vector_abs(sim, events, in, vecsize)
+//    
+// Vector abs()
+//
+//    
+  btype = 60001 + 52;	
+  ipar = [vecsize; 0]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize)
+//    
+// Vector gain
+//
+//    
+  btype = 60001 + 53;	
+  ipar = [vecsize]; rpar = [gain];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsize)
+//    
+// Extract "in" from to from+window_len
+// 
+//  in - vector signal
+//  from - index signal
+//
+//    
+  btype = 60001 + 54;	
+  ipar = [vecsize; window_len]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[window_len], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, from ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_vector_minmax(sim, events, in, findmax, vecsize)
+//    
+// Min / Max of a vector
+//
+//    
+  btype = 60001 + 55;	
+  ipar = [vecsize; findmax]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize)
+//    
+// add "add" to the vector
+// 
+//  add - signal
+//  in - vector signal
+//    
+  btype = 60001 + 56;	
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, add ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_vector_sum(sim, events, in, vecsize)
+//    
+// sum over "in"
+//
+//    
+  btype = 60001 + 57;
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize ], outsizes=[1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
 //
 // Macros
 //
@@ -346,4 +506,8 @@ function [sim,pwm] = ld_pwm(sim, ev, plen, u)
     [sim, test] = ld_add(sim, ev, list(modcount, u), [-1,1] );
     [sim,pwm] = ld_compare_01(sim, ev, test,  thr=0);
 endfunction
+
+
+
+
 

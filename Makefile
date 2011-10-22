@@ -29,14 +29,15 @@ LDFLAGS = -shared
 endif
 
 all: libdyn_generic_exec_static libdyn_generic_exec lib
-	echo "------- Build finished: Now you can do > make install <  -------"
+	#echo "------- Build finished: Now you can do > make install <  -------"
+	cat documentation/finish_info.txt
 
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	$(LD) -lm -lpthread -lrt -ldl   libdyn_generic_exec.o libortd.a -o libdyn_generic_exec_static
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD) -L. -lm -lpthread -lrt -ldl -lortd libdyn_generic_exec.o -o libdyn_generic_exec
+	$(LD)  -L. -lm -lpthread -lrt -ldl -lortd libdyn_generic_exec.o -o libdyn_generic_exec
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
@@ -64,6 +65,10 @@ clear_scilab_modules:
 	rm -f scilab/modules_loader.sce scilab/ld_toolbox/initialrun/modules_loader.sce
 	rm -f module_list module_list__.c module_list__.h
 
+	# Clear Documentation 
+	rm -f tmp/block_list.txt
+	touch tmp/block_list.txt
+
 	# Create header for module_list.c_
 	echo "int libdyn_siminit_modules(struct dynlib_simulation_t *sim);" > module_list__.h
 
@@ -72,6 +77,7 @@ clear_scilab_modules:
 	echo "int libdyn_siminit_modules(struct dynlib_simulation_t *sim) {" >> module_list__.c
 
 	echo "cleaned up scilab modules"
+
 
 
 # all .o files of modules are collected within Linux_Target
@@ -95,6 +101,9 @@ $(MODULES): clear_scilab_modules
 	# Create module list
 	echo $@ >> module_list
 
+	# Create Documentation
+	perl extract_documentation.pl $@ modules/$@/scilab_loader.sce >> tmp/block_list.txt
+
 	# Create loader C-Code
 	echo "  libdyn_module_$@_siminit(sim, 0);" >> module_list__.c
 
@@ -107,6 +116,9 @@ $(MODULES): clear_scilab_modules
 finish_module_list: $(MODULES)
 	# Create post header for module_list.c_
 	echo "}" >> module_list__.c
+
+	# copy the documentation
+	cp tmp/block_list.txt documentation/List_of_Module_Blocks.txt
 
 # Baustelle
 .PHONY: blockid_offsets
