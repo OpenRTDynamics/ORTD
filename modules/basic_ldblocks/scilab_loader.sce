@@ -4,7 +4,7 @@
 
 
 
-function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2)
+function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
 //
 // A 2 to 1 switching Block
 // inputs = [control_in, signal_in1, signal_in2]
@@ -25,7 +25,7 @@ endfunction
 
 
 
-function [sim,outlist] = ld_demux(sim, events, vecsize, invec)
+function [sim,outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
 //
 // Demultiplexer
 //
@@ -53,7 +53,7 @@ endfunction
 
 
 
-function [sim,out] = ld_mux(sim, events, vecsize, inlist)
+function [sim,out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 //    
 // Multiplexer
 //
@@ -74,7 +74,7 @@ function [sim,out] = ld_mux(sim, events, vecsize, inlist)
 endfunction
 
 
-function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout)
+function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout) // PARSEDOCU_BLOCK
 // hysteresis - block
 //
 // switches out between onout and offout
@@ -96,7 +96,7 @@ function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_
 endfunction
 
 
-function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod)
+function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod) // PARSEDOCU_BLOCK
 // Modulo Counter - Block
 //
 // A counter that increases its value for each timestep for which in > 0 is true.
@@ -118,7 +118,7 @@ function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod)
 endfunction
 
 
-function [sim,out] = ld_jumper(sim, events, in, steps)
+function [sim,out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
 // jumper - block
 //
 // out - vector of size steps
@@ -144,7 +144,7 @@ function [sim,out] = ld_jumper(sim, events, in, steps)
 endfunction
 
 
-function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state)
+function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
 // memory - block
 //
 // If rememberin > 0 then
@@ -163,7 +163,7 @@ function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state)
 endfunction
 
 
-function [sim,out] = ld_abs(sim, events, in)
+function [sim,out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
 // abs - block
 //
 // out = abs(in)
@@ -179,7 +179,7 @@ function [sim,out] = ld_abs(sim, events, in)
 endfunction
 
 
-function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize )
+function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize ) // PARSEDOCU_BLOCK
   //
   // Extract one element of a vector
   //
@@ -207,7 +207,7 @@ function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize )
 endfunction
 
 
-function [sim,out] = ld_constvec(sim, events, vec)
+function [sim,out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 // a constant vector
 // 
@@ -224,7 +224,7 @@ function [sim,out] = ld_constvec(sim, events, vec)
 endfunction
 
 
-function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial)
+function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial) // PARSEDOCU_BLOCK
 // 
 // A resetable counter block
 //
@@ -423,7 +423,7 @@ endfunction
 //
 
 
-function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero )
+function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero ) // PARSEDOCU_BLOCK
 //    
 //    Mute a signal based on cntrl-signal
 //
@@ -455,7 +455,7 @@ endfunction
 
 
 
-function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta)
+function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta) // PARSEDOCU_BLOCK
 // Implements a time discrete integrator with saturation of the output between min__ and max__
 // y(k+1) = sat( y(k) + Ta*u , min__, max__ )
     [sim, u__] = ld_gain(sim, ev, u, Ta);
@@ -470,7 +470,7 @@ function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta)
 endfunction
 
 
-function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
+function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__) // PARSEDOCU_BLOCK
 // linear controller with anti reset windup implemented by bounding the integral state:
 // e = r-y
 // u = ld_limited_integrator( e, min__, max__ ) + tfR*e
@@ -483,18 +483,22 @@ function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
 endfunction
 
 
-function [sim] = ld_print_angle(sim, ev, alpha, text)
+function [sim] = ld_print_angle(sim, ev, alpha, text) // PARSEDOCU_BLOCK
 // Convert an angle in rad to degree and print to console
+// 
+// alpha - angle signal
+// text - string
+// 
     [sim, alpha_deg] = ld_gain(sim, ev, alpha, 1/%pi*180);
     [sim] = ld_printf(sim, ev, alpha_deg, text, 1);
 endfunction
 
-function [sim,pwm] = ld_pwm(sim, ev, plen, u)
+function [sim,pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
 // 
 // PWM generator
 // 
 // plen - period length
-// u - modulation signal between 0 and 1
+// u - modulation signal; Values are between 0 and 1.
 //
 
     [sim,u] = ld_gain(sim, ev, u, plen);

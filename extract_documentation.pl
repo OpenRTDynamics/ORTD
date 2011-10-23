@@ -37,14 +37,19 @@ while (<in>){
   } 
 
   # find beginning of a block
-  if ($line =~ m/\s*function\s*(\[\s*sim.*)/ ) {
-    $status_block_call = $1;
+#  if ( $line =~ m/\A\s*function\s*(\[\s*sim.*)/ ) {
+  # find something like "function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK"
+  if ( $line =~ m/\A\s*function\s*(\[[^\]]*\][^\=]\=\s*(\w*)\(([^\)]*)\))\s*\/\/\s*PARSEDOCU_BLOCK/ ) {
+    $status_block_call = $1;  # would be "[sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2)"
+    $status_block_name = $2;  # would be ld_switch2to1
 
     #print $1;
 
     $status_found_block = 1;
-    if ( $line =~ m/[^\=]\=\s*(\w*)/ ) {
-      $status_block_name = $1;
+#    if ( $line =~ m/[^\=]\=\s*(\w*)\(([^\)]*)\)\s*\/\/\s*PARSEDOCU_BLOCK/    )  {
+#    if ( $line =~ m/[^\=]\=\s*(\w*)\(([^\)]*)\)\w*\/\//    )  {
+#    if ( $line =~ m/[^\=]\=\s*(\w*)\([\,\w]*\)/ )  {
+      #$status_block_name = $2;
 
      # print $1;
 
@@ -58,7 +63,7 @@ while (<in>){
       print "  DESCRIPTION\n";
       print "\n";
 
-    }
+ #   }
   }
 
 
