@@ -35,8 +35,17 @@ function [sim,bid] = libdyn_new_muparser(sim, events, Nin, Nout, str, float_para
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar);
 endfunction
 
-function [sim,out] = ld_muparser(sim, events, inlist, str, float_param)
-  // 
+function [sim,out] = ld_muparser(sim, events, inlist, str, float_param) // PARSEDOCU_BLOCK
+// 
+// Evaluation of math formula
+// 
+// inlist - list() of signals of length 1
+// str - string containing the formula
+// float_param - vector of parameters
+// 
+// Within str "u1", "u2", ... refer to inputs and
+//            "c1", "c2", ... refer to the parameters within float_param
+// 
   Nin = length(inlist);
   Nout = 1;
 
@@ -55,7 +64,8 @@ endfunction
 //inNames = ['u', 'e' ]; inlist = list(x,x);
 //str = 'sin(par1) + par2';
 //
-function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, parNames)
+
+function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, parNames) // PARSEDOCU_BLOCK
 // 
 // Bug within this scilab function
 // 

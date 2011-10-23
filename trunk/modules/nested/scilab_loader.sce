@@ -3,20 +3,9 @@
 // Interfacing functions are placed in this place
 
 
-//function [sim,bid] = libdyn_new_scope(sim, events, str, insize)
-//  btype = 10001;
-//  str = ascii(str);
-//  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
-//endfunction
-//
-//function [sim] = ld_scope(sim, events, in, str, insize)
-//  [sim,blk] = libdyn_new_scope(sim, events, str, insize);
-//  [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
-//endfunction
 
 
-
-function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal  )
+function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal  ) // PARSEDOCU_BLOCK
 // 
 // ld_simnest -- create one (or multiple) nested libdyn simulation within a normal libdyn block
 // 		 it is possible to switch between them by an special input signal

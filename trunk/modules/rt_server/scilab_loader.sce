@@ -25,7 +25,7 @@
 
 
 
-function [sim,out] = ld_parameter(sim, events, str, initial_param)
+function [sim,out] = ld_parameter(sim, events, str, initial_param) // PARSEDOCU_BLOCK
   // Creates a new parameter block that is remotely controlable via TCP
   // It requires the set-up of a libdyn master
   // 
@@ -53,7 +53,7 @@ function [sim,out] = ld_parameter(sim, events, str, initial_param)
 endfunction
 
 
-function [sim] = ld_stream(sim, events, in, str, insize, autoflushInterval, autoflushTimeout, bufferlen)
+function [sim] = ld_stream(sim, events, in, str, insize, autoflushInterval, autoflushTimeout, bufferlen) // PARSEDOCU_BLOCK
   // Creates a new stream block that is remotely controlable via TCP
   // It requires the set-up of a libdyn master
   // 
