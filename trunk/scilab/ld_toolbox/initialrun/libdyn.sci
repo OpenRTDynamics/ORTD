@@ -560,6 +560,11 @@ function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
       // test for port sizes is possible -- otherwise the interpreter lib has to check
       
 //      printf("checking port sizes\n");
+      src.outsizes(src_port+1);
+      
+//      disp(dst.insizes);
+//      disp(dst_port+1);
+//      dst.insizes(dst_port+1);
       
       if src.outsizes(src_port+1) ~= dst.insizes(dst_port+1) then
          printf("Error connecting port sizes %d --> %d\n", src.outsizes(src_port+1) , dst.insizes(dst_port+1) );
