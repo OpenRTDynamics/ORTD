@@ -26,6 +26,7 @@
 
 
 
+
 //
 // A 2 to 1 switching Block
 // inputs = [control_in, signal_in1, signal_in2]
@@ -783,6 +784,567 @@ int ortd_compu_func_counter(int flag, struct dynlib_block_t *block)
 
 
 
+int ortd_compu_func_vectordiff(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int datatype = ipar[1];    
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i;
+	
+	for (i=0; i < size-1; ++i) {	
+	  out[i] = in[i+1] - in[i];
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size-1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectordiff block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+int ortd_compu_func_vectorfindthr(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int greater = ipar[1];
+    int Nin = 2;
+    int Nout = 1;
+
+    
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *inv = (double *) libdyn_get_input_ptr(block,0);
+        double *thr = (double *) libdyn_get_input_ptr(block,1);
+
+
+        double *index = (double *) libdyn_get_output_ptr(block, 0); // index
+
+	*index = -1;
+	
+	int i;
+	
+	if (greater > 0) {
+	
+	  for (i=0; i < size; ++i) {	
+	    if (inv[i] > *thr) {
+	      *index = i+1;
+	      break;
+	    }
+	  }
+	  
+	} else {
+
+	  for (i=0; i < size; ++i) {	
+	    if (inv[i] < *thr) {
+	      *index = i+1;
+	      break;
+	    }
+	  }
+	  
+	  
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vector thr find block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int ortd_compu_func_vectorabs(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i;
+	
+	for (i=0; i < size; ++i) {	
+	  out[i] = ( in[i] < 0 ? -in[i] : in[i] );
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorabs block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int ortd_compu_func_vectorgain(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    double gain = rpar[0];
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i;
+	
+	for (i=0; i < size; ++i) {	
+	  out[i] = ( gain*in[i]  );
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorgain block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int ortd_compu_func_vectorextract(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int window_len = ipar[1];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *from = (double *) libdyn_get_input_ptr(block, 1);
+
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+	
+	int from_ = *from; // round to integer
+	if (from_ < 1) from_ = 1;
+	if (from_ > window_len) from_ = window_len;
+
+	int i;
+	
+	for (i=0; i < window_len; ++i) {	
+	  out[i] = ( in[ i + from_-1  ]  );
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, window_len, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // from input
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorextract block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int findmax = ipar[1];
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+	
+	int i;
+	double potential_minmax;
+	
+	potential_minmax = in[0];
+	
+	if (findmax > 0) {
+	
+	  for (i=1; i < size; ++i) {	
+	    if (potential_minmax < in[i]) {
+	      potential_minmax = in[i]; 
+	    }
+	  }
+	
+	} else {
+	
+	  for (i=1; i < size; ++i) {	
+	    if (potential_minmax > in[i]) {
+	      potential_minmax = in[i]; 
+	    }
+	  }	  
+	  
+	}
+	
+	*out = potential_minmax;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorfindminmax block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int ortd_compu_func_vectoraddscalar(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *toadd = (double *) libdyn_get_input_ptr(block, 1);
+	
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+	
+	int i;
+	for (i=0; i < size; ++i) {	
+	  out[i] = ( in[ i ] + *toadd  );
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // add input
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectoraddscalar block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int ortd_compu_func_vectorsum(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i;
+	double sum;
+	
+	for (i=0; i < size; ++i) {	
+	   sum += ( in[i] );
+	}
+	out[0] = sum;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorsum block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 //#include "block_lookup.h"
 
 int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
@@ -806,6 +1368,14 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constvec);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 50, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordiff);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 51, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorfindthr);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 52, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorabs);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 53, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorgain);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 54, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorextract);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 55, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorfindminmax);    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 56, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectoraddscalar);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 57, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorsum);
     
     
 }

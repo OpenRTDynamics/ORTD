@@ -46,8 +46,47 @@ function [sim, outlist] = schematic_fn(sim, inlist)
    u1 = inlist(1); // Simulation input #1
    u2 = inlist(2); // Simulation input #2
    
-  [sim,vector] = ld_constvec(sim, defaultevents, [1,2,3,4,5,6,7,8] );
-   
+  // create a new vector
+  [sim,vector] = ld_constvec(sim, defaultevents, [1,2,4,4,5,-6,-1,2] );
+  
+  //Vector diff test
+  [sim,diffvec] = ld_vector_diff(sim, defaultevents, in=vector, vecsize=8 );
+  [sim] = ld_printf(sim, defaultevents, diffvec, "diffvec = ", 7);
+  
+  // vector find thr test
+  [sim,threshold] = ld_const(sim, defaultevents, 5.5);
+  [sim,index] = ld_vector_findthr(sim, defaultevents, in=vector, thr=threshold, greater=1, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, index, "index = ", 1);
+  
+  // abs test
+  [sim,out] = ld_vector_abs(sim, defaultevents, in=vector, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "absvector = ", 8);
+  
+  // vector gain test
+  [sim,out] = ld_vector_gain(sim, defaultevents, in=vector, gain=2, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "gainedvector = ", 8);
+  
+  // vector extract test
+  [sim,start_at] = ld_const(sim, defaultevents, 3);  
+  [sim,out] = ld_vector_extract(sim, defaultevents, in=vector, from=start_at, window_len=3, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "extractedvector = ", 3);
+  
+  // vector find max / min
+  [sim,index] = ld_vector_minmax(sim, defaultevents, in=vector, findmax=1, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, index, "max found at index = ", 1);
+
+  // vector add scalar
+  [sim,toadd] = ld_const(sim, defaultevents, 3);  
+  [sim,out] = ld_vector_addscalar(sim, defaultevents, in=vector, add=toadd, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "vector + toadd = ", 8);
+  
+  // sum up vector
+  [sim,out] = ld_vector_sum(sim, defaultevents, in=vector, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "sum(vector) = ", 1);
+  
+  
+  
+  // save the vector to a file 
   [sim]=ld_savefile(sim, defaultevents, fname="saved_vector.dat", source=vector, vlen=8);
   
   // output of schematic
@@ -93,7 +132,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages = unix_g('libdyn_generic_exec -s simple_demo -i 901 -l 10');
+messages = unix_g('libdyn_generic_exec -s simple_demo -i 901 -l 1');
 
 
 //// load results

@@ -285,10 +285,14 @@ endfunction
 // 
 
 
-function [sim,out] = ld_vector_diff(sim, events, in, vecsize)
+function [sim,out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
-// Vector differentiation
+// Vector differentiation with respect to the index
+// 
+// in - vector signal of size "vecsize"
+// out - vector signal of size "vecsize-1"
 //
+// Equivalent to Scilab 'diff' function
 //    
   btype = 60001 + 50;	
   ipar = [vecsize]; rpar = [];
@@ -303,7 +307,7 @@ function [sim,out] = ld_vector_diff(sim, events, in, vecsize)
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize)
+function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize) // PARSEDOCU_BLOCK
 //    
 // find values greater than threshold "thr" in vector signal "in", when greater > 0
 // find values less than threshold "thr" in vector signal "in", when greater =< 0
@@ -323,7 +327,7 @@ function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize)
   [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_abs(sim, events, in, vecsize)
+function [sim,out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
 // Vector abs()
 //
@@ -341,7 +345,7 @@ function [sim,out] = ld_vector_abs(sim, events, in, vecsize)
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize)
+function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU_BLOCK
 //    
 // Vector gain
 //
@@ -359,7 +363,7 @@ function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize)
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsize)
+function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
 //    
 // Extract "in" from to from+window_len
 // 
@@ -371,16 +375,19 @@ function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsiz
   ipar = [vecsize; window_len]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
-                                     insizes=[vecsize], outsizes=[window_len], ...
-                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
- 
+                                     insizes=[vecsize, 1], outsizes=[window_len], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+//   disp('new vextr\n');
+//   disp( [vecsize, 1] );
+
+
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, list( in, from ) );
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_minmax(sim, events, in, findmax, vecsize)
+function [sim,index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
 //    
 // Min / Max of a vector
 //
@@ -395,11 +402,11 @@ function [sim,out] = ld_vector_minmax(sim, events, in, findmax, vecsize)
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
 
-  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
 
-function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize)
+function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSEDOCU_BLOCK
 //    
 // add "add" to the vector
 // 
@@ -419,7 +426,7 @@ function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize)
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_sum(sim, events, in, vecsize)
+function [sim,out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
 // sum over "in"
 //
