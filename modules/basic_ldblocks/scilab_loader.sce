@@ -3,6 +3,29 @@
 // Interfacing functions are placed in this place
 
 
+function [sim]=ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK
+// Quick and easy dumping of signals to files
+// 
+// fname - string of the filename
+// source - source signal
+// vlen - vector size of signal
+// 
+
+  [inp] = libdyn_extrakt_obj( source ); // compatibility
+
+  autostart = 1;
+  maxlen = 0
+  fname = ascii(fname);
+
+  btype = 130;
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, [maxlen, autostart, vlen, length(fname), fname(:)'], [],  ...
+					insizes=[ vlen ], outsizes=[], ...
+					intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
+  
+  [sim,save_] = libdyn_conn_equation(sim, blk, list(source) );
+endfunction
+
 
 function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
 //

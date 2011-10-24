@@ -17,8 +17,8 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   sim.ev.defev = [0];
   
   
-  [sim] = ld_printf(sim, sim.ev.defev, r, termcode.green + "r :" + termcode.reset , 1);
-  [sim] = ld_printf(sim, sim.ev.defev, y, termcode.green + "y :" + termcode.reset , 1);
+  [sim] = ld_printf(sim, sim.ev.defev, r, "r :", 1);
+  [sim] = ld_printf(sim, sim.ev.defev, y, "y :", 1);
 
   
   [sim,u] = ld_const(sim, sim.ev.defev, 0.1234);
