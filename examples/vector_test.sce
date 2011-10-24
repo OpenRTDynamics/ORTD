@@ -25,7 +25,7 @@
 // Simple example for using vector handling blocks
 //
 //
-// It will write output data to *dat files
+// Results will are stored in the variable 'messages'
 //
 
 
@@ -131,9 +131,10 @@ par.rpar = [];
 
 
 
-// optionally execute
+// execute one simulation step (-l 1)
 messages = unix_g('libdyn_generic_exec -s simple_demo -i 901 -l 1');
 
+disp(messages);
 
 //// load results
 //A = fscanfMat('result.dat');
