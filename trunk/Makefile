@@ -39,7 +39,7 @@ libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
 	$(LD)  -L. -lm -lpthread -lrt -ldl -lortd libdyn_generic_exec.o -o libdyn_generic_exec
  
-libdyn_generic_exec.o: libdyn_generic_exec.cpp
+libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
