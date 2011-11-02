@@ -777,7 +777,7 @@ int ortd_stream::send_info(rt_server_command* cmd, rt_server* rt_server_src, cha
 //     rt_server_src->iohelper->register_usage();
   
     char tmp[1024];
-    sprintf(tmp, "Stream information for streamname=\"%s\", veclen=%d, datatype=%d\n", this->name, this->nElements, this->datatype);
+    sprintf(tmp, "Stream information for streamname=\"%s\", veclen=%d, datatype=%d, StreamId=%d\n", this->name, this->nElements, this->datatype, this->StreamId);
 
     rt_server_src->iohelper->writelnff(tmp);
 
