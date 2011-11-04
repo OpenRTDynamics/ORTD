@@ -10,6 +10,7 @@ OS Dependency
 -------------
 
 - Linux. Maybe other UNIX-like.
+- Just requires libpthreads besides the standard C/++ - libraries
 - Shouldn't be a problem to port to other OS
   or even embedded systems
 
@@ -181,7 +182,7 @@ v0.99f
   - going on with rt_server
   - Joystick integration via a small Python-Script and the rt_server module
 
-v0.99g
+v0.99g (4.11.2011)
   - Improved rt_server module
   - Implented port size checking during schematic generation within Scilab
   - Fixed bugs in nested and basic_blocks module
@@ -189,3 +190,4 @@ v0.99g
     there is now a static version libdyn_generic_exec_static
   - starting with scilab5/Xcos hart module
   - Added documentation parser
+  - Some new blocks for vector manipulation
