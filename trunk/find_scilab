@@ -2,9 +2,21 @@
 
 ortddir=`pwd`
 
-echo "Tell me your scilab directory (installation from the archive at the scilab webpage)"
 
-read scilabdir
+zenity --question --text "Shall I install scilab 5 for you?" && ( 
+    echo "installing scilab5"; 
+
+    scilabdir = "~/scilab/scilab5"
+ )
+
+
+echo "Tell me your scilab directory (installation from the archive at the scilab webpage)"
+zenity --info --text "Tell me your scilab directory (installation from the archive at the scilab webpage)"
+
+#read scilabdir
+
+scilabdir=`zenity --file-selection --directory`
+
 
 cd $scilabdir
 pwd
@@ -17,9 +29,11 @@ echo $success
 
 if [ "yes" = $success ]; then
   echo "scilab was found within $scilabdir"
+  zenity --info --text "Scilab was found within $scilabdir"
   cd $ortddir
   echo $scilabdir > scilabdir.conf
 else
   echo "Scilab was not found within $scilabdir"
+  zenity --info --text "Scilab was NOT found within $scilabdir"
   exit -1
 fi
