@@ -2,30 +2,83 @@
 
 ortddir=`pwd`
 
+installed_scilab="no"
 
-zenity --question --text "Shall I install scilab 5 for you?" && ( 
+#zenity --question --text "Shall I install scilab 5 for you?" && ( 
+#    echo "installing scilab5"; #
+
+#    scilabdir="~/scilab/scilab5"
+#    installed_scilab="yes"
+# )
+
+if zenity --question --text "Shall I install scilab 5 for you?"
+then
     echo "installing scilab5"; 
 
-    scilabdir = "~/scilab/scilab5"
- )
+    zenity --info --text "Tell me the directory where you like to install Scilab. A subdirectory will be created. The package wget is required."
 
 
-echo "Tell me your scilab directory (installation from the archive at the scilab webpage)"
-zenity --info --text "Tell me your scilab directory (installation from the archive at the scilab webpage)"
 
-#read scilabdir
+    scilabinstdir=`zenity --file-selection --directory`
 
-scilabdir=`zenity --file-selection --directory`
+    cd $scilabinstdir
+
+    ls    
+
+    hostarch=`arch`
+    if [ $hostarch = "x86_64" ]
+    then
+      echo "Using 64 Bit scilab"
+      wget "http://www.scilab.org/download/5.3.3/scilab-5.3.3.bin.linux-x86_64.tar.gz"
+      tar xfvz "scilab-5.3.3.bin.linux-x86_64.tar.gz"
+    else
+      echo "Using 32 Bit scilab"
+      wget "http://www.scilab.org/download/5.3.3/scilab-5.3.3.bin.linux-i686.tar.gz"
+      tar xfvz "scilab-5.3.3.bin.linux-i686.tar.gz"
+    fi
 
 
-cd $scilabdir
-pwd
+    scilabdir=$scilabinstdir"scilab-5.3.3/"
 
-success=no
+    zenity --info --text "You will find the Scilab executable in: $scilabdir/bin/scilab"
 
-./bin/scilab -nogui -e quit | grep -i scilab && success=yes
+    installed_scilab="yes"
+fi
 
-echo $success
+
+echo "installed scilab: $installed_scilab"
+
+
+
+success=no # initially scilab was not found
+
+if [ "yes" = $installed_scilab  ]
+then
+  echo ok
+  success="yes"
+else
+
+  # ask user for scilab5
+
+  echo "Tell me your scilab directory (installation from the archive at the scilab webpage)"
+  zenity --info --text "Tell me your scilab directory (installation from the archive at the scilab webpage)"
+
+  #read scilabdir
+
+  scilabdir=`zenity --file-selection --directory`
+
+
+  cd $scilabdir
+  pwd
+
+
+
+  ./bin/scilab -nogui -e quit | grep -i scilab && success=yes
+
+  echo $success
+
+fi
+
 
 if [ "yes" = $success ]; then
   echo "scilab was found within $scilabdir"
