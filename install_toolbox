@@ -7,4 +7,19 @@ scilabdir=`cat scilabdir.conf`
 
 cd $scilabdir
 cd share/scilab/contrib
+
+if [ -e ld_toolbox ]
+then
+  echo "Toolbox already exists!"
+  zenity --question --text "Toolbox seems to be already installed. Shall I replace the installation?" && ( rm ld_toolbox )
+fi
+
+if [ -e ld_toolbox ]
+then
+  exit 0
+fi
+
 ln -s $ortddir/scilab/ld_toolbox . && ( echo "A new link named ld_toolbox was created within `pwd`."; ls -l )
+
+
+

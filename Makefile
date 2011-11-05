@@ -179,5 +179,8 @@ clean_scilabdir:
 install_toolbox: scilabdir.conf
 	$(SH) install_toolbox
 
+.PHONY: scilabdir.conf
 scilabdir.conf:
 	$(SH) find_scilab
+
+

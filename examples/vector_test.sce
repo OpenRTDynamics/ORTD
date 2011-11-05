@@ -47,14 +47,15 @@ function [sim, outlist] = schematic_fn(sim, inlist)
    u2 = inlist(2); // Simulation input #2
    
   // create a new vector
-  [sim,vector] = ld_constvec(sim, defaultevents, [1,2,4,4,5,-6,-1,2] );
+  [sim,vector] = ld_constvec(sim, defaultevents, [1,2,4,4,6,-6,-1,6] );
+//  [sim,vector] = ld_constvec(sim, defaultevents, [  0.1, -0.2, 2.2, 3.5, -5.4, 3.3, 0, -10 ] );
   
   //Vector diff test
   [sim,diffvec] = ld_vector_diff(sim, defaultevents, in=vector, vecsize=8 );
   [sim] = ld_printf(sim, defaultevents, diffvec, "diffvec = ", 7);
   
   // vector find thr test
-  [sim,threshold] = ld_const(sim, defaultevents, 5.5);
+  [sim,threshold] = ld_const(sim, defaultevents, 2.0);
   [sim,index] = ld_vector_findthr(sim, defaultevents, in=vector, thr=threshold, greater=1, vecsize=8);
   [sim] = ld_printf(sim, defaultevents, index, "index = ", 1);
   
