@@ -7,7 +7,7 @@ function [sim]=ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK
 // Quick and easy dumping of signals to files
 // 
 // fname - string of the filename
-// source - source signal
+// source *+ - source signal
 // vlen - vector size of signal
 // 
 
@@ -30,9 +30,14 @@ endfunction
 function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
 //
 // A 2 to 1 switching Block
-// inputs = [control_in, signal_in1, signal_in2]
-// if control_in > 0 : out = signal_in1
-// if control_in < 0 : out = signal_in2
+//
+// cntr * - control input
+// in1 *
+// in2 *
+// out * - output
+//
+// if cntrl > 0 : out = in1
+// if cntrl < 0 : out = in2
 //
   btype = 60001;
   [sim,blk] = libdyn_new_block(sim, events, btype, [], [], ...
@@ -52,10 +57,14 @@ function [sim,outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOC
 //
 // Demultiplexer
 //
+// invec * - input vector signal to be split up
+// outlist *LIST - list() of output signals
+//
+//
 // Splits the input vector signal "invec" of size "vecsize" up into 
 //
 // outlist(1)
-// outlist(1)
+// outlist(2)
 //  ....
 //    
   btype = 60001 + 1;	
@@ -80,6 +89,10 @@ function [sim,out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 //    
 // Multiplexer
 //
+// inlist *LIST - list() of input signals of size 1
+// out *+ - output vector signal
+// 
+// 
 // combines inlist(1), inlist(2), ...    
 // to a vector signal "out" of size "vecsize"
 //    
@@ -100,6 +113,9 @@ endfunction
 function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout) // PARSEDOCU_BLOCK
 // hysteresis - block
 //
+// in * - input
+// out * -output
+// 
 // switches out between onout and offout
 // initial state is either -1 (off) or 1 (on)
 //
@@ -122,6 +138,9 @@ endfunction
 function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod) // PARSEDOCU_BLOCK
 // Modulo Counter - Block
 //
+// in * - input
+// out * -output
+// 
 // A counter that increases its value for each timestep for which in > 0 is true.
 // if the counter value >= mod then it is reset to counter = initial_count
 //
@@ -144,8 +163,8 @@ endfunction
 function [sim,out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
 // jumper - block
 //
-// out - vector of size steps
-// in - switching input
+// out *+ - vector of size steps
+// in * - switching input
 //
 // The vector out always contains one "1", the rest is zero.
 // The "1" moves to the right if in > 0. If the end is reached
@@ -170,6 +189,10 @@ endfunction
 function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
 // memory - block
 //
+// in * - input
+// rememberin * - 
+// out * - output
+// 
 // If rememberin > 0 then
 //   remember in, which is then feed to the output out until it is overwritten by a new value
 //
@@ -189,6 +212,9 @@ endfunction
 function [sim,out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
 // abs - block
 //
+// in * - input
+// out * - output
+// 
 // out = abs(in)
 // 
 
@@ -206,8 +232,8 @@ function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize ) /
   //
   // Extract one element of a vector
   //
-  // invec - the input vector signal
-  // pointer - the index signal
+  // invec *+ - the input vector signal
+  // pointer * - the index signal
   // vecsize - length of input vector
   // 
   // out = invec[pointer], the first element is at pointer = 1
@@ -234,7 +260,7 @@ function [sim,out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 // a constant vector
 // 
-// vec - the vector
+// vec *+ - the vector
 // 
   btype = 60001 + 9;	
   ipar = [length(vec); 0]; rpar = [vec];
@@ -251,10 +277,11 @@ function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial) // 
 // 
 // A resetable counter block
 //
-// count - signal
-// reset - signal
-// resetto - signal
+// count * - signal
+// reset * - signal
+// resetto * - signal
 // initial - constant
+// out * - output
 // 
 // increases out by count (out = out + count)
 // 
@@ -289,8 +316,8 @@ function [sim,out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
 // Vector differentiation with respect to the index
 // 
-// in - vector signal of size "vecsize"
-// out - vector signal of size "vecsize-1"
+// in *+(vecsize) - vector signal of size "vecsize"
+// out *+(vecsize-1) - vector signal of size "vecsize-1"
 //
 // Equivalent to Scilab 'diff' function
 //    
@@ -309,6 +336,10 @@ endfunction
 
 function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize) // PARSEDOCU_BLOCK
 //    
+// in *+(vecsize) - input
+// thr * - threshold signal
+// index * - output
+// 
 // find values greater than threshold "thr" in vector signal "in", when greater > 0
 // find values less than threshold "thr" in vector signal "in", when greater =< 0
 // 
@@ -328,9 +359,11 @@ function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize)
 endfunction
 
 function [sim,out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
-//    
 // Vector abs()
 //
+// in *+(vecsize) - input
+// out *+(vecsize) - output
+// 
 //    
   btype = 60001 + 52;	
   ipar = [vecsize; 0]; rpar = [];
@@ -345,10 +378,11 @@ function [sim,out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU_BLOCK
-//    
+function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU_BLOCK   
 // Vector gain
 //
+// in *+(vecsize) - input
+// out *+(vecsize) - output
 //    
   btype = 60001 + 53;	
   ipar = [vecsize]; rpar = [gain];
@@ -367,8 +401,9 @@ function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsiz
 //    
 // Extract "in" from to from+window_len
 // 
-//  in - vector signal
-//  from - index signal
+//  in *+(vecsize) - vector signal
+//  from * - index signal
+//  out *+(window_len) - output signal
 //
 //    
   btype = 60001 + 54;	
@@ -388,9 +423,10 @@ function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsiz
 endfunction
 
 function [sim,index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
-//    
 // Min / Max of a vector
 //
+// in *+(vecsize) 
+// index * - the index starting at 1,, where the max / min was found
 //    
   btype = 60001 + 55;	
   ipar = [vecsize; findmax]; rpar = [];
@@ -407,11 +443,10 @@ endfunction
 
 
 function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSEDOCU_BLOCK
-//    
 // add "add" to the vector
 // 
-//  add - signal
-//  in - vector signal
+//  add * - signal
+//  in *+(vecsize) - vector signal
 //    
   btype = 60001 + 56;	
   ipar = [vecsize]; rpar = [];
@@ -427,9 +462,10 @@ function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSE
 endfunction
 
 function [sim,out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
-//    
 // sum over "in"
 //
+// in *+(vecsize)
+// out *
 //    
   btype = 60001 + 57;
   ipar = [vecsize]; rpar = [];
@@ -458,7 +494,8 @@ function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero ) // PARSEDO
 //    Mute a signal based on cntrl-signal
 //
 //    ev - event
-//    u - input
+//    u * - input
+//    y * - output
 //    mutewhengreaterzero - boolean parameter (%T, %F)
 //    
 //    if mutewhengreaterzero == %T then
@@ -487,6 +524,10 @@ endfunction
 
 function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta) // PARSEDOCU_BLOCK
 // Implements a time discrete integrator with saturation of the output between min__ and max__
+// 
+// u * - input
+// y * - output
+// 
 // y(k+1) = sat( y(k) + Ta*u , min__, max__ )
     [sim, u__] = ld_gain(sim, ev, u, Ta);
     
@@ -516,7 +557,7 @@ endfunction
 function [sim] = ld_print_angle(sim, ev, alpha, text) // PARSEDOCU_BLOCK
 // Convert an angle in rad to degree and print to console
 // 
-// alpha - angle signal
+// alpha * - angle signal
 // text - string
 // 
     [sim, alpha_deg] = ld_gain(sim, ev, alpha, 1/%pi*180);
@@ -528,7 +569,8 @@ function [sim,pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
 // PWM generator
 // 
 // plen - period length
-// u - modulation signal; Values are between 0 and 1.
+// u * - modulation signal; Values are between 0 and 1.
+// pwm * - pwm output
 //
 
     [sim,u] = ld_gain(sim, ev, u, plen);
