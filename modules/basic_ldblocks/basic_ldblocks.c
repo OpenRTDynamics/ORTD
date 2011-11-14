@@ -1089,7 +1089,7 @@ int ortd_compu_func_vectorextract(int flag, struct dynlib_block_t *block)
 	
 	int from_ = *from; // round to integer
 	if (from_ < 1) from_ = 1;
-	if (from_ > window_len) from_ = window_len;
+	if (from_ > size-window_len+1) from_ = size-window_len+1;
 
 	int i;
 	
