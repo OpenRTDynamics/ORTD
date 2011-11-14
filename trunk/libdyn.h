@@ -220,6 +220,13 @@ struct dynlib_simulation_t {
   struct dynlib_block_t *allblocks_list_head;
   struct dynlib_block_t *allblocks_list_tail;
 
+  // Synchronisation callback function
+  struct {
+    void *userdat; // users data
+    void (*sync_func)( void *userdat );  // Computational function
+  } sync_callback;
+  
+  
   // simulation I/O
   struct dynlib_simIO_t simIO; // FIXME: unused for now // usage for superblocks content
 
@@ -351,6 +358,11 @@ int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void
 
 int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim);
 int libdyn_simulation_init(struct dynlib_simulation_t * sim);
+
+// installa a callback function for synchronisation of the main loop
+// libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void (*sync_func)( void *userdat ), void *userdat);
+void libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void *sync_func , void *userdat);
+
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
 void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);
 

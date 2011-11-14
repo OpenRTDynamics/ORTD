@@ -133,6 +133,10 @@ struct dynlib_simulation_t *libdyn_new_simulation()
     sim->allblocks_list_tail = NULL;
 
 
+    // syncronisation callbacks
+    sim->sync_callback.userdat = NULL;
+    sim->sync_callback.sync_func = NULL;
+    
     // events
     sim->events.Nevents = 0;
     sim->events.event_active = 0;
@@ -866,6 +870,13 @@ undo_everything :
   return -1;
 }
 
+
+libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void (*sync_func)( void *userdat ), void *userdat)
+{
+  simulation->sync_callback.sync_func = sync_func;
+  simulation->sync_callback.userdat = userdat;
+}
+
 //
 // Go one step further in simulation
 //
@@ -887,6 +898,17 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   //
   
   if (update_states == 0) {
+    /*
+     * Wait for synhronisation callback function
+    */
+    
+    if (simulation->sync_callback.sync_func != NULL) {
+      (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
+      
+      // sync_callback returned --> output calculation.
+    }
+    
+    
     //
     // traverse execution list for output update
     //

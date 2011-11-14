@@ -33,11 +33,11 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 	cat documentation/finish_info.txt
 
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
-	$(LD) -lm -lpthread -lrt -ldl   libdyn_generic_exec.o libortd.a -o libdyn_generic_exec_static
+	$(LD) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o libdyn_generic_exec_static
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD)  -L. -lm -lpthread -lrt -ldl -lortd libdyn_generic_exec.o -o libdyn_generic_exec
+	$(LD) -lortd libdyn_generic_exec.o -L. -lm -lpthread -lrt -ldl -o libdyn_generic_exec
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
