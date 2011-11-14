@@ -1301,7 +1301,7 @@ int ortd_compu_func_vectorsum(int flag, struct dynlib_block_t *block)
         double *out = (double *) libdyn_get_output_ptr(block, 0);
 
 	int i;
-	double sum;
+	double sum=0;
 	
 	for (i=0; i < size; ++i) {	
 	   sum += ( in[i] );
