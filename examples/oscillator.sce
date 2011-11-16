@@ -161,7 +161,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages = unix_g('libdyn_generic_exec -s oscillator -i 901 -l 1000');
+messages = unix_g(ORTD.ortd_executable+' -s oscillator -i 901 -l 1000');
 
 
 // load results
