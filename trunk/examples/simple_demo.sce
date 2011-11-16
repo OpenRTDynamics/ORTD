@@ -97,7 +97,7 @@ par.rpar = [];
 
 
 // optionally execute
-unix('libdyn_generic_exec -s simple_demo -i 901 -l 100');
+messages=unix_g(ORTD.ortd_executable+ ' -s simple_demo -i 901 -l 100');
 
 
 // load results

@@ -114,7 +114,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages = unix_g('libdyn_generic_exec -s muparser -i 901 -l 10');
+messages = unix_g(ORTD.ortd_executable+' -s muparser -i 901 -l 10');
 
 
 // load results

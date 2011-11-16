@@ -33,11 +33,11 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 	cat documentation/finish_info.txt
 
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
-	$(LD) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o libdyn_generic_exec_static
+	$(LD) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD) libdyn_generic_exec.o -L. -lortd -lm -lpthread -lrt -ldl -o libdyn_generic_exec
+	$(LD) libdyn_generic_exec.o -L. -lortd -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
@@ -49,7 +49,7 @@ lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_look
 	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o realtime.o libilc.o all_Targets/*.o
 
 clean:
-	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/*
+	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* bin/*
 	rm -f module_list module_list__.c module_list__.h
 	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done
 	#for d in $(MODULES); do (echo "cd to modules/$$d"; cd modules/$$d; pwd; cd $(ortd_root)  ); done
@@ -168,7 +168,7 @@ install: libdyn_generic_exec lib
 	sudo cp libortd_hart.so /usr/local/lib
 	sudo cp libortd_hart.a /usr/local/lib
 	sudo ldconfig
-	sudo cp libdyn_generic_exec /usr/local/bin
+	sudo cp bin/libdyn_generic_exec /usr/local/bin
 
 
 

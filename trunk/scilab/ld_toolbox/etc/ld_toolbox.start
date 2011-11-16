@@ -1,4 +1,4 @@
-mprintf("OpenRTdynamics Toolbox - (0.99)\n");
+mprintf("OpenRTdynamics Toolbox\n");
 
 if isdef("ld_toolboxlib") then
 	warning("NaN Toolbox library is already loaded");
@@ -8,11 +8,14 @@ etc_tlbx  = get_absolute_file_path("ld_toolbox.start");
 etc_tlbx  = getshortpathname(etc_tlbx);
 root_tlbx = strncpy( etc_tlbx, length(etc_tlbx)-length("\etc") );
 
+ORTD.scilabtoolboxpath = root_tlbx;
+
 //
 // Load sce-files containing functions
 
 //printf("** %s\n", root_tlbx);
 mprintf("\texec init\n");
+exec(root_tlbx + 'initialrun/install.sce');
 exec(root_tlbx + 'initialrun/irpar.sci');
 exec(root_tlbx + 'initialrun/libdyn.sci');
 exec(root_tlbx + 'initialrun/rt_server.sci');
