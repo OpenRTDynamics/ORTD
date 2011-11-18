@@ -81,19 +81,23 @@ function [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, p
   inNames = inNames(:);
   parNames = parNames(:);
   
-  [NinNames, tmp] = size(inNames);
-  [NparNames, tmp] = size(parNames);
+  [ tmp1, tmp2 ] = size(inNames);
+  NinNames = max(tmp1, tmp2);
+
+  [ tmp1, tmp2 ] = size(parNames);
+  NparNames = max(tmp1, tmp2);
 
 //printf("--------- BEGIN MUPARSER BLOCK -----------\n");  
 
 //  pause;
 
   if length(inlist) ~= NinNames then
-      printf("inNames and inlist have to have equal length (%d != %d)", length(inlist), NinNames);
+      printf("inNames and inlist have to have equal length (%d != %d)\n", length(inlist), NinNames);
       error(".");
   end
   if length(par) ~= NparNames then
-      error("parNames and par have to have equal length");
+      printf("parNames and par have to have equal length (%d != %d)\n", length(par), NparNames);
+      error(".");
   end
 
   // substitute variable names for the inputs
