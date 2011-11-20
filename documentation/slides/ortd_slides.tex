@@ -29,11 +29,11 @@
 %\usepackage{subfig}
 \usepackage{textcomp}
 
-
 \usepackage[sc]{mathpazo}	%FONT
 
-
+\usepackage{relsize} % Notwenfig für verbatim
 \usepackage{listings}
+\usepackage{verbatim}
 
 
 %% GLEGRAPHICS
@@ -71,18 +71,37 @@ Kontakt: klauer@control.tu-berlin.de}
 
 \author{Christian Klauer$^{1}$}
 
+
+
 \begin{frame}
- \frametitle{Motivation und Ziele}
-
-% \begin{tabular}{rr}
-% \hspace{8cm} & \includegraphics[width=0.2\textwidth]{logo_mundus.png} 
-% \end{tabular}
+  \maketitle
+\end{frame}
 
 
+\begin{frame}
 
+OpenRTDynamics is
+
+ \begin{itemize}
+  \item A simulator for time-discrete dynamical systems
+  \item A set of Scilab functions for describing such dynamical systems via a block / signal based description.
+  \item Additional things like
+  \begin{itemize}
+    \item A remote control interface
+   \end{itemize}
+ \end{itemize}
+
+Compared to other simulation environments it features:
+\begin{itemize}
+ \item Nested-scematics: The possibility to include multiple schematics within top level schematics. Online switching between the sub-simulations is possible.
+ \item A new way of defining schematics, which enables well structured code, which is easy to maintain as projects get bigger.
+\item Does not require a code compilation step for generating real-time code, because online interpretation is used for execution.
+\end{itemize}
 
 
 \end{frame}
+
+
 
 \begin{frame}
 
@@ -96,118 +115,219 @@ Kontakt: klauer@control.tu-berlin.de}
 
 
 
-\begin{frame}
-
- \frametitle{One first example}
-
-
-  \begin{block}{Add Ofset Macro}
-
-dfs
-
-    
-
-
-
-  \end{block}
-
-% \begin{verbatim}
-% function [sim,y] = ld\_add_ofs(sim, events, u, ofs)
-%   [sim,ofs\_const] = libdyn\_new\_blk\_const(sim, events, ofs);
-%   
-%   [sim,y] = ld\_sum(sim, events, list(u,0, ofs\_const,0), 1,1);
-% endfunction
-% \end{verbatim}
-
-
-% \begin{lstlisting}
-% for i:=maxint to 0 do
-% begin
-% j:=square(root(i));
-% end;
-% \end{lstlisting}
+% \begin{frame}
+% \frametitle{Signals and Blocks in ORTD}
 % 
+% \begin{itemize}
+%  \item A special Scilab variable type is introduced, which represents a signal.
+% \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
+% \end{itemize}
+% 
+% \end{frame}
+% 
+
+
+
+\begin{frame}[fragile]
+  \frametitle{Signals and Blocks in ORTD}
+
+\begin{itemize}
+ \item A special Scilab variable type is introduced, which represents a signal.
+ \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
+\end{itemize}
+
+\begin{itemize}
+ \item A linear combination of two signals ( $y=u_1 - u_2$ ) would look like:
+\end{itemize}
+
+
+{\small 
+\begin{lstlisting}
+   [sim, y] = ld_add(sim, defaultevents, list(u1, u2), [ 1, -1 ] );
+\end{lstlisting}}
+  
+
+\begin{itemize}
+ \item A time-discrete transfer function is implemented like this:
+\end{itemize}
+
+{\small 
+\begin{lstlisting} 
+    [sim, y] = ld_ztf(sim, defaultevents, u, (1-0.2)/(z-0.2) );
+\end{lstlisting}}
+
+
+\begin{itemize}
+ \item Looks very similar to normal Scilab-Code, but for all calculations the toolbox functions have to be used.
+\end{itemize}
+ 
 
 
 \end{frame}
 
 
-% \frametitle{Elektrische Stimulation und Gewichtsentlastung}
-% 
-% \begin{block}{Prinzip}
-%   \begin{itemize}
-%   \item Muskeln werden elektrisch stimuliert. $\rightarrow$ Auftreten von Bewegungen
-%   \item Ein Exoskelett verringert die Schwerkraft des Arms. $\rightarrow$ Es ist weniger Strom notwendig.
-%   \end{itemize}
-% \end{block}
-% 
-% 
-% 
-% 	\begin{columns}[c]
-% 		\column[c]{4cm}
-%  
-%     \includegraphics[trim=0mm 0mm 0mm 0mm, clip,
-%     width=0.95\linewidth]{bilder/exo.png}
-%     
-%     Exoskelett, TU Wien
-% 
-% 		\column{5cm}
-% 
-%     \includegraphics[trim=0mm 0mm 0mm 0mm, clip,
-%     width=0.95\linewidth]{bilder/deltoid.pdf}
-% %     Elektrische Stimulation der Schultermuskulatur
-% 
-% \end{columns}
-% 
-% 
-% 
-% \end{frame}
-% 
-% 
-% 
-% \begin{frame}
-%   \frametitle{Funktionsweise des Systems}
-% 
-% \begin{block}{Ziel}
-% \begin{itemize}
-%  \item Einstellung einer Sollposition für die Hand.
-%  \item Bspw. Bewegen eines Objektes vom Tisch zum Mund.
-% \end{itemize}
-% \end{block}
-% 
-% 
-% 	\begin{columns}[c]
-% 		\column[c]{8cm}
-% 
-% 
-% 
-% 
-%   \begin{figure}[!htb]
-%   \centering
-%   \includegraphics[trim=00mm 140mm 00mm 00mm, clip, width=1.0\linewidth]{bilder/system_overview.pdf}
-%    % \caption{Versuchsaufbau}
-%   \label{fig:}
-%   \end{figure}
-% 
-% 
-% 
-% 		\column{3.5cm}
-% 
-% \begin{block}{Funktionsweise}
-%   \begin{itemize}
-%    \item Messung der Arm-Winkel
-%    \item Regelung reagiert auf Positionsabweichungen
-%    \item Stimulation wird angepasst
-%   \end{itemize}
-% \end{block}
-%    
-% 
-% 
-% \end{columns}
-% 
-% 
-% \end{frame}
-% 
+
+\begin{frame}[fragile]
+\frametitle{Signals and Blocks in ORTD}
+ 
+ 
+{\small 
+\begin{lstlisting}
+   [sim, y] = ld_add(sim, defaultevents, list(u1, u2), [ 1, -1 ] );
+\end{lstlisting}}
+ 
+ \begin{itemize}
+  \item The variable {\texttt sim} is used to emulate Object-Orientated behaviour in Scilab.
+\item {\texttt defaultevents} defines a set of events that will be forwarded to the block.
+ \end{itemize}
+
+ 
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+  \frametitle{A working example -- part 1}
+
+\begin{itemize}
+ \item Every schematic is defined within a Scilab function.
+\end{itemize}
+
+
+{\small 
+\begin{lstlisting} 
+// This is the main top level schematic
+function [sim, outlist] = schematic_fn(sim, inlist)
+   u1 = inlist(1); // Simulation input #1
+   u2 = inlist(2); // Simulation input #2
+   
+  // sum up two inputs
+  [sim,out] = ld_add(sim, defaultevents, list(u1, u2), [1, 1] );
+  
+  // save result to file
+  [sim, save0] = ld_dumptoiofile(sim, defaultevents, ...
+       "result.dat", out);
+  
+  // output of schematic
+  outlist = list(out); // Simulation output #1
+endfunction
+\end{lstlisting}}
+
+\begin{itemize}
+ \item It takes the simulation object {\texttt sim} as well as a list of in- and  outputs.
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{A working example -- part 2}
+
+\begin{itemize}
+ \item A schematic is generated via the follwing code. 
+ \item The function {\texttt libdyn\_setup\_schematic} calls the function describing the schematic.
+\end{itemize}
+
+
+{\small 
+\begin{lstlisting} 
+defaultevents = [0]; // main event
+
+// set-up schematic by calling the user defined
+// function "schematic_fn"
+insizes = [1,1]; outsizes=[1];
+[sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, ...
+                            insizes, outsizes);
+
+// Initialise a new parameter set
+parlist = new_irparam_set();
+
+// pack simulations into irpar container with id = 901
+parlist = new_irparam_container(parlist, sim_container_irpar, 901);
+
+// irparam set is complete convert to vectors
+par = combine_irparam(parlist);
+
+// save vectors to a file
+save_irparam(par, 'simple_demo.ipar', 'simple_demo.rpar');
+\end{lstlisting}}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+ \begin{itemize}
+  \item This Scilab-Script will generate two files {\texttt simple\_demo.ipar} and {\texttt simple\_demo.rpar}, which contain a encoded definition of the whole schematic.
+\item These file are then loaded by the provided interpreter library and executed.
+\item The interpreter can be interfaced via
+  \begin{itemize}
+   \item the executable {\texttt libdyn\_generic\_exec}
+   \item the provided Scicos-Block
+   \item third party C++ Code
+  \end{itemize}
+ \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+ \frametitle{Superblocks: definition}
+ 
+\begin{itemize}
+ \item Superblocks are introduced by writing a new Scilab function.
+\end{itemize}
+
+{\small 
+\begin{lstlisting} 
+function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero )
+    [sim, zero] = ld_const(sim, ev, 0);
+    
+    if (mutewhengreaterzero == %T) then
+      [sim,y] = ld_switch2to1(sim, ev, cntrl, zero, u);
+    else
+      [sim,y] = ld_switch2to1(sim, ev, cntrl, u, zero);
+    end
+endfunction
+\end{lstlisting}}
+
+\begin{itemize}
+ \item The example describes a superblock, which has two inputs {\texttt u} and {\texttt cntrl} and one output {\texttt y}.
+\item {\texttt mutewhengreaterzero} describes an parameter.
+\item {\textbf NOTE}: With the if / else construction a superblock can have different behaviour depending on a parameter!
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+ \frametitle{Superblocks: Usage}
+ 
+ \begin{itemize}
+  \item Once defined, the superblock can be used like any other ORTD-Block:
+ \end{itemize}
+
+ 
+ {\small 
+\begin{lstlisting} 
+ [sim, y] = ld_mute( sim, ev, u=input, cntrl=csig, ...
+                     mutewhengreaterzero=%T ) 
+\end{lstlisting}}
+
+
+ 
+\end{frame}
+
+
+\begin{frame}
+
+\begin{itemize}
+ \item More advanced features like math formular parsing, nesting schmematics and the remote control interface are follwing. For now have a look at the website {\texttt openrtdynamics.sf.net}.
+\end{itemize}
+
+\end{frame}
+
 
 
 \end{document}
