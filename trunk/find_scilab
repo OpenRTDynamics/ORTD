@@ -148,7 +148,10 @@ if [ "yes" = $success ]; then
     exit 0
   fi
 
+  # create the link
   ln -s $ortddir/scilab/ld_toolbox . && ( echo "A new link named ld_toolbox was created within `pwd`."; ls -l )
 
+  # write the configuration file
+  echo "$ortddir" > "$ortddir/scilab/ld_toolbox/etc/ortd_path.conf"
 
 fi
