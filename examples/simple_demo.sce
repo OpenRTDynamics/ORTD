@@ -50,7 +50,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
    
    
   // sum up two inputs
-  [sim,out] = ld_sum(sim, defaultevents, list(u1, u2), 1, 1);
+  [sim,out] = ld_add(sim, defaultevents, list(u1, u2), [1, 1] );
   
   // save result to file
   [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", out);
