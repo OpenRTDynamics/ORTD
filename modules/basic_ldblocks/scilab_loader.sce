@@ -94,10 +94,15 @@ function [sim,out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 // 
 // 
 // combines inlist(1), inlist(2), ...    
-// to a vector signal "out" of size "vecsize"
+// to a vector signal "out" of size "vecsize", whereby each inlist(i) is of size 1
 //    
   btype = 60001 + 2;	
   ipar = [vecsize; 0]; rpar = [];
+
+  if (length(inlist) ~= vecsize) then
+    printf("Incorect number of input ports to ld_mux. %d != %d\n", length(inlist), vecsize );
+    error(".");
+  end
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                                      insizes=[ones(1,vecsize)], outsizes=[vecsize], ...
