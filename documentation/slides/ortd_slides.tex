@@ -44,6 +44,13 @@
 \input{#1.inc}   
 }
 
+% \newcommand{\listing}[1]{
+%    {\small 
+%   \begin{lstlisting}
+%    
+%   \end{lstlisting}}
+% }
+
 \newcommand{\Th}{\vartheta}
 
 %\newcommand{\Th}{\vartheta}
@@ -93,7 +100,7 @@ OpenRTDynamics is
 
 Compared to other simulation environments it features:
 \begin{itemize}
- \item Nested-scematics: The possibility to include multiple schematics within top level schematics. Online switching between the sub-simulations is possible.
+ \item Nested-schematics: The possibility to include multiple schematics within top level schematics. Online switching between the sub-simulations is possible.
  \item A new way of defining schematics, which enables well structured code, which is easy to maintain as projects get bigger.
 \item Does not require a code compilation step for generating real-time code, because online interpretation is used for execution.
 \end{itemize}
@@ -177,8 +184,8 @@ Compared to other simulation environments it features:
 \end{lstlisting}}
  
  \begin{itemize}
-  \item The variable {\texttt sim} is used to emulate Object-Orientated behaviour in Scilab.
-\item {\texttt defaultevents} defines a set of events that will be forwarded to the block.
+  \item The variable \texttt{sim} is used to emulate Object-Orientated behaviour in Scilab.
+\item \texttt{defaultevents} defines a set of events that will be forwarded to the block.
  \end{itemize}
 
  
@@ -214,7 +221,7 @@ endfunction
 \end{lstlisting}}
 
 \begin{itemize}
- \item It takes the simulation object {\texttt sim} as well as a list of in- and  outputs.
+ \item It takes the simulation object \texttt{sim} as well as a list of in- and  outputs.
 \end{itemize}
 
 
@@ -225,8 +232,8 @@ endfunction
   \frametitle{A working example -- part 2}
 
 \begin{itemize}
- \item A schematic is generated via the follwing code. 
- \item The function {\texttt libdyn\_setup\_schematic} calls the function describing the schematic.
+ \item A schematic is generated via the following code. 
+ \item The function \texttt{libdyn\_setup\_schematic} calls the function describing the schematic.
 \end{itemize}
 
 
@@ -257,12 +264,13 @@ save_irparam(par, 'simple_demo.ipar', 'simple_demo.rpar');
 
 
 \begin{frame}[fragile]
+  \frametitle{A working example -- part 3}
  \begin{itemize}
-  \item This Scilab-Script will generate two files {\texttt simple\_demo.ipar} and {\texttt simple\_demo.rpar}, which contain a encoded definition of the whole schematic.
+  \item This Scilab-Script will generate two files \texttt{simple\_demo.ipar} and \texttt{simple\_demo.rpar}, which contain a encoded definition of the whole schematic.
 \item These file are then loaded by the provided interpreter library and executed.
 \item The interpreter can be interfaced via
   \begin{itemize}
-   \item the executable {\texttt libdyn\_generic\_exec}
+   \item the executable \texttt{libdyn\_generic\_exec}
    \item the provided Scicos-Block
    \item third party C++ Code
   \end{itemize}
@@ -292,9 +300,9 @@ endfunction
 \end{lstlisting}}
 
 \begin{itemize}
- \item The example describes a superblock, which has two inputs {\texttt u} and {\texttt cntrl} and one output {\texttt y}.
-\item {\texttt mutewhengreaterzero} describes an parameter.
-\item {\textbf NOTE}: With the if / else construction a superblock can have different behaviour depending on a parameter!
+ \item The example describes a superblock, which has two inputs \texttt{u} and \texttt{cntrl} and one output \texttt{y}.
+\item \texttt{mutewhengreaterzero} describes an parameter.
+\item \textbf{NOTE}: With the if / else construction a superblock can have different behaviour depending on a parameter! (This enables great possibilities for creating reusable code)
 \end{itemize}
 
 
@@ -315,15 +323,87 @@ endfunction
                      mutewhengreaterzero=%T ) 
 \end{lstlisting}}
 
-
- 
 \end{frame}
+
+
+
+
+\begin{frame}[fragile]
+ \frametitle{Feedback Loops}
+
+  \begin{itemize}
+   \item To create a signal, which comes from an (for now) unknown source \texttt{libdyn\_new\_feedback} is used:
+  \end{itemize}
+
+
+  {\small 
+  \begin{lstlisting} 
+  [sim, feedback] = libdyn_new_feedback(sim);
+  \end{lstlisting}}
+
+  \begin{itemize}
+   \item Now, the signal \texttt{feedback} can be used like an usual signal.
+   \item At some point in the ongoing code the loop is closed via \texttt{libdyn\_close\_loop}, which means \texttt{feedback} is assigned to a real signal \texttt{y}:
+  \end{itemize}
+
+  {\small 
+  \begin{lstlisting} 
+  [sim] = libdyn_close_loop(sim, y, feedback);
+  \end{lstlisting}}
+  
+\end{frame}
+
+
+
+
+
+\begin{frame}[fragile]
+ \frametitle{Feedback Loops: An example}
+
+
+  {\small 
+  \begin{lstlisting} 
+function [sim, y] = limited_int(sim, ev, u, min__, max__, Ta)
+  // Implements a time discrete integrator with saturation
+  // of the output between min__ and max__
+  // 
+  // u * - input
+  // y * - output
+  // 
+  // y(k+1) = sat( y(k) + Ta*u , min__, max__ )
+
+    [sim, u__] = ld_gain(sim, ev, u, Ta);
+    
+    // create z_fb, because it is not available by now
+    [sim,z_fb] = libdyn_new_feedback(sim);
+    
+    // do something with z_fb
+    [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+    [sim, tmp] = ld_ztf(sim, ev, sum_, 1/z);
+
+    // Now y becomes available
+    [sim, y] = ld_sat(sim, ev, tmp, min__, max__); 
+
+    // assign z_fb = y    
+    [sim] = libdyn_close_loop(sim, y, z_fb);    
+endfunction
+\end{lstlisting}}
+
+
+\end{frame}
+
+
+
+
+
+
 
 
 \begin{frame}
 
 \begin{itemize}
- \item More advanced features like math formular parsing, nesting schmematics and the remote control interface are follwing. For now have a look at the website {\texttt openrtdynamics.sf.net}.
+ \item More advanced features like mathematical formula parsing, vectors, nesting schematics and the remote control interface are following. For now have a look at the website: \texttt{openrtdynamics.sf.net}.
+  \item Additionally, have a look at the demonstrations within the \texttt{examples/} directory of the toolbox. They also run the interpreter once you execute the Scilab script, so you immediately get an result.
 \end{itemize}
 
 \end{frame}
