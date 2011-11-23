@@ -202,10 +202,9 @@ void libdyn_simulation_IOlist_add(struct dynlib_simulation_t *sim, int inout, st
 
 void libdyn_del_simulation(struct dynlib_simulation_t *sim)
 {
-  mydebug(2) fprintf(stderr, "Traversing through allblock list:\n");
+  // Destroy all blocks, if exits
   struct dynlib_block_t *current = sim->allblocks_list_head;
 
-  // FIXME: was wenn current = 0, ist das initialisiert? - Ja
   if (current != 0) {
     do { // Destroy all blocks
       mydebug(1) fprintf(stderr, "#%d - \n", current->numID);
@@ -217,8 +216,10 @@ void libdyn_del_simulation(struct dynlib_simulation_t *sim)
     } while (current != 0); // while there is a next block in this list
   }
   
+  // Destroy the library of computational functions
   libdyn_del_compfnlist(sim->private_comp_func_list);
   
+  // Destroy the simulation struct
   free(sim);
   
   
@@ -300,6 +301,10 @@ struct dynlib_block_t *libdyn_new_block__(struct dynlib_simulation_t *sim, void 
 
       // Pointer to comp function
       block->comp_func = comp_func;
+      
+      // Block is not successfully initialised by now
+      block->block_initialised = 0;
+
       
       block->irpar_config_id = -1;
 
@@ -578,8 +583,10 @@ void libdyn_block_dumpinfo(struct dynlib_block_t *block)
 
 void libdyn_del_block(struct dynlib_block_t *block)
 {
-  // call destructor of Comp function
-  int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
+  if (block->block_initialised == 1) {
+    // call destructor of Comp function ONLY if the block was successfully initialised
+    int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
+  }
 
   //Output cache löschen
   if (block->outdata != 0) free(block->outdata);
@@ -835,6 +842,9 @@ int libdyn_simulation_init(struct dynlib_simulation_t * sim)
          abort_at = counter;
 	 goto undo_everything;
        }
+       
+       // Mark the block as successfully initialised
+       block->block_initialised = 1;
     
       current = current->allblocks_list_next; // step to the next block in list
       counter++;
@@ -2331,6 +2341,10 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 		       struct dynlib_simulation_t **sim,
 		       struct libdyn_io_config_t *iocfg)
 {
+/*  
+     Fills in the simulation "sim"
+     If an error occures -1 is returned and "sim" is destroyed
+  */
   int err;
 
   mydebug(7) fprintf(stderr, "getting parameters\n");
@@ -2341,14 +2355,31 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
     fprintf(stderr, "Error getting irpar box id %d\n", boxid);
     return -1;
   }
-   
+
+  // Create a new simulation
   *sim = libdyn_new_simulation();
+  
+  // Load modules, if available
+  struct irpar_rvec_t *enc_libpath;
+  err = irpar_get_rvec(&enc_libpath, ret.ipar_ptr, ret.rpar_ptr, 20);
+  if (err == -1) {
+    fprintf(stderr, "No Plugin shall be loaded\n");
+  } else {
+    char plugin_fname;
+    int len = enc_libpath->n;
+    
+    irpar_getstr(&plugin_fname, enc_libpath->v, 0, len);
+    
+    printf("Loading plugin: %s\n", plugin_fname);
+    
+    free(plugin_fname);
+  }
 
   err = irpar_get_libdynconnlist(*sim, ret.ipar_ptr, ret.rpar_ptr, 100, iocfg);
   if (err == -1) {
-    fprintf(stderr, "Error in irpar_get_libdynconnlist, inp=%d, outp=%d\n", iocfg->inports, iocfg->outports);
-    return -1;
-    // FIXME
+    fprintf(stderr, "Error in irpar_get_libdynconnlist\n");
+
+    goto error; 
   }
   
 //  mydebug(0) fprintf(stderr, "sup exec list head: %x\n", *sim->execution_sup_list_head);
@@ -2360,9 +2391,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   if (err < -0) {
     fprintf(stderr, "Error checking input ports of all blocks\n");
     
-    libdyn_del_simulation(*sim);
-    
-    return -1;
+    goto error; 
   }
   
   
@@ -2374,9 +2403,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   if (err == -1) {
     fprintf(stderr, "Error in libdyn_setup_executionlist\n");
     
-    libdyn_del_simulation(*sim);
-    
-    return -1;
+    goto error; 
   }
  
 /*  //
@@ -2386,6 +2413,12 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   libdyn_dump_all_blocks(*sim); */
   
   return 0;
+
+ error:
+ 
+  libdyn_del_simulation(*sim);
+
+  return -1;
 }
 
 

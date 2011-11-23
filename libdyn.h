@@ -278,7 +278,9 @@ struct dynlib_block_t {
   struct dynlib_inlist_t *inlist; // Pointer auf Eingangliste, die verknuepfungen zu anderen Blöcken herstelt.  (1. Eintrag)
 
   int (*comp_func)(int flag, struct dynlib_block_t *block);  // Computational function
-
+  
+  char block_initialised; // Was the INIT-FLAG of the comp_func successfully called?
+  
   void *work;
 
   // execution lists

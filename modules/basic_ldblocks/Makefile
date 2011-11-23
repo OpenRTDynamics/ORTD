@@ -1,22 +1,33 @@
-CC = cc
-CPP = c++
-LD = ld
 
-#CFLAGS = -I../.. -O2 
+ifeq ($(main_makefile_invoked),yes)
 
-# detect system type
-host-type := $(shell arch)
-
-ifeq ($(host-type),x86_64)
-# 64 Bit
-CFLAGS = -fPIC -O2 -g -I../.. 
-LDFLAGS = -shared
 else
-# 32 Bit
-CFLAGS = -O2 -I../.. -g
-LDFLAGS = -shared 
-endif
+	# If this makefile is just run within this directory
 
+	CC = cc
+	CPP = c++
+	LD = ld
+
+	#CFLAGS = -I../.. -O2 
+
+
+
+	# detect system type
+	host-type := $(shell arch)
+
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	CFLAGS = -fPIC -O2 -g -I../..
+	INCLUDE = -I../..
+	LDFLAGS = -shared
+	else
+	# 32 Bit
+	CFLAGS = -O2 -I../.. -g
+	INCLUDE = -I../..
+	LDFLAGS = -shared 
+	endif
+
+endif # ifeq ($(main_makefile_invoked),yes)
 
 all: lib
 	echo "Module basic_ldblocks done"
@@ -31,7 +42,7 @@ clean:
 
 
 basic_ldblocks.o: basic_ldblocks.c
-	$(CC) $(CFLAGS) -c basic_ldblocks.c 
+	$(CC) $(CFLAGS) $(INCLUDE) -c basic_ldblocks.c 
 
 
 

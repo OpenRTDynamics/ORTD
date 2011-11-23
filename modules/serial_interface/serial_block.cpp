@@ -28,7 +28,7 @@ extern "C" {
 
 #include "ortd_serial_linux.h"
 #include <unistd.h>
-#include <bits/pthreadtypes.h>
+//#include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <string.h>
 
