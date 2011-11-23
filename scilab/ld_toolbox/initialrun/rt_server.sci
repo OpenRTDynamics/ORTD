@@ -65,7 +65,8 @@ endfunction
 
 // Set a parameter of length 1 via the remote interface
 function ortd_remset_param_simple(ho, port, parname, val)
-  unix("echo " + char(34) + "set_param " + parname + " # " + string(val) + " " + char(34) + " | netcat " + ho + " " + string(port) );
+ //unix("echo " + char(34) + "set_param " + parname + " # " + string(val) + " " + char(34) + " | netcat " + ho + " " + string(port) );
+  unix("LD_LIBRARY_PATH= ; remote_client stepar " + parname + " " + string(val) );
 endfunction
 
 
