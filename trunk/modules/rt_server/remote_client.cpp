@@ -58,6 +58,7 @@ main(int argc, char* argv[]) {
   
     rd->send_raw_command( cmd );
     rd->await_message();
+    rd->await_message();
   }
 
   delete rd;
