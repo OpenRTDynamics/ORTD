@@ -69,6 +69,8 @@ class rt_server_decoder {
     rt_server_decoder_scope * get_scope_by_id(int id);
     rt_server_decoder_scope * get_scope_by_name(std::string name);
     
+    bool send_raw_command(char *cmd);
+    
     bool read_scopes();
     bool await_message();
     

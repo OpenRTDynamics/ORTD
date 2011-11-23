@@ -218,6 +218,12 @@ rt_server_decoder::rt_server_decoder(char* hostname, int port)
     read_scopes();
 }
 
+bool rt_server_decoder::send_raw_command(char* cmd)
+{
+  bio->writeln(cmd);
+}
+
+
 bool rt_server_decoder::read_scopes()
 {
     std::string input_line;
