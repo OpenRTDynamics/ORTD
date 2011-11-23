@@ -37,6 +37,8 @@ rt_server_test: rt_server.cpp parameter_manager.cpp directory.cpp rt_server_test
 remote_client_example:  remote_decoder.cpp remote_client_example.cpp ortd_buffered_io.cpp
 	$(CPP) -I../.. -L. -O2 -lm -lpthread remote_decoder.cpp remote_client_example.cpp ortd_buffered_io.cpp  -o remote_client_example
 
+remote_client:  remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp
+	$(CPP) -I../.. -L. -O2 -lm -lpthread remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp  -o remote_client
 
 rt_server_block.o: rt_server_block.cpp
 	$(CC) $(CFLAGS) -c rt_server_block.cpp
