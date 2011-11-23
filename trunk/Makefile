@@ -1,9 +1,9 @@
-CC = cc
-CPP = c++
+export CC = cc
+export CPP = c++
 #LD = ld
 # Use g++ as linker because of c++
-LD = g++
-SH = bash
+export LD = g++
+export SH = bash
 
 
 # create list of modules
@@ -15,17 +15,24 @@ MODULES := $(shell ls modules)
 # -I$(MODULES_INCLUDE)
 
 # detect system type
-host-type := $(shell arch)
-ortd_root := $(shell pwd)
+export host-type := $(shell arch)
+export ortd_root := $(shell pwd)
+export target := $(shell cat target.conf)
+
+# Tell the sub makefiles that the variables from this makefile are available
+export main_makefile_invoked := yes
+
 
 ifeq ($(host-type),x86_64)
 # 64 Bit
-CFLAGS = -fPIC -O2 -g
-LDFLAGS = -shared
+export CFLAGS = -g -fPIC -O2 -DORTD_TARGET=$(target)
+export INCLUDE =  -I$(ortd_root)
+export LDFLAGS = -shared
 else
 # 32 Bit
-CFLAGS = -O2 -g
-LDFLAGS = -shared
+export CFLAGS = -g -O2 -DORTD_TARGET=$(target)
+export INCLUDE =  -I$(ortd_root)
+export LDFLAGS = -shared
 endif
 
 all: libdyn_generic_exec_static libdyn_generic_exec lib
@@ -43,10 +50,12 @@ libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
-	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
-	ar rvs libortd.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o                 irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o
-	$(LD) $(LDFLAGS) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
-	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o irpar.o log.o realtime.o libilc.o all_Targets/*.o
+	$(LD) $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
+	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o
+	$(LD) $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
+
+	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
+	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o                 irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
 
 clean:
 	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* bin/*

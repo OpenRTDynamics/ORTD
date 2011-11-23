@@ -1,26 +1,41 @@
-CC = cc
-CPP = c++
-LD = ld
+
+ifeq ($(main_makefile_invoked),yes)
+
+else
+	# If this makefile is just run within this directory
+
+	CC = cc
+	CPP = c++
+	LD = ld
+
+	#CFLAGS = -I../.. -O2 
+
+
+
+	# detect system type
+	host-type := $(shell arch)
+
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	CFLAGS = -fPIC -O2 -g -I../..
+	INCLUDE = -I../..
+	LDFLAGS = -shared
+	else
+	# 32 Bit
+	CFLAGS = -O2 -I../.. -g
+	INCLUDE = -I../..
+	LDFLAGS = -shared 
+	endif
+
+endif # ifeq ($(main_makefile_invoked),yes)
+
+
+
+
 
 muparser_libdir=muparser_v134
 
 muparser_include=$(muparser_libdir)/include
-
-#CFLAGS = -I../.. -O2 
-
-# detect system type
-host-type := $(shell arch)
-
-ifeq ($(host-type),x86_64)
-# 64 Bit
-CFLAGS = -fPIC -O2 -I../.. -I$(muparser_include)
-LDFLAGS = -shared
-else
-# 32 Bit
-CFLAGS = -O2 -I../.. -I$(muparser_include)
-LDFLAGS = -shared 
-endif
-
 
 
 all: lib
@@ -39,7 +54,7 @@ clean:
 
 
 muparser_block.o: muparser_block.cpp
-	$(CC) $(CFLAGS) -c muparser_block.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -I$(muparser_include) -c muparser_block.cpp
 
 
 

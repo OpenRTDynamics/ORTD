@@ -1,21 +1,34 @@
-CC = cc
-CPP = c++
-LD = ld
 
-#CFLAGS = -I../.. -O2 
+ifeq ($(main_makefile_invoked),yes)
 
-# detect system type
-host-type := $(shell arch)
-
-ifeq ($(host-type),x86_64)
-# 64 Bit
-CFLAGS = -g -fPIC -O2 -I../.. 
-LDFLAGS = -shared
 else
-# 32 Bit
-CFLAGS = -g -O2 -I../..
-LDFLAGS = -shared 
-endif
+	# If this makefile is just run within this directory
+
+	CC = cc
+	CPP = c++
+	LD = ld
+
+	#CFLAGS = -I../.. -O2 
+
+
+
+	# detect system type
+	host-type := $(shell arch)
+
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	CFLAGS = -fPIC -O2 -g -I../..
+	INCLUDE = -I../..
+	LDFLAGS = -shared
+	else
+	# 32 Bit
+	CFLAGS = -O2 -I../.. -g
+	INCLUDE = -I../..
+	LDFLAGS = -shared 
+	endif
+
+endif # ifeq ($(main_makefile_invoked),yes)
+
 
 
 all: lib
@@ -31,7 +44,7 @@ clean:
 
 
 nested_block.o: nested_block.cpp
-	$(CC) $(CFLAGS) -c nested_block.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c nested_block.cpp
 
 
 

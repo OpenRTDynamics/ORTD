@@ -191,3 +191,11 @@ v0.99g (4.11.2011)
   - starting with scilab5/Xcos hart module
   - Added documentation parser
   - Some new blocks for vector manipulation
+
+v0.99h ( ... )
+  - A new nice grapical installer
+  - Bugs: in vector manipulation blocks, ld_muparser_subst (still experimental) 
+  - Added new slides in documentation folder
+  - Slightly changed the rt_server protocoll
+  - Fixed a potential memory leak, when set-up of a schematic fails
+  - Manipulation of the Makefile system

@@ -1,21 +1,35 @@
-CC = cc
-CPP = c++
-LD = ld
 
-#CFLAGS = -I../.. -O2 
+ifeq ($(main_makefile_invoked),yes)
 
-# detect system type
-host-type := $(shell arch)
-
-ifeq ($(host-type),x86_64)
-# 64 Bit
-CFLAGS = -g -fPIC -O2 -I../.. -I.
-LDFLAGS = -shared
 else
-# 32 Bit
-CFLAGS = -g -I../.. -I.
-LDFLAGS = -shared 
-endif
+	# If this makefile is just run within this directory
+
+	CC = cc
+	CPP = c++
+	LD = ld
+
+	#CFLAGS = -I../.. -O2 
+
+
+
+	# detect system type
+	host-type := $(shell arch)
+
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	CFLAGS = -fPIC -O2 -g -I../..
+	INCLUDE = -I../..
+	LDFLAGS = -shared
+	else
+	# 32 Bit
+	CFLAGS = -O2 -I../.. -g
+	INCLUDE = -I../..
+	LDFLAGS = -shared 
+	endif
+
+endif # ifeq ($(main_makefile_invoked),yes)
+
+
 
 
 all: lib
@@ -41,20 +55,20 @@ remote_client:  remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp
 	$(CPP) -I../.. -L. -O2 -lm -lpthread remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp  -o remote_client
 
 rt_server_block.o: rt_server_block.cpp
-	$(CC) $(CFLAGS) -c rt_server_block.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c rt_server_block.cpp
 
 rt_server.o: rt_server.cpp
-	$(CC) $(CFLAGS) -c rt_server.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c rt_server.cpp
 
 parameter_manager.o: parameter_manager.cpp
-	$(CC) $(CFLAGS) -c parameter_manager.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c parameter_manager.cpp
 
 directory.o: directory.cpp
-	$(CC) $(CFLAGS) -c directory.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c directory.cpp
 
 ortd_buffered_io.o: ortd_buffered_io.cpp
-	$(CC) $(CFLAGS) -c ortd_buffered_io.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c ortd_buffered_io.cpp
 
 remote_decoder.o: remote_decoder.cpp
-	$(CC) $(CFLAGS) -c remote_decoder.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c remote_decoder.cpp
 
