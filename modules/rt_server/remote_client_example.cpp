@@ -24,7 +24,7 @@ main() {
   
   rd = new rt_server_decoder("localhost", 10000);
   
-//   rd->read_scopes();
+
 //  rt_server_decoder_scope *sc = rd->get_scope_by_id(23);
   std::string name("osc_output");
   rt_server_decoder_scope *sc = rd->get_scope_by_name(name);
@@ -47,12 +47,7 @@ main() {
     printf("v = %f, %f\n", data[0], data[5] );
   }
   
-/*  rd->await_message();
-  rd->await_message();
-  rd->await_message();
-  rd->await_message();
-  rd->await_message();
-  rd->await_message();*/
+
   
   delete rd;
   

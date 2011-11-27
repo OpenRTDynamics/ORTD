@@ -110,6 +110,27 @@ directory_entry* directory_leaf::get_entry(char* name)
   return it->second;
 }
 
+directory_entry* directory_leaf::get_and_delete_entry(char* name)
+{
+  std::string n(name);
+  
+  entry_map_t::iterator it;
+  it = entries.find(n);
+  
+  if (it == entries.end()) {
+    printf("file not found\n");
+    return NULL;
+  } 
+  
+  directory_entry *tmp = it->second;
+  
+  entries.erase(it);
+  printf("directory: deleted %s\n", name);
+  
+  return tmp;
+}
+
+
 directory_entry * directory_leaf::access1(char* path)
 {
   // TODO: iterate into path ...
@@ -129,6 +150,13 @@ directory_entry::direntry* directory_leaf::access2(char* path, void* belonges_to
     return NULL;
   
   return &entr->content;
+}
+
+bool directory_leaf::delete_file(char* path)
+{
+  // TODO: iterate into path ...
+
+  return get_and_delete_entry(path);
 }
 
 
@@ -238,14 +266,14 @@ int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_serv
 
 
 
-directory_tree::directory_tree() // FIXME remove
-{
-  root = new directory_leaf();
-  
-  pwd = root; // start in the root directory
-  
-  pthread_mutex_init(&this->list_process_mutex, NULL);
-}
+// directory_tree::directory_tree() // FIXME remove
+// {
+//   root = new directory_leaf();
+//   
+//   pwd = root; // start in the root directory
+//   
+//   pthread_mutex_init(&this->list_process_mutex, NULL);
+// }
 
 directory_tree::directory_tree(rt_server_threads_manager* rts)
 {
@@ -288,9 +316,11 @@ bool directory_tree::add_entry(char* name, int type, void* belonges_to_class, vo
 
 bool directory_tree::delete_entry(char* name)
 {
-  // FIXME: fill in
+  lock();
+  bool success = root->delete_file(name);
+  unlock();
   
-  return true;
+  return success;
 }
 
 
