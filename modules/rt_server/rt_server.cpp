@@ -214,7 +214,7 @@ int tcp_connection::readln(int nb, void* data)
     std::string input_line;
     getline(bufferedio->sstream_in, input_line);
 
-    std::cout << "iohelper got " << input_line;
+//     std::cout << "iohelper got " << input_line;
     
     if (strlen(input_line.c_str()) >= nb)
       return -1;

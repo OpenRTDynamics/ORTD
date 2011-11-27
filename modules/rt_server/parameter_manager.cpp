@@ -175,9 +175,9 @@ int parameter::parse_and_set(char* line)
 
     } while ( valcounter < nElements );
 
-    printf("pm: pause...\n");
+//     printf("pm: pause...\n");
 //     sleep(1);
-    printf("pm: pause finished\n");
+//     printf("pm: pause finished\n");
     
     atomic_buffer_copy_b2d();
 
