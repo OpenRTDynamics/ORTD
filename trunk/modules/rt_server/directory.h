@@ -58,6 +58,7 @@ class directory_leaf {
     // if not returns NULL
     directory_entry::direntry *access2(char* path, void *belonges_to_class);
     directory_entry * access1(char* path);
+    bool delete_file(char *path);
 
      // list of entries
     typedef std::map<std::string, directory_entry *> entry_map_t;
@@ -87,6 +88,9 @@ class directory_leaf {
     
     // call access
     directory_entry * get_entry(char *name);
+    
+    //
+    directory_entry* get_and_delete_entry(char* name);
 };
 
 

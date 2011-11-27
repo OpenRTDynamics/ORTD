@@ -572,9 +572,13 @@ ioerror: // break loop
     printf("Client disconnected (or some other ioerror)\n");
     rt_server_i->iohelper->unregister_usage();// Tell that the iohelper is not used any more
 
-    // FIXME This has to be done by the rt_server_thread_manager instance
-    // This works because this function is not a method of rt_server_i
-    if (rt_server_i->hangup_state == false) { // If client closed connection this is executed
+    // FIXME This SHOULD to be done by the rt_server_thread_manager instance
+    // This ONLY works because this function is not a method of rt_server_i
+    // but an independent C function
+    bool hangup_state = rt_server_i->get_hangup_state();
+    
+//     if (rt_server_i->hangup_state == false) { // If client closed connection this is executed
+    if (hangup_state == false) { // If client closed connection this is executed
         printf("destructing rt_server instance\n");
         rt_server_i->destruct();
         delete rt_server_i;
@@ -592,7 +596,8 @@ void rt_server::set_tcp(tcp_connection *tcpc)
 
 void rt_server::init()
 {
-    pthread_mutex_init(&send_mutex, NULL);
+//     pthread_mutex_init(&send_mutex, NULL);
+    pthread_mutex_init(&hangup_state_mutex, NULL);
 
     int rc = pthread_create(&thread_receiver, NULL, rt_server_thread, (void *) this);
 
@@ -679,7 +684,9 @@ foundcmd:
 
 void rt_server::hangup()
 {
+    pthread_mutex_lock(&hangup_state_mutex);
     hangup_state = true; // No mutex protection
+    pthread_mutex_unlock(&hangup_state_mutex);
 
     printf("rt_server: Trying to close connection\n");
 
@@ -696,18 +703,11 @@ void rt_server::hangup()
 void rt_server::destruct()
 {
     iohelper->destruct();
-//    printf("\n");
-    printf("delete something2\n");
     delete iohelper;
-//     printf("b\n");
 
-//     free(snd_buf);
-//         printf("c\n");
-//
-//     free(rcv_buf);
-//     printf("d\n");
-
-    pthread_mutex_destroy(&send_mutex);
+    
+//     pthread_mutex_destroy(&send_mutex);
+        pthread_mutex_destroy(&hangup_state_mutex);
 }
 
 
@@ -792,13 +792,13 @@ void rt_server_threads_manager::loop()
 //    Start loop, which accepts incoming connectionns
 //
 
-    for (;;) { // FIXME how to abort?
+    for (;;) { // accept connections
         tcp_connection *tcpc = iohelper->wait_for_connection();
 
         printf("Wait for connect returned\n");
 
         if (tcpc == NULL) {
-            // in case of a signal to the thread
+            // in case of a signal to this thread, which means termination
             printf("rt_server: closing all connections\n");
 
             hangup_all_clients();
@@ -850,7 +850,26 @@ void rt_server_threads_manager::unlock_client_list()
 
 void rt_server_threads_manager::hangup_all_clients()
 {
+  // Kill all clients within client_list
+  
+  lock_client_list();
 
+
+   client_map_t::iterator iter; // = client_list.begin();
+  
+  for (iter = client_list.begin(); iter != client_list.end(); iter++) {
+    rt_server *client = iter->second;
+    
+    printf("Terminating rt_server thread... \n");
+    
+    client->hangup();
+    
+    printf("done\n");
+  }
+  
+  unlock_client_list();
+  
+  // FIXME warten bis alle client threads beendet wurden. NOTE möglicherweise wird schon in hangup() gewartet
 }
 
 void rt_server_threads_manager::add_to_client_list(rt_server* rt_server_i)

@@ -309,6 +309,28 @@ function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial) // 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim,out] = ld_shift_register(sim, events, in, len) // PARSEDOCU_BLOCK
+// A shift register with access to the stored values
+//
+// in *
+// out *+(len)
+//    
+// 
+// 
+// 
+  btype = 60001 + 11;
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[ 1 ], outsizes=[len], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 
 
 
@@ -484,6 +506,36 @@ function [sim,out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
+
+function [sim,out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // PARSEDOCU_BLOCK
+// multiplicate two vectors and calc the sum of the result ( sum( in1 .* in2) )
+//
+// in1 *+(vecsize)
+// in2 *+(vecsize)
+// out *
+//    
+  btype = 60001 + 58;
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize,vecsize ], outsizes=[1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in1, in2 ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+// 
+// 
+// 
+// 
+
+
+
 
 
 

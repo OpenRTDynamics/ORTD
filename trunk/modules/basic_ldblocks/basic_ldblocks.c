@@ -1344,6 +1344,70 @@ int ortd_compu_func_vectorsum(int flag, struct dynlib_block_t *block)
     }
 }
 
+int ortd_compu_func_vector_muladd(int flag, struct dynlib_block_t *block)
+{
+   // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in1, *in2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in1 = (double *) libdyn_get_input_ptr(block,0);
+        in2 = (double *) libdyn_get_input_ptr(block,0);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i;
+	double sum=0;
+	
+	for (i=0; i < size; ++i) {	
+	   sum += ( in1[i] * in2[i] );
+	}
+	out[0] = sum;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+	  printf("size cannot be smaller than 1\n");
+          printf("size = %d\n", size);
+
+	  return -1;
+	}
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vector_muladd block\n");
+        return 0;
+        break;
+
+    }
+}
 
 //#include "block_lookup.h"
 
@@ -1355,7 +1419,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 
     int blockid_ofs = 60001;
     
-    printf("Adding basic ld_blocks module\n", sim->private_comp_func_list);
+    printf("Adding basic ld_blocks module\n");
+    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_switch2to1);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_demux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_mux);
@@ -1367,6 +1432,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 8, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_extract_element);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constvec);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
+//     shift_register
+    
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 50, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordiff);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 51, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorfindthr);
@@ -1376,6 +1443,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 55, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorfindminmax);    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 56, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectoraddscalar);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 57, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorsum);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 58, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vector_muladd);
     
     
 }

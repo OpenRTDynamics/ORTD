@@ -154,8 +154,10 @@ class rt_server {
 
     pthread_t thread_receiver;
     
+
+
   public:
-    pthread_mutex_t send_mutex;
+//     pthread_mutex_t send_mutex;
 
     tcp_connection *iohelper;
 
@@ -175,11 +177,23 @@ class rt_server {
     // close connection
     void hangup();
     
+    bool get_hangup_state() {     
+      pthread_mutex_lock(&hangup_state_mutex);
+      bool tmp = hangup_state;
+      pthread_mutex_unlock(&hangup_state_mutex);
+      
+      return tmp;
+    };
+
+
+private:
     // if true the thread terminates on the next return from io
     // is set to true by hangup()
     // default is false;
+    pthread_mutex_t hangup_state_mutex;
     bool hangup_state; 
 
+public:
     
     void destruct();
 };
