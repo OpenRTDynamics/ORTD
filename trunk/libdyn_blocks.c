@@ -1075,7 +1075,7 @@ struct dynlib_block_t *new_play_block(struct dynlib_simulation_t *sim, int *par,
 
 
 
-int compu_func_lookup(int flag, struct dynlib_block_t *block)
+int compu_func_lookup(int flag, struct dynlib_block_t *block) // OBSOLETE
 {
   //printf("comp_func gain: flag==%d\n", flag);
   int Nout = 1;

@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+#include <math.h>
 
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
@@ -781,6 +782,88 @@ int ortd_compu_func_counter(int flag, struct dynlib_block_t *block)
   }
 }
 
+int compu_func_lookuptable(int flag, struct dynlib_block_t *block)
+{
+  //printf("comp_func gain: flag==%d\n", flag);
+  int Nout = 1;
+  int Nin = 1;
+
+  double *inp1;
+  double *out;	
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int len = ipar[0];
+  int interpolation = ipar[1];
+  double lowerin = rpar[0];
+  double upperin = rpar[1];
+  double *table = &rpar[2];
+
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {  
+      inp1 = (double *) libdyn_get_input_ptr(block,0);
+      out = (double *) libdyn_get_output_ptr(block,0);
+      
+      double nin = (*inp1 - lowerin) / (upperin - lowerin); // [0..1]
+     
+   //   printf("nin=%f\n", nin);
+      
+      if (nin < 0)
+	nin = 0;
+      if (nin > 1)
+	nin = 1;
+      
+      int outindex = floor(nin * len);
+      double remainder = nin*len - outindex; // Range [0..1]
+      
+      if ( outindex >= 0 && outindex+1 < len) { // check wheter index is out of array
+	if (interpolation == 1) {
+	  *out = table[outindex] * ( (1-remainder) ) +  table[outindex+1] * remainder; // linear interpolation
+	} else if (interpolation == 0) {
+	  *out = table[outindex]; // no interpolation
+	}
+        
+      } else if (outindex < 0) {
+	*out = table[0];
+      } else if (outindex >= len) {
+	*out = table[len-1];
+      }
+  //    printf("lookup table in=%f, lowerin=%f, upperin=%f, out=%f, index=%d\n", *inp1, lowerin, upperin, *out, outindex);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+      
+//       printf("len = %d\n", block->inlist[0].len);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+      return 0;
+      break;      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a lookup table block\n");
+      return 0;
+      break;
+      
+  }
+}
+
+
+
+
+
+
 
 
 
@@ -1432,6 +1515,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 8, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_extract_element);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constvec);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 11, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_lookuptable);
+    
+    
 //     shift_register
     
     

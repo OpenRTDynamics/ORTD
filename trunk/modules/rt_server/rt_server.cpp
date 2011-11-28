@@ -577,8 +577,10 @@ ioerror: // break loop
     // but an independent C function
     bool hangup_state = rt_server_i->get_hangup_state();
     
-//     if (rt_server_i->hangup_state == false) { // If client closed connection this is executed
     if (hangup_state == false) { // If client closed connection this is executed
+	// FIXME in case of an ioerror (client disconnected) the server does not get removed from the client list
+	// which triggers a segfault at termination
+
         printf("destructing rt_server instance\n");
         rt_server_i->destruct();
         delete rt_server_i;
