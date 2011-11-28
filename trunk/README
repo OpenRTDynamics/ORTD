@@ -30,7 +30,7 @@ Scilab 4.1.2 also works, but the toolbox will not load. Manually loading
 Compile / Install
 -----------------
 
-Run "make install" on 32/64 linux platforms
+Run "make" followed by "make install" on 32/64 Linux platforms
 
 this will compile libortd.so and libdyn_generic_exec, which is a generic 
 schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
@@ -45,6 +45,22 @@ Scilab Website was extracted) and installs the Scilab toolbox.
 
 Alternatively, link or copy the the "ld_toolbox" directory (not only its contents) 
 to your <scilab installation directory>/share/scilab/contrib .
+
+Cleaning up is done via
+
+  make clean
+
+This should be executed when compiling and updated version from subversion.
+
+
+TARGET CONFIGURATION
+--------------------
+
+The following targets can be choosen before compilation within target.conf:
+
+1) RTAI_COMPATIBLE (default, runns within RTAI; Plugins are disabled)
+2) LINUX
+3) CYGWIN (soon)
 
 HART-Module installation
 ------------------------
@@ -193,9 +209,11 @@ v0.99g (4.11.2011)
   - Some new blocks for vector manipulation
 
 v0.99h ( ... )
-  - A new nice grapical installer
+  - A new and nice grapical installer
   - Bugs: in vector manipulation blocks, ld_muparser_subst (still experimental) 
   - Added new slides in documentation folder
   - Slightly changed the rt_server protocoll
   - Fixed a potential memory leak, when set-up of a schematic fails
-  - Manipulation of the Makefile system
+  - Manipulation of the Makefile system (Introduced Target Systems)
+
+
