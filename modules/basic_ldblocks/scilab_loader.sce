@@ -309,7 +309,7 @@ function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial) // 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_shift_register(sim, events, in, len) // PARSEDOCU_BLOCK
+function [sim,out] = ld_shift_register(sim, events, in, len) // FIXME TODO
 // A shift register with access to the stored values
 //
 // in *
@@ -331,6 +331,34 @@ function [sim,out] = ld_shift_register(sim, events, in, len) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+
+function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpolation) // PARSEDOCU_BLOCK
+// Lookup table - block
+//
+// in * - input
+// out * - output
+// 
+// 
+// lower_b - smallest value of the input signal to map to the table
+// upper_b - biggest value of the input signal to map to the table
+// table - the table (Scilab vector)
+// 
+// Mapping is done in a linear way:
+//   out = table( (in - lowerin) / (upperin - lowerin) )
+// 
+// interpolation = 0 : no interpolation
+// interpolation = 1 : linear interpolation
+// 
+// 
+
+  btype = 60001 + 12;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [length(table), interpolation ], [ lowerin, upperin, table(:)' ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -507,7 +535,7 @@ function [sim,out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // PARSEDOCU_BLOCK
+function [sim,out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // FIXME TODO 
 // multiplicate two vectors and calc the sum of the result ( sum( in1 .* in2) )
 //
 // in1 *+(vecsize)

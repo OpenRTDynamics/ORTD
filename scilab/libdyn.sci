@@ -427,7 +427,7 @@ endfunction
 
 // Lookup table: Inputs between lowerin and upperin will be mapped linear to the indices of table
 //               The corresponsing element of table will be the output
-function [sim,bid] = libdyn_new_blk_lkup(sim, events, lowerin, upperin, table)
+function [sim,bid] = libdyn_new_blk_lkup(sim, events, lowerin, upperin, table) // OBSOLETE
   btype = 120;
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [length(table)], [ lowerin, upperin, table(:)' ]);
 endfunction
@@ -854,7 +854,7 @@ function [sim,sign_] = ld_sign(sim, events, inp_list, thr)
     [sim,sign_] = libdyn_new_oport_hint(sim, sign_, 0);
 endfunction
 
-function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
+function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table) // OBSOLETE ld_lookup
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
     [sim,lkup] = libdyn_new_blk_lkup(sim, events, lower_b, upper_b, table);
