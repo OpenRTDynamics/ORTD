@@ -818,27 +818,33 @@ int compu_func_lookuptable(int flag, struct dynlib_block_t *block)
 
         if (interpolation == 1) {
 
-            int outindex = floor(nin * len);
-            double remainder = nin*len - outindex; // Range [0..1]
+            int outindex = floor(nin * (len-1));
+            double remainder = nin*(len-1) - outindex; // Range [0..1[
 
-            if ( outindex >= 0 && outindex+1 < len) { // check wheter index is out of array
+            if ( outindex >= 0 && outindex < len) { // check wheter index is out of array
                 *out = table[outindex] * ( (1-remainder) ) +  table[outindex+1] * remainder; // linear interpolation
             } else if (outindex < 0) {
                 *out = table[0];
             } else if (outindex >= len) {
                 *out = table[len-1];
             }
+            
+//              *out = remainder;
 
         } else if (interpolation == 0) {
-            int outindex = round(nin * len);
+            int outindex = round(nin * (len-1));
+	    
+// 	    printf("lb=%f ub=%f u=%f, nin=%f, outindex=%d\n", lowerin, upperin, *inp1, nin, outindex);
 
-	    if ( outindex >= 0 && outindex+1 < len) { // check wheter index is out of array
+	    if ( outindex >= 0 && outindex < len) { // check wheter index is out of array
                 *out = table[outindex]; // no interpolation
             } else if (outindex < 0) {
                 *out = table[0];
             } else if (outindex >= len) {
                 *out = table[len-1];
             }
+            
+// 	    *out = outindex;
         }
 
         //    printf("lookup table in=%f, lowerin=%f, upperin=%f, out=%f, index=%d\n", *inp1, lowerin, upperin, *out, outindex);
@@ -1527,7 +1533,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 8, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_extract_element);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constvec);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 11, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_lookuptable);
+    // MISSING HERE: ld_shift register
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 12, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_lookuptable);
 
 
 //     shift_register

@@ -352,11 +352,11 @@ function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpo
 // 
 
   btype = 60001 + 12;
-  [sim,blk] = libdyn_new_block(sim, events, btype, [length(table), interpolation ], [ lowerin, upperin, table(:)' ], ...
+  [sim,blk] = libdyn_new_block(sim, events, btype, [length(table), interpolation ], [ lower_b, upper_b, table(:)' ], ...
                    insizes=[1], outsizes=[1], ...
                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(u) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
