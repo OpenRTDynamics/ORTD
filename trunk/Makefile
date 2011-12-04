@@ -17,20 +17,36 @@ MODULES := $(shell ls modules)
 # detect system type
 export host-type := $(shell arch)
 export ortd_root := $(shell pwd)
+
+# Configure target
 export target := $(shell cat target.conf)
+
+targetmacro=__HMM
+
+ifeq ($(target),LINUX)
+  targetmacro=__ORTD_TARGET_LINUX
+endif
+
+ifeq ($(target),RTAI_COMPATIBLE) 
+  targetmacro=__ORTD_TARGET_RTAI
+endif
+
+ifeq ($(target),CYGWIN) 
+  targetmacro=__ORTD_TARGET_CYGWIN
+endif
 
 # Tell the sub makefiles that the variables from this makefile are available
 export main_makefile_invoked := yes
 
-
+# Detect system type and set Fflags
 ifeq ($(host-type),x86_64)
 # 64 Bit
-export CFLAGS = -g -fPIC -O2 -DORTD_TARGET=$(target)
+export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
 export INCLUDE =  -I$(ortd_root)
 export LDFLAGS = -shared
 else
 # 32 Bit
-export CFLAGS = -g -O2 -DORTD_TARGET=$(target)
+export CFLAGS = -g -O2 -D$(targetmacro)
 export INCLUDE =  -I$(ortd_root)
 export LDFLAGS = -shared
 endif
@@ -55,7 +71,7 @@ lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_look
 	$(LD) $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
 
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
-	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o                 irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
+	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
 
 clean:
 	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* bin/*

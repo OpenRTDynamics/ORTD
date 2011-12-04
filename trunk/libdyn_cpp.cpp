@@ -728,7 +728,7 @@ int libdyn_master::init_communication(int tcpport)
    pmgr = new parameter_manager( rts_mgr, dtree );
    stream_mgr = new ortd_stream_manager(rts_mgr, dtree );
   
-    rts_mgr->start_main_loop_thread();
+    rts_mgr->start_threads();
     
     return 1;
   

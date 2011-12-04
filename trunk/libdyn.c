@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "libdyn.h"
+#include "plugin_loader.h"
 
 #define absf(a) ( ((a) > 0) ? (a) : -(a) )
 
@@ -2356,36 +2357,60 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
     return -1;
   }
 
+  //
   // Create a new simulation
+  // 
   *sim = libdyn_new_simulation();
+
+//   printf("Plugin: Target is %s\n");
+
+  //
+  // Load Plugins if enabled
+  // 
+
+  
+#ifdef __ORTD_PLUGINS_ENABLED
+  printf("Plugins are enabled\n");
   
   // Load modules, if available
   struct irpar_rvec_t *enc_libpath;
   err = irpar_get_rvec(&enc_libpath, ret.ipar_ptr, ret.rpar_ptr, 20);
   if (err == -1) {
-    fprintf(stderr, "No Plugin shall be loaded\n");
-  } else {
-    char plugin_fname;
-    int len = enc_libpath->n;
+//     fprintf(stderr, "No Plugin shall be loaded\n");
+  } else ;
+  {
+    char *plugin_fname = "./ortd_plugin.so";
+/*    int len = enc_libpath->n;
     
-    irpar_getstr(&plugin_fname, enc_libpath->v, 0, len);
+    irpar_getstr(&plugin_fname, enc_libpath->v, 0, len);*/
     
     printf("Loading plugin: %s\n", plugin_fname);
-    
-    free(plugin_fname);
-  }
 
+    ortd_load_plugin(*sim, plugin_fname);
+    
+    
+//     free(plugin_fname);
+  }
+#else
+  printf("Plugins are disabled in RTAI-compatible mode\n");
+#endif
+
+  //
+  // Read all blocks and connect them
+  // 
+  
   err = irpar_get_libdynconnlist(*sim, ret.ipar_ptr, ret.rpar_ptr, 100, iocfg);
   if (err == -1) {
     fprintf(stderr, "Error in irpar_get_libdynconnlist\n");
 
     goto error; 
   }
-  
-//  mydebug(0) fprintf(stderr, "sup exec list head: %x\n", *sim->execution_sup_list_head);
-
-  
+    
   //libdyn_block_dumpinfo((*sim)->allblocks_list_head->allblocks_list_next); //->allblocks_list_next
+
+  //
+  // Check for inputs forgotten to connect
+  // 
 
   err = libdyn_simulation_checkinputs(*sim);
   if (err < -0) {
@@ -2416,6 +2441,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 
  error:
  
+  // Undo everything
   libdyn_del_simulation(*sim);
 
   return -1;

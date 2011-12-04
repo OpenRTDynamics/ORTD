@@ -36,7 +36,7 @@
 #include <string.h>
 #include "signal.h"
 #include <stdio.h>
-#include <iostream> 
+#include <iostream>
 #include <sstream>
 
 
@@ -68,18 +68,18 @@ int rt_server_command::run_callback(rt_server *rt_server_src, char *param)
 //    this->send_answer(rt_server_src, "--EOR--\n");
 
     if (DEBUG==1)      printf("rt_server: callback returned\n");
-    
-    
+
+
     // send end of direct command output
     rt_server_src->iohelper->writeln("--EOR--\n");
-    
-     if (DEBUG==1)      printf("rt_server: --EOR-- was send\n");
+
+    if (DEBUG==1)      printf("rt_server: --EOR-- was send\n");
 
 
     // flush the send buffers, so the client gets the data immediately
     rt_server_src->iohelper->send_flush_buffer();
-    
-        if (DEBUG==1)      printf("rt_server: buffers were flushed\n");
+
+    if (DEBUG==1)      printf("rt_server: buffers were flushed\n");
 
 
     return calb_ret;
@@ -102,27 +102,18 @@ void rt_server_command::destruct()
 
 tcp_connection::tcp_connection(tcp_server* tcps, int fd)
 {
+    this->error_number = 0;
     this->error_state = false;
 
     this->usage_counter = 0;
 
     this->tcps = tcps;
     this->fd = fd;
-    
-    bufferedio = new ortd_buffered_io(fd);
-    
-//     this->bfd = fdopen(fd, "r+"); // use buffered io
-// 
-// 
-//     // because it is not possible to have a pending read on the fd
-//     // and at the same time to write to fd within another thread
-//     // create a new bufferd io for reading
-// 
-//     raw_fdread = dup(fd);
-//     bfdread = fdopen(raw_fdread, "r+");
 
-    
-    
+    bufferedio = new ortd_buffered_io(fd);
+
+
+
     request_for_destruct = false;
     usage_counter = 0;
     pthread_mutex_init(&useage_counter_mutex, NULL);
@@ -185,7 +176,7 @@ void tcp_connection::destruct()
     // remove mutexes
     pthread_mutex_destroy(&useage_counter_mutex);
     pthread_mutex_destroy(&used_mutex);
-    
+
     delete bufferedio;
 }
 
@@ -207,6 +198,7 @@ int tcp_connection::readln(int nb, void* data)
         // Gegenseite hat Verbindung beendet oder Fehler
         printf("Tcp connection died\n");
         error_state = true;
+	error_number = errno;
 
         return -1;
     }
@@ -215,24 +207,13 @@ int tcp_connection::readln(int nb, void* data)
     getline(bufferedio->sstream_in, input_line);
 
 //     std::cout << "iohelper got " << input_line;
-    
+
     if (strlen(input_line.c_str()) >= nb)
-      return -1;
-    
+        return -1;
+
     strcpy((char*) data, (char*) input_line.c_str() );
-    
-    
-//     rvp = fgets((char*) data, nb, bfdread);
-//     if (NULL == rvp) {
-// 
-//         // Gegenseite hat Verbindung beendet oder Fehler
-//         printf("Tcp connection died\n");
-//         error_state = true;
-// 
-// 
-// 
-//         return -1;
-//     }
+
+
 
     if (DEBUG==1)      printf("rt_server: read returned\n");
 
@@ -251,9 +232,6 @@ int tcp_connection::writeln(const void* data)
     if (DEBUG==1) printf("rt_server: write to tcp..\n");
 
     ret = bufferedio->writeln((char*) data);
-
-    
-//    ret = fputs((char*) data, bfd);
     if (ret < 0) {
         if (DEBUG==1) printf("error writing\n");
         error_state = true;
@@ -261,8 +239,6 @@ int tcp_connection::writeln(const void* data)
     }
 
     if (DEBUG==1) printf("done\n");
-//     if (ferror(bfd) < 0 )
-//         printf("er\n");
 
     return 1;
 }
@@ -270,50 +246,15 @@ int tcp_connection::writeln(const void* data)
 int tcp_connection::writelnff(const void* data)
 {
 
-  this->writeln(data);
+    this->writeln(data);
 }
 
-// int tcp_connection::writelnff(const void* data)
-// {
-//     int ret;
-// 
-//     if (error_state == true)
-//         return -1;
-// 
-//     if (DEBUG==1) printf("rt_server: write to tcp..\n");
-// 
-// 
-//     ret = fputs((char*) data, bfd);
-//     if (ret < 0) {
-//         printf("error writing\n");
-//         error_state = true;
-//         return -1;
-//     }
-// 
-//     if (DEBUG==1) printf("done, now flushing\n");
-// 
-// 
-//     ret = fflush(bfd);
-//     if (ret < 0) {
-//         printf("error writing\n");
-//         error_state = true;
-//         return -1;
-//     }
-// 
-//     if (ferror(bfd) < 0 )
-//         printf("er\n");
-// 
-//     if (DEBUG==1) printf("done\n");
-// 
-//     return 1;
-// 
-// }
 
 
-FILE* tcp_connection::get_io_fd()
+FILE* tcp_connection::get_io_fd() // FIXME OBSOLETE
 {
 //     return bfd;
-  return NULL;
+    return NULL;
 }
 
 
@@ -321,14 +262,14 @@ int tcp_connection::send_flush_buffer()
 {
 //     if (ferror(bfd) < 0 )
 //         printf("er\n");
-// 
+//
 //     if (DEBUG==1) printf("rt_server: flushing buffers\n");
-// 
+//
 //     fflush(bfd);
-//     
+//
 //     if (DEBUG==1) printf("rt_server: flush done\n");
 
-  
+
 }
 
 
@@ -434,20 +375,6 @@ tcp_server::~tcp_server()
 }
 
 
-// int tcp_server::tcp_server_write(int fd, char buf[], int buflen)
-// /* Schreibe auf die Client Socket Schnittstelle
-//  * in fd: Socket Filedescriptor zum Schreiben zum Client
-//  * in buf: Meldung zum Schreiben
-//  * in buflen: Meldungslaenge
-//  * return: OKAY wenn Schreiben vollstaendig, ERROR sonst
-//  */
-// {
-//     int ret;
-//
-//     ret = write(fd, buf, buflen);
-//     return_if(ret != buflen, ERROR);
-//     return OKAY;
-// }
 
 
 
@@ -463,13 +390,13 @@ tcp_connection *tcp_server::wait_for_connection()
     /* TCP Server LISTEN Port (Client connect) pruefen */
 
     // Accept connection
-    rfd = tcp_server_init2(listen_fd);
+    rfd = tcp_server_init2(listen_fd); // accept
     if (rfd >= 0) {
         /*      if (rfd >= MAXFD) {
                 close(rfd);
                 goto out;
               }*/
-        pthread_mutex_lock(&mutex_state);
+        pthread_mutex_lock(&mutex_state); // FIXME : Not needed?
         FD_SET(rfd, &the_state);        /* neuen Client fd dazu */
         pthread_mutex_unlock(&mutex_state);
 
@@ -546,7 +473,7 @@ void *rt_server_thread(void *data)
 //      parse the received line and run the apropriate callback
         ret = rt_server_i->parse_line(buf);
 
-	if (DEBUG==1) printf("rt_server: line parsed\n");
+        if (DEBUG==1) printf("rt_server: line parsed\n");
 
         // if parsing faild return an error message to the client
         if (ret == -1) {
@@ -569,24 +496,47 @@ void *rt_server_thread(void *data)
 
 ioerror: // break loop
 
-    printf("Client disconnected (or some other ioerror)\n");
+    /*
+     *  Client disconnected, clean up
+     */
+
+
+
+    printf("Client disconnected (or an hangup request)\n");
+    //sleep(2);
+    
+    bool thread_signaled = rt_server_i->iohelper->check_for_signal_while_io();
+
     rt_server_i->iohelper->unregister_usage();// Tell that the iohelper is not used any more
 
-    // FIXME This SHOULD to be done by the rt_server_thread_manager instance
-    // This ONLY works because this function is not a method of rt_server_i
-    // but an independent C function
-    bool hangup_state = rt_server_i->get_hangup_state();
     
-    if (hangup_state == false) { // If client closed connection this is executed
-	// FIXME in case of an ioerror (client disconnected) the server does not get removed from the client list
-	// which triggers a segfault at termination
+    
+    
+    
+    
+    
+    
+      //rt_server_i->mymanager->hangup_request(rt_server_i); 
+
+      
+    
+
+
+        //     Remove from client list
+        rt_server_i->mymanager->del_from_client_list(rt_server_i);
+
+
+        // FIXME This SHOULD to be done by the rt_server_thread_manager instance
+        // This ONLY works because this function is not a method of rt_server_i
+        // but an independent C function. Therefore, it is possible to destruct
+        // rt_server_o
 
         printf("destructing rt_server instance\n");
         rt_server_i->destruct();
         delete rt_server_i;
-    }
 
-    return NULL;
+
+    return NULL; // by now this thread will not be joint by someone
 }
 
 void rt_server::set_tcp(tcp_connection *tcpc)
@@ -603,7 +553,7 @@ void rt_server::init()
 
     int rc = pthread_create(&thread_receiver, NULL, rt_server_thread, (void *) this);
 
-    pthread_detach(thread_receiver); // FIXME !!!!
+    //pthread_detach(thread_receiver); // FIXME !!!!
 
     if (rc)
     {
@@ -675,7 +625,7 @@ foundcmd:
 
     if (DEBUG==1) printf("rt_server: running callback\n");
 
-    
+
     int calb_retval = command->run_callback(this, line_parameter_part);
 
     if (DEBUG==1) printf("rt_server: callback returned\n");
@@ -687,16 +637,13 @@ foundcmd:
 void rt_server::hangup()
 {
     pthread_mutex_lock(&hangup_state_mutex);
-    hangup_state = true; // No mutex protection
+    hangup_state = true;
     pthread_mutex_unlock(&hangup_state_mutex);
 
     printf("rt_server: Trying to close connection\n");
 
+    // signal the thread, so it returns from a potetial io operation
     pthread_kill( thread_receiver, SIGUSR1 );
-    pthread_join( thread_receiver, NULL );
-
-    printf("rt_server: joined thread\n");
-
 }
 
 
@@ -707,9 +654,7 @@ void rt_server::destruct()
     iohelper->destruct();
     delete iohelper;
 
-    
-//     pthread_mutex_destroy(&send_mutex);
-        pthread_mutex_destroy(&hangup_state_mutex);
+    pthread_mutex_destroy(&hangup_state_mutex);
 }
 
 
@@ -722,6 +667,15 @@ rt_server_threads_manager::rt_server_threads_manager()
     mainloop_thread_started = false;
 
     pthread_mutex_init(&client_list_mutex, NULL);
+    pthread_mutex_init(&client_list_empty_mutex, NULL);
+//    pthread_mutex_init(&hangup_request_state_mutex, NULL);
+    
+    // The thread that destructs rt_server instances
+    destroy_thread_terminate = false;
+    pthread_mutex_init(&destroy_thread_mutex, NULL);
+    pthread_cond_init(&destroy_thread_condition, NULL);
+
+
 }
 
 int rt_server_threads_manager::init_tcp(int port)
@@ -800,25 +754,88 @@ void rt_server_threads_manager::loop()
         printf("Wait for connect returned\n");
 
         if (tcpc == NULL) {
-            // in case of a signal to this thread, which means termination
-            printf("rt_server: closing all connections\n");
+            // in case of a signal to this thread
 
-            hangup_all_clients();
+//              rt_server *tokill = mainloop_rendevous_check();
+//              if (tokill != NULL) {
+//                 printf("Request to kill an rt_server instance\n");
+// 
+// 		//     Remove from client list
+//                 tokill->mymanager->del_from_client_list(tokill);
+// 
+//                 tokill->destruct();
+//                 delete tokill;
 
-            printf("rt_server: Exiting thread\n");
-            pthread_exit(NULL);
+//             } else {
+                // means termination of the accept thread
+                printf("rt_server: closing all connections\n");
+
+                hangup_all_clients();
+
+                printf("rt_server: Exiting accept thread\n");
+                pthread_exit(NULL);
+//             }
+
+            // finish the transaction, initiated by the signaling thread
+//             mainloop_rendevous_finish();
+        } else {
+
+            // start new client
+            rt_server *rt_server_i = new rt_server(this);
+            rt_server_i->set_tcp(tcpc);
+            rt_server_i->init(); // the class will start its receiver thread
+
+            add_to_client_list(rt_server_i); // Store the new connection into a list
         }
-
-        rt_server *rt_server_i = new rt_server(this);
-        rt_server_i->set_tcp(tcpc);
-        rt_server_i->init(); // the class will start its receiver thread
-
-        add_to_client_list(rt_server_i); // Store the new connection into a list
     }
 
 }
 
-bool rt_server_threads_manager::start_main_loop_thread()
+void rt_server_threads_manager::start_destroy_thread()
+{
+  // Loop that destroy rt_server instances
+  
+  printf("rt_Sever destroy thread started\n");
+  
+  // just exit because this thread is not used at the moment
+  return;
+  
+  // This is never executed
+  pthread_mutex_lock(&destroy_thread_mutex);
+  for (;;) {
+
+
+        while (destroy_thread_signal == NULL && !destroy_thread_terminate) {
+            pthread_cond_wait(&destroy_thread_condition, &destroy_thread_mutex);
+        }
+        
+        if (destroy_thread_terminate) {
+	  pthread_exit(NULL);
+	}
+        
+        rt_server *tokill = destroy_thread_signal;
+        destroy_thread_signal = NULL;
+
+        printf("destroy_thread: request for a termination\n");
+
+	    //pthread_join( tokill->thread_receiver, NULL ); 
+	
+		//     Remove from client list
+                tokill->mymanager->del_from_client_list(tokill);
+
+                tokill->destruct();
+                delete tokill;
+
+        printf("destroy_thread: rt_server was terminated\n");
+  
+  }
+  
+  pthread_mutex_unlock(&destroy_thread_mutex);
+  sleep(10);
+}
+
+
+bool rt_server_threads_manager::start_threads()
 {
 //     pthread_mutex_init(&send_mutex, NULL);
 //     printf("starting rt_server therad\n");
@@ -828,7 +845,6 @@ bool rt_server_threads_manager::start_main_loop_thread()
         return false;
 
     int rc = pthread_create(&mainloop_thread, NULL, rt_server_thread_mainloop, (void *) this);
-
     if (rc)
     {
         printf("rt_server: ERROR; return code from pthread_create() is %d\n", rc);
@@ -837,6 +853,18 @@ bool rt_server_threads_manager::start_main_loop_thread()
     }
 
     mainloop_thread_started = true;
+    
+    // The destroy thread
+    destroy_thread_signal = NULL;
+    
+    rc = pthread_create(&destroy_thread, NULL, start_destroy_threadC, (void *) this);
+    if (rc)
+    {
+        printf("rt_server: ERROR; return code from pthread_create() is %d\n", rc);
+        this->error = -1;
+        return false;
+    }
+    
     return true;
 }
 
@@ -850,28 +878,48 @@ void rt_server_threads_manager::unlock_client_list()
     pthread_mutex_unlock(&client_list_mutex);
 }
 
+void rt_server_threads_manager::hangup_request(rt_server* rt_server_i)
+{
+    // ring the accept loop, and initialise the destruction of rt_server_i, including the joining of the rt_server thread
+    printf("hangup request\n");
+//     mainlook_rendevous_start(rt_server_i);
+
+    destroy_thread_request(rt_server_i);
+    
+    // from here this is an atomar transaction that is finished by get_hangup_request_state()
+    // in the main accept loop
+
+
+
+}
+
 void rt_server_threads_manager::hangup_all_clients()
 {
-  // Kill all clients within client_list
-  
-  lock_client_list();
+    // Kill all clients within client_list
+
+    lock_client_list();
 
 
-   client_map_t::iterator iter; // = client_list.begin();
-  
-  for (iter = client_list.begin(); iter != client_list.end(); iter++) {
-    rt_server *client = iter->second;
-    
-    printf("Terminating rt_server thread... \n");
-    
-    client->hangup();
-    
-    printf("done\n");
-  }
-  
-  unlock_client_list();
-  
-  // FIXME warten bis alle client threads beendet wurden. NOTE möglicherweise wird schon in hangup() gewartet
+    client_map_t::iterator iter; // = client_list.begin();
+
+    for (iter = client_list.begin(); iter != client_list.end(); iter++) {
+        rt_server *client = iter->second;
+
+        printf("Terminating rt_server thread... \n");
+
+        unlock_client_list();
+        client->hangup();
+        lock_client_list();
+
+        printf("done\n");
+    }
+
+    unlock_client_list();
+
+    // FIXME warten bis alle client threads beendet wurden. NOTE möglicherweise wird schon in hangup() gewartet
+    printf("rt_server_threads_manager: Waiting for all threads to terminate...\n");
+    wait_for_client_list_to_become_empty();
+    printf("rt_server_threads_manager: All threads were terminated\n");
 }
 
 void rt_server_threads_manager::add_to_client_list(rt_server* rt_server_i)
@@ -879,6 +927,7 @@ void rt_server_threads_manager::add_to_client_list(rt_server* rt_server_i)
     pthread_mutex_lock(&client_list_mutex);
 //   client_list.insert(client_list.end(), rt_server_i);
     client_list.insert(std::make_pair(rt_server_i, rt_server_i) );
+    pthread_mutex_trylock(&client_list_empty_mutex);
     pthread_mutex_unlock(&client_list_mutex);
 }
 
@@ -888,6 +937,9 @@ void rt_server_threads_manager::del_from_client_list(rt_server* rt_server_i)
 //   client_list.erase();
     client_map_t::iterator it = client_list.find(rt_server_i);
     client_list.erase(it);
+    if (client_list.empty()) {
+      pthread_mutex_unlock(&client_list_empty_mutex);    
+    }
     pthread_mutex_unlock(&client_list_mutex);
 
 
@@ -897,28 +949,28 @@ void rt_server_threads_manager::del_from_client_list(rt_server* rt_server_i)
 void rt_server_threads_manager::destruct()
 {
     // DONE FIXME: destruct all rt_server_command instances DONE
-//    done TODO abort loop() running in thread
 
 
     if (mainloop_thread_started) {
         printf("rt_server: Trying to kill tcp accept thread\n");
         pthread_kill( mainloop_thread, SIGUSR1 );
+//        this->mainlook_rendevous_start(NULL); // signal the main loop thread for its termination
+
+
         printf("rt_server: joining thread...\n");
+
+
         pthread_join( mainloop_thread, NULL );
 
         printf("rt_server: joined thread\n");
     }
 
-    /*  if (mainloop_thread_started) {
-      printf("Killing mainloop_thread\n");
-      pthread_cancel(mainloop_thread);
-      }*/
 
     //
     // Kill all client handlers
     //
 
-    // .....
+    // Cleap clint list
     client_list.clear();
 
     // FIXME Close sockets; Was ist das
@@ -927,7 +979,7 @@ void rt_server_threads_manager::destruct()
     delete iohelper;
 
     //
-    // Destruct all client handling threads
+    // Destruct all commands
     //
 
     lock_commandmap();
@@ -946,7 +998,13 @@ void rt_server_threads_manager::destruct()
 
     pthread_mutex_destroy(&command_map_mutex);
     pthread_mutex_destroy(&client_list_mutex);
-
+    pthread_mutex_destroy(&client_list_empty_mutex);
+//     pthread_mutex_destroy(&hangup_request_state_mutex);
+    
+    // The thread that destructs rt_server instances
+    pthread_mutex_destroy(&destroy_thread_mutex);
+    pthread_cond_destroy(&destroy_thread_condition);
+    
 }
 
 void rt_server_threads_manager::lock_commandmap()
