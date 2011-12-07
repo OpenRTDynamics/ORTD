@@ -100,19 +100,48 @@ endfunction
 
 
 
-
-
+//function [sim,y] = ld_alternate( sim, ev, start_with_zero )
+//    //
+//    // generate an alternating sequence     
+//    //
+//    // [0, 1, 0, 1, 0, ... ], if start_with_zero == %T
+//    // [1, 0, 1, 0, 1, ... ], if start_with_zero == %F
+//    //
+//    
+//  [sim,one] = ld_const(sim, ev, 1);
+//
+//  [sim, fb] = libdyn_new_feedback();
+//  
+//  [sim, su ] = ld_add(sim, ev, list(fb, one), [-1,1] );
+//  [sim, del] = ld_ztf(sim, ev, su, 1/z);
+//  
+//  [sim] = libdyn_close_loop(sim, del, fb);
+//  
+//  y = del; 
+//  
+//  if (start_with_zero == %F) then
+//    [sim, y] = ld_not(sim, ev, y);
+//  end
+//    
+//endfunction
+//
 
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
-  [sim,u] = ld_const(sim, defaultevents, 1);
   
 
-  [sim, u] = ld_playsimple(sim, defaultevents, [1,0,0,1,1,0,0,1,0]);
+ // [sim, u] = ld_playsimple(sim, defaultevents, [1,0,0,1,1,0,0,1,0]);
+
+ev = defaultevents;
+
+  [sim,u] = ld_alternate( sim, ev, start_with_zero=%F );
 
   
-  [sim] = ld_printf(sim, defaultevents, mytest, "mytest = ", 1);
+  [sim] = ld_printf(sim, defaultevents, u, "mytest = ", 1);
+
+  x = u;
+  
   
   // save result to file
   [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", x);
@@ -160,7 +189,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages = unix_g('libdyn_generic_exec -s testbed -i 901 -l 3');
+messages=unix_g(ORTD.ortd_executable+ ' -s testbed -i 901 -l 30');
 
 
 // load results
