@@ -878,6 +878,57 @@ int compu_func_lookuptable(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_not(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+
+        out[0] = (*in > 0.5) ? 0 : 1;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a not block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
 
 
 
@@ -1535,7 +1586,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
     // MISSING HERE: ld_shift register
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 12, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_lookuptable);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 13, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_not);
 
+    
 
 //     shift_register
 

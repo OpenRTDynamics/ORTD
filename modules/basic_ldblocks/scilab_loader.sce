@@ -27,7 +27,7 @@ function [sim]=ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK
 endfunction
 
 
-function [sim,out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
+function [sim, out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
 //
 // A 2 to 1 switching Block
 //
@@ -53,7 +53,7 @@ endfunction
 
 
 
-function [sim,outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
+function [sim, outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
 //
 // Demultiplexer
 //
@@ -85,7 +85,7 @@ endfunction
 
 
 
-function [sim,out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
+function [sim, out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 //    
 // Multiplexer
 //
@@ -115,7 +115,7 @@ function [sim,out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 endfunction
 
 
-function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout) // PARSEDOCU_BLOCK
+function [sim, out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout) // PARSEDOCU_BLOCK
 // hysteresis - block
 //
 // in * - input
@@ -140,7 +140,7 @@ function [sim,out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_
 endfunction
 
 
-function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod) // PARSEDOCU_BLOCK
+function [sim, out] = ld_modcounter(sim, events, in, initial_count, mod) // PARSEDOCU_BLOCK
 // Modulo Counter - Block
 //
 // in * - input
@@ -165,7 +165,7 @@ function [sim,out] = ld_modcounter(sim, events, in, initial_count, mod) // PARSE
 endfunction
 
 
-function [sim,out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
+function [sim, out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
 // jumper - block
 //
 // out *+ - vector of size steps
@@ -191,7 +191,7 @@ function [sim,out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
 endfunction
 
 
-function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
+function [sim, out] = ld_memory(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
 // memory - block
 //
 // in * - input
@@ -214,7 +214,7 @@ function [sim,out] = ld_memory(sim, events, in, rememberin, initial_state) // PA
 endfunction
 
 
-function [sim,out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
+function [sim, out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
 // abs - block
 //
 // in * - input
@@ -233,7 +233,7 @@ function [sim,out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
 endfunction
 
 
-function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize ) // PARSEDOCU_BLOCK
+function [sim, out] = ld_extract_element(sim, events, invec, pointer, vecsize ) // PARSEDOCU_BLOCK
   //
   // Extract one element of a vector
   //
@@ -248,8 +248,8 @@ function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize ) /
   ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
-                       insizes=[vecsize], outsizes=[1], ...
-                       intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+                       insizes=[vecsize, 1], outsizes=[1], ...
+                       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
 //   [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar               );
 
@@ -261,7 +261,7 @@ function [sim,out] = ld_extract_element(sim, events, invec, pointer, vecsize ) /
 endfunction
 
 
-function [sim,out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
+function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 // a constant vector
 // 
@@ -278,7 +278,7 @@ function [sim,out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 endfunction
 
 
-function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial) // PARSEDOCU_BLOCK
+function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) // PARSEDOCU_BLOCK
 // 
 // A resetable counter block
 //
@@ -309,7 +309,7 @@ function [sim,out] = ld_counter(sim, events, count, reset, resetto, initial) // 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_shift_register(sim, events, in, len) // FIXME TODO
+function [sim, out] = ld_shift_register(sim, events, in, len) // FIXME TODO
 // A shift register with access to the stored values
 //
 // in *
@@ -360,6 +360,24 @@ function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpo
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_not(sim, events, in) // PARSEDOCU_BLOCK
+// logic negation - block
+//
+// in * - input
+// out * - output
+// 
+// out = 0, if in > 0.5  OR  out = 1, if in < 0.5
+// 
+
+  btype = 60001 + 13;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 
 
 // 
@@ -367,7 +385,7 @@ endfunction
 // 
 
 
-function [sim,out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
 // Vector differentiation with respect to the index
 // 
@@ -389,7 +407,7 @@ function [sim,out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize) // PARSEDOCU_BLOCK
+function [sim, index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize) // PARSEDOCU_BLOCK
 //    
 // in *+(vecsize) - input
 // thr * - threshold signal
@@ -413,7 +431,7 @@ function [sim,index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize)
   [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 // Vector abs()
 //
 // in *+(vecsize) - input
@@ -433,7 +451,7 @@ function [sim,out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU_BLOCK   
+function [sim, out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU_BLOCK   
 // Vector gain
 //
 // in *+(vecsize) - input
@@ -452,7 +470,7 @@ function [sim,out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
 //    
 // Extract "in" from to from+window_len
 // 
@@ -477,7 +495,7 @@ function [sim,out] = ld_vector_extract(sim, events, in, from, window_len, vecsiz
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
+function [sim, index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
 // Min / Max of a vector
 //
 // in *+(vecsize) 
@@ -497,7 +515,7 @@ function [sim,index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PA
 endfunction
 
 
-function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSEDOCU_BLOCK
 // add "add" to the vector
 // 
 //  add * - signal
@@ -516,7 +534,7 @@ function [sim,out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSE
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 // sum over "in"
 //
 // in *+(vecsize)
@@ -535,7 +553,7 @@ function [sim,out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // FIXME TODO 
+function [sim, out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // FIXME TODO 
 // multiplicate two vectors and calc the sum of the result ( sum( in1 .* in2) )
 //
 // in1 *+(vecsize)
@@ -649,7 +667,7 @@ function [sim] = ld_print_angle(sim, ev, alpha, text) // PARSEDOCU_BLOCK
     [sim] = ld_printf(sim, ev, alpha_deg, text, 1);
 endfunction
 
-function [sim,pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
+function [sim, pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
 // 
 // PWM generator
 // 
@@ -669,6 +687,34 @@ function [sim,pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
 endfunction
 
 
+function [sim,y] = ld_alternate( sim, ev, start_with_zero ) // PARSEDOCU_BLOCK
+//
+// generate an alternating sequence     
+//
+// y * - output
+//
+//
+// [0, 1, 0, 1, 0, ... ], if start_with_zero == %T
+// [1, 0, 1, 0, 1, ... ], if start_with_zero == %F
+//
+  z = poly(0,'z');    
+
+  [sim,one] = ld_const(sim, ev, 1);
+
+  [sim, fb] = libdyn_new_feedback();
+  
+  [sim, su ] = ld_add(sim, ev, list(fb, one), [-1,1] );
+  [sim, del] = ld_ztf(sim, ev, su, 1/z); // a delay of one sample
+  
+  [sim] = libdyn_close_loop(sim, del, fb);
+  
+  y = del; 
+  
+  if (start_with_zero == %F) then
+    [sim, y] = ld_not(sim, ev, y);
+  end
+    
+endfunction
 
 
 

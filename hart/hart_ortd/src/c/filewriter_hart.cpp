@@ -52,7 +52,7 @@ int filewriter_bloc_init(scicos_block *block,int flag)
   par_getstr(comdev->fname, fname_coded, 0, len_fname);
   printf("filewriter scicosblock: %s\n", comdev->fname);
   
-  comdev->fw = log_dfilewriter_new(veclen, 100, comdev->fname);
+  comdev->fw = log_dfilewriter_new(veclen, 10000, comdev->fname);
   
 //  comdev->dyn1_a = block->rpar[10];
 
