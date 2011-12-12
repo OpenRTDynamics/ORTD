@@ -25,29 +25,7 @@ main(int argc, char* argv[]) {
   
   rd = new rt_server_decoder("localhost", 10000);
   
-// //   rd->read_scopes();
-// //  rt_server_decoder_scope *sc = rd->get_scope_by_id(23);
-//   std::string name("osc_output");
-//   rt_server_decoder_scope *sc = rd->get_scope_by_name(name);
-//   if (sc == NULL) {
-//     printf("scope %s not found\n", name.c_str() );
-//     
-//     delete rd;    
-// //     std::cout << "lasjl\n";
-//     exit(0);
-//   }
-//   
-//   sc->start_stream();
-// 
-//   double data[1000];
-//   
-//   bool sucess = true;
-//   
-//   while (sucess) {
-//     sucess = sc->read_single_vec_blocking(data);
-//     printf("v = %f, %f\n", data[0], data[5] );
-//   }
-//   
+
   
   if (argc >= 4) {
     
@@ -62,9 +40,7 @@ main(int argc, char* argv[]) {
     cmd << "set_param " << argv[2] << " ";
 
     
-//     sprintf(cmd, "set_param %s # %s\n", argv[2], argv[3] );
     for (i = 0; i < Nvalues; ++i) {
-//       sprintf(cmd, "set_param %s # %s\n", argv[2], argv[3] );
       cmd << " # " << argv[3+i];
     }
     cmd << "\n";
@@ -77,6 +53,7 @@ main(int argc, char* argv[]) {
     std::cout << "Sending: " << tmp << "\n";
     
     rd->send_raw_command( tmp );
+    rd->send_raw_command( "\n" ); // terminate the last line
     rd->await_message();
     rd->await_message();
   }
