@@ -16,7 +16,7 @@
 #include <iostream> 
 
 /*
-  USAGE: ./remote_client setpar stim_v1 0.12
+  USAGE: ./ortd_client setpar stim_v1 0.12
 */
 
 main(int argc, char* argv[]) {
@@ -53,8 +53,7 @@ main(int argc, char* argv[]) {
     
     
   
-    printf("set_param %s # %s\n", argv[2], argv[3] );
-
+    
     int i;
     int Nvalues = argc-3;
 
@@ -68,6 +67,7 @@ main(int argc, char* argv[]) {
 //       sprintf(cmd, "set_param %s # %s\n", argv[2], argv[3] );
       cmd << " # " << argv[3+i];
     }
+    cmd << "\n";
     
     char tmp[10000];
 //     std::string tmp2;
