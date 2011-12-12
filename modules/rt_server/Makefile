@@ -32,7 +32,7 @@ endif # ifeq ($(main_makefile_invoked),yes)
 
 
 
-all: lib
+all: lib ortd_client
 	echo "Module rt_server done"
 
 lib: rt_server.o parameter_manager.o directory.o rt_server_block.o ortd_buffered_io.o remote_decoder.o
@@ -42,7 +42,7 @@ lib: rt_server.o parameter_manager.o directory.o rt_server_block.o ortd_buffered
 
 
 clean:
-	rm -f *.o module.a
+	rm -f *.o module.a ortd_client
 
 
 rt_server_test: rt_server.cpp parameter_manager.cpp directory.cpp rt_server_test.cpp
@@ -51,8 +51,8 @@ rt_server_test: rt_server.cpp parameter_manager.cpp directory.cpp rt_server_test
 remote_client_example:  remote_decoder.cpp remote_client_example.cpp ortd_buffered_io.cpp
 	$(CPP) -I../.. -L. -O2 -lm -lpthread remote_decoder.cpp remote_client_example.cpp ortd_buffered_io.cpp  -o remote_client_example
 
-remote_client:  remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp
-	$(CPP) -I../.. -L. -O2 -lm -lpthread remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp  -o remote_client
+ortd_client:  remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp
+	$(CPP) -I../.. -L. -O2 -lm -lpthread remote_decoder.cpp remote_client.cpp ortd_buffered_io.cpp  -o ortd_client
 
 rt_server_block.o: rt_server_block.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c rt_server_block.cpp

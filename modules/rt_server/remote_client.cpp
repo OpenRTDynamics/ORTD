@@ -12,6 +12,7 @@
 
 #include "remote_decoder.h"
 
+
 #include <iostream> 
 
 /*
@@ -48,15 +49,34 @@ main(int argc, char* argv[]) {
 //   }
 //   
   
-  if (argc == 4) {
+  if (argc >= 4) {
     
     
-    char cmd[1000];
   
     printf("set_param %s # %s\n", argv[2], argv[3] );
-    sprintf(cmd, "set_param %s # %s\n", argv[2], argv[3] );
-  
-    rd->send_raw_command( cmd );
+
+    int i;
+    int Nvalues = argc-3;
+
+    std::stringstream cmd;
+    
+    cmd << "set_param " << argv[2] << " ";
+
+    
+//     sprintf(cmd, "set_param %s # %s\n", argv[2], argv[3] );
+    for (i = 0; i < Nvalues; ++i) {
+//       sprintf(cmd, "set_param %s # %s\n", argv[2], argv[3] );
+      cmd << " # " << argv[3+i];
+    }
+    
+    char tmp[10000];
+//     std::string tmp2;
+    
+    cmd.getline(tmp,10000);
+    
+    std::cout << "Sending: " << tmp << "\n";
+    
+    rd->send_raw_command( tmp );
     rd->await_message();
     rd->await_message();
   }
