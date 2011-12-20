@@ -290,7 +290,7 @@ function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) //
 // 
 // increases out by count (out = out + count)
 // 
-// if reset > 0 then
+// if reset > 0.5 then
 //   out = resetto
 //
 // initially out is set to initial
@@ -378,6 +378,104 @@ function [sim, out] = ld_not(sim, events, in) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+
+function [sim, out] = ld_or(sim, events, inlist) // PARSEDOCU_BLOCK
+// logic or - block
+//
+// in *LIST - list() of inputs (for now the exactly two inputs are possible)
+// out * - output
+// 
+// 
+// 
+  Nin=length(inlist);
+
+  if (Nin ~= 2) then
+    error("invalid number of inputs");
+  end
+
+  insizes=ones(1, Nin);
+  intypes=ones(1, Nin) * ORTD.DATATYPE_FLOAT;
+
+  btype = 60001 + 14;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[   ], ...
+                   insizes, outsizes=[1], ...
+                   intypes, outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_iszero(sim, events, in, eps) // PARSEDOCU_BLOCK
+//
+// check if input is near zero
+//
+// in * - input
+// out * - output
+// 
+// out = 1, if in between -eps and eps, othwewise out = 0
+// 
+
+  btype = 60001 + 15;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[ eps ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, initial, lower_b, upper_b) // PARSEDOCU_BLOCK
+// 
+// A resetable, limited counter block
+//
+// count * - signal
+// reset * - signal
+// resetto * - signal
+// initial - constant
+// out * - output
+// 
+// increases out by count (out = out + count), but count is always between lower_b and upper_b
+// 
+// if reset > 0.5 then
+//   out = resetto
+//
+// initially out is set to initial
+// 
+// 
+
+  if (lower_b > upper_b) then
+    error("lower_b is greater than upper_b");
+  end
+
+  btype = 60001 + 16;
+  ipar = [  ]; rpar = [ initial, lower_b, upper_b ];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[1,1,1], outsizes=[1], ...
+                       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], ...
+                       outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( count, reset, resetto ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+// function [sim, out] = ld_resetable_int(sim, events, in) // PARSEDOCU_BLOCK
+// // logic negation - block
+// //
+// // in * - input
+// // out * - output
+// // 
+// // out = 0, if in > 0.5  OR  out = 1, if in < 0.5
+// // 
+// 
+//   btype = 60001 + 13;
+//   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+//                    insizes=[1], outsizes=[1], ...
+//                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+// 
+//   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+//   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+// endfunction
 
 
 // 
@@ -714,6 +812,52 @@ function [sim,y] = ld_alternate( sim, ev, start_with_zero ) // PARSEDOCU_BLOCK
     [sim, y] = ld_not(sim, ev, y);
   end
     
+endfunction
+
+
+// 
+// Blocks, which C functions have not been move to the basic module yet, but the interfacing function
+// 
+
+// compare block. If input > thr: 
+// optional_cmp_mode342 == 0: output = 1; else -1
+// optional_cmp_mode342 == 1: output = 1; else 0
+function [sim,bid] = libdyn_new_compare(sim, events, thr, optional_cmp_mode342)    
+  if (exists('optional_cmp_mode342') ~= 1) then
+    optional_cmp_mode342 = 0;
+  end
+
+  btype = 140;
+  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [optional_cmp_mode342], [thr]);
+endfunction
+
+
+function [sim,y] = ld_compare(sim, events, in,  thr) // PARSEDOCU_BLOCK
+//
+// compare block. 
+//   thr - constant
+//   in * - signal
+//   y *
+// If in > thr: y = 1; else y = -1
+//
+
+    [sim,blk] = libdyn_new_compare(sim, events, thr);
+    [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
+    [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
+endfunction
+
+function [sim,y] = ld_compare_01(sim, events, in,  thr) // PARSEDOCU_BLOCK
+//
+// compare block. 
+//   thr - constant
+//   in - signal
+//   y *
+// If in > thr: y = 1; else y = 0
+//
+
+    [sim,blk] = libdyn_new_compare(sim, events, thr, 1); // mode = 1
+    [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
+    [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
 
 
