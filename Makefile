@@ -55,6 +55,9 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 	#echo "------- Build finished: Now you can do > make install <  -------"
 	cat documentation/finish_info.txt
 
+#
+# FIXME: lib: wird nicht geupdated, wenn etwas in den Modulen geändert wird
+#
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	$(LD) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
  
@@ -187,7 +190,7 @@ libdyn_cpp.o: libdyn_cpp.cpp
 # Installation
 #
 
-install: libdyn_generic_exec lib
+install: all
 	sudo cp libortd.so /usr/local/lib
 	sudo cp libortd.a /usr/local/lib
 	sudo cp libortd_hart.so /usr/local/lib

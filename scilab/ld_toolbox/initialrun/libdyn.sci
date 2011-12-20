@@ -499,17 +499,6 @@ function [sim,bid] = libdyn_new_blk_filedump(sim, events, filename, vlen, maxlen
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [maxlen, autostart, vlen, length(fname), fname(:)'], []);
 endfunction
 
-// compare block. If input > thr: 
-// optional_cmp_mode342 == 0: output = 1; else -1
-// optional_cmp_mode342 == 1: output = 1; else 0
-function [sim,bid] = libdyn_new_compare(sim, events, thr, optional_cmp_mode342)    
-  if (exists('optional_cmp_mode342') ~= 1) then
-    optional_cmp_mode342 = 0;
-  end
-
-  btype = 140;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [optional_cmp_mode342], [thr]);
-endfunction
 
 // delay of delay_len samples block
 function [sim,bid] = libdyn_new_delay(sim, events, delay_len)
@@ -1100,29 +1089,6 @@ function [sim] = ld_printf(sim, events, in, str, insize)
 endfunction
 
 
-function [sim,y] = ld_compare(sim, events, in,  thr)
-// compare block. 
-//   thr - constant
-//   in - signal
-// If input > thr: output = 1; else -1
-//
-
-    [sim,blk] = libdyn_new_compare(sim, events, thr);
-    [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
-    [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
-endfunction
-
-function [sim,y] = ld_compare_01(sim, events, in,  thr)
-// compare block. 
-//   thr - constant
-//   in - signal
-// compare block. If input > thr: output = 1; else 0
-//
-
-    [sim,blk] = libdyn_new_compare(sim, events, thr, 1); // mode = 1
-    [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
-    [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
-endfunction
 
 
 

@@ -176,7 +176,7 @@ struct dynlib_block_t *new_TP1_block_(struct dynlib_simulation_t *sim, double z_
 
 
 // FIXME: Reimplement this
-int compu_func_zTF(int flag, struct dynlib_block_t *block)
+int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
 {
   //printf("comp_func zTF: flag==%d\n", flag);
   int err;
@@ -269,7 +269,7 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block)
     //  printf("Setting dfeed to %d\n", dfeed);
       libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, dfeed);
   
-      filter = libdyn_new_filter(degd);
+      filter = libdyn_new_filter(degd); // FIXME: Do this during init!
       libdyn_load_cf(filter, Qn, Qd, degn);
       libdyn_null_states(filter);
       libdyn_set_work_ptr(block, (void *) filter);
@@ -1313,7 +1313,7 @@ int compu_func_compare(int flag, struct dynlib_block_t *block)
   }
 }
 
-// FIXME: UNTESTED!
+// FIXME: UNTESTED! AWs are missing
 // MOVE
 int compu_func_delay(int flag, struct dynlib_block_t *block)
 {
@@ -1451,6 +1451,10 @@ int compu_func_flipflop(int flag, struct dynlib_block_t *block)
       }
       return 0;
       break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      *state = initial_state;
+    }
     case COMPF_FLAG_DESTUCTOR: // destroy instance
     {
       void *buffer = (void*) libdyn_get_work_ptr(block);
@@ -1666,6 +1670,10 @@ struct dynlib_block_t *new_interface_block(struct dynlib_simulation_t *sim, int 
 
 
 
+
+
+
+// OBSOLETE UNTESTED AND NEVER USED
 struct dynlib_super_block_t {
   struct dynlib_simulation_t *content_sim;
   struct dynlib_simulation_t *dest_sim;
