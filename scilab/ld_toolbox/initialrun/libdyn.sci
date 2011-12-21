@@ -1082,7 +1082,7 @@ endfunction
 
 function [sim] = ld_printf(sim, events, in, str, insize)
 // Print data to stdout (the console)
-// str is a string that is printed followed by the signal vektor in
+// str is a string that is printed followed by the signal vector in
 // of size insize
   [sim,blk] = libdyn_new_printf(sim, events, str, insize);
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
