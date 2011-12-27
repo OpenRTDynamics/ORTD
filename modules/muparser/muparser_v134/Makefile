@@ -1,22 +1,21 @@
-CC = cc
-CPP = c++
-LD = ld
-
-#CFLAGS = -I../.. -O2 
+# CC = cc
+# CPP = c++
+# LD = ld
 
 # detect system type
-host-type := $(shell arch)
+# host-type := $(shell arch)
+# 
+# ifeq ($(host-type),x86_64)
+# # 64 Bit
+# CFLAGS = -fPIC -O2 -I../.. -Iinclude
+# LDFLAGS = -shared
+# else
+# # 32 Bit
+# CFLAGS = -O2 -I../.. -Iinclude
+# LDFLAGS = -shared 
+# endif
 
-ifeq ($(host-type),x86_64)
-# 64 Bit
-CFLAGS = -fPIC -O2 -I../.. -Iinclude
-LDFLAGS = -shared
-else
-# 32 Bit
-CFLAGS = -O2 -I../.. -Iinclude
-LDFLAGS = -shared 
-endif
-
+CFLAGS_N = $(CFLAGS) -Iinclude
 
 objs=muParserBase.o muParserBytecode.o muParserCallback.o muParser.o muParserError.o muParserTokenReader.o
 
@@ -34,21 +33,21 @@ clean:
 
 
 muParserBase.o: muParserBase.cpp
-	$(CC) $(CFLAGS) -c muParserBase.cpp
+	$(CC) $(CFLAGS_N) -c muParserBase.cpp
 
 muParserBytecode.o: muParserBytecode.cpp
-	$(CC) $(CFLAGS) -c muParserBytecode.cpp
+	$(CC) $(CFLAGS_N) -c muParserBytecode.cpp
 
 muParserCallback.o: muParserCallback.cpp
-	$(CC) $(CFLAGS) -c muParserCallback.cpp
+	$(CC) $(CFLAGS_N) -c muParserCallback.cpp
 
 muParser.o: muParser.cpp
-	$(CC) $(CFLAGS) -c muParser.cpp
+	$(CC) $(CFLAGS_N) -c muParser.cpp
 
 muParserError.o: muParserError.cpp
-	$(CC) $(CFLAGS) -c muParserError.cpp
+	$(CC) $(CFLAGS_N) -c muParserError.cpp
 
 muParserTokenReader.o: muParserTokenReader.cpp
-	$(CC) $(CFLAGS) -c muParserTokenReader.cpp
+	$(CC) $(CFLAGS_N) -c muParserTokenReader.cpp
 
 

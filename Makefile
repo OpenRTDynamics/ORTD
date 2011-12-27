@@ -25,31 +25,84 @@ targetmacro=__HMM
 
 ifeq ($(target),LINUX)
   targetmacro=__ORTD_TARGET_LINUX
+
+  # Detect system type and set Fflags
+  ifeq ($(host-type),x86_64)
+    # 64 Bit
+    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = 
+  else
+    # 32 Bit
+    export CFLAGS = -g -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = 
+  endif
+
 endif
+
+ifeq ($(target),LINUX_x86_32)
+  targetmacro=__ORTD_TARGET_LINUX
+
+    # 32 Bit
+    export CFLAGS = -m32 -g -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = -m32 
+
+endif
+
+ifeq ($(target),LINUX_pentium)
+  targetmacro=__ORTD_TARGET_LINUX
+
+    # 32 Bit
+    export CFLAGS = -m32 -march=pentium -g -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = 
+
+endif
+
 
 ifeq ($(target),RTAI_COMPATIBLE) 
   targetmacro=__ORTD_TARGET_RTAI
+
+  # Detect system type and set Fflags
+  ifeq ($(host-type),x86_64)
+    # 64 Bit
+    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = 
+  else
+    # 32 Bit
+    export CFLAGS = -g -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = 
+  endif
+
 endif
 
 ifeq ($(target),CYGWIN) 
   targetmacro=__ORTD_TARGET_CYGWIN
+
+  export CFLAGS = -g -O2 -D$(targetmacro)
+  export INCLUDE =  -I$(ortd_root)
+  export LDFLAGS = 
 endif
 
 # Tell the sub makefiles that the variables from this makefile are available
 export main_makefile_invoked := yes
 
 # Detect system type and set Fflags
-ifeq ($(host-type),x86_64)
-# 64 Bit
-export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
-export INCLUDE =  -I$(ortd_root)
-export LDFLAGS = -shared
-else
-# 32 Bit
-export CFLAGS = -g -O2 -D$(targetmacro)
-export INCLUDE =  -I$(ortd_root)
-export LDFLAGS = -shared
-endif
+# ifeq ($(host-type),x86_64)
+# # 64 Bit
+# export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
+# export INCLUDE =  -I$(ortd_root)
+# export LDFLAGS = -shared
+# else
+# # 32 Bit
+# export CFLAGS = -g -O2 -D$(targetmacro)
+# export INCLUDE =  -I$(ortd_root)
+# export LDFLAGS = -shared
+# endif
 
 all: libdyn_generic_exec_static libdyn_generic_exec lib
 	#echo "------- Build finished: Now you can do > make install <  -------"
@@ -59,19 +112,19 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 # FIXME: lib: wird nicht geupdated, wenn etwas in den Modulen geändert wird
 #
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
-	$(LD) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
+	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD) libdyn_generic_exec.o -L. -lortd -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec
+	$(LD) $(LDFLAGS) libdyn_generic_exec.o -L. -lortd -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
-	$(LD) $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
-	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o Linux_Target/*.o all_Targets/*.o
-	$(LD) $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
+	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
+	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
+	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
 
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
 	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o

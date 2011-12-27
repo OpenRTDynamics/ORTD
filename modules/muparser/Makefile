@@ -46,7 +46,8 @@ lib: muparser_block.o libmuparser
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 libmuparser:
-	cd $(muparser_libdir); make
+	$(MAKE) --directory=$(muparser_libdir)
+	#cd $(muparser_libdir); make
 
 clean:
 	rm -f *.o module.a module_Linux.a
