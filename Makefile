@@ -55,9 +55,9 @@ ifeq ($(target),LINUX_pentium)
   targetmacro=__ORTD_TARGET_LINUX
 
     # 32 Bit
-    export CFLAGS = -m32 -march=pentium -g -O2 -D$(targetmacro)
+    export CFLAGS = -m32 -march=pentium -O2 -D$(targetmacro)
     export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = 
+    export LDFLAGS = -m32
 
 endif
 
