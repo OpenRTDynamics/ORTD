@@ -215,5 +215,7 @@ v0.99h ( ... )
   - Slightly changed the rt_server protocoll
   - Fixed a potential memory leak, when set-up of a schematic fails
   - Manipulation of the Makefile system (Introduced Target Systems)
-
+  - a new ld_steps block and some other new blocks
+  - a new ld_statemachine block, which enables a comfortable way of
+    setting up a statemachine by use of nested simulations
 

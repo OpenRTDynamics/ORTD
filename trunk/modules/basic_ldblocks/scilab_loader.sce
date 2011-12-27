@@ -204,9 +204,11 @@ function [sim, out] = ld_memory(sim, events, in, rememberin, initial_state) // P
 // initial output out = initial_state
 // 
 
+  memsize = length(initial_state);
+
   btype = 60001 + 6;
-  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [ initial_state ],  ...
-                   insizes=[1, 1], outsizes=[1], ...
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ memsize  ], [ initial_state ],  ...
+                   insizes=[memsize, 1], outsizes=[memsize], ...
                    intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]   );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in, rememberin) );
@@ -459,23 +461,64 @@ function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, init
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-// function [sim, out] = ld_resetable_int(sim, events, in) // PARSEDOCU_BLOCK
-// // logic negation - block
-// //
-// // in * - input
-// // out * - output
-// // 
-// // out = 0, if in > 0.5  OR  out = 1, if in < 0.5
-// // 
+function [sim, out] = ld_memorydel(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
+// delayed memory - block
+//
+// in * - input
+// rememberin * - 
+// out * - output
 // 
-//   btype = 60001 + 13;
-//   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
-//                    insizes=[1], outsizes=[1], ...
-//                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+// If rememberin > 0 then
+//   remember in, which is then feed to the output "out" in the next time step until it is overwritten by a new value
+//
+// initial output out = initial_state
 // 
-//   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
-//   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
-// endfunction
+
+  memsize = length(initial_state);
+
+  btype = 60001 + 17;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ memsize  ], [ initial_state ],  ...
+                   insizes=[memsize, 1], outsizes=[memsize], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]   );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, rememberin) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_steps(sim, events, activation_simsteps, values) // PARSEDOCU_BLOCK
+//
+// steps
+//
+// out * - output
+// 
+// 
+
+  if (length(activation_simsteps) ~= length(values)-1) then
+    error("length(activation_simsteps) != length(values)-1");
+  end
+
+  btype = 60001 + 18;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ length(values), activation_simsteps ], rpar=[ values ], ...
+                   insizes=[], outsizes=[1], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // 

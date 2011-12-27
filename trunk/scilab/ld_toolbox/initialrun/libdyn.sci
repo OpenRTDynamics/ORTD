@@ -763,7 +763,63 @@ function [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsiz
 //  parlist = new_irparam_elemet_box(parlist, sim_container_irpar.ipar, sim_container_irpar.rpar, sid);
 endfunction
 
+function [sim_container_irpar, sim, userdata] = libdyn_setup_sch2(fn, insizes, outsizes, intypes, outtypes, userdata);
+// the same as libdyn_setup_schematic but userdata is feed to the schematic fn
+// as well as returned and intypes and outtypes are now reserverd, but not used at the moment
 
+   Ninports = length(insizes);
+   Noutports = length(outsizes);
+
+   if (Ninports ~= length(intypes)) then
+     error("length of insizes and intypes not equal");
+   end
+   if (Noutports ~= length(outtypes)) then
+     error("length of outsizes and outtypes not equal");
+   end
+
+    sim = libdyn_new_simulation(insizes, outsizes);
+
+   [sim,simulation_inputs] = libdyn_get_external_ins(sim);   
+
+   // get all inputs
+   inlist = list();
+   for i = 1:Ninports
+     [sim,key] = libdyn_new_oport_hint(sim, simulation_inputs, i-1);
+     inlist(i) = key;
+   end
+
+   // let the user defined function describe the schematic
+   // It will fill in sim
+   [sim, outlist, userdata] = fn(sim, inlist, userdata);
+   
+   // check the number of provided outputs
+   if (length(outsizes) > length(outlist)) then
+      error("libdyn: libdyn_setup_schematic: your function did not provide enough outputs");
+   end
+   
+   if (length(outsizes) < length(outlist)) then
+      error("libdyn: libdyn_setup_schematic: your function provides too much outputs");
+   end
+
+   // connect outputs
+   for i = 1:length(outsizes);
+//       if exists(outlist(i)) then
+//           1; // ok
+//       else
+//           error("libdyn: libdyn_setup_schematic: yout function did not provide enough outputs");
+//       end
+     sim = libdyn_connect_outport(sim, outlist(i), i-1);
+   end
+  
+  
+  
+  // Collect and encode as irparam-set
+  sim = libdyn_build_cl(sim); 
+  sim_container_irpar = combine_irparam(sim.parlist);
+  
+//  // pack simulations into irpar container
+//  parlist = new_irparam_elemet_box(parlist, sim_container_irpar.ipar, sim_container_irpar.rpar, sid);
+endfunction
 
 
 
