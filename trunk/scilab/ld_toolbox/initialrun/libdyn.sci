@@ -321,7 +321,8 @@ endfunction
 function [sim] = libdyn_close_loop(sim, src, dest_fb_dummy)
 // printf("libdyn closing loop\n");
   libdyn_check_object(sim,dest_fb_dummy);
-
+  libdyn_check_object(sim,src);
+ 
   [sblk, sport] = libdyn_deref_porthint(sim, src);
   [dblk, dport] = libdyn_extrakt_fbdummy(sim, dest_fb_dummy);
 
@@ -331,14 +332,26 @@ endfunction
 
 
 // Get block and port information from port hint object
-function [blk, port] = libdyn_deref_porthint(sim, obj)    
+function [blk, port] = libdyn_deref_porthint(sim, obj)  
+  // libdyn_check_object has to be run on obj
+  
       highoid = obj.highleveloid; // Hole object id des Referenzierten objects
       port = obj.outport; // Hole die portnummer des Referenzierten objects
       
+//      if (obj.simid ~= sim.simid) then // tested on upper level
+//        error("Object does not belong to this simulation");
+//      end
+
       // FIXME Hier kann getestet werden, ob der index existiert. Wenn nicht
       // ist es wahrscheinlich, dass [sim,obj] = ... nicht verwendet wurde sondern
       // sim weggelassen wurde
-      blk = sim.objectlist(highoid); // Ersetze das Quell-Object
+      try
+        blk = sim.objectlist(highoid); // Ersetze das Quell-Object
+      catch
+        printf("The signal identifier highleveloid (Object ID of a block) = %d is not known to the internal list\n", highoid);
+        printf("Propably you forgot the >sim< in [sim,obj] = ...\n");
+        error(".");
+      end
 endfunction
 
 
@@ -475,6 +488,8 @@ endfunction
 // dst_out_port: The output port to connect
 //
 function sim = libdyn_connect_outport(sim, src, dst_out_port)
+      libdyn_check_object(sim,src);
+
       [sblk, sport] = libdyn_deref_porthint(sim, src);
       sim = libdyn_connect_extern_ou(sim, sblk, sport, dst_out_port);
 endfunction

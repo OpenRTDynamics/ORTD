@@ -218,4 +218,5 @@ v0.99h ( ... )
   - a new ld_steps block and some other new blocks
   - a new ld_statemachine block, which enables a comfortable way of
     setting up a statemachine by use of nested simulations
-
+  - libdyn.sci: more checks with libdyn_check_obj( )
+  
