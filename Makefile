@@ -48,8 +48,17 @@ ifeq ($(target),LINUX_x86_32)
     export CFLAGS = -m32 -g -O2 -D$(targetmacro)
     export INCLUDE =  -I$(ortd_root)
     export LDFLAGS = -m32 
-
 endif
+
+ifeq ($(target),RTAI_COMPATIBLE_x86_32)
+  targetmacro=__ORTD_TARGET_RTAI
+
+    # 32 Bit
+    export CFLAGS = -m32 -g -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = -m32 
+endif
+
 
 ifeq ($(target),LINUX_pentium)
   targetmacro=__ORTD_TARGET_LINUX

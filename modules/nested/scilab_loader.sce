@@ -318,7 +318,8 @@ function [sim, outlist, userdata ] = LD_STATEMACHINE_MAIN(sim, inlist, userdata)
 
 
   if length(outlist_inner) ~= Nout_userdata then
-      error("Nested wrapper function: your provided function returns more or less outputs in outlist. Expecting %d\n", Nout_userdata);
+      printf("Nested wrapper function: your provided function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+      error(".");
   end
 
   outlist = list();
