@@ -1610,7 +1610,7 @@ int compu_func_printf(int flag, struct dynlib_block_t *block)
 
 
 
-
+ // Obsolete
 int compu_func_interface(int flag, struct dynlib_block_t *block)
 {
  // printf("comp_func sum: flag==%d\n", flag);

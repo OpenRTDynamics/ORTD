@@ -1943,6 +1943,79 @@ int ortd_compu_func_vector_muladd(int flag, struct dynlib_block_t *block)
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+/*
+   Special blocks
+*/
+
+int compu_func_interface2(int flag, struct dynlib_block_t *block)
+{
+ // printf("comp_func sum: flag==%d\n", flag);
+  int Nout = 1;
+  int Nin = 1;
+
+  double *out, *in;	
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int len = ipar[0];
+  
+  struct fn_gen_t *work = (struct fn_gen_t *) block->work;
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+      in = (double *) libdyn_get_input_ptr(block,0);
+      out = (double *) libdyn_get_output_ptr(block,0);
+      
+      //printf("copy %f, len = %d\n", in[0], len);
+      
+/*      int i;
+      for (i=0; i<len; ++i) // copy in to out FIXME: DO this by setting outptr to inptr
+        out[i] = in[i];*/
+      
+      memcpy((void*) out, (void*) in, sizeof(double) * len);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES:
+      out = (double *) libdyn_get_output_ptr(block,0);
+      
+      // set output to zero
+      memset((void*) out, 0, sizeof(double) * len );
+      
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, len, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, len, DATATYPE_FLOAT, 1);
+      
+      //printf("New fn_gen block shape = %d\n", shape);
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // configure
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+      return 0;
+      break;
+  }
+}
+
+
+
+
 //#include "block_lookup.h"
 
 int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
@@ -1992,6 +2065,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 58, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vector_muladd);
 
 
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_interface2);
+    
 }
 
 

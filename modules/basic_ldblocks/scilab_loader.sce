@@ -718,10 +718,35 @@ endfunction
 
 // 
 // 
-// 
+// Special blocks
 // 
 
 
+// obsolete
+function [sim,bid] = libdyn_new_interface(sim, events, len)
+  btype = 4000;
+  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [len], []);
+endfunction
+
+
+function [sim, out] = ld_interface(sim, events, in, vecsize) // PARSEDOCU_BLOCK   
+// Interfacing block
+//
+// in *+(vecsize) - input
+// out *+(vecsize) - output
+//    
+  btype = 60001 + 1000;	
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -731,6 +756,16 @@ endfunction
 // Macros
 //
 //
+
+
+function [sim,y] = ld_add_ofs(sim, events, u, ofs) // PARSEDOCU_BLOCK
+//
+// Add a constant "ofs" to the signal u; y = u + const(ofs)
+//
+  [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
+  
+  [sim,y] = ld_sum(sim, events, list(u,0, ofs_const,0), 1,1);
+endfunction
 
 
 function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero ) // PARSEDOCU_BLOCK
@@ -923,8 +958,6 @@ endfunction
 
 
 
-
-
 //
 // Blocks
 //
@@ -1098,10 +1131,6 @@ endfunction
 
 
 
-function [sim,bid] = libdyn_new_interface(sim, events, len)
-  btype = 4000;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [len], []);
-endfunction
 
 
 
