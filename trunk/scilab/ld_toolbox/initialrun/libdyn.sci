@@ -843,13 +843,6 @@ endfunction
 // More complex blocks based on elementary blocks
 //////////////////////////////////////////////////////////
 
-function [sim,y] = ld_add_ofs(sim, events, u, ofs)
-// Add a constant "ofs" to the signal u; y = u + const(ofs)
-  [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
-  
-  [sim,y] = ld_sum(sim, events, list(u,0, ofs_const,0), 1,1);
-endfunction
-
 //
 // Generic controllers
 //
