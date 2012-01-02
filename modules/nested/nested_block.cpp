@@ -939,7 +939,6 @@ void compu_func_statemachine_class::io_sync(int update_states)
         simnest->copy_outport_vec(Ndataout+0, &tmp);
 
         int active = round(tmp)-1;
-	this->active_state = active;
         if (active >= 0) {
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
@@ -947,6 +946,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
             // switch to the new state
             simnest->reset_blocks();
             simnest->set_current_simulation(active);
+    	    this->active_state = active;
 	    
 	    
         }
@@ -958,7 +958,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
 
         simnest->simulation_step(0);
 	
-	double *current_state = (double*) libdyn_get_output_ptr(block, Ndataout);
+	double *current_state = (double*) libdyn_get_output_ptr(block, Ndataout); // FIXME: This output does not work by now
 	*current_state = this->active_state;
 
         for (i=0; i< Ndataout ; ++i) {
