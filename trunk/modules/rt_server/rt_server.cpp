@@ -125,6 +125,8 @@ tcp_connection::tcp_connection(tcp_server* tcps, int fd)
 void tcp_connection::destruct_wait_until_unused()
 {
     // This will block until this instance is ready for destruction
+    
+    // FIXME at this point this locks up
     pthread_mutex_lock(&used_mutex); // initially locked
 }
 
