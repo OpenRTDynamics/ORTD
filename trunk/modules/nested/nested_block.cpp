@@ -959,7 +959,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
         simnest->simulation_step(0);
 	
 	double *current_state = (double*) libdyn_get_output_ptr(block, Ndataout);
-	*current_state = 90; //this->active_state;
+	*current_state = this->active_state;
 
         for (i=0; i< Ndataout ; ++i) {
             double *out_p = (double*) libdyn_get_output_ptr(block, i);
