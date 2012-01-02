@@ -937,10 +937,9 @@ void compu_func_statemachine_class::io_sync(int update_states)
 // 	printf("statemachnie: copy global active_state outport of nested %d\n", Ndataout+0);
         double tmp;
         simnest->copy_outport_vec(Ndataout+0, &tmp);
-        this->active_state = round(tmp)-1;
-// 	printf("active_state %f\n", this->active_state);
 
         int active = round(tmp)-1;
+	this->active_state = active;
         if (active >= 0) {
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
@@ -960,7 +959,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
         simnest->simulation_step(0);
 	
 	double *current_state = (double*) libdyn_get_output_ptr(block, Ndataout);
-	*current_state = this->active_state;
+	*current_state = 90; //this->active_state;
 
         for (i=0; i< Ndataout ; ++i) {
             double *out_p = (double*) libdyn_get_output_ptr(block, i);
