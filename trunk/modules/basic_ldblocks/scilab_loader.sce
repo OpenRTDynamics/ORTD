@@ -522,7 +522,7 @@ function [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto) // PA
                    insizes=[1,1], outsizes=[1], ...
                    intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, condition) );
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(condition, in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
