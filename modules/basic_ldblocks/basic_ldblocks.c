@@ -1296,6 +1296,60 @@ int ortd_compu_func_steps(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_ld_cond_overwrite(int flag, struct dynlib_block_t *block)
+{
+    //printf("comp_func switch: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 2;
+
+    double *inp1;
+    double *cond_in;
+    double *out1;
+
+    double *rpar = libdyn_get_rpar_ptr(block);
+    double setto = rpar[0];
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        cond_in = (double *) libdyn_get_input_ptr(block,0);
+        inp1 = (double *) libdyn_get_input_ptr(block,1); // signal
+        out1 = (double *) libdyn_get_output_ptr(block,0);
+
+        if (*cond_in > 0.5) {
+            *out1 = setto;
+        } else {
+            *out1 = *inp1;
+        }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        //printf("New switch Block\n");
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype,
+        
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_cond_overwrite block\n");
+        return 0;
+        break;
+
+    }
+}
+
 
 
 
@@ -2047,6 +2101,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 16, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_limitedcounter);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 17, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_memorydel);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 18, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 19, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_cond_overwrite);
 
     
     
