@@ -506,7 +506,25 @@ function [sim, out] = ld_steps(sim, events, activation_simsteps, values) // PARS
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto) // PARSEDOCU_BLOCK
+//
+// conditional overwrite of the input signal's value
+//
+// out * - output
+// 
+// out = in, if condition < 0.5
+// out = setto, otherwise
+// 
 
+
+  btype = 60001 + 19;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[ setto ], ...
+                   insizes=[1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, condition) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
