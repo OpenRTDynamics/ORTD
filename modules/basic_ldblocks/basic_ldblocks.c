@@ -1353,9 +1353,133 @@ int compu_func_ld_cond_overwrite(int flag, struct dynlib_block_t *block)
 
 
 
+int ortd_compu_func_ld_ramp(int flag, struct dynlib_block_t *block) // FIXME: NOT FINISHED
+{
+    int Nout = 1;
+    int Nin = 3;
+
+    double *increase, *start, *reset;
+    double *out;
+
+    double *rpar = libdyn_get_rpar_ptr(block);
+    
+
+    double *state = (void*) libdyn_get_work_ptr(block);
 
 
 
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        increase = (double *) libdyn_get_input_ptr(block,0); 
+        start = (double *) libdyn_get_input_ptr(block,1); 
+        reset = (double *) libdyn_get_input_ptr(block,2); 
+        out = (double *) libdyn_get_output_ptr(block,0);
+
+        *out = state[0];
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        increase = (double *) libdyn_get_input_ptr(block,0); 
+        start = (double *) libdyn_get_input_ptr(block,1); 
+        reset = (double *) libdyn_get_input_ptr(block,2); 
+        out = (double *) libdyn_get_output_ptr(block,0);
+
+        if  (state[0] <= 1) 
+            state[0] += *increase;
+	
+	if (reset[0] > 0.5)
+	  state[0] = 0;
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES: // reset states
+        *state = 0;
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 2, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        double *state = malloc(sizeof(double));
+        libdyn_set_work_ptr(block, (void *) state);
+        *state = 0;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        void *buffer = (void*) libdyn_get_work_ptr(block);
+        free(buffer);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ramp block.\n");
+        return 0;
+        break;
+    }
+}
+
+int compu_func_ld_and(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+        double *in1 = (double *) libdyn_get_input_ptr(block, 0);
+        double *in2 = (double *) libdyn_get_input_ptr(block, 1);
+
+	*out = 0;
+	if ( (*in1 > 0.5) && (*in2 > 0.5) )
+          out[0] = 1;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_and block\n");
+        return 0;
+        break;
+
+    }
+}
 
 
 
@@ -2102,7 +2226,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 17, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_memorydel);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 18, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 19, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_cond_overwrite);
-
+    // MISSING HERE
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 21, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_and);
+    
     
     
 

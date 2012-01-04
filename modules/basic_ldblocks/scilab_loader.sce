@@ -403,7 +403,7 @@ function [sim, out] = ld_or(sim, events, inlist) // PARSEDOCU_BLOCK
                    insizes, outsizes=[1], ...
                    intypes, outtypes=[ORTD.DATATYPE_FLOAT]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( inlist(1), inlist(2) ) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
@@ -526,8 +526,51 @@ function [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto) // PA
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_ramp(sim, events, in_from, in_to, start, reset, ramp_duration) // NOT FINISHED
+//
+// Online configurable ramp block
+//
+// out * - output (from 0 to 1)
+// start * - if > 0.5 the ramp starts
+// reset * - if > 0.5 the blocks states are reset
+// increase * - constant by which the output is increased for each time step
+// 
+// 
 
+  btype = 60001 + 20;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[  ], ...
+                   insizes=[1,1,1], outsizes=[1], ...
+                   intypes=ORTD.DATATYPE_FLOAT*[1,1,1], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(  start, reset, increase ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_and(sim, events, inlist) // PARSEDOCU_BLOCK
+// logic and - block
+//
+// in *LIST - list() of inputs (for now the exactly two inputs are possible)
+// out * - output
+// 
+// 
+
+  Nin=length(inlist);
+
+  if (Nin ~= 2) then
+    error("invalid number of inputs");
+  end
+
+  insizes=ones(1, Nin);
+  intypes=ones(1, Nin) * ORTD.DATATYPE_FLOAT;
+
+  btype = 60001 + 21;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[   ], ...
+                   insizes, outsizes=[1], ...
+                   intypes, outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( inlist(1), inlist(2) ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
