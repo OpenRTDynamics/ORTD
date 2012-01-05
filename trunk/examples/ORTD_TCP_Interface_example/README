@@ -1,0 +1,27 @@
+Example to the communication interface
+--------------------------------------
+
+Prerequirement: Needs openrtdynamics.sf.net including the hart module to be installed. 
+
+0) start scilab out of this directory
+1) run the cos file "hand_communication.cos". The files "interface_hand.?par" need
+   to be available.
+2) open a shell and connect to the TCP-Interface (the TCP-Port is 10002):
+
+ netcat localhost 10002
+ 
+3) Type "ls" to, which streams and scopes are available
+4) Type "set_param  control_signal # 1 # 2.3 # 0 # 0 # 0  # 0 # 0 # 0 # 0 # 0" and
+   see in the scicos scope how parameters change.
+5) Type "stream_fetch output 0" and you will get a stream of the data
+   going into the generic_libdyn block.
+6) Hit Cntrl-C to disconnect
+
+
+In order to change the number of input / output ports edit and execute 
+interface_hand.sce. Additionally the block mask of the
+"generic_libdyn"-Scicosblock needs to be changed.
+
+
+
+
