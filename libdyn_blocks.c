@@ -1195,6 +1195,13 @@ int compu_func_filedump(int flag, struct dynlib_block_t *block)
     } 
       return 0;
       break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      struct filewriter_t *filewriter = (struct filewriter_t *) block->work;
+      log_dfilewriter_reset(filewriter);
+    }
+    return 0;
+    break;
     case COMPF_FLAG_CONFIGURE:  // configure
     {
       

@@ -39,13 +39,16 @@ struct ringbuffer_t {
   
   int write_cnt; // index to the next free write position
   int read_cnt; // index to element that can be read
-  int elements_pending; // number of elements in the buffer. Protected by elements_pending_mutex
+  volatile int elements_pending; // number of elements in the buffer. Protected by elements_pending_mutex
 
   pthread_mutex_t thread_mutex;
   pthread_cond_t thread_condition;
   int thread_command;
   
-  int special_signal; // buffer for a special information for the reader thread
+  int special_signal; // buffer for a special information for the reader thread // FIXME: Remove this and replace by cntrl_signal_ring
+  struct {
+    int *buffer, readpos, writepos, bufsize, elements_pending;
+  } cntrl_signal_ring;  // buffer for cntrl information like flush, end or reset
   
   pthread_mutex_t elements_pending_mutex;
   
@@ -77,6 +80,7 @@ struct sink_t {
 
 struct sink_t *log_sink_new(int element_size, int num_elements, void *callback_func, void *callback_userdat, int numElementsToWrite);
 void log_sink_flush(struct sink_t *sink);
+void log_sink_reset(struct sink_t *sink);
 int log_sink_del(struct sink_t *sink);
 
 
@@ -86,13 +90,14 @@ int log_sink_del(struct sink_t *sink);
 
 struct filewriter_t {
   FILE *fd;
-  char fname[256];
+  char fname[1024];
   struct sink_t *sink;
   int vlen;
 };
 
 struct filewriter_t *log_dfilewriter_new(int vlen, int bufsize, char *fname);
 int log_dfilewriter_del(struct filewriter_t *fw);
+int log_dfilewriter_reset(struct filewriter_t *fw);
 int log_dfilewriter_log(struct filewriter_t *fw, double *vec);
 
 
@@ -104,7 +109,7 @@ int log_dfilewriter_log(struct filewriter_t *fw, double *vec);
 
 struct streamtrans_t {
   FILE *fd;
-  char fname[256];
+  char fname[1024];
   struct sink_t *sink;
 };
 
