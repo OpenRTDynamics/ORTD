@@ -58,7 +58,14 @@ struct ringbuffer_t *log_ringbuffer_new(int element_size, int num_elements, int 
   pthread_mutex_init(&rb->thread_mutex, NULL);
   pthread_cond_init(&rb->thread_condition, NULL);
   rb->thread_command = 0;
-  rb->special_signal = 0;
+  
+  // init the signal ring buffer
+  rb->special_signal = 0; // FIXME REMOVE THIS
+  rb->cntrl_signal_ring.bufsize = 100;
+  rb->cntrl_signal_ring.readpos = 0;
+  rb->cntrl_signal_ring.writepos = 0;
+  rb->cntrl_signal_ring.elements_pending = 0;
+  rb->cntrl_signal_ring.buffer = (int*) malloc(rb->cntrl_signal_ring.bufsize*sizeof(int));
   
   rb->wakeup_slave_counter = 0;
   rb->wakeup_slave_elements = autoflushInterval; // signal slave after n new elements
@@ -97,6 +104,8 @@ int log_ringbuffer_del(struct ringbuffer_t *rb)
 
   free(rb);
   mydebug(0) printf("freed rb\n");
+  
+  free(rb->cntrl_signal_ring.buffer );
 }
 
 //
@@ -193,7 +202,7 @@ int log_ringbuffer_avait_signal(struct ringbuffer_t *rb)
   int sig = rb->special_signal;
   rb->special_signal = 0; // Reset signal information - which indicates that this sigal was processed
 
-  pthread_mutex_unlock(&rb->thread_mutex);  
+  pthread_mutex_unlock(&rb->thread_mutex);
   
   return sig;
 }
@@ -310,10 +319,10 @@ void *log_sink_thread(void *data)
       mydebug(0) printf("testout= %f\n", testout);
     }
 
-    // There was a signal
+    // There was a control signal
 
-    if (signal == 2) {
-      mydebug(0) printf("reader: flush\n");
+    if (signal >= 2) { // 2 means flush buffers
+      mydebug(0) printf("reader: control signal\n");
       // Flush buffers
       int tmp;
       while ((tmp = log_ringbuffer_read(sink->rb, sink->oneelebuf, 1)) != -1) { // Non Blocking read
@@ -321,8 +330,17 @@ void *log_sink_thread(void *data)
          ret = (*sink->callback_func)(sink->oneelebuf, sink->callback_userdat, 2);	 
       }
        
-      ret = (*sink->callback_func)(sink->oneelebuf, sink->callback_userdat, 4); // flush
+      switch (signal) {
+	case 2:
+          ret = (*sink->callback_func)(sink->oneelebuf, sink->callback_userdat, 4); // flush
+	  break;
+	case 3:
+          ret = (*sink->callback_func)(sink->oneelebuf, sink->callback_userdat, 5); // reset
+	  break;
+      }
+	  
     }
+
 
   } while (signal != 1); // if signal == 1 then abort
   
@@ -366,6 +384,8 @@ struct sink_t *log_sink_new(int element_size, int num_elements, void *callback_f
     return 0;
   }
 
+  // FIXME Wait for the thread to be ready
+
   return sink;
 }
 
@@ -374,6 +394,13 @@ void log_sink_flush(struct sink_t *sink)
   mydebug(0) printf("sink flush\n");
   log_ringbuffer_flush(sink->rb);  
   log_ringbuffer_send_signal(sink->rb, 2); // thread flush signal  
+}
+
+void log_sink_reset(struct sink_t *sink)
+{
+  // send reset signal to the calback function
+  
+  log_ringbuffer_send_signal(sink->rb, 3); // thread reset signal  
 }
 
 int log_sink_del(struct sink_t *sink)
@@ -436,6 +463,35 @@ int log_dfilewriter_callback(void *data, void *calbdata, int flag)
       }
       return 0;
       break;
+    case 5: // reset
+      {
+	printf("filewriter: reset\n");
+	
+	// Close the old file
+	if (fw->fd != NULL) {
+	  printf("filewriter: close logfile %s\n", fw->fname);
+	  fclose(fw->fd);
+	}
+	
+	// Rename the written file
+	char new_file_name[1024 + 10];
+	snprintf(new_file_name, sizeof(new_file_name), "%s.finished", fw->fname);
+	if (rename(fw->fname, new_file_name) != 0) {
+	  printf("filewriter: unable to rename file to %s\n", new_file_name); 
+	}
+	
+	// Open the new file
+	printf("filewriter: open logfile %s\n", fw->fname);
+	fw->fd = fopen ( fw->fname, "w" );
+	if (fw->fd == NULL) {
+	  printf("ERROR: log.c: cannot open file\n");
+	  return -1;
+	}
+	
+	
+      }
+      return 0;
+      break;
   }
 }
 
@@ -469,6 +525,13 @@ int log_dfilewriter_del(struct filewriter_t *fw)
    mydebug(0) printf("dfilew deleted\n");
 }
 
+int log_dfilewriter_reset(struct filewriter_t *fw)
+{
+  // close the current file and rename it to *.finished
+  // then open a new one
+  
+  log_sink_reset(fw->sink);
+}
 
 int log_dfilewriter_log(struct filewriter_t *fw, double *vec)
 {

@@ -3,7 +3,8 @@
 // Interfacing functions are placed in this place
 
 
-function [sim]=ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK
+function [sim] = ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK
+//
 // Quick and easy dumping of signals to files
 // 
 // fname - string of the filename

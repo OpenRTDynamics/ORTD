@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2010, 2011  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+    This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
 /*
  * libdyn.c - Library for realtime controller implementations
  *
- * Author: Christian Klauer 2009-2011
+ * Author: Christian Klauer 2009-2012
  *
  * This library interpretes schematics of connected blocks
  * in realtime similar to scicos or simulink
@@ -39,6 +39,9 @@
 
 */
 
+
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,6 +51,9 @@
 #define absf(a) ( ((a) > 0) ? (a) : -(a) )
 
 #define mydebug(level) if ((level) > 10)
+
+
+
 //#define mydebug(level) if ((level) >= 0)
 
 //

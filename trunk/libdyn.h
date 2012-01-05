@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2010, 2011  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+    This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@
  * libdyn.h - Library for simple realtime controller implementations
  *
  *
- * Author: Christian Klauer 2009-2010
+ * Author: Christian Klauer 2009-2012
  *
  *
  *
@@ -32,6 +32,12 @@
 #ifndef _LIBDYN_H
 #define _LIBDYN_H 1
 
+
+/*
+    Uncomment this will enable some additional checks, but slow down the performance a bit
+    Use, if you are using untested blocks
+*/
+//#define LD_USE_ONLINE_ASSERTIONS
 
 
 
@@ -90,8 +96,16 @@
 
 
 // Macros for accessing block data structures // FIXME: hier nullpointerabfrage
-#define libdyn_get_output_ptr(block, out) ( ((block)->Nout <= out) ? 0 : (block)->outlist[(out)].data  )
-#define libdyn_get_input_ptr(block, in) (  ((block)->Nin <= in) ? 0 : (block)->inlist[(in)].data )
+
+#ifdef LD_USE_ONLINE_ASSERTIONS 
+  #define libdyn_get_output_ptr(block, out) ( ((block)->Nout <= out) ? 0 : (block)->outlist[(out)].data  )
+  #define libdyn_get_input_ptr(block, in) (  ((block)->Nin <= in) ? 0 : (block)->inlist[(in)].data )
+#else
+  #define libdyn_get_output_ptr(block, out) ( (block)->outlist[(out)].data  )
+  #define libdyn_get_input_ptr(block, in)   ( (block)->inlist[(in)].data )
+#endif
+
+
 #define libdyn_get_ipar_ptr(block) ((block)->ipar)
 #define libdyn_get_rpar_ptr(block) ((block)->rpar)
 #define libdyn_get_opar_ptr(block) ((block)->opar)
