@@ -315,13 +315,17 @@ directory_entry::direntry* directory_tree::access(char* path, void* belonges_to_
 
 bool directory_tree::add_entry(char* name, int type, void* belonges_to_class, void* userptr)
 {
-  if (magic != 0xabcdef) {
+/*  if (magic != 0xabcdef) {
     printf("grr\n"); 
-  }
-  
+  }*/
+
+  bool ret;
+
   lock();
-  root->add_entry( name, type, belonges_to_class, userptr );
+  ret = root->add_entry( name, type, belonges_to_class, userptr );
   unlock();
+  
+  return ret;
 }
 
 bool directory_tree::delete_entry(char* name)
@@ -388,11 +392,14 @@ void directory_tree::end_list()
 
 void directory_tree::lock()
 {
+//   printf("*** dir lock() ...\n");
    pthread_mutex_lock(&this->list_process_mutex);
+//    printf("*** dir lock(): ok \n");
 }
 
 void directory_tree::unlock()
 {
+//   printf("*** dir unlock() \n");
    pthread_mutex_unlock(&this->list_process_mutex);
 }
 

@@ -332,11 +332,15 @@ int libdyn_nested::add_simulation(int slotID, irpar* param, int boxid)
 {
     if (sim_slots != NULL)
         if (slots_available() <= 0)
-            return -1;
+            return -1; // no more slots available
 
     return this->add_simulation(slotID, param->ipar, param->rpar, boxid);
 }
 
+int libdyn_nested::add_simulation(irpar* param, int boxid)
+{
+    return this->add_simulation(-1, param->ipar, param->rpar, boxid);
+}
 
 
 // Add a simulation based on provided irpar set
@@ -344,7 +348,7 @@ int libdyn_nested::add_simulation(int slotID, int* ipar, double* rpar, int boxid
 {
     if (sim_slots != NULL)
         if (slots_available() <= 0)
-            return -1;
+            return -1; // no more slots available
 
 
     libdyn *sim;
@@ -381,22 +385,22 @@ int libdyn_nested::add_simulation(int slotID, int* ipar, double* rpar, int boxid
 int libdyn_nested::add_simulation(int slotID, libdyn* sim)
 // main add_simulation function that is called by the two other derivates
 {
-    if (sim_slots == NULL) {
-        fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
-        return -1;
-    }
 
 
-    // slots are used
+    
     if (slotID == -1) {
-        if (slots_available() <= 0) {
-            fprintf(stderr, "nested: no more slots available\n");
-            return -1;
-        }
-
-
         // also set to be the current simulation
         current_sim = sim;
+
+	if (sim_slots == NULL) {	    
+	    return 1; // slots are not used: go out - everything is fine now
+	}
+	
+         // slots are not used
+         if (slots_available() <= 0) {
+             fprintf(stderr, "nested: no more slots available\n");
+             return -1;
+         }
 
         // add simulation to the next slot
         sim_slots[ slot_addsim_pointer ] = sim;
@@ -406,7 +410,14 @@ int libdyn_nested::add_simulation(int slotID, libdyn* sim)
         slot_addsim_pointer++;
         usedSlots++;
     } else {
+      // slots are used
 
+      if (sim_slots == NULL) {
+          fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
+          return -1;
+      }
+
+       
         if (!slotindexOK(slotID)) {
             fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
             return -1;
@@ -656,6 +667,11 @@ double * libdyn::get_vec_out(int out)
 
 void libdyn::libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 {
+  printf("....................................\n");
+  printf(".. Setting up new simulation  ......\n");
+  printf("....................................\n");
+  
+  
     error = 0;
 
     int sum, tmp, i;
