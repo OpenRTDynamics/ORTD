@@ -367,6 +367,15 @@ bool rt_server_decoder::await_message()
     getline(bio->sstream_in, input_line);
 //     std::cout << "I got: " << input_line << "\n";
 
+    
+    ////////////
+    parse_line(input_line);
+    
+
+}
+
+bool rt_server_decoder::parse_line(std::string input_line)
+{
     // copy the line into a stream
     std::stringstream tmp;
     tmp << input_line;

@@ -190,7 +190,8 @@ class libdyn_nested {
     
     // Add a simulation into the next free slot (slotID == -1) or to the specified slot
     // This can also occur while other simulations are running
-    int add_simulation(int slotID, irpar* param, int boxid); // used at the moment
+    int add_simulation(int slotID, irpar* param, int boxid); // 
+    int add_simulation(irpar* param, int boxid); // same as above with slotid = -1
     int add_simulation(int slotID, int *ipar, double *rpar, int boxid);
     int add_simulation(int slotID, libdyn* sim);
     

@@ -72,7 +72,13 @@ class rt_server_decoder {
     bool send_raw_command(char *cmd);
     
     bool read_scopes();
+    
+    // Wait for a message and parse the received line
     bool await_message();
+    
+    // the line was read somewhere else. It is only parsed
+    bool parse_line(std::string input_line);
+    
     
     char *hostname;
     int port;
