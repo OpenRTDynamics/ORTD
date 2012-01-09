@@ -954,6 +954,27 @@ function [sim,y] = ld_alternate( sim, ev, start_with_zero ) // PARSEDOCU_BLOCK
     
 endfunction
 
+function [sim, out] = ld_detect_step_event(sim, ev, in, eps) // PARSEDOCU_BLOCK
+    //
+    // step detection block
+    //
+    // Detect jumps in the signal in
+    // everytime a jump occurs out is an impulse with the intensity of th
+    // value after the jump i.e. if a signal steps from 1 to 2 there
+    // will be an impulse out = 2
+    // if no steps occur, out is zero
+    //
+    
+    z = poly(0, 'z');
+    
+    [sim, i1] = ld_ztf(sim, ev, in, (z-1)/z ); // diff
+    [sim, i2] = ld_abs(sim, ev, i1);
+    
+    [sim,event] = ld_compare_01(sim, ev, in=i2, thr=eps);
+    [sim, out] = ld_mult(sim, ev, inp_list=list(event, in), muldiv1_list=[0, 0]);
+    
+endfunction
+
 
 // 
 // Blocks, which C functions have not been move to the basic module yet, but the interfacing function

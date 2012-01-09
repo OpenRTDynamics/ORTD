@@ -234,7 +234,7 @@ public:
       * * register a command "name" with id and its callback function
       */
     void add_command(char* name, int (*callback)(rt_server_command*, rt_server *rt_server_src), void *userdat );
-
+    bool del_command(char *name); // TODO
 
     void loop();
 

@@ -34,8 +34,8 @@ endif # ifeq ($(main_makefile_invoked),yes)
 all: lib
 	echo "Module nested done"
 
-lib: nested_block.o
-	ar rvs module.a nested_block.o   # Will always be included
+lib: nested_block.o nested_onlineexchange.o
+	ar rvs module.a nested_block.o nested_onlineexchange.o  # Will always be included
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 
@@ -46,5 +46,7 @@ clean:
 nested_block.o: nested_block.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c nested_block.cpp
 
+nested_onlineexchange.o: nested_onlineexchange.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c nested_onlineexchange.cpp
 
 

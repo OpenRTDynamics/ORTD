@@ -27,7 +27,7 @@ extern "C" {
 }
 
 #include "libdyn_cpp.h"
-
+#include "nested_onlineexchange.h"
 
 
 
@@ -323,7 +323,6 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 
 
 
-
 class compu_func_nested_class {
 public:
     compu_func_nested_class(struct dynlib_block_t *block);
@@ -348,6 +347,7 @@ private:
 
     libdyn_nested * simnest;
     libdyn_master * master;
+    nested_onlineexchange *exchange_helper; // ifdef REMOTE
     irpar *param;
 
     int Nin;
@@ -413,6 +413,7 @@ int compu_func_nested_class::init()
       */
 
 
+    
     bool use_buffered_input = false;  // in- and out port values are not buffered (default)
     if (asynchron_simsteps > 0) {
         use_buffered_input == true;  // with async computation buffered inputs have to be used
@@ -421,6 +422,21 @@ int compu_func_nested_class::init()
     // create a new container for multiple simulations
     simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
     simnest->allocate_slots(Nsimulations);
+
+    // If there is a libdyn master : use it
+    master = (libdyn_master *) block->sim->master;
+    if (master == NULL) {  // no master available
+//       fprintf(stderr, "WARNING: libdyn: parameter block requires a libdyn master\n");
+    }
+
+    simnest->set_master(master);
+    
+    // init the simulation exchange helper
+    if (master != NULL) {
+      exchange_helper = new nested_onlineexchange("test_simulation", simnest); // ifdef REMOTE
+    } else {
+       fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");      
+    }
 
     //
     // set pointers to the input ports of this block
@@ -431,20 +447,12 @@ int compu_func_nested_class::init()
     }
 
 
-    // If there is a libdyn master : use it
-    master = (libdyn_master *) block->sim->master;
-    if (master == NULL) {  // no master available
-//       fprintf(stderr, "WARNING: libdyn: parameter block requires a libdyn master\n");
-    }
-
-    simnest->set_master(master);
-
     // load all schematics
     for (simCreateCount = 0; simCreateCount < Nsimulations; ++simCreateCount) {
         int shematic_id = 900 + simCreateCount;
 
         printf("libdyn_nested: loading shematic id %d\n", shematic_id);
-        if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
+        if (simnest->add_simulation(-1, ipar, rpar, shematic_id) < 0) {
             goto destruct_simulations;  // An error
         }
 
@@ -895,7 +903,7 @@ int compu_func_statemachine_class::init()
         int shematic_id = 900 + simCreateCount;
 
         printf("libdyn_nested statemachine: loading shematic id %d\n", shematic_id);
-        if (simnest->add_simulation(ipar, rpar, shematic_id) < 0) {
+        if (simnest->add_simulation(-1, ipar, rpar, shematic_id) < 0) {
             goto destruct_simulations;  // An error
         }
     }

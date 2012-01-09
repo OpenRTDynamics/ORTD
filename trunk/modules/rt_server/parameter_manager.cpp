@@ -342,13 +342,13 @@ parameter * parameter_manager::new_parameter( char *name, int type, int size )
 
 void parameter_manager::delete_parameter(parameter* par)
 {
-//    FIXME TODO
+//    FIXME TODO MEMORYLEAK
 }
 
 
 void parameter_manager::destruct()
 {
-//    FIXME: TODO
+//    FIXME: TODO MEMORYLEAK
 }
 
 
@@ -629,8 +629,8 @@ ioerror:
 
 ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int datatype, int const_len, int numBufferElements, int autoflushInterval, int StreamId )
 {
+    // init variables
     // const_len : number of vector elements
-
     nElements = const_len;
     numBytes = const_len * libdyn_config_get_datatype_len(datatype);
     rb = new ortd_ringbuffer(numBytes, numBufferElements, 0);
@@ -645,14 +645,18 @@ ortd_stream::ortd_stream(ortd_stream_manager* str_mgr, const char* name, int dat
 //     Create the stream multiplexer
     multiplexer = new ortd_stream_multiplexer(this, NULL, this->datatype, nElements, autoflushInterval, 0.0);
 
-
-
     // reader mutex init
     pthread_mutex_init(&mutex_readstream, NULL);
 
+    
+    //   Add directory entry // FIXME abort on error
+    // This has to be the LAST initialisation step
+    // also adapt this for the parameter stuff
+    if (!str_mgr->directory->add_entry((char*) name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, str_mgr, (void*) this)) {
+      fprintf(stderr, "Name <%s> of the stream already used\n", name);
+    }
 
-//   Add directory entry
-    str_mgr->directory->add_entry((char*) name, ORTD_DIRECTORY_ENTRYTYPE_STREAM, str_mgr, (void*) this);
+
 }
 
 ortd_stream::~ortd_stream()
@@ -905,13 +909,14 @@ ortd_stream* ortd_stream_manager::new_stream(char* name, int datatype, int const
 
 void ortd_stream_manager::delete_stream(ortd_stream* stream)
 {
-    // FIXME TODO
+    // FIXME TODO MEMORY LEAK
 }
 
 
 void ortd_stream_manager::destruct()
 {
-
+ // FIXME TODO MEMORY LEAK
+//  this->rts_thmng->remove_command
 }
 
 
