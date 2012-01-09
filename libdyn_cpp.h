@@ -68,10 +68,15 @@ class irpar {
     char fname_rpar[256];
   public:
     irpar();
+    
+    // allocate buffers. Usage of load_from_afile not possible for this case
+    irpar(int Nipar, int Nrpar);
+    
     void destruct();
     
       int err; // variable for errors
   
+      // use only one of the following functions to initialise
       bool load_from_afile( char* fname_i, char* fname_r );
       bool load_from_afile( char* fname );
       
@@ -135,15 +140,20 @@ class libdyn_nested {
     void set_buffer_inptrs();
     
     void* InputBuffer;
-    
+
+  public:
     libdyn_master * ld_master;
 
+  private:
     // slot management
     void free_slots();
     int slots_available();
     bool slotindexOK(int nSim); // Test if nSim is in correct range
+    void lock_slots() { pthread_mutex_lock(&slots_mutex); };
+    void unlock_slots() { pthread_mutex_unlock(&slots_mutex); };
     
     // Array of size  Nslots
+    pthread_mutex_t slots_mutex;
     libdyn **sim_slots;
     int Nslots;
     int slot_addsim_pointer;
@@ -178,14 +188,17 @@ class libdyn_nested {
     // slot management; call BEFORE add_simulation
     void allocate_slots(int n);
     
-    // Add a simulation into the next free slot
-    int add_simulation(irpar* param, int boxid); // used at the moment
-    int add_simulation(int *ipar, double *rpar, int boxid);
-    int add_simulation(libdyn* sim);
+    // Add a simulation into the next free slot (slotID == -1) or to the specified slot
+    // This can also occur while other simulations are running
+    int add_simulation(int slotID, irpar* param, int boxid); // used at the moment
+    int add_simulation(int slotID, int *ipar, double *rpar, int boxid);
+    int add_simulation(int slotID, libdyn* sim);
     
-    
+    // remove a simulation from the list
+    // the simulation instance will be destructed
+    int del_simulation(int slotID);
 
-    bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
+//     bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
 
     // Activate a simulation from the slots
     bool set_current_simulation(int nSim);

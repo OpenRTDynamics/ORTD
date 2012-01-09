@@ -78,7 +78,9 @@ void directory_leaf::set_name(const char* name)
 
 bool directory_leaf::add_entry(char* name, int type, void *belonges_to_class, void* userptr)
 {
-  // FIXME: also check existance!
+  // check existance
+  if (this->get_entry(name) != NULL)
+    return false;
   
   //std::string *n = new std::string(name); // FIXME geht das so?
   std::string n(name); // FIXME pot segfault???
@@ -93,6 +95,7 @@ bool directory_leaf::add_entry(char* name, int type, void *belonges_to_class, vo
   entry->content.type = type;
     
  // entries[name] = entry;
+  return true;
 }
 
 directory_entry* directory_leaf::get_entry(char* name)
@@ -103,7 +106,8 @@ directory_entry* directory_leaf::get_entry(char* name)
   it = entries.find(n);
   
   if (it == entries.end()) {
-    printf("file not found\n");
+    // file not found
+//     printf("file not found\n");
     return NULL;
   } 
   
@@ -277,6 +281,8 @@ int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_serv
 
 directory_tree::directory_tree(rt_server_threads_manager* rts)
 {
+  magic = 0xabcdef;
+  
   root = new directory_leaf();
   
   pwd = root; // start in the root directory
@@ -309,6 +315,10 @@ directory_entry::direntry* directory_tree::access(char* path, void* belonges_to_
 
 bool directory_tree::add_entry(char* name, int type, void* belonges_to_class, void* userptr)
 {
+  if (magic != 0xabcdef) {
+    printf("grr\n"); 
+  }
+  
   lock();
   root->add_entry( name, type, belonges_to_class, userptr );
   unlock();

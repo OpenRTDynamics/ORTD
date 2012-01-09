@@ -706,6 +706,16 @@ void rt_server_threads_manager::add_command(char* name, int (*callback)(rt_serve
     unlock_commandmap();
 }
 
+bool rt_server_threads_manager::del_command(char* name)
+{
+    lock_commandmap();
+
+    // callers also have to make sure the command is not executed at the moment!
+    
+    // TODO
+    
+    unlock_commandmap();
+}
 
 
 void *rt_server_thread_mainloop(void *data)

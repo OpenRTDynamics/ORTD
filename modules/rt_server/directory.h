@@ -18,6 +18,8 @@
 #define ORTD_DIRECTORY_ENTRYTYPE_STREAM 2
 #define ORTD_DIRECTORY_ENTRYTYPE_IPARDATA 3
 #define ORTD_DIRECTORY_ENTRYTYPE_RPARDATA 4
+#define ORTD_DIRECTORY_ENTRYTYPE_IRPARSET 5
+#define ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE 6
 
 class directory_leaf;
 
@@ -131,6 +133,8 @@ private:
     
     directory_leaf * root;
     directory_leaf * pwd; // current directory
+    
+    int magic;
 };
 
 
