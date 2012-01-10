@@ -298,7 +298,7 @@ template <class callback_class> bool ortd_asychronous_computation<callback_class
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
 {
 
-//     printf("running computer\n");
+     fprintf(stderr, "async_nested: running computer\n");
 //     sleep(8);
 
     // Simulate
@@ -312,7 +312,7 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
     // call the callback to copy the results
     cb->async_copy_output_callback();
 
-//     printf("finished\n");
+     fprintf(stderr, "async_nested: finished\n");
 }
 
 
@@ -330,6 +330,7 @@ public:
     void io(int update_states);
     void io_sync(int update_states);
     void io_async(int update_states);
+    void reset();
 
     void async_copy_output_callback();
 
@@ -551,7 +552,7 @@ void compu_func_nested_class::io_async(int update_states)
     int eventmask = __libdyn_event_get_block_events(block);
     simnest->event_trigger_mask(eventmask);
 
-//     printf("io_async up=%d\n", update_states);
+//      printf("io_async up=%d\n", update_states);
 
     if (update_states == 1) {
         //
@@ -560,7 +561,8 @@ void compu_func_nested_class::io_async(int update_states)
         double *comptrigger_inp = (double*) libdyn_get_input_ptr(block, Nin+1);
 //         printf("starting comp = %f\n", *comptrigger_inp);
 
-        if (*comptrigger_inp > 0) {
+        if (*comptrigger_inp > 0.5) {
+	    fprintf(stderr, "Trigger computation\n");
             this->async_comp_mgr->computeNSteps(1);
         }
 
@@ -618,8 +620,17 @@ void compu_func_nested_class::io(int update_states)
     } else {
         io_async(update_states);
     }
-
 }
+
+void compu_func_nested_class::reset()
+{
+    if (async_comp == false) {
+     
+    } else {
+     
+    }
+}
+
 
 void compu_func_nested_class::destruct()
 {
@@ -682,6 +693,14 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        compu_func_nested_class *worker = (compu_func_nested_class *) libdyn_get_work_ptr(block);
+
+        worker->reset();;
+    }
+    return 0;
+    break;    
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
 //         int irpar_get_ivec(struct irpar_ivec_t *ret, int *ipar, double *rpar, int id);
@@ -980,7 +999,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
 
 void compu_func_statemachine_class::reset()
 {
-    printf("nested: reset (NOT TESTED FOR NOW; contact the author)\n");
+    fprintf(stderr, "nested: reset (NOT TESTED FOR NOW; contact the author)\n");
     // the initial state
     simnest->reset_blocks();
     simnest->set_current_simulation(inittial_state-1);
@@ -1055,7 +1074,7 @@ int compu_func_statemachine(int flag, struct dynlib_block_t *block)
         worker->reset();;
     }
     return 0;
-    break;
+    break;    
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
 //         int irpar_get_ivec(struct irpar_ivec_t *ret, int *ipar, double *rpar, int id);

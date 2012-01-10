@@ -77,7 +77,7 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
     if (update_states==0) {
         double *output = (double*) libdyn_get_output_ptr(block, 0);
         double *in_compresult = (double *) libdyn_get_input_ptr(block,0);
-        double *in_slot = (double *) libdyn_get_input_ptr(block,1);
+//         double *in_slot = (double *) libdyn_get_input_ptr(block,1);
 
 	
 	
@@ -112,8 +112,8 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	irpar *par = new irpar();
 	par->load_from_afile(this->ifname, this->rfname);
 
- 	int slot = *in_slot;
-	if (exch->replace_simulation(par, 100, slot) < 0) {
+//  	int slot = *in_slot - 1;
+	if (exch->replace_second_simulation(par, 100) < 0) {
 	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: initialisation of simulation failed %s\n", "xxx");
 	  *output = -4;
 	  
@@ -154,7 +154,7 @@ int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block)
 
         worker->io(0);
 	
-	sleep(10);
+	
 
     }
     return 0;

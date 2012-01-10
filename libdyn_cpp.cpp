@@ -457,6 +457,14 @@ int libdyn_nested::del_simulation(int slotID)
 
     lock_slots();
     
+    if (is_current_simulation(slotID)) {
+      // Tryed to exchange the currently active simulation
+      fprintf(stderr, "libdyn_nested: Tryed to exchange the currently active simulation\n");
+      
+      unlock_slots();
+      return -2;      
+    }
+    
     if (sim_slots[ slotID ] == NULL) {
         unlock_slots();
 	
@@ -476,6 +484,53 @@ int libdyn_nested::del_simulation(int slotID)
     return 1;
 }
 
+int libdyn_nested::del_simulation(int slotID, int switchto_slotID)
+{
+    libdyn *sim; // FIXME volatile
+  
+    if (sim_slots == NULL) {
+        fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
+        return -1;
+    }
+
+    if (!slotindexOK(slotID)) {
+        fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
+        return -1;
+    }
+
+    if (!slotindexOK(switchto_slotID)) {
+        fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot for switchto_slotID\n");
+        return -1;
+    }
+
+    lock_slots();
+    {
+    
+      if (sim_slots[ slotID ] == NULL) {
+	  unlock_slots();
+	  
+	  fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
+	  return -1;
+      }
+
+      // switch to another simulation
+      current_sim = this->sim_slots[switchto_slotID];
+      
+      // destruct the simulation
+      sim = this->sim_slots[slotID];
+
+      // mark as a free slot
+      this->sim_slots[slotID] = NULL;
+    
+    }
+    unlock_slots();
+    
+    sim->destruct(); // do the destruction outside the locked area since this lasts a long time
+
+    return 1;
+
+}
+
 
 bool libdyn_nested::load_simulations(int* ipar, double* rpar, int start_boxid, int NSimulations)
 {
@@ -487,6 +542,26 @@ bool libdyn_nested::load_simulations(int* ipar, double* rpar, int start_boxid, i
     }
 }
 
+bool libdyn_nested::is_current_simulation(int slotID)
+{
+  
+  // lock_slots(); has to be called in advance to calling this function
+  // unlock_slots() afterwards
+  
+    if (sim_slots == NULL) {
+        fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
+        return false;
+    }
+
+    if (!slotindexOK(slotID)) {
+        fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
+        return false;
+    }
+
+    bool result = (sim_slots[slotID] == current_sim);
+    
+    return result;
+}
 
 
 bool libdyn_nested::set_current_simulation(int nSim)
@@ -669,9 +744,9 @@ double * libdyn::get_vec_out(int out)
 
 void libdyn::libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 {
-  printf("....................................\n");
-  printf(".. Setting up new simulation  ......\n");
-  printf("....................................\n");
+  fprintf(stderr, "....................................\n");
+  fprintf(stderr, ".. Setting up new simulation  ......\n");
+  fprintf(stderr, "....................................\n");
   
   
     error = 0;
@@ -748,12 +823,12 @@ void libdyn::set_master(libdyn_master* ld_master)
 
 int libdyn::prepare_replacement_sim(int* ipar, double* rpar, int boxid)
 {
-    // TODO
+    // TODO, obsolete by now
 }
 
 void libdyn::switch_to_replacement_sim()
 {
-    // TODO
+    // TODO obsolete by now
 }
 
 
@@ -781,6 +856,8 @@ void libdyn::destruct()
     free(iocfg.outsizes);
     free(iocfg.inptr);
     free(iocfg.outptr);
+    
+    fprintf(stderr, "libdyn: Successfully destructed simulation\n");
 }
 
 //
