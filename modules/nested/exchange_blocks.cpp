@@ -31,6 +31,8 @@ extern "C" {
 #include "nested_onlineexchange.h"
 
 
+extern "C" int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
+
 
 
 

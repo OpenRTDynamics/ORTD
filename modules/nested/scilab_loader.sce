@@ -358,7 +358,7 @@ function [par, userdata] = ld_simnest2_replacement( insizes, outsizes, intypes, 
   // Go through all schematics
   // and set them up
   // finially they are stored within an irpar structure under different irpar ids
-  irpar_sim_idcounter = 900;
+  irpar_sim_idcounter = 100;
 
   for i = N
 
