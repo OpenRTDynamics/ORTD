@@ -161,7 +161,10 @@ class libdyn_nested {
     int usedSlots; // The number of slots with actually contain simulations (index from 0 to usedSlots-1)
 
 //     bool set_current_simulation(struct dynlib_simulation_t *sim);
-    
+
+    bool is_current_simulation(int slotID);
+
+
   public:
 
     libdyn_nested(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
@@ -198,14 +201,18 @@ class libdyn_nested {
     // remove a simulation from the list
     // the simulation instance will be destructed
     int del_simulation(int slotID);
+    
+    // before removal switch to another simulation
+    int del_simulation(int slotID, int switchto_slotID);
 
 //     bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
 
+    
     // Activate a simulation from the slots
     bool set_current_simulation(int nSim);
 
     /**
-    * \brief reset the states of all block in the current simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)
+    * \brief reset the states of all blocks in the current simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)
     */
     void reset_blocks();
     
@@ -223,7 +230,7 @@ class libdyn_nested {
     void simulation_step(int update_states);
     
     
-    libdyn *current_sim;
+    libdyn *current_sim; // FIXME: Needs volatile
     
     struct libdyn_io_config_t iocfg;
     
@@ -272,7 +279,7 @@ public:
   * \param outsizes_ an array of size Nout containing port sizes for the output ports
   */
   libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_);
-  libdyn(int Nin, const int* insizes_, const int*intypes, int Nout, const int* outsizes_, const int *outtypes);
+  libdyn(int Nin, const int* insizes_, const int*intypes, int Nout, const int* outsizes_, const int *outtypes); // the more recent version
   
   // FIXME does not work.
   libdyn(libdyn_io_config_t * iocfg);

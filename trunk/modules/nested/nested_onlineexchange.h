@@ -8,7 +8,8 @@ class nested_onlineexchange {
     ~nested_onlineexchange();
     
     int replace_simulation(irpar *irdata, int id, int slot);
-    int replace_simulation(irpar *irdata, int id);
+    
+    int replace_second_simulation(irpar *irdata, int id);
     
   private:
     char *identName;
