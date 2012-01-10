@@ -150,7 +150,8 @@ directory_entry::direntry* directory_leaf::access2(char* path, void* belonges_to
   if (entr == NULL)
     return NULL;
   
-  if ( entr->content.belonges_to_class != belonges_to_class )
+  // check for belonges_to_class if !NULL
+  if ( belonges_to_class != NULL && entr->content.belonges_to_class != belonges_to_class )
     return NULL;
   
   return &entr->content;

@@ -48,7 +48,8 @@ nested_onlineexchange::~nested_onlineexchange()
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry(identName);
   
-  delete this->current_irdata;
+  if (this->current_irdata != NULL)
+    delete this->current_irdata;
 }
 
 

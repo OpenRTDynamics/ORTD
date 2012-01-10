@@ -218,9 +218,7 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
     error("asynchron_simsteps should be of size 1\n");
   end
 
-  if (length(fn_list) ~= 1) then
-    error("only one schematic fn is allowed in the list");
-  end
+
 
    parlist = new_irparam_elemet_ivec(parlist, [Nsimulations, dfeed, asynchron_simsteps], 20); 
 
@@ -233,10 +231,9 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
 
   for i = 1:Nsimulations
 
-    fn = fn_list(i);
     //    [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsizes, intypes, outtypes); // outtypes and intypes are not handled at the moment
     //[sim_container_irpar, nested_sim] = libdyn_setup_schematic(fn, insizes, outsizes); 
-    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_schematic2(nested_fn, insizes, outsizes, list(i, userdata)); 
+    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes, list(i, userdata)); 
 
     // pack simulations into irpar container with id = 901
     parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
@@ -295,6 +292,98 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
   end
 
 endfunction
+
+// this is not tested and ld_statemachine can be used instead for non async
+function [par, userdata] = ld_simnest2_replacement( insizes, outsizes, intypes, outtypes, nested_fn, userdata, N  ) 
+// 
+// ld_simnest2_replacement -- create schematics that can be used as an online exchangeable simulation
+//                            for nested simulations set-up using the ld_nested2 block
+//
+// INPUTS: 
+//
+// switch_signal: signal used to switch between different nested simulations
+// reset_trigger_signal: when 1 the current simulation is reset (sync)
+//                       OR when 1 the current simulation is triggered (async)
+// inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)
+//
+// PARAMETERS:
+// 
+// insizes - input ports configuration
+// outsizes - output ports configuration
+// intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// nested_fn - scilab function defining sub-schematics
+// N - 
+// 
+// OUTPUTS:
+//
+// par - irpar data set. par.ipar and par.rpar contain the integer and double parameters list
+// 
+
+
+  parlist = new_irparam_set();
+
+  N1 = length(insizes);
+  N2 = length(outsizes);
+  N3 = length(intypes);
+  N4 = length(outtypes);
+
+  // check for sizes
+  // ...
+
+  if N4 ~= N2 then
+    error("length of outsizes invalid\n");
+  end
+
+  if N1 ~= N3 then
+    error("length of intypes invalid\n");
+  end
+
+  if length(N) ~= 1 then
+    error("N must be scalar\n");
+  end
+
+   parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
+   parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
+   parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
+   parlist = new_irparam_elemet_ivec(parlist, outtypes, 13); 
+
+
+
+   parlist = new_irparam_elemet_ivec(parlist, [ -1, -1, -1, getdate("s"), -1, -1, getdate() ], 21); 
+   parlist = new_irparam_elemet_ivec(parlist, [ ascii("ORTD-replacement-schematic") ], 22); 
+
+
+
+  // Go through all schematics
+  // and set them up
+  // finially they are stored within an irpar structure under different irpar ids
+  irpar_sim_idcounter = 900;
+
+  for i = N
+
+    //    [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsizes, intypes, outtypes); // outtypes and intypes are not handled at the moment
+    //[sim_container_irpar, nested_sim] = libdyn_setup_schematic(fn, insizes, outsizes); 
+    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes, list(i, userdata)); 
+
+    // pack simulations into irpar container with id = 901
+    parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
+
+    // increase irpar_sim_idcounter so the next simulation gets another id
+    irpar_sim_idcounter = irpar_sim_idcounter + 1;
+  end
+
+
+
+//   // combine ir parameters
+   par = combine_irparam(parlist);
+  // blockparam.ipar and blockparam.rpar now contain the blocks parameters
+
+//   ipar = blockparam.ipar;
+//   rpar = blockparam.rpar;
+
+endfunction
+
 
 
 function [sim, outlist, userdata ] = LD_STATEMACHINE_MAIN(sim, inlist, userdata)
@@ -496,3 +585,25 @@ function [sim, outlist, x_global, active_state, userdata] = ld_statemachine(sim,
   [sim,x_global] = libdyn_new_oport_hint(sim, blk, Noutp+1);   // the last port
 
 endfunction
+
+
+
+function [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname) // PARSEDOCU_BLOCK
+//
+// Online exchange of a nested simulation via loading *[ir].par files
+//
+// compresult - 
+// slot - 
+// 
+//
+  btype = 15003;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [length(fname)], [ascii(fname)], ...
+                   insizes=[1, 1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], ...
+                   outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(compresult, slot) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+

@@ -432,8 +432,8 @@ int compu_func_nested_class::init()
     simnest->set_master(master);
     
     // init the simulation exchange helper
-    if (master != NULL) {
-      exchange_helper = new nested_onlineexchange("test_simulation", simnest); // ifdef REMOTE
+    if (master != NULL && master->dtree != NULL) {
+      exchange_helper = new nested_onlineexchange("nested_exchange_test", simnest); // ifdef REMOTE
     } else {
        fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");      
     }
@@ -1133,7 +1133,10 @@ int compu_func_statemachine(int flag, struct dynlib_block_t *block)
 
 
 
-//#include "block_lookup.h"
+// External block comp functions
+// extern "C" {
+//   extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
+// };
 
 int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
@@ -1143,6 +1146,8 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     int blockid = 15001;
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_statemachine);
+    
+//     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested_exchange_fromfile);
 
     printf("libdyn module nested initialised\n");
 
