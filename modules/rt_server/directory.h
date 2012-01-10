@@ -32,7 +32,7 @@ class directory_entry {
       const char *name; bool allocated_name;
       void *userptr; // either pointer to data or parameter_directory *dir
       void *belonges_to_class; // the class instance that will be called
-      int type;
+      int type; // a value out of ORTD_DIRECTORY_ENTRYTYPE...
       int shortcut_id;
     } direntry;
 

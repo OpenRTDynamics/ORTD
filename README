@@ -1,4 +1,5 @@
-OpenRTDynamics v0.99g -- Real Time Dynamics Toolbox suitable for
+
+OpenRTDynamics v0.99h -- Real Time Dynamics Toolbox suitable for
                          implementing time discrete controllers 
                          using block schematics similar to to 
                          Simulink or Scicos. 
@@ -79,6 +80,13 @@ Tools
     executes schematics in realtime (rt_preempt) OR as fast as possible
     Schematics are getting some dummy in and outputs
     type "libdyn_generic_exec --help" for help
+
+List of provided blocks
+-----------------------
+
+Have a look at documentation/List_of_Module_Blocks.txt.
+It is an automatically generated list of available blocks.
+
 
 Modules
 -------
@@ -219,4 +227,5 @@ v0.99h ( ... )
   - a new ld_statemachine block, which enables a comfortable way of
     setting up a statemachine by use of nested simulations
   - libdyn.sci: more checks with libdyn_check_obj( )
+
   
