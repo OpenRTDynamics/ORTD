@@ -346,9 +346,9 @@ int libdyn_nested::add_simulation(irpar* param, int boxid)
 // Add a simulation based on provided irpar set
 int libdyn_nested::add_simulation(int slotID, int* ipar, double* rpar, int boxid)
 {
-    if (sim_slots != NULL)
-        if (slots_available() <= 0)
-            return -1; // no more slots available
+//     if (sim_slots != NULL)
+//         if (slots_available() <= 0)
+//             return -1; // no more slots available
 
 
     libdyn *sim;
@@ -370,10 +370,12 @@ int libdyn_nested::add_simulation(int slotID, int* ipar, double* rpar, int boxid
     if (err == -1) {
         // There may be some problems during compilation.
         // Errors are reported on stdout
-        printf("Error in libdyn\n");
+        fprintf(stderr, "Error in libdyn\n");
 
         return err;
     }
+    
+    printf("Simulation was set-up\n");
 
     if (this->add_simulation(slotID, sim) < 0)
         return -1;

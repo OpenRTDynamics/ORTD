@@ -39,7 +39,9 @@ int nested_onlineexchange::replace_simulation(irpar* irdata, int id, int slot)
   
   // install the new one
   this->current_irdata = irdata;
-  simnest->add_simulation(slot, current_irdata->ipar, current_irdata->rpar, id);
+  int ret = simnest->add_simulation(slot, current_irdata->ipar, current_irdata->rpar, id);
+  
+  return ret;
 }
 
 

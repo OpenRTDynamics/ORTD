@@ -1134,9 +1134,9 @@ int compu_func_statemachine(int flag, struct dynlib_block_t *block)
 
 
 // External block comp functions
-// extern "C" {
-//   extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
-// };
+extern "C" {
+  extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
+};
 
 int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
@@ -1147,7 +1147,7 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_statemachine);
     
-//     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested_exchange_fromfile);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested_exchange_fromfile);
 
     printf("libdyn module nested initialised\n");
 
