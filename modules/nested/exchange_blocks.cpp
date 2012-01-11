@@ -119,7 +119,7 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	directory_entry::direntry *dentr = master->dtree->access(nested_simname, NULL);
 
 	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE) {
-	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: wrong type for %s\n", "xxx");
+	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: wrong type for %s\n", nested_simname);
 	  *output = -3;
 	  
 	  return;
@@ -130,11 +130,16 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	// load irpar files and replace a simulation
 	// the irpar instance is automatically deleted by nested_onlineexchange
 	irpar *par = new irpar();
-	par->load_from_afile(this->ifname, this->rfname);
+	if (!par->load_from_afile(this->ifname, this->rfname)) {
+	  delete par;
+	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: <%s> and/or <%s> were not found\n", ifname, rfname);
+	  
+	  return;
+	}
 
 //  	int slot = *in_slot - 1;
 	if (exch->replace_second_simulation(par, 100) < 0) {
-	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: initialisation of simulation failed %s\n", "xxx");
+	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: initialisation of simulation failed %s\n", nested_simname);
 	  *output = -4;
 	  
 	  return;
@@ -142,7 +147,7 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 
 	// ok
 	*output = 1;
-	fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s>\n", "xxx");
+	fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s>\n", nested_simname);
 	
     }
 }
