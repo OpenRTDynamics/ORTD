@@ -52,7 +52,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 //  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=5, "", ...
 //  "a=1;\n save(\'a.dat\', a);  \n scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/usr/local/bin/scilab533");
   [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=5, "", ...
-  "scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/usr/local/bin/scilab533");
+  "scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/home/chr/scilab/scilab-5.3.3_64/bin/scilab");
   [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 5);
   
   // save result to file

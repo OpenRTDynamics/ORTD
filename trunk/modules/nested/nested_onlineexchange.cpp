@@ -3,7 +3,7 @@
 #include "nested_onlineexchange.h"
 #include <libdyn_cpp.h>
 
-nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested* simnest)
+nested_onlineexchange::nested_onlineexchange(const char* identName, libdyn_nested* simnest)
 {
   this->identName = identName;
   this->simnest = simnest;
@@ -24,7 +24,7 @@ nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested* sim
      
   }
     
-  dtree->add_entry(identName, ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this, this);
+  dtree->add_entry((char*) identName, ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this, this);
   
 }
 
@@ -81,7 +81,7 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 nested_onlineexchange::~nested_onlineexchange()
 {
   directory_tree *dtree = ldmaster->dtree;
-  dtree->delete_entry(identName);
+  dtree->delete_entry((char*) identName);
   
   if (this->current_irdata != NULL)
     delete this->current_irdata;
