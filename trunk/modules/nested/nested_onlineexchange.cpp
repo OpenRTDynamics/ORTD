@@ -68,6 +68,11 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
   // install the new one
   this->current_irdata = irdata;
   ret = simnest->add_simulation(slot, current_irdata->ipar, current_irdata->rpar, id);
+  if (ret < 0) {
+    // error setting up the simulation
+    // irdata is unused now
+    delete irdata;
+  }
     
   return ret;
 }

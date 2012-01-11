@@ -350,6 +350,7 @@ private:
     libdyn_master * master;
     nested_onlineexchange *exchange_helper; // ifdef REMOTE
     irpar *param;
+    char *nested_sim_name;
 
     int Nin;
     int Nout;
@@ -392,6 +393,14 @@ int compu_func_nested_class::init()
         return -1;
     }
 
+    struct irpar_ivec_t nested_sim_name__;
+    if ( irpar_get_ivec(&nested_sim_name__, ipar, rpar, 21) < 0 ) {
+      // no name was provided
+      nested_sim_name = NULL;
+    } else {
+      irpar_getstr(&nested_sim_name, nested_sim_name__.v, 0, nested_sim_name__.n );
+    }
+
     this->insizes = insizes_irp.v;
     this->outsizes = outsizes_irp.v;
     this->intypes = intypes_irp.v;
@@ -432,12 +441,16 @@ int compu_func_nested_class::init()
 
     simnest->set_master(master);
     
-    // init the simulation exchange helper
-    if (master != NULL && master->dtree != NULL) {
-      exchange_helper = new nested_onlineexchange("nested_exchange_test", simnest); // ifdef REMOTE
-    } else {
-       fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");      
-    }
+    // init the simulation exchange helper if required
+    exchange_helper = NULL;
+    
+    if (nested_sim_name != NULL)
+      if (master != NULL && master->dtree != NULL) {
+	  fprintf(stderr, "libdyn nested: Register <%s> for online exchange\n", nested_sim_name);
+	  exchange_helper = new nested_onlineexchange(nested_sim_name, simnest);
+      } else {
+	fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");      
+      }
 
     //
     // set pointers to the input ports of this block
@@ -640,11 +653,14 @@ void compu_func_nested_class::destruct()
         pthread_mutex_destroy(&this->output_mutex);
     }
 
-    simnest->destruct();
+    if (this->nested_sim_name != NULL)
+      free(this->nested_sim_name);
+    
+    if (exchange_helper != NULL)
+      delete exchange_helper;
+
     delete simnest;
-
-
-
+    simnest->destruct();
 }
 
 void compu_func_nested_class::lock_output()

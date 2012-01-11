@@ -23,6 +23,7 @@ extern "C" {
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
 #include <math.h>
+#include "irpar.h"
 
 }
 #include <libdyn_cpp.h>
@@ -48,6 +49,7 @@ private:
    struct dynlib_block_t *block;
    
    char *ifname, *rfname;
+   char *nested_simname;
 
 };
 
@@ -64,10 +66,27 @@ int compu_func_nested_exchange_fromfile_class::init()
     double Nin = ipar[0];
     double Nout = ipar[1];
 
-    this->ifname = "ident1_exch.ipar";
-    this->rfname = "ident1_exch.rpar";
+//     this->ifname = "ident1_exch.ipar";
+//     this->rfname = "ident1_exch.rpar";
 
+    int ofs = 3;
   
+    int len_s1 = ipar[ofs+0];
+    int len_s2 = ipar[ofs+1];
+    int len_s3 = ipar[ofs+2];
+    
+    int ofs2 = 3; // # of strings
+    
+    int *s1 = &ipar[ofs+ofs2+0];
+    int *s2 = &ipar[ofs+ofs2+len_s1];
+    int *s3 = &ipar[ofs+ofs2+len_s1+len_s2];
+    
+    irpar_getstr(&this->ifname, s1, 0, len_s1);
+    irpar_getstr(&this->rfname, s2, 0, len_s2);
+    irpar_getstr(&this->nested_simname, s3, 0, len_s3);
+    
+    fprintf(stderr, "compu_func_nested_exchange_fromfile_class: %s %s %s\n", ifname, rfname, nested_simname);
+    
     return 0;
 }
 
@@ -96,7 +115,8 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	}
 	
 	// get the identifier
-	directory_entry::direntry *dentr = master->dtree->access("nested_exchange_test", NULL);
+// 	directory_entry::direntry *dentr = master->dtree->access("nested_exchange_test", NULL);
+	directory_entry::direntry *dentr = master->dtree->access(nested_simname, NULL);
 
 	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE) {
 	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: wrong type for %s\n", "xxx");
@@ -129,7 +149,9 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 
 void compu_func_nested_exchange_fromfile_class::destruct()
 {
-    
+    free(ifname);
+    free(rfname);
+    free(nested_simname);
 }
 
 
