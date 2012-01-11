@@ -122,14 +122,14 @@ directory_entry* directory_leaf::get_and_delete_entry(char* name)
   it = entries.find(n);
   
   if (it == entries.end()) {
-    printf("file not found\n");
+    fprintf(stderr, "file <%s> not found\n", name);
     return NULL;
   } 
   
   directory_entry *tmp = it->second;
   
   entries.erase(it);
-  printf("directory: deleted %s\n", name);
+  fprintf(stderr, "directory: deleted <%s>\n", name);
   
   return tmp;
 }

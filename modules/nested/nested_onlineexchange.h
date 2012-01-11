@@ -4,7 +4,7 @@
 
 class nested_onlineexchange {
   public:
-    nested_onlineexchange(char *identName, libdyn_nested *simnest );
+    nested_onlineexchange(const char *identName, libdyn_nested *simnest );
     ~nested_onlineexchange();
     
     int replace_simulation(irpar *irdata, int id, int slot);
@@ -12,7 +12,7 @@ class nested_onlineexchange {
     int replace_second_simulation(irpar *irdata, int id);
     
   private:
-    char *identName;
+    const char *identName;
     libdyn_nested *simnest;
     
     libdyn_master* ldmaster; // extracted from simnest
