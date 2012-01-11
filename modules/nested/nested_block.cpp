@@ -653,11 +653,14 @@ void compu_func_nested_class::destruct()
         pthread_mutex_destroy(&this->output_mutex);
     }
 
+    if (exchange_helper != NULL) {
+      fprintf(stderr, "compu_func_nested_class: delete exchange helper for %s\n", nested_sim_name);
+      delete exchange_helper;      
+    }
+
     if (this->nested_sim_name != NULL)
       free(this->nested_sim_name);
     
-    if (exchange_helper != NULL)
-      delete exchange_helper;
 
     delete simnest;
     simnest->destruct();
