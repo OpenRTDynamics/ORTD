@@ -149,7 +149,7 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
 endfunction
 
 // this is not tested and ld_statemachine can be used instead for non async
-function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata  ) 
+function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata, nested_sim_name  ) 
 // 
 // ld_simnest2 -- create one (or multiple) nested libdyn simulation within a normal libdyn block
 // 		  it is possible to switch between them by an special input signal
@@ -174,6 +174,8 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
 // asynchron_simsteps - if > 0 asynchron_simsteps steps will be simulated in a thread
 //                     when finished the result becomes available to the blocks outports
 //                     if == 0 the nested simulation runns synchronous to the upper level simulation.
+// userdata - 
+// nested_sim_name - 
 // 
 // OUTPUTS:
 // 
@@ -221,6 +223,7 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
 
 
    parlist = new_irparam_elemet_ivec(parlist, [Nsimulations, dfeed, asynchron_simsteps], 20); 
+   parlist = new_irparam_elemet_ivec(parlist, ascii(nested_sim_name), 21); 
 
 
 
@@ -588,7 +591,7 @@ endfunction
 
 
 
-function [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname) // PARSEDOCU_BLOCK
+function [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname, simnest_name) // PARSEDOCU_BLOCK
 //
 // Online exchange of a nested simulation via loading *[ir].par files
 //
@@ -596,8 +599,12 @@ function [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname) 
 // slot - 
 // 
 //
+
+  ifname = fname + ".ipar";
+  rfname = fname + ".rpar";
+
   btype = 15003;
-  [sim,blk] = libdyn_new_block(sim, events, btype, [length(fname)], [ascii(fname)], ...
+  [sim,blk] = libdyn_new_block(sim, events, btype, [0,0,0, length(ifname), length(rfname), length(simnest_name), ascii(ifname), ascii(rfname), ascii(simnest_name) ], [ ], ...
                    insizes=[1, 1], outsizes=[1], ...
                    intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], ...
                    outtypes=[ORTD.DATATYPE_FLOAT]  );
