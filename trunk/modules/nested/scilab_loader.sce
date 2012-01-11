@@ -149,7 +149,7 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
 endfunction
 
 // this is not tested and ld_statemachine can be used instead for non async
-function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata, nested_sim_name  ) 
+function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata, simnest_name  ) 
 // 
 // ld_simnest2 -- create one (or multiple) nested libdyn simulation within a normal libdyn block
 // 		  it is possible to switch between them by an special input signal
@@ -175,7 +175,7 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
 //                     when finished the result becomes available to the blocks outports
 //                     if == 0 the nested simulation runns synchronous to the upper level simulation.
 // userdata - 
-// nested_sim_name - 
+// simnest_name - 
 // 
 // OUTPUTS:
 // 
@@ -223,7 +223,7 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
 
 
    parlist = new_irparam_elemet_ivec(parlist, [Nsimulations, dfeed, asynchron_simsteps], 20); 
-   parlist = new_irparam_elemet_ivec(parlist, ascii(nested_sim_name), 21); 
+   parlist = new_irparam_elemet_ivec(parlist, ascii(simnest_name), 21); 
 
 
 
