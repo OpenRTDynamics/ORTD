@@ -42,6 +42,7 @@ z = poly(0,'z');
 // Set up simulation schematic
 //
 
+// 
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
@@ -51,9 +52,10 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // 
 //  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=5, "", ...
 //  "a=1;\n save(\'a.dat\', a);  \n scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/usr/local/bin/scilab533");
-  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=5, "", ...
-  "scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/home/chr/scilab/scilab-5.3.3_64/bin/scilab");
-  [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 5);
+
+  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=6, "", ...
+  "scilab_interf.outvec1 = [ scilab_interf.invec1 * 2; 9999 ] ", "", "/home/chr/scilab/scilab-5.3.3/bin/scilab");
+  [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 6);
   
   // save result to file
 //  [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", out);
@@ -101,7 +103,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages=unix_g(ORTD.ortd_executable+ ' -s scilab_demo -i 901 -l 1');
+//messages=unix_g(ORTD.ortd_executable+ ' -s scilab_demo -i 901 -l 1');
 
 
 // load results

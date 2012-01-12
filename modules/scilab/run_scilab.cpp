@@ -156,6 +156,8 @@ bool run_scilab::send_to_scilab(const char* cmd)   // send command to scilab
    }
    fflush(writefd);
    
+//    fprintf(stderr, ">>> %s\n", cmd);
+   
    return true;
 }
 
@@ -277,8 +279,23 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
    char buf[1024];
    int rec_veclen;
    int i;
+
+   FILE *read_fd = scilab->get_readfd(); 
    
-   sprintf(tmp, "printf(\"vectorlen=%%d\", length(scilab_interf.outvec%d)); ", vector_nr);
+   printf("Trying to get vector from scilab\n");
+
+//    sprintf(tmp, "printf(\"Hallo \\n  \" ); ");
+//    status = scilab->send_to_scilab(tmp);
+// 
+//    sprintf(tmp, "printf(\"Hallo2 \\n  \" ); ");
+//    status = scilab->send_to_scilab(tmp);
+
+   
+
+   // Würde eher vermuten, dass das printf hier einen Zeilenumbruch benötigt. Wieso nicht?
+//  sprintf(tmp, "printf(\"vectorlen=%%d \\n \", length(scilab_interf.outvec%d));  ", vector_nr);
+   
+   sprintf(tmp, "printf(\"vectorlen=%%d  \", length(scilab_interf.outvec%d));  ", vector_nr);
    status = scilab->send_to_scilab(tmp);
    if (status == false)
    {
@@ -291,16 +308,41 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
       return false;
    }
    
-   FILE *read_fd = scilab->get_readfd();
+/*   while (
+          
+          fgets(buf, sizeof buf, read_fd) != NULL) {
 
+     	 printf("scilab: >>> %s\n", buf);
+     
+	 if (strstr (buf,"vectorlen=") != NULL)
+         {
+	    printf("got veclen\n");
+	     
+            sscanf (buf,"%10s%d",tmp,&rec_veclen);
+            if (rec_veclen != veclen)
+            {
+               fprintf(stderr, "Error: Wrong vector length received!\n");
+               return false;
+            }
+	 }
+              
+   }
+
+printf("ok\n");*/
+   
+
+   // Eine Schleife für zwei Sachen --> 2 Schleifen für ...
    do 
    {
       if (!feof(read_fd)
           && !ferror(read_fd)
           && fgets(buf, sizeof buf, read_fd) != NULL)
       {
-         if (strstr (buf,"vectorlen=") != NULL)
+// 	 printf("scilab: >>> %s\n", buf);
+
+	 if (strstr (buf,"vectorlen=") != NULL)
          {
+	     
             sscanf (buf,"%10s%d",tmp,&rec_veclen);
             if (rec_veclen != veclen)
             {
@@ -309,12 +351,16 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
             }
             else
             {
+//        	        printf("got veclen=%d\n", rec_veclen);
+
                for (i = 0; i < veclen; i++)
                {
                   if (!feof(read_fd)
                      && !ferror(read_fd)
                      && fgets(buf, sizeof buf, read_fd) != NULL)
                   {
+//        	 printf("scilab: >>> %s\n", buf);
+
                      sscanf (buf,"%lf",&data[i]);
                   }
                }
@@ -331,6 +377,7 @@ bool scilab_calculation::print_vector(int vector_nr)
    bool status;
    char tmp[1000];
    
+   // 
    sprintf(tmp, "for val=scilab_interf.outvec%d\n printf(\"%%f\\n\", val) \n end", vector_nr);
    
    status = scilab->send_to_scilab(tmp);
@@ -348,7 +395,7 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
    bool status;
    char buf[1024];
    
-   status = scilab->send_to_scilab("exit");
+   status = scilab->send_to_scilab("exit\nquit\n");
    if (status == false)
    {
       fprintf(stderr, "Error writing to scilab!\n");
@@ -361,13 +408,14 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
           && !ferror(read_fd)
           && fgets(buf, sizeof buf, read_fd) != NULL)
    {
+     // Was ist das hier?
       if (((int)buf[0] != 32) && ((int)buf[0] != 10) && ((int)buf[3] != 0))
       {
-         printf("--->%s<---\n", buf);
+//          printf("--->%s<---\n", buf);
       }
    }
    
-   //printf("scilab exited\n");
+   fprintf(stderr, "Scilab exited\n");
    
    return true;
 }
