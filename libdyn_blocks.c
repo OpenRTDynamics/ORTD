@@ -1462,6 +1462,8 @@ int compu_func_flipflop(int flag, struct dynlib_block_t *block)
     {
       *state = initial_state;
     }
+    return 0;
+    break;    
     case COMPF_FLAG_DESTUCTOR: // destroy instance
     {
       void *buffer = (void*) libdyn_get_work_ptr(block);

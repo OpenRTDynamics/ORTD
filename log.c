@@ -93,7 +93,7 @@ int log_ringbuffer_del(struct ringbuffer_t *rb)
   // FIXME join thread
   //pthread_join(rb->t, NULL);
 
-  
+
   pthread_mutex_destroy(&rb->thread_mutex);
   pthread_cond_destroy(&rb->thread_condition);
 

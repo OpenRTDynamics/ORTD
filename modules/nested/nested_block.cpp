@@ -647,7 +647,6 @@ void compu_func_nested_class::reset()
 
 void compu_func_nested_class::destruct()
 {
-
     if (this->async_comp) {
         delete async_comp_mgr;
         pthread_mutex_destroy(&this->output_mutex);
@@ -658,10 +657,10 @@ void compu_func_nested_class::destruct()
       delete exchange_helper;      
     }
 
+    // exchange_helper depends on nested_sim_name
     if (this->nested_sim_name != NULL)
       free(this->nested_sim_name);
     
-
     delete simnest;
     simnest->destruct();
 }
