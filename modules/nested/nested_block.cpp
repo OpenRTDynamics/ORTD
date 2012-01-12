@@ -47,8 +47,11 @@ public:
 
     void join_computation();
 
-    bool get_finished();
-    void set_finished(bool f);
+    bool get_CompNotRunning();
+    void set_CompNotRunning(bool f);
+    
+    bool finishedAComputation();
+    void reset_ThereWasAComputaion();
 
     void loop();
 
@@ -63,9 +66,10 @@ private:
 
     pthread_t thread;
 
-    bool finished;
-    pthread_mutex_t finished_mutex;
-
+    volatile bool CompNotRunning;
+    pthread_mutex_t CompNotRunning_mutex;
+    bool ThereWasAComputaion;
+    
     pthread_mutex_t comp_active_mutex;
 
 
@@ -99,7 +103,7 @@ template <class compute_instance> void background_computation<compute_instance>:
         int sig = signal;
         signal = 0;
 
-        set_finished(false);
+        set_CompNotRunning(false);
 
 
 
@@ -118,7 +122,7 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 
 // 	     computation finished
-            set_finished(true);
+            set_CompNotRunning(true);
         }
 
         if (sig == -1)
@@ -139,11 +143,12 @@ template <class compute_instance> void background_computation<compute_instance>:
 template <class compute_instance> bool background_computation<compute_instance>::start_computation()
 {
 
-    bool finished_cpy = get_finished();
+    bool CompNotRunning_cpy = get_CompNotRunning();
 
     //   only if computation is not running
-    if (finished_cpy == true) {
+    if (CompNotRunning_cpy == true) {
 //         printf("trig\n");
+        ThereWasAComputaion = true;
         signal_thread(1); // start the computation
     }
 
@@ -159,33 +164,51 @@ template <class compute_instance> void background_computation<compute_instance>:
     pthread_join(thread, NULL);
 }
 
-template <class compute_instance> bool background_computation<compute_instance>::get_finished()
+template <class compute_instance> bool background_computation<compute_instance>::get_CompNotRunning()
 {
 
-    pthread_mutex_lock(&finished_mutex);
-    bool finished_cpy = finished;
-    pthread_mutex_unlock(&finished_mutex);
+    pthread_mutex_lock(&CompNotRunning_mutex);   
+    bool CompNotRunning_cpy = CompNotRunning;    
+    pthread_mutex_unlock(&CompNotRunning_mutex);
 
 //      printf("get finished %d\n", finished_cpy ? 1 : 0);
 
-    return finished_cpy;
+    return CompNotRunning_cpy;
 }
 
-template <class compute_instance> void background_computation<compute_instance>::set_finished(bool f)
+template <class compute_instance> void background_computation<compute_instance>::set_CompNotRunning(bool f)
 {
-    pthread_mutex_lock(&finished_mutex);
-    finished = f;
+    pthread_mutex_lock(&CompNotRunning_mutex);
+    CompNotRunning = f;
 //     printf("set finished to %d\n", f ? 1 : 0);
-    pthread_mutex_unlock(&finished_mutex);
+    pthread_mutex_unlock(&CompNotRunning_mutex);
 }
 
+template <class compute_instance> bool background_computation<compute_instance>::finishedAComputation()
+{
+    pthread_mutex_lock(&CompNotRunning_mutex);   
+    bool CompNotRunning_cpy = CompNotRunning;    
+    pthread_mutex_unlock(&CompNotRunning_mutex);
+
+    if (ThereWasAComputaion && CompNotRunning_cpy)
+      return true;
+    else
+      return false;
+      
+}
+
+template <class compute_instance> void background_computation<compute_instance>::reset_ThereWasAComputaion()
+{
+//   fprintf(stderr, "Now there has never been a computatoin\n");
+    ThereWasAComputaion = false;      
+}
 
 template <class compute_instance> background_computation<compute_instance>::background_computation(compute_instance *ci)
 {
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond, NULL);
 
-    pthread_mutex_init(&finished_mutex, NULL);
+    pthread_mutex_init(&CompNotRunning_mutex, NULL);
     pthread_mutex_init(&comp_active_mutex, NULL);
 
 
@@ -193,7 +216,8 @@ template <class compute_instance> background_computation<compute_instance>::back
 
     signal = 0; // ???
 
-    set_finished(true); // initially the computation is finished
+    set_CompNotRunning(true); // initially the computation is finished
+    ThereWasAComputaion = false; // the first compu did not happen for now
 
 
 
@@ -221,7 +245,7 @@ template <class compute_instance> background_computation<compute_instance>::~bac
     pthread_mutex_destroy(&mutex);
     pthread_cond_destroy(&cond);
 
-    pthread_mutex_destroy(&finished_mutex);
+    pthread_mutex_destroy(&CompNotRunning_mutex);
     pthread_mutex_destroy(&comp_active_mutex);
 
 }
@@ -250,6 +274,7 @@ private:
     callback_class *cb;
 
     background_computation< ortd_asychronous_computation > *computer_mgr;
+    
 public:
     // simnest: a ready to use set-up schematic
     ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest);
@@ -259,6 +284,7 @@ public:
 
     int computeNSteps(int N);
     bool computation_finished();
+    void reset();
     void join_computation();
 
 
@@ -292,8 +318,15 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 
 template <class callback_class> bool ortd_asychronous_computation<callback_class>::computation_finished()
 {
-    return computer_mgr->get_finished();
+  bool finished = computer_mgr->finishedAComputation();
+  return finished;
 }
+
+template <class callback_class> void ortd_asychronous_computation<callback_class>::reset()
+{
+  computer_mgr->reset_ThereWasAComputaion();  
+}
+
 
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
 {
@@ -589,7 +622,7 @@ void compu_func_nested_class::io_async(int update_states)
 
         // If the background computation is finished the the output to 1
         // nonblocking check for a result
-        if (this->async_comp_mgr->computation_finished()) {
+        if (this->async_comp_mgr->computation_finished()) {	    
             *comp_finished = 1;
         } else {
             *comp_finished = 0;
@@ -638,9 +671,9 @@ void compu_func_nested_class::io(int update_states)
 void compu_func_nested_class::reset()
 {
     if (async_comp == false) {
-     
     } else {
-     
+//        fprintf(stderr, "Resetting async\n");
+       async_comp_mgr->reset();     
     }
 }
 
@@ -1037,7 +1070,7 @@ void compu_func_statemachine_class::io(int update_states)
 
 void compu_func_statemachine_class::destruct()
 {
-
+  fprintf(stderr, "nested: delete statemachine...\n");
 
     simnest->destruct();
     delete simnest;
@@ -1045,6 +1078,7 @@ void compu_func_statemachine_class::destruct()
     if (this->global_states_buffer != NULL)
         free(this->global_states_buffer);
 
+  fprintf(stderr, "nested: delete statemachine done\n");
 
 
 }
