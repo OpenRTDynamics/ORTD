@@ -805,6 +805,7 @@ function [sim_container_irpar, sim, userdata] = libdyn_setup_sch2(fn, insizes, o
 
    // let the user defined function describe the schematic
    // It will fill in sim
+
    [sim, outlist, userdata] = fn(sim, inlist, userdata);
    
    // check the number of provided outputs
