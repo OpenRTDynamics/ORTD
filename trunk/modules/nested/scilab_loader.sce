@@ -236,7 +236,7 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
 
     //    [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsizes, intypes, outtypes); // outtypes and intypes are not handled at the moment
     //[sim_container_irpar, nested_sim] = libdyn_setup_schematic(fn, insizes, outsizes); 
-    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes, list(i, userdata)); 
+    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata)); 
 
     // pack simulations into irpar container with id = 901
     parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
