@@ -574,6 +574,30 @@ function [sim, out] = ld_and(sim, events, inlist) // PARSEDOCU_BLOCK
 endfunction
 
 
+function [sim, out] = ld_initimpuls(sim, events) // PARSEDOCU_BLOCK
+//
+// initial impuls
+//
+// out * - output
+// 
+// 
+
+
+  btype = 60001 + 22;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[ ], ...
+                   insizes=[], outsizes=[1], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
+
+
+
 
 
 
