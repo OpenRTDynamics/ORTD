@@ -671,6 +671,7 @@ void compu_func_nested_class::io(int update_states)
 void compu_func_nested_class::reset()
 {
     if (async_comp == false) {
+      simnest->reset_blocks();
     } else {
 //        fprintf(stderr, "Resetting async\n");
        async_comp_mgr->reset();     
