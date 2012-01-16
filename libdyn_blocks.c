@@ -1055,7 +1055,10 @@ int compu_func_play_block(int flag, struct dynlib_block_t *block)
       siso_sampler_stop_sampling(sampler);
       if (initial_play==1)
 	siso_sampler_init_sampling(sampler);
-      
+
+      out =  (double *) libdyn_get_output_ptr(block,0);
+      *out = siso_sampler_play(sampler, 0);
+
       return 0;
       break;            
     case COMPF_FLAG_PRINTINFO:
