@@ -1,5 +1,29 @@
 #include "scilab.h"
 
+
+
+/*
+
+TODO: -- Fehler und printf von scilab ausgeben
+      -- Wenn Scilab Binaray ein Link ist funktioniert es nicht
+      -- verschiedenen default angaben für das scilab binary probieren
+      -- nicht höngen bleiben falls vektorgröße falsch
+      -- auch sonst nicht hängen bleiben
+      -- Schleife vereinfachen
+
+
+
+
+
+
+
+
+
+
+
+*/
+
+
 run_scilab::run_scilab(const char* scilab_path) // Constructor
 {
    this->scilab_path = new char [strlen(scilab_path) + 1];
@@ -291,8 +315,8 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 //    status = scilab->send_to_scilab(tmp);
 
    
-
-   // Würde eher vermuten, dass das printf hier einen Zeilenumbruch benötigt. Wieso nicht?
+ // TODO
+   // Würde eher vermuten, dass das printf hier einen Zeilenumbruch benötigt. Wieso nicht? Möglicherweise beide KOmmandos an scilab (dieses und den vector ausgeben zusammenfassen
 //  sprintf(tmp, "printf(\"vectorlen=%%d \\n \", length(scilab_interf.outvec%d));  ", vector_nr);
    
    sprintf(tmp, "printf(\"vectorlen=%%d  \", length(scilab_interf.outvec%d));  ", vector_nr);
@@ -330,7 +354,7 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 
 printf("ok\n");*/
    
-
+   // TODO Schleife echt kompliziert
    // Eine Schleife für zwei Sachen --> 2 Schleifen für ...
    do 
    {
@@ -338,7 +362,7 @@ printf("ok\n");*/
           && !ferror(read_fd)
           && fgets(buf, sizeof buf, read_fd) != NULL)
       {
-// 	 printf("scilab: >>> %s\n", buf);
+ 	 fprintf(stderr, "scilab says: >>> %s\n", buf);
 
 	 if (strstr (buf,"vectorlen=") != NULL)
          {
@@ -359,7 +383,7 @@ printf("ok\n");*/
                      && !ferror(read_fd)
                      && fgets(buf, sizeof buf, read_fd) != NULL)
                   {
-//        	 printf("scilab: >>> %s\n", buf);
+                	 fprintf(stderr, "scilab says: >>> %s\n", buf);
 
                      sscanf (buf,"%lf",&data[i]);
                   }
