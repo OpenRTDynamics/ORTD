@@ -117,10 +117,17 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	// get the identifier
 // 	directory_entry::direntry *dentr = master->dtree->access("nested_exchange_test", NULL);
 	directory_entry::direntry *dentr = master->dtree->access(nested_simname, NULL);
+	
+	if (dentr == NULL) {
+	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: Can not find simulation %s\n", nested_simname);
+	  *output = -3;	  
+	  
+	  return;
+	}
 
 	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE) {
 	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: wrong type for %s\n", nested_simname);
-	  *output = -3;
+	  *output = -4;
 	  
 	  return;
 	}
