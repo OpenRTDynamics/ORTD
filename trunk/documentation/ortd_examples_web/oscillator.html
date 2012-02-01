@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="Generator" content="Kate, the KDE Advanced Text Editor" />
+<title>oscillator.sce</title>
+</head>
+<body>
+<pre style='color:#181615;background-color:#ffffff;'>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//    Copyright (C) 2010, 2011  Christian Klauer</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//    OpenRTDynamics is free software: you can redistribute it and/or modify</span></i>
+<i><span style='color:#898887;'>//    it under the terms of the GNU Lesser General Public License as published by</span></i>
+<i><span style='color:#898887;'>//    the Free Software Foundation, either version 3 of the License, or</span></i>
+<i><span style='color:#898887;'>//    (at your option) any later version.</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//    OpenRTDynamics is distributed in the hope that it will be useful,</span></i>
+<i><span style='color:#898887;'>//    but WITHOUT ANY WARRANTY; without even the implied warranty of</span></i>
+<i><span style='color:#898887;'>//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span></i>
+<i><span style='color:#898887;'>//    GNU Lesser General Public License for more details.</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//    You should have received a copy of the GNU Lesser General Public License</span></i>
+<i><span style='color:#898887;'>//    along with OpenRTDynamics.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span></i>
+<i><span style='color:#898887;'>//</span></i>
+
+
+
+
+
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>// An oscillator example for using the Scilab interface to libdyn</span></i>
+<i><span style='color:#898887;'>// NOTE: The &quot;ld_toolbox&quot; is needed to run</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>// Execute within scilab. The shell command &quot;libdyn_generic_exec -s oscillator -i 901 -l 1000&quot;</span></i>
+<i><span style='color:#898887;'>// will be executed to simulate this example. It will write output data to *dat files.</span></i>
+<i><span style='color:#898887;'>// Finally, the results are plotted</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//</span></i>
+
+
+thispath = get_absolute_file_path('oscillator.sce');
+cd(thispath);
+
+
+z = <b><i><span style='color:#0000ff;'>poly</span></i></b>(<span style='color:#b08000;'>0</span>,'z');
+
+T_a = 0.1;
+
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>// Set up simulation schematic</span></i>
+<i><span style='color:#898887;'>//</span></i>
+
+<b><span style='color:#008000;'>function</span></b> [sim, x,v] = oscillator(sim, u)
+    <i><span style='color:#898887;'>// create a feedback signal</span></i>
+    [sim,x_feedback] = libdyn_new_feedback(sim);
+
+    <i><span style='color:#898887;'>// use this as a normal signal</span></i>
+    [sim,a] = ld_add(sim, defaultevents, <b><i><span style='color:#0000ff;'>list</span></i></b>(u, x_feedback), [<span style='color:#b08000;'>1</span>, -<span style='color:#b08000;'>1</span>]);
+    [sim,v] = ld_ztf(sim, defaultevents, a, <span style='color:#b08000;'>1</span>/(z-<span style='color:#b08000;'>1</span>) * T_a ); <i><span style='color:#898887;'>// Integrator approximation</span></i>
+    [sim,x] = ld_ztf(sim, defaultevents, v, <span style='color:#b08000;'>1</span>/(z-<span style='color:#b08000;'>1</span>) * T_a ); <i><span style='color:#898887;'>// Integrator approximation  </span></i>
+    
+    <i><span style='color:#898887;'>// feedback gain</span></i>
+    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+    
+    <i><span style='color:#898887;'>// close loop x_gain = x_feedback</span></i>
+    [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
+
+<i><span style='color:#898887;'>//pause;</span></i>
+    
+<i><span style='color:#898887;'>//    [sim] = ld_printf(sim, defaultevents, x_gain, &quot;fb = &quot;, 1);</span></i>
+<i><span style='color:#898887;'>//    [sim] = ld_printf(sim, defaultevents, a, &quot;a = &quot;, 1);</span></i>
+<b><span style='color:#008000;'>endfunction</span></b>
+
+<b><span style='color:#008000;'>function</span></b> [sim, x,v] = damped_oscillator(sim, u)
+    <i><span style='color:#898887;'>// create a feedback signal</span></i>
+    [sim,x_feedback] = libdyn_new_feedback(sim);
+    [sim,v_feedback] = libdyn_new_feedback(sim);
+
+    <i><span style='color:#898887;'>// use this as a normal signal</span></i>
+    [sim,a] = ld_add(sim, defaultevents, <b><i><span style='color:#0000ff;'>list</span></i></b>(u, x_feedback), [<span style='color:#b08000;'>1</span>, -<span style='color:#b08000;'>1</span>]);
+    [sim,a] = ld_add(sim, defaultevents, <b><i><span style='color:#0000ff;'>list</span></i></b>(a, v_feedback), [<span style='color:#b08000;'>1</span>, -<span style='color:#b08000;'>1</span>]);
+    
+    [sim,v] = ld_ztf(sim, defaultevents, a, <span style='color:#b08000;'>1</span>/(z-<span style='color:#b08000;'>1</span>) * T_a ); <i><span style='color:#898887;'>// Integrator approximation</span></i>
+    
+    <i><span style='color:#898887;'>// feedback gain</span></i>
+    [sim,v_gain] = ld_gain(sim, defaultevents, v, 0.1);
+    
+    <i><span style='color:#898887;'>// close loop v_gain = v_feedback</span></i>
+    [sim] = libdyn_close_loop(sim, v_gain, v_feedback);
+    
+    
+    [sim,x] = ld_ztf(sim, defaultevents, v, <span style='color:#b08000;'>1</span>/(z-<span style='color:#b08000;'>1</span>) * T_a ); <i><span style='color:#898887;'>// Integrator approximation  </span></i>
+    
+    <i><span style='color:#898887;'>// feedback gain</span></i>
+    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+    
+    <i><span style='color:#898887;'>// close loop x_gain = x_feedback</span></i>
+    [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
+
+<i><span style='color:#898887;'>//pause;</span></i>
+    
+<i><span style='color:#898887;'>//    [sim] = ld_printf(sim, defaultevents, x_gain, &quot;fb = &quot;, 1);</span></i>
+<i><span style='color:#898887;'>//    [sim] = ld_printf(sim, defaultevents, a, &quot;a = &quot;, 1);</span></i>
+<b><span style='color:#008000;'>endfunction</span></b>
+
+
+<i><span style='color:#898887;'>// This is the main top level schematic</span></i>
+<b><span style='color:#008000;'>function</span></b> [sim, outlist] = schematic_fn(sim, inlist)
+  [sim,u] = ld_const(sim, defaultevents, <span style='color:#b08000;'>1</span>);
+  
+  <i><span style='color:#898887;'>// example of conditional schmeatic generation</span></i>
+  damped = <span style='color:#b08000;'>1</span>; <i><span style='color:#898887;'>// please choose 1 or 0</span></i>
+  
+  <b><span style='color:#000080;'>if</span></b> (damped == <span style='color:#b08000;'>1</span>) <b><span style='color:#000080;'>then</span></b>
+    [sim, x,y] = damped_oscillator(sim, u);
+  <b><span style='color:#000080;'>else</span></b>
+    [sim, x,y] = oscillator(sim, u);  
+  <b><span style='color:#000080;'>end</span></b>
+  
+  
+  
+  [sim] = ld_printf(sim, defaultevents, x, <span style='color:#bf0303;'>&quot;x = &quot;</span>, <span style='color:#b08000;'>1</span>);
+  
+  <i><span style='color:#898887;'>// save result to file</span></i>
+  [sim, save0] = ld_dumptoiofile(sim, defaultevents, <span style='color:#bf0303;'>&quot;result.dat&quot;</span>, x);
+  
+  <i><span style='color:#898887;'>// output of schematic</span></i>
+  outlist = <b><i><span style='color:#0000ff;'>list</span></i></b>(x);
+<b><span style='color:#008000;'>endfunction</span></b>
+
+
+
+  
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>// Set-up</span></i>
+<i><span style='color:#898887;'>//</span></i>
+
+<i><span style='color:#898887;'>// defile events</span></i>
+defaultevents = [<span style='color:#b08000;'>0</span>]; <i><span style='color:#898887;'>// main event</span></i>
+
+<i><span style='color:#898887;'>// set-up schematic by calling the user defined function &quot;schematic_fn&quot;</span></i>
+insizes = [<span style='color:#b08000;'>1</span>,<span style='color:#b08000;'>1</span>]; outsizes=[<span style='color:#b08000;'>1</span>];
+[sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, insizes, outsizes);
+
+
+
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>// Save the schematic to disk (possibly with other ones or other irpar elements)</span></i>
+<i><span style='color:#898887;'>//</span></i>
+
+parlist = new_irparam_set();
+
+<i><span style='color:#898887;'>// pack simulations into irpar container with id = 901</span></i>
+parlist = new_irparam_container(parlist, sim_container_irpar, <span style='color:#b08000;'>901</span>);
+
+<i><span style='color:#898887;'>// irparam set is complete convert to vectors</span></i>
+par = combine_irparam(parlist);
+
+<i><span style='color:#898887;'>// save vectors to a file</span></i>
+save_irparam(par, 'oscillator.ipar', 'oscillator.rpar');
+
+<i><span style='color:#898887;'>// clear</span></i>
+par.ipar = [];
+par.rpar = [];
+
+
+
+
+<i><span style='color:#898887;'>// optionally execute</span></i>
+messages = <b><i><span style='color:#0000ff;'>unix_g</span></i></b>('libdyn_generic_exec -s oscillator -i <span style='color:#b08000;'>901</span> -l <span style='color:#b08000;'>1000</span>');
+
+
+<i><span style='color:#898887;'>// load results</span></i>
+A = <b><i><span style='color:#0000ff;'>fscanfMat</span></i></b>('result.dat');
+
+scf(<span style='color:#b08000;'>1</span>);clf;
+<b><i><span style='color:#0000ff;'>plot</span></i></b>(A(:,<span style='color:#b08000;'>1</span>), 'k');
+
+</pre>
+</body>
+</html>

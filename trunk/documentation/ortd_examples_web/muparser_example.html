@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="Generator" content="Kate, the KDE Advanced Text Editor" />
+<title>muparser_example.sce</title>
+</head>
+<body>
+<pre style='color:#181615;background-color:#ffffff;'>
+  expr = 'sin(u1+<span style='color:#b08000;'>1</span>)*c2+u2';
+  float_param=[3.1, <span style='color:#b08000;'>21</span>];
+  [sim,out] = ld_muparser(sim, defaultevents, <b><i><span style='color:#0000ff;'>list</span></i></b>(u,x), expr, float_param);
+
+  [sim] = ld_printf(sim, defaultevents, out, <span style='color:#bf0303;'>&quot;muout = &quot;</span>, <span style='color:#b08000;'>1</span>);
+
+  
+  
+  parNames = ['par1', 'par2']; par = [ 0.2, 0.4 ];
+  inNames = ['x', 'y' ]; in = <b><i><span style='color:#0000ff;'>list</span></i></b>(x,y);
+  expr = 'sin(x)*par1 + par2*y';
+  [sim,mytest] = ld_muparser_subst(sim, defaultevents, in, expr, par, inNames, parNames);
+  
+  [sim] = ld_printf(sim, defaultevents, mytest, <span style='color:#bf0303;'>&quot;mytest__ = &quot;</span>, <span style='color:#b08000;'>1</span>);
+
+</pre>
+</body>
+</html>
