@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="Generator" content="Kate, the KDE Advanced Text Editor" />
+<title>compfnexample.c</title>
+</head>
+<body>
+<pre style='color:#181615;background-color:#ffffff;'>
+<span style='color:#0057ae;'>int</span> ortd_compu_func_modcounter(<span style='color:#0057ae;'>int</span> flag, <b>struct</b> dynlib_block_t *block)
+{
+  <span style='color:#0057ae;'>int</span> Nout = <span style='color:#b08000;'>1</span>; <i><span style='color:#898887;'>// # input ports</span></i>
+  <span style='color:#0057ae;'>int</span> Nin = <span style='color:#b08000;'>1</span>; <i><span style='color:#898887;'>// # output ports</span></i>
+
+  <span style='color:#0057ae;'>int</span> *ipar = libdyn_get_ipar_ptr(block);
+  <span style='color:#0057ae;'>double</span> *rpar = libdyn_get_rpar_ptr(block);
+  
+  <span style='color:#0057ae;'>int</span> initial_state = ipar[<span style='color:#b08000;'>0</span>];
+  <span style='color:#0057ae;'>int</span> mod = ipar[<span style='color:#b08000;'>1</span>];
+  
+  <span style='color:#0057ae;'>int</span> *state = (<span style='color:#0057ae;'>void</span>*) libdyn_get_work_ptr(block);
+
+  <span style='color:#0057ae;'>double</span> *in;
+  <span style='color:#0057ae;'>double</span> *output;
+  
+  <b>switch</b> (flag) {
+    <b>case</b> COMPF_FLAG_CALCOUTPUTS:
+      in= (<span style='color:#0057ae;'>double</span> *) libdyn_get_input_ptr(block,<span style='color:#b08000;'>0</span>);
+      output = (<span style='color:#0057ae;'>double</span> *) libdyn_get_output_ptr(block,<span style='color:#b08000;'>0</span>);
+      
+      *output = state[<span style='color:#b08000;'>0</span>];
+      
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;
+    <b>case</b> COMPF_FLAG_UPDATESTATES:
+      in = (<span style='color:#0057ae;'>double</span> *) libdyn_get_input_ptr(block,<span style='color:#b08000;'>0</span>);
+      output = (<span style='color:#0057ae;'>double</span> *) libdyn_get_output_ptr(block,<span style='color:#b08000;'>0</span>);
+
+      <b>if</b> (*in &gt; <span style='color:#b08000;'>0</span>) {
+        *state = *state + <span style='color:#b08000;'>1</span>;
+	<b>if</b> (*state &gt;= mod)
+	  *state = <span style='color:#b08000;'>0</span>;
+      }
+      
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;
+    <b>case</b> COMPF_FLAG_RESETSTATES: <i><span style='color:#898887;'>// reset states</span></i>
+      *state = initial_state;
+      
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;
+    <b>case</b> COMPF_FLAG_CONFIGURE:  <i><span style='color:#898887;'>// configure</span></i>
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (<span style='color:#0057ae;'>void</span> *) <span style='color:#b08000;'>0</span>, <span style='color:#b08000;'>0</span>); 
+      libdyn_config_block_input(block, <span style='color:#b08000;'>0</span>, <span style='color:#b08000;'>1</span>, DATATYPE_FLOAT); <i><span style='color:#898887;'>// in, intype, </span></i>
+      libdyn_config_block_output(block, <span style='color:#b08000;'>0</span>, <span style='color:#b08000;'>1</span>, DATATYPE_FLOAT, <span style='color:#b08000;'>1</span>);
+      
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;
+    <b>case</b> COMPF_FLAG_INIT:  <i><span style='color:#898887;'>// init</span></i>
+      {
+        <span style='color:#0057ae;'>int</span> *state = malloc(<b>sizeof</b>(<span style='color:#0057ae;'>int</span>));
+        libdyn_set_work_ptr(block, (<span style='color:#0057ae;'>void</span> *) state);
+	*state = initial_state;
+      }
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;
+    <b>case</b> COMPF_FLAG_DESTUCTOR: <i><span style='color:#898887;'>// destroy instance</span></i>
+    {
+      <span style='color:#0057ae;'>void</span> *buffer = (<span style='color:#0057ae;'>void</span>*) libdyn_get_work_ptr(block);
+      free(buffer);
+    }
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;
+    <b>case</b> COMPF_FLAG_PRINTINFO:
+      printf(<span style='color:#bf0303;'>&quot;I'm a modcounter block. initial_state = %d</span><span style='color:#ff80e0;'>\n</span><span style='color:#bf0303;'>&quot;</span>, initial_state);
+      <b>return</b> <span style='color:#b08000;'>0</span>;
+      <b>break</b>;      
+  }
+}
+</pre>
+</body>
+</html>

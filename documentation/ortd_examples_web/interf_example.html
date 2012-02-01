@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="Generator" content="Kate, the KDE Advanced Text Editor" />
+<title>interf_example.sce</title>
+</head>
+<body>
+<pre style='color:#181615;background-color:#ffffff;'>
+<b><span style='color:#008000;'>function</span></b> [sim,out] = ld_modcounter(sim, events, in, initial_count, mod)
+<i><span style='color:#898887;'>// Modulo Counter - Block</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>// A counter that increases its value for each timestep where in &gt; 0.</span></i>
+<i><span style='color:#898887;'>// if the counter value &gt;= mod then it is reset to counter = initial_count</span></i>
+<i><span style='color:#898887;'>//</span></i>
+<i><span style='color:#898887;'>//</span></i>
+
+  <b><span style='color:#000080;'>if</span></b> (mod &lt; <span style='color:#b08000;'>0</span>) <b><span style='color:#000080;'>then</span></b>
+    <b><span style='color:#ff0000;'>error</span></b>(<span style='color:#bf0303;'>&quot;ld_modcounter: mod is less than zero\n&quot;</span>);
+  <b><span style='color:#000080;'>end</span></b>
+
+  btype = <span style='color:#b08000;'>60001</span> + <span style='color:#b08000;'>4</span>;
+  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [ initial_count, mod ], [  ]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, <b><i><span style='color:#0000ff;'>list</span></i></b>(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, <span style='color:#b08000;'>0</span>);   <i><span style='color:#898887;'>// 0th port</span></i>
+<b><span style='color:#008000;'>endfunction</span></b>
+</pre>
+</body>
+</html>
