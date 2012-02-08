@@ -1,0 +1,17 @@
+README - tcp_event_client
+reads lines from a tcp-server and processes them
+the data is interpreted to read scopes, infos of them and the data which they send
+the client uses the qt-event-routines, so it is possible to easily update widgets on the screen
+this example updates an progress bar with the data of the scope "osc_output", therefor the function
+"test_function" of the qt_event_communication-class is used.
+For updating other widgets the function "handle_data" of the same class has to be changed.
+
+Using this example:
+a) Build the example with:
+	1) qmake-qt4
+	2) make
+b) run the remote-example:
+	1) cd openrtdynamics/trunk/examples/
+	2) sh remote.sh
+c) run the program
+	-it shows a window with a progress bar which oscillates
