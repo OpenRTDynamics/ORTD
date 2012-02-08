@@ -61,7 +61,7 @@ public:
     int send_answer(rt_server *rt_server_src , char* str);
     void destruct();
 
-    int command_id;
+    int command_id; // FIXME NOT USED  REMOVE
     char *command_name;
 
     void *userdat; // pointer to user definable data
@@ -321,7 +321,7 @@ private:
     }
     
     // Command list
-    int command_id_counter;
+    int command_id_counter; // FIXME NOT USED REMOVE
     pthread_mutex_t command_map_mutex;
 
     
