@@ -1022,7 +1022,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
 
-	    fprintf(stderr, "Switch to state %d\n", active);
+	    fprintf(stderr, "Switch to state %d, because switching signal was %f\n", active, tmp);
 	    
             // switch to the new state
             simnest->reset_blocks();
