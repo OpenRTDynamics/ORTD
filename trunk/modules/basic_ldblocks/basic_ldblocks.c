@@ -1590,12 +1590,12 @@ int compu_func_printfstderr(int flag, struct dynlib_block_t *block)
       in = (double *) libdyn_get_input_ptr(block,0);
       char *str = (char *) block->work;
 
-      printf(stderr, "%s [", str);
+      fprintf(stderr, "%s [", str);
       int i;
       for (i = 0; i < vlen; ++i) {
-	printf(stderr, "%f, ", in[i]);
+	fprintf(stderr, "%f, ", in[i]);
       }
-      printf(stderr, "].\n"); 
+      fprintf(stderr, "].\n"); 
     } 
       return 0;
       break;
