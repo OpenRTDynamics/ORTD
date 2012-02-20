@@ -131,11 +131,14 @@ endfunction
 function [sim, outlist] = schematic_fn(sim, inlist)
   
 
- // [sim, u] = ld_playsimple(sim, defaultevents, [1,0,0,1,1,0,0,1,0]);
+ [sim, u] = ld_play_simple(sim, defaultevents, [1,0.5,1,2,3,4,0,1,0]);
+  [sim, u] = ld_delay(sim, defaultevents, u, 10);
 
 ev = defaultevents;
 
-  [sim,u] = ld_alternate( sim, ev, start_with_zero=%F );
+//  [sim,u] = ld_alternate( sim, ev, start_with_zero=%F );
+
+  
 
   
   [sim] = ld_printf(sim, defaultevents, u, "mytest = ", 1);
@@ -189,7 +192,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages=unix_g(ORTD.ortd_executable+ ' -s testbed -i 901 -l 30');
+messages=unix_g(ORTD.ortd_executable+ ' -s testbed -i 901 -l 20');
 
 
 // load results

@@ -1996,11 +1996,11 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
        block = libdyn_new_block(sim, &compu_func_compare, &bipar[0], &brpar[0], 0,  0);
       }
       break;
-    case LIBDYN_BLOCK_ID_DELAY :
-      {       
-       block = libdyn_new_block(sim, &compu_func_delay, &bipar[0], &brpar[0], 0,  0);
-      }
-      break;
+//     case LIBDYN_BLOCK_ID_DELAY :
+//       {       
+//        block = libdyn_new_block(sim, &compu_func_delay, &bipar[0], &brpar[0], 0,  0);
+//       }
+//       break;
     case LIBDYN_BLOCK_ID_FLIPFLOP :
       {       
        block = libdyn_new_block(sim, &compu_func_flipflop, &bipar[0], &brpar[0], 0,  0);

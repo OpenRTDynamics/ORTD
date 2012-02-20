@@ -613,6 +613,32 @@ function [sim] = ld_printfstderr(sim, events, in, str, insize) // PARSEDOCU_BLOC
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
 endfunction
 
+function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
+// delay - block
+//
+// in * - input
+// out * - output
+// 
+// delay in by N steps
+// 
+// 
+
+  if length(N) ~= 1 then
+    error("N is not a scalar\n");
+  end
+
+  if (N < 1) then
+    error("invalid delay");
+  end
+
+  btype = 60001 + 24;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ N ], [ ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(u) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -1266,11 +1292,11 @@ function [sim,bid] = libdyn_new_blk_filedump(sim, events, filename, vlen, maxlen
 endfunction
 
 
-// delay of delay_len samples block
-function [sim,bid] = libdyn_new_delay(sim, events, delay_len)
-  btype = 150;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [delay_len], []);
-endfunction
+// // delay of delay_len samples block
+// function [sim,bid] = libdyn_new_delay(sim, events, delay_len)
+//   btype = 150;
+//   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [delay_len], []);
+// endfunction
 
 function [sim,bid] = libdyn_new_flipflop(sim, events, initial_state)
   btype = 160;
@@ -1397,13 +1423,13 @@ function [sim,fngen] = ld_fngen(sim, events, inp_list, shape_)
 endfunction
 
 
-function [sim,delay] = ld_delay(sim, events, inp_list, delay_len)
-    [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
-
-    [sim,delay] = libdyn_new_delay(sim, events, delay_len)
-    [sim,delay] = libdyn_conn_equation(sim, delay, list(inp));
-    [sim,delay] = libdyn_new_oport_hint(sim, delay, 0);    
-endfunction
+// function [sim,delay] = ld_delay(sim, events, inp_list, delay_len)
+//     [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+// 
+//     [sim,delay] = libdyn_new_delay(sim, events, delay_len)
+//     [sim,delay] = libdyn_conn_equation(sim, delay, list(inp));
+//     [sim,delay] = libdyn_new_oport_hint(sim, delay, 0);    
+// endfunction
 
 function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
 //
