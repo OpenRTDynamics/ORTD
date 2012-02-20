@@ -127,23 +127,83 @@ endfunction
 //
 
 
+function [sim, y] = mundus_leftrighth_help2c(sim, ev, u, init, min__, max__, Ta) 
+// Implements a time discrete integrator with saturation of the output between min__ and max__
+// 
+// u * - input
+// y * - output
+// init * - should be a const signal
+// 
+
+    z = poly(0, 'z');
+
+    //
+    [sim] = ld_printf(sim, ev, init, termcode.red + "init  " + termcode.reset, 1);
+
+    // extract only the first sample of init
+    [sim, initimp] = ld_initimpuls(sim, ev);
+    [sim, notinitimp ] = ld_not(sim, ev, initimp);
+    [sim, init] = ld_cond_overwrite(sim, ev, in=init, condition=notinitimp, setto=0);
+
+//      a = 0.99;
+//      [sim, init] = ld_ztf(sim, ev, init, (1-a)/(z-a) );
+
+
+
+
+    [sim, u__] = ld_gain(sim, ev, u, Ta);
+    
+    [sim,z_fb] = libdyn_new_feedback(sim);
+    
+    [sim, i1] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+//     [sim, i2] = ld_ztf(sim, ev, i1, 1/z);
+    [sim, i2] = ld_delay(sim, ev, i1, 1);
+    [sim, i3] = ld_sum(sim, ev, list(i2, init), 1, 1); // add initial value
+    [sim, y] = ld_sat(sim, ev, i3, min__, max__);
+    
+    [sim] = libdyn_close_loop(sim, y, z_fb);
+
+
+    [sim] = ld_printf(sim, ev, y, termcode.red + "output  " + termcode.reset, 1);
+
+
+   // save 
+   [sim, save_] = ld_mux(sim, ev, 8, list( i1, i2, i3, u, initimp, notinitimp, init, y ) );
+   [sim] = ld_savefile(sim, ev, fname="debug_mundus_leftrighth_help2c.dat", source=save_, vlen=8);
+
+
+    // delay the output
+    a = 0.94;
+    [sim, y] = ld_ztf(sim, ev, y, (1-a)/(z-a) );
+
+
+endfunction
+
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
   
 
  [sim, u] = ld_play_simple(sim, defaultevents, [1,0.5,1,2,3,4,0,1,0]);
-  [sim, u] = ld_delay(sim, defaultevents, u, 10);
+ [sim, u] = ld_delay(sim, defaultevents, u, 1);
 
 ev = defaultevents;
 
 //  [sim,u] = ld_alternate( sim, ev, start_with_zero=%F );
 
+
+
+  [sim, c1] = ld_const(sim, ev, 0.01);
+  [sim, c2] = ld_const(sim, ev, 0.1);
+
+
+  [sim, y] = mundus_leftrighth_help2c(sim, ev, u=c1, init=c2, min__=0, max__=0.3, Ta=1);
   
+  [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result2.dat", y);
 
   
   [sim] = ld_printf(sim, defaultevents, u, "mytest = ", 1);
 
-  x = u;
+  x = y;
   
   
   // save result to file

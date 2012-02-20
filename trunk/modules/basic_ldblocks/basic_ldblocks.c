@@ -1672,7 +1672,7 @@ int compu_func_delay(int flag, struct dynlib_block_t *block)
       out = (double *) libdyn_get_output_ptr(block,0);
       
         *out = rot_buf[*buf_position_read];
-          rot_buf[*buf_position_read] = *inp;
+          
 	
 //          rot_buf[0] = *inp;
 	
@@ -1680,11 +1680,17 @@ int compu_func_delay(int flag, struct dynlib_block_t *block)
       return 0;
       break;
     case COMPF_FLAG_UPDATESTATES:
+      inp = (double *) libdyn_get_input_ptr(block,0);
+      rot_buf[*buf_position_read] = *inp;
+      
       if (*buf_position_read >= delay_length-1) {
 	*buf_position_read = 0;
       } else {
 	(*buf_position_read)++;
       }
+      
+      
+      
 
 //       if (*buf_position_write >= delay_length) {
 // 	*buf_position_write = 0;
@@ -1716,9 +1722,7 @@ int compu_func_delay(int flag, struct dynlib_block_t *block)
       
        int *bpr = &( (int*) buffer)[0];
 
-
        *bpr = 0;
-
 
       libdyn_set_work_ptr(block, (void *) buffer);
       
