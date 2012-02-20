@@ -1739,6 +1739,8 @@ int compu_func_delay(int flag, struct dynlib_block_t *block)
        int *bpr = &( (int*) buffer)[0];
 
        *bpr = 0;
+       
+       fprintf(stderr, "ld_delay: reseting states\n");
       
     }
       return 0;
