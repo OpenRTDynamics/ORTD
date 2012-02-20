@@ -258,6 +258,9 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the
       filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
       libdyn_null_states(filter);
       
+      out = (double *) libdyn_get_output_ptr(block,0);
+      *out = 0;
+      
       return 0;
       break;      
     case COMPF_FLAG_CONFIGURE:  // configure
