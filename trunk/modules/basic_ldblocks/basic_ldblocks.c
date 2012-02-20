@@ -1642,6 +1642,128 @@ int compu_func_printfstderr(int flag, struct dynlib_block_t *block)
 }
 
 
+// FIXME: UNTESTED! AWs are missing
+// MOVE
+int compu_func_delay(int flag, struct dynlib_block_t *block)
+{
+  //printf("comp_func zTF: flag==%d\n", flag);
+  int err;
+  
+  int Nout = 1;
+  int Nin = 1;
+
+  double *inp;
+  double *out;	
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int delay_length = ipar[0];
+  
+  int dfeed = 0;  
+
+  void *buffer__ = (void*) libdyn_get_work_ptr(block);
+  int *buf_position_read =  (int*) buffer__;
+//    int *buf_position_write = &( (int*) buffer__)[1];
+  double *rot_buf = (double*) (buffer__ + sizeof(int) );
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+      inp = (double *) libdyn_get_input_ptr(block,0);
+      out = (double *) libdyn_get_output_ptr(block,0);
+      
+        *out = rot_buf[*buf_position_read];
+          rot_buf[*buf_position_read] = *inp;
+	
+//          rot_buf[0] = *inp;
+	
+//       printf("out %f, in %f, posr %d \n", *out, *inp, *buf_position_read);
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      if (*buf_position_read >= delay_length-1) {
+	*buf_position_read = 0;
+      } else {
+	(*buf_position_read)++;
+      }
+
+//       if (*buf_position_write >= delay_length) {
+// 	*buf_position_write = 0;
+//       } else {
+// 	(*buf_position_write)++;
+//       }
+
+//        printf("buf pos is now %d\n", *buf_position_read);
+      
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, dfeed);
+  
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // configure
+    {      
+      if (delay_length < 1) {
+	fprintf(stderr, "ld_delay: invalid delay length\n");
+	return -1;
+      }
+      
+      unsigned int Nbytes = sizeof(double)*(delay_length) + sizeof(unsigned int);
+      void *buffer = malloc(Nbytes);
+      memset((void*) buffer, 0,  Nbytes );
+      
+       int *bpr = &( (int*) buffer)[0];
+
+
+       *bpr = 0;
+
+
+      libdyn_set_work_ptr(block, (void *) buffer);
+      
+//        printf("ptr %p\n", buffer);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // destroy instance
+    {
+      unsigned int Nbytes = sizeof(double)*(delay_length) + sizeof(unsigned int);
+      void *buffer = buffer__;
+      memset((void*) buffer, 0,  Nbytes );
+      
+       int *bpr = &( (int*) buffer)[0];
+
+       *bpr = 0;
+      
+    }
+      return 0;
+      break;      
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      void *buffer = (void*) libdyn_get_work_ptr(block);
+      free(buffer);
+    }
+      return 0;
+      break;
+      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a delay block len=%d: \n", delay_length);
+      return 0;
+      break;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2388,7 +2510,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 21, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_and);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 22, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_ld_initimpuls);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 23, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_printfstderr);
-    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 24, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_delay);
     
     
 
