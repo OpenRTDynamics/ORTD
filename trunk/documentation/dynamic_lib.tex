@@ -43,7 +43,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}		% Andere Graphikdateien einbinden
 
-\usepackage{supertabular}
+% \usepackage{supertabular}
 
 \usepackage[sc]{mathpazo}
 
@@ -252,7 +252,7 @@ Since the signal \texttt{x\_feedback}, which is used for feedback, is defined la
 [sim, x_feedback] = libdyn_new_feedback(sim);
 \end{verbatim}
 
-This creates a new signal x\_feedback that has no source for now. Its possible to use it as input for a block\footnote{Due to a limitation, at the time of writing it is only possible to connect on block}.
+This creates a new signal x\_feedback that has no source for now. Its possible to use it as input for a block\footnote{Due to a limitation, at the time of writing it is only possible to connect one block}.
 
 Later on, to assign a real signal to x\_feedback libdyn\_close\_loop is used:
 
@@ -426,10 +426,20 @@ close simulation and call destroy flag of all blocks:
   simbox->destruct();
 \end{verbatim}
 
+\section{Modules}
 
-\section{Computitional function structure}
+The whole space of blocks and functionality of this Toolbox is divided into several modules, which can be found in the \texttt{modules/} subdirectory.
 
-An example of the computational function of a static block:
+\subsection{Interfacing functions}
+
+Interfacing functions are Scilab functions, which define a certain block including its parameters. Each computational function should have at least one or more interfacing functions. TODO.
+
+\subsection{Computitional function structure}
+
+The computational functions are very similar in their structure compared to Simulink S-functions or Scicos computational functions. Though there are some additional features e.g. a flag for resetting internal states.
+
+Plenty of rather simple examples for blocks are available within the \texttt{basic\_ldblocks} module. The file \texttt{basic\_ldblocks.c} contain the computational functions  and \texttt{scilab\_loader.sce} contains the corresponding interfacing functions for scilab.
+To get an impression a computational function of a static block could look like:
 
 \begin{verbatim}
 int compu_func_sat(int flag, struct dynlib_block_t *block)
@@ -477,28 +487,30 @@ int compu_func_sat(int flag, struct dynlib_block_t *block)
 \end{verbatim}
 
 
-Flags available:
+The following flags are available:
 
 \begin{itemize}
  \item \texttt{COMPF\_FLAG\_CONFIGURE}: Configure Blocks input sizes and types. DO NOT allocated memory or initialise hardware/ports etc.
- \item \texttt{COMPF\_FLAG\_INIT}: Called before simulation starts. Allocate memory; initialise hardware.
+ \item \texttt{COMPF\_FLAG\_INIT}: Called before simulation starts. Allocate memory; initialise hardware. If in this case the computational function returns -1, then the initialisation of the simulation is aborted and all blocks previously set-up will be destructed.
  \item \texttt{COMPF\_FLAG\_DESTUCTOR}: Destruct block instance.
  \item \texttt{COMPF\_FLAG\_CALCOUTPUTS}: Calculate outputs.
  \item \texttt{COMPF\_FLAG\_UPDATESTATES}: Update states.
+ \item \texttt{COMPF\_FLAG\_RESETSTATES}: Reset the block to the initial state: Internal states as well as the output buffers are should be re-initialised. (This flag is an enormously helpful mechanism because it alows to completely reset nested simulations)
  \item \texttt{COMPF\_FLAG\_RELOAD\_IRPAR}: Not available for now. Called after new irpar parameters have been loaded.
  \item \texttt{COMPF\_FLAG\_PRINTINFO}: Print information about block instance on stdout.
 \end{itemize}
 
-Block configuration:
-
-First choose the blocktype (\texttt{BLOCKTYPE\_STATIC} or \texttt{BLOCKTYPE\_DYNAMIC}), the number of in- and out-ports, a possible instance pointer, and whether memory for the outputs is provided by the block (In most cases 0 is chosen). 
+During \texttt{COMPF\_FLAG\_CONFIGURE} the block has to be configured, which means that port numbers are assigned and allocated. Additionally the block type (dynamic or static has to be chosen). The function \texttt{libdyn\_config\_block} is responsible for both parts.
 
 \begin{verbatim}
 void libdyn_config_block(struct dynlib_block_t *block, int block_type, 
                          int Nout, int Nin, void *work, int own_outcache);
 \end{verbatim}
 
-Then all input ports have to be configured. The corresponding input port  \texttt{in} is configured to be of size \texttt{len}-Elements of \texttt{datatype}:
+First decide on the type of the block (\texttt{BLOCKTYPE\_STATIC} or \texttt{BLOCKTYPE\_DYNAMIC}), the number of in- and out-ports, a possible instance pointer, and whether memory for the output buffers is provided by the block (\texttt{own\_outcache} equals 1) or by the simulation system (\texttt{own\_outcache} equals 0). If unsure chose zero.
+
+
+Then each input ports has to be configured. One input port \texttt{in} is configured to be of size \texttt{len}-Elements of \texttt{datatype} by the following call:
 
 \begin{verbatim}
 int libdyn_config_block_input(struct dynlib_block_t *block, int in, 
@@ -512,7 +524,7 @@ int libdyn_config_block_output(struct dynlib_block_t *block, int out,
                                int len, int datatype, int dinput_dependence);
 \end{verbatim}
 
-Possible Datatypes are:
+Possible Datatypes are (others may follow):
 
 \begin{itemize}
  \item \texttt{DATATYPE\_FLOAT} 
