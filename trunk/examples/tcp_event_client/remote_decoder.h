@@ -99,6 +99,7 @@ private:
  // BEGIN changed by Arne
     int state;
     std::list<std::string> scope_names;
+    int scope_infos_to_get;
     int changed_scope_id; // is -1 if no scope was changed
     qt_event_communication* qt_event_com;
  // END changed by Arne
