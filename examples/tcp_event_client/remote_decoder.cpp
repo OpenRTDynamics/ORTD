@@ -160,7 +160,7 @@ void rt_server_decoder::init_sending()
 int rt_server_decoder::feed_external_data(std::string DataFromTcpLine)
 {
     bool all_scopes_read, all_scopes_infos_read;
-    int parse_info;
+
 
     switch (state)
     {
@@ -213,6 +213,7 @@ bool rt_server_decoder::read_scope(std::string input_line)
         std::string name_ = name;
         scope_names.push_front(name_);
 
+
     }
 
     if (input_line.compare(0, 7, "--EOR--") == 0) {
@@ -230,14 +231,27 @@ void rt_server_decoder::get_scopes_infos()
 {
     // For each scope
 
-    while ( !scope_names.empty() ) {
+    scope_infos_to_get = 0;
+
+    std::list<std::string>::iterator it;
+    for(it=scope_names.begin();it!=scope_names.end();++it) {
+        //std::cout << "get each scopes " << *it << "\n";
+        std::string iname = *it;
+        send_raw_command("stream_fetch ");
+        send_raw_command((char*) iname.c_str());
+        send_raw_command(" -2\n");
+        scope_infos_to_get++;
+    }
+
+    /*while ( !scope_names.empty() ) {
         std::string iname = scope_names.front();
         scope_names.pop_back();
 
         send_raw_command("stream_fetch ");
         send_raw_command((char*) iname.c_str());
+        printf("get_scopes_info: %s\n", iname.c_str());
         send_raw_command(" -2\n");
-    }
+    }*/
 
 }
 
@@ -258,9 +272,11 @@ bool rt_server_decoder::read_scope_info(std::string input_line)
 
         std::pair <int, rt_server_decoder_scope* > paired = std::make_pair(StreamId, iscope);
         scopes.insert(paired);
+        scope_infos_to_get--;
     }
 
-    if (input_line.compare(0, 7, "--EOR--") == 0) {
+
+    if (scope_infos_to_get == 0) {
         // no more scopes info -> next state
         if (state == MORE_SCOPES_INFOS_TO_READ)
         {
