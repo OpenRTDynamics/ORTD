@@ -625,3 +625,31 @@ function [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname, 
 endfunction
 
 
+function [sim, outvec] = ld_survivereset(sim, events, invec, initvec) // PARSEDOCU_BLOCK
+// Keep stored data through a simulation reset (EXPERIMENTAL FOR NOW)
+//
+// in *+(vecsize) - input
+// out *+(vecsize) - output
+// 
+// Prior to a simulation reset the input is stored into memory.
+// After the reset the data is available again via the output
+// Initially the output is set to initvec
+// 
+//    
+
+  if (length(initvec) < 1) then
+    error("length(initvec) < 1 !");
+  end
+
+  btype = 15004;	
+  ipar = [length(initvec); 0]; rpar = [initvec];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[length(initvec)], outsizes=[length(initvec)], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction

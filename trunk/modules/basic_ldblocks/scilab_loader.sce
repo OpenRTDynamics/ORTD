@@ -641,6 +641,49 @@ function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
 endfunction
 
 
+function [sim, out] = ld_steps2(sim, events, activation_simsteps, values) // PARSEDOCU_BLOCK
+//
+// steps, counter is increased on event, which is different to ld_steps
+// (EXPERIMENTAL because not tested for now)
+//
+// out * - output
+// 
+// 
+
+  if (length(activation_simsteps) ~= length(values)-1) then
+    error("length(activation_simsteps) != length(values)-1");
+  end
+
+  btype = 60001 + 25;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ length(values), activation_simsteps ], rpar=[ values ], ...
+                   insizes=[], outsizes=[1], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
+//
+// return the sign of the input sigal
+// either 1 or -1
+//
+
+  btype = 60001 + 26;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
+
+
+
 
 
 
@@ -1095,6 +1138,8 @@ function [sim,y] = ld_compare(sim, events, in,  thr) // PARSEDOCU_BLOCK
 //   in * - signal
 //   y *
 // If in > thr: y = 1; else y = -1
+// 
+// Please check: Bug inside?
 //
 
     [sim,blk] = libdyn_new_compare(sim, events, thr);
@@ -1115,7 +1160,6 @@ function [sim,y] = ld_compare_01(sim, events, in,  thr) // PARSEDOCU_BLOCK
     [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
-
 
 
 
@@ -1390,8 +1434,12 @@ endfunction
 
 function [sim,sign_] = ld_sign(sim, events, inp_list, thr) // PARSEDOCU_BLOCK
 //
+// FIXME: OSOLETE FN: use ld_getsign instead
+// 
 // return the sign of the input sigal
 // either 1 or -1
+// 
+// 
 //
     [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
