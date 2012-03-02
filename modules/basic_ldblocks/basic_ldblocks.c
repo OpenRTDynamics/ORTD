@@ -1275,9 +1275,9 @@ int ortd_compu_func_steps(int flag, struct dynlib_block_t *block)
         break;
     case COMPF_FLAG_INIT:  // init
     {
-        int *state = malloc(sizeof(int));
-        libdyn_set_work_ptr(block, (void *) state);
-        *state = 0;
+        int *state__ = malloc(sizeof(int));
+        libdyn_set_work_ptr(block, (void *) state__);
+        *state__ = 0;
     }
     return 0;
     break;
@@ -1642,8 +1642,7 @@ int compu_func_printfstderr(int flag, struct dynlib_block_t *block)
 }
 
 
-// FIXME: UNTESTED! AWs are missing
-// MOVE
+// AWs are missing
 int compu_func_delay(int flag, struct dynlib_block_t *block)
 {
   //printf("comp_func zTF: flag==%d\n", flag);
@@ -1763,6 +1762,143 @@ int compu_func_delay(int flag, struct dynlib_block_t *block)
       break;
   }
 }
+
+int ortd_compu_func_steps2(int flag, struct dynlib_block_t *block)
+{
+// printf("comp_func flipflop: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 0;
+
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int numsteps = ipar[0];
+    int *times = &ipar[1];
+    double *values = &rpar[0];
+
+    
+    int *state = (void*) libdyn_get_work_ptr(block);
+    int *counter = (void*) libdyn_get_work_ptr(block) + sizeof(int);
+    
+    double *output;
+
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+        *output = values[*state];
+// 	printf("out = %f\n", *output);
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+// 	printf("steps #%d state %d nexttimestep=%d\n", block->sim->stepcounter, *state, times[*state]);
+	
+        if (times[*state] <= *counter) { 
+	  if (*state < numsteps) {
+// 	    printf("sw on\n");
+              (*state)++;
+	  }
+        }
+        
+        *counter = *counter + 1;
+
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+        *state = 0;
+	
+        output = (double *) libdyn_get_output_ptr(block,0);
+	*output = *state;
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        //printf("New flipflop Block\n");
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        void *mem = malloc(2 * sizeof(int));
+        libdyn_set_work_ptr(block, (void *) mem);
+	int *state__ = mem;
+	int *counter__ = mem + sizeof(int); // FIXME: CHECK also above
+	
+        *state__ = 0;
+	*counter__ = 0;
+	
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        void *buffer = (void*) libdyn_get_work_ptr(block);
+        free(buffer);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a steps2 block.\n");
+        return 0;
+        break;
+    }
+}
+
+int compu_func_ld_getsign(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+
+        out[0] = (*in >= 0) ? 1 : -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a getsign block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 
 
 
@@ -2521,6 +2657,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 22, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_ld_initimpuls);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 23, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_printfstderr);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 24, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_delay);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 25, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps2);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 26, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_getsign);
     
     
 

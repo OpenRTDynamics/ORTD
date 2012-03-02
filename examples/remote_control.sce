@@ -143,7 +143,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
     [sim, x,y] = oscillator(sim, u);  
   end
   
-  [sim] = ld_stream(sim, defaultevents, x, "osc_output", 1);
+
+  [sim, out] = ld_mux(sim, defaultevents, vecsize=5, inlist=list( x,y,x,y,x ) );
+  [sim] = ld_stream(sim, defaultevents, out, "osc_output", 5);
   
 //////////  [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
   

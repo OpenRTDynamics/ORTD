@@ -1030,10 +1030,11 @@ void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim)
       
 //      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
       
-      int ret = (*block->comp_func)(COMPF_FLAG_RESETSTATES, block);
-       if (ret == -1) {
-	 ;
-       }
+      int ret = (*block->comp_func)(COMPF_FLAG_PREPARERESET, block);
+      ret = (*block->comp_func)(COMPF_FLAG_RESETSTATES, block);
+/*      if (ret == -1) {
+	;
+      }*/
     
       current = current->allblocks_list_next; // step to the next block in list
     } while (current != 0); // while there is a next block in this list
