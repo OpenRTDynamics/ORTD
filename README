@@ -229,5 +229,6 @@ v0.99h ( ... )
   - libdyn.sci: more checks with libdyn_check_obj( )
   - Nested schematics can now be exchanged online! (while the controller is running)
     this is done by loading new [i,r]par - files into the simulation nests
+  - New Flag COMPF_FLAG_PREPARERESET, which comes before blocks are reset
 
   
