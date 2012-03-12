@@ -890,6 +890,24 @@ function [sim, out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // FIXME 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_vector_abssum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+// sum over element wise abs() of "in"
+//
+// in *+(vecsize)
+// out *
+//    
+  btype = 60001 + 59;
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize ], outsizes=[1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 // 
