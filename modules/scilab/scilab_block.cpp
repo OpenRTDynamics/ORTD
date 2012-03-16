@@ -88,19 +88,26 @@ int compu_func_scilab_class::init()
 
 void compu_func_scilab_class::io(int update_states)
 {
-    if (update_states==0) {
-        double *output = (double*) libdyn_get_output_ptr(block, 0);
-        double *in = (double *) libdyn_get_input_ptr(block,0);
-        int *ipar = libdyn_get_ipar_ptr(block);
-        int insize = ipar[0];
-        int outsize = ipar[1];
-        int i;
-
-        scilab_calc->send_vector_to_scilab(1, in, insize);
-   
-        scilab_calc->calculate(); // send calc_cmd to scilab
-   
-        scilab_calc->read_vector_from_scilab(1, output, outsize);
+   if (update_states==0) {
+      double *output = (double*) libdyn_get_output_ptr(block, 0);
+      double *in = (double *) libdyn_get_input_ptr(block,0);
+      int *ipar = libdyn_get_ipar_ptr(block);
+      int insize = ipar[0];
+      int outsize = ipar[1];
+      int invec_no = ipar[2];
+      int outvec_no = ipar[3];
+      int i;
+        
+      //fprintf(stderr, "Start send_vector_to_scilab\n");
+      if (scilab_calc->send_vector_to_scilab(invec_no, in, insize))
+      {
+         //fprintf(stderr, "Start calculate\n");
+         if (scilab_calc->calculate(invec_no, outvec_no, insize, outsize)) // send calc_cmd to scilab
+         {
+            //fprintf(stderr, "Start read_vector_from_scilab\n");
+            scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
+         }
+      }
         
     }
 }
