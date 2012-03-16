@@ -2,6 +2,10 @@
 #include <string.h>  // strlen, strcpy
 #include <unistd.h>  // fork, pipe, dup2, close, execl
 #include <stdlib.h>  // exit
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/time.h>
 
 class run_scilab {
    private:
@@ -37,7 +41,7 @@ class scilab_calculation {
       double **outptr, **inptr;*/
       
 
-      bool calculate(); // calc_cmd in scilab ausführen
+      bool calculate(int invec_no, int outvec_no, int insize, int outsize); // calc_cmd in scilab ausführen
       bool send_vector_to_scilab(int vector_nr, double *data, int veclen);
       bool read_vector_from_scilab(int vector_nr, double *data, int veclen);
       bool print_vector(int vector_nr);

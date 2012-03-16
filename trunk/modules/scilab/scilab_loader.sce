@@ -13,7 +13,8 @@
 //  [sim,blk] = libdyn_new_scope(sim, events, str, insize);
 //  [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
 //endfunction
-function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, init_cmd, calc_cmd, destruct_cmd, scilab_path) // PARSEDOCU_BLOCK
+function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, invecno, outvecno, ...
+    init_cmd, calc_cmd, destruct_cmd, scilab_path) // PARSEDOCU_BLOCK
 // scilab - block
 //
 // in *+(invecsize) - input        scilab_interf.invec%d = [ .... ];
@@ -23,7 +24,7 @@ function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, init_cmd
 // 
 
   btype = 22000;
-  ipar = [invecsize; outvecsize; 0; 0; 0; 0; 0; 0; 0; 0; 0; length(init_cmd); length(calc_cmd); ...
+  ipar = [invecsize; outvecsize; invecno; outvecno; 0; 0; 0; 0; 0; 0; 0; length(init_cmd); length(calc_cmd); ...
                    length(destruct_cmd); length(scilab_path); ascii(init_cmd)';...
                    ascii(calc_cmd)'; ascii(destruct_cmd)'; ascii(scilab_path)'; 0; ]; rpar = [];
   
