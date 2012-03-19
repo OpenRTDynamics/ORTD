@@ -679,7 +679,29 @@ function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
 endfunction
 
 
+function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // PARSEDOCU_BLOCK
+  //
+  // Insert one element in a vector
+  //
+  // in *+ - the input element signal
+  // pointer * - the index signal
+  // vecsize - length of output vector
+  // 
+  // out[pointer] = in, the first element is at pointer = 1
+  //
 
+  btype = 60001 + 27;	
+  ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[1, 1], outsizes=[vecsize], ...
+                       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, pointer) );
+
+  // connect each outport
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
+endfunction
 
 
 
