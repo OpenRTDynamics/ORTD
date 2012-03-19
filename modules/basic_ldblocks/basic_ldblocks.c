@@ -1900,7 +1900,85 @@ int compu_func_ld_getsign(int flag, struct dynlib_block_t *block)
 
 
 
+/*
+  insert_element block
+*/
+int compu_func_insert_element(int flag, struct dynlib_block_t *block)
+{
+//     printf("comp_func eele: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
 
+    int vecsize = ipar[0];
+    int datatype = ipar[1];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in, *inpointer;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        inpointer = (double *) libdyn_get_input_ptr(block,1);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+        int index = *inpointer - 1;
+
+        // prevent out of bounds access
+        if (index < 0)
+            index = 0;
+        if (index > vecsize-1)
+            index = vecsize-1;
+
+//         printf(" schreibe %f --> index = %d \n", *in, index);
+        out[index] = *in;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES: // reset states
+    {
+       double *out = (double *) libdyn_get_output_ptr(block, 0);      
+       memset((void*) out, 0, sizeof(double)*vecsize  );
+    }
+    return 0;
+    break;
+    
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (vecsize < 1) {
+            printf("size cannot be smaller than 1\n");
+            printf("size = %d\n", vecsize);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT,0 ); // in, intype,
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a oneelementinserter block\n");
+        return 0;
+        break;
+
+    }
+}
 
 
 
@@ -2723,6 +2801,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 24, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_delay);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 25, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps2);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 26, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_getsign);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 27, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_insert_element);
+    
     
     
 
