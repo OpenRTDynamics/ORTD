@@ -62,14 +62,14 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
   select state
     case 1 // state 1
       // wait 10 simulation steps and then switch to state 2
-      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,2]);
+      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,2]); // -1 means stay within this state. 2 means go to state # 2
       [sim, x_global(1)] = ld_add_ofs(sim, events, x_global(1), 1); // increase counter 1 by 1
     case 2 // state 2
-      // wait 10 simulation steps and then switch to state 2
+      // wait 10 simulation steps and then switch to state 3
       [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,3]);
       [sim, x_global(2)] = ld_add_ofs(sim, events, x_global(2), 1); // increase counter 2 by 1
     case 3 // state 3
-      // wait 10 simulation steps and then switch to state 2
+      // wait 10 simulation steps and then switch to state 1
       [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,1]);
       [sim, x_global(3)] = ld_add_ofs(sim, events, x_global(3), 1); // increase counter 3 by 1
   end
