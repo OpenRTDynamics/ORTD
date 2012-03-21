@@ -53,8 +53,8 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 //  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=5, "", ...
 //  "a=1;\n save(\'a.dat\', a);  \n scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/usr/local/bin/scilab533");
 
-  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=6, invecno=1, outvecno=1, "", ...
-  "scilab_interf.outvec1 = [ scilab_interf.invec1 * 2; 9999 ] ", "", "/localhome/arne/openrtdynamics/trunk/scilab-5.3.3/bin/scilab");
+  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=6, "", ...
+  "scilab_interf.outvec1 = [ scilab_interf.invec1 * 2; 9999 ] ", "", "/localhome/arne/openrtdynamics/trunk/scilab-5.3.3/bin/scilab"); // Adapt the path to the scilab5 executable to your needs
   [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 6);
   
   // save result to file
