@@ -1,19 +1,10 @@
 
 
-// Interfacing functions are placed in this place
+// Interfacing functions are placed into this place
 
 
-//function [sim,bid] = libdyn_new_scope(sim, events, str, insize)
-//  btype = 10001;
-//  str = ascii(str);
-//  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
-//endfunction
-//
-//function [sim] = ld_scope(sim, events, in, str, insize)
-//  [sim,blk] = libdyn_new_scope(sim, events, str, insize);
-//  [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
-//endfunction
-function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, invecno, outvecno, ...
+
+function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize,  ...
     init_cmd, calc_cmd, destruct_cmd, scilab_path) // PARSEDOCU_BLOCK
 // scilab - block
 //
@@ -22,6 +13,9 @@ function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, invecno,
 // 
 // out = calc_cmd        scilab_interf.outvec%d = calc_cmd(scilab_interf.invec%d);
 // 
+
+
+  invecno=1; outvecno=1;
 
   btype = 22000;
   ipar = [invecsize; outvecsize; invecno; outvecno; 0; 0; 0; 0; 0; 0; 0; length(init_cmd); length(calc_cmd); ...
