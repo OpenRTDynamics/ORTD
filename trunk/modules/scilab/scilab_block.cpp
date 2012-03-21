@@ -98,16 +98,17 @@ void compu_func_scilab_class::io(int update_states)
       int outvec_no = ipar[3];
       int i;
         
-      //fprintf(stderr, "Start send_vector_to_scilab\n");
+//       fprintf(stderr, "scilab: Start send_vector_to_scilab\n");
       if (scilab_calc->send_vector_to_scilab(invec_no, in, insize))
       {
-         //fprintf(stderr, "Start calculate\n");
+//          fprintf(stderr, "Start calculate\n");
          if (scilab_calc->calculate(invec_no, outvec_no, insize, outsize)) // send calc_cmd to scilab
          {
-            //fprintf(stderr, "Start read_vector_from_scilab\n");
+            fprintf(stderr, "Start read_vector_from_scilab\n");
             scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
          }
       }
+//       fprintf(stderr, "scilab: computation finished\n");
         
     }
 }
