@@ -85,6 +85,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim,out] = ld_vector_sum(sim, defaultevents, in=vector, vecsize=8);
   [sim] = ld_printf(sim, defaultevents, out, "sum(vector) = ", 1);
   
+  // abs and sum up vector
+  [sim,out] = ld_vector_abssum(sim, defaultevents, in=vector, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "sum(abs(vector)) = ", 1);
   
   
   // save the vector to a file 
