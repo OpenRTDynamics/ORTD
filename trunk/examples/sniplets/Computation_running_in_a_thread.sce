@@ -25,7 +25,7 @@ function [sim, outlist] = ilc_run_calculation_fn(sim, inlist)
 //  init_command = " exec(" + char(39) + "online_estimation/init.sce" + char(39) + "); ";    // execute an sce-file
 
   init_command = "";
-  exec_command = " scilab_interf.outvec1 = 1:10;  ";
+  exec_command = " scilab_interf.outvec1 = 1:10  ";
 
   [sim,out] = ld_scilab(sim, defaultevents, in=inputv, invecsize=10, outvecsize=10, init_command, ...
                                             exec_command, "", "scilab5");
