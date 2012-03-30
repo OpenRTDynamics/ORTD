@@ -32,6 +32,7 @@
 
 #include <malloc.h>
 
+
 extern "C" {
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
@@ -40,6 +41,7 @@ extern "C" {
 
 }
 #include <libdyn_cpp.h>
+#include "global_shared_object.h"
 
  #include "directory.h"
 
@@ -50,74 +52,22 @@ extern "C" int persistent_memory_block(int flag, struct dynlib_block_t *block);
 
 
 
-class persistent_memory {
-  public:
-    persistent_memory(const char *identName, libdyn_nested *simnest );
-    
-    register_usage() {
-      // FIXME MUTEX
-      ++usage_counter;
-    }
-    unregister_usage() {
-      // FIXME MUTEX
-      --usage_counter;
-    }
-    
-    ~persistent_memory();
-    
-    
-  private:
-    const char *identName;
 
-    libdyn_master* ldmaster; // extracted from simnest
-      
-      void *buffer:
-      
-      int usage_counter;
+
+
+// Abgeleitete Klasse
+
+class persistent_memory_shobj : public ortd_global_shared_object {
+public:
+    persistent_memory_shobj(const char* identName, libdyn_master* master) : ortd_global_shared_object(identName, master) {}
+  
+private:
+  void init() {
+    printf("init persistent_memory\n");
+  }
+  
 };
 
-
-persistent_memory::persistent_memory(const char* identName)
-{
-  this->identName = identName;
-  this->usage_counter = 0;
-  
-  this->ldmaster = simnest->ld_master;
-  if (this->ldmaster == NULL) {
-    fprintf(stderr, "stderr: persistent_memory: needs a libdyn master\n");
-    // FIXME: throuw exception
-    
-    return;
-  }
-  
-  directory_tree *dtree = ldmaster->dtree;
-  if (dtree == NULL) {
-    fprintf(stderr, "stderr: persistent_memory: needs a root directory_tree\n");
-    // FIXME: throuw exception
-     
-  }
-  
-  
-  if (dtree->add_entry((char*) identName, ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this, this) == false) {
-     fprintf(stderr, "stderr: persistent_memory: cound not allocate the filename %s\n", identName);
-  }
-  
-  // alloc memory for the buffer
-  
-}
-
-
-
-
-
-persistent_memory::~persistent_memory()
-{
-  directory_tree *dtree = ldmaster->dtree;
-  dtree->delete_entry((char*) identName);
-  
-  if (this->current_irdata != NULL)
-    delete this->current_irdata;
-}
 
 
 // #endif
@@ -129,7 +79,7 @@ class persistent_memory_init {
 public:
   persistent_memory_init() { }
   
-  persistent_memory * persistent_memory_register(libdyn_master *master, char fname) {
+  persistent_memory_shobj  * persistent_memory_register(libdyn_master *master, char *fname) {
         if (master == NULL || master->dtree == NULL) {  // no master available
            fprintf(stderr, "WARNING: persistent_memory: block requires a libdyn master\n");
 	   
@@ -137,19 +87,19 @@ public:
 	}
 	
 	// get the identifier
-	directory_entry::direntry *dentr = master->dtree->access(nested_simname, NULL);
+	directory_entry::direntry *dentr = master->dtree->access(fname, NULL);
 	
 	if (dentr == NULL) {
-	  fprintf(stderr, "WARNING: persistent_memory: Can not find simulation %s\n", nested_simname);
+	  fprintf(stderr, "WARNING: persistent_memory: Can not find directory entry %s\n", fname);
 	   return NULL;
 	}
 
 	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY) {
-	  fprintf(stderr, "WARNING: persistent_memory: wrong type for %s\n", nested_simname);
+	  fprintf(stderr, "WARNING: persistent_memory: wrong type for %s\n", fname);
 	   return NULL;
 	}
 	
-	persistent_memory *pmem = (persistent_memory *) dentr->userptr;
+	persistent_memory_shobj  *pmem = (persistent_memory_shobj  *) dentr->userptr;
  
   }
   
@@ -180,7 +130,7 @@ private:
    int datatype;
    int size;
    
-   persistent_memory *pmem;
+   persistent_memory_shobj  *pmem;
 };
 
 persistent_memory_block_class::persistent_memory_block_class(dynlib_block_t* block)
@@ -215,8 +165,10 @@ int persistent_memory_block_class::init()
     
 
     libdyn_master *master = (libdyn_master *) block->sim->master;
-    persistent_memory_init meminit;
-    pmem = meminit.persistent_memory_register(master, this->directory_entry_fname);
+    pmem = new persistent_memory_shobj( directory_entry_fname, master );
+    
+/*    persistent_memory_init meminit; 
+    pmem = meminit.persistent_memory_register(master, this->directory_entry_fname);*/
     
     
     return 0;
@@ -237,11 +189,14 @@ void persistent_memory_block_class::reset()
 
 
 void persistent_memory_block_class::destruct()
-{
-    persistent_memory_init meminit;
-    pmem = meminit.persistent_memory_register(master, this->directory_entry_fname);
-    if (pmem != NULL) // another block counld have been deleted this one
-      delete pmem;
+{  
+  libdyn_master *master = (libdyn_master *) block->sim->master;
+  
+//     persistent_memory_init meminit;
+//     
+//     pmem = meminit.persistent_memory_register(master, this->directory_entry_fname);
+//     if (pmem != NULL) // another block counld have been deleted this one
+//       delete pmem;
 
   free(directory_entry_fname);
 }
@@ -300,7 +255,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
-    case COMPF_FLAG_INIT:  // init
+    case COMPF_FLAG_PREINIT:  // init
     {
         persistent_memory_block_class *worker = new persistent_memory_block_class(block);
         libdyn_set_work_ptr(block, (void*) worker);
@@ -316,7 +271,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
         in = (double *) libdyn_get_input_ptr(block,0);
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
-        worker->reset;
+        worker->reset();
     }
     return 0;
     break;
@@ -329,7 +284,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
 //     }
 //     return 0;
 //     break;  
-    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    case COMPF_FLAG_PREINITUNDO: // destroy instance
     {
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
@@ -340,7 +295,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     return 0;
     break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm a nested_exchange_fromfile block\n");
+        printf("I'm a persistent_memory initialising block\n");
         return 0;
         break;
 

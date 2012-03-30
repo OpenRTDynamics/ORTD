@@ -30,12 +30,11 @@ else
 endif # ifeq ($(main_makefile_invoked),yes)
 
 
-
 all: lib
-	echo "Module nested done"
+	echo "Module synchronisation done"
 
-lib: nested_block.o nested_onlineexchange.o exchange_blocks.o
-	ar rvs module.a nested_block.o nested_onlineexchange.o exchange_blocks.o  # Will always be included
+lib: sync_main.o
+	ar rvs module.a sync_main.o   # Will always be included
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 
@@ -43,16 +42,14 @@ clean:
 	rm -f *.o module.a module_Linux.a
 
 
-nested_block.o: nested_block.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c nested_block.cpp
+## EITHER THIS
 
-nested_onlineexchange.o: nested_onlineexchange.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c nested_onlineexchange.cpp
+#template.o: template.c
+#	$(CC) $(CFLAGS) $(INCLUDE) -c template.c 
 
-exchange_blocks.o: exchange_blocks.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c exchange_blocks.cpp
+## OR THIS
 
-persistent_memory.o: persistent_memory.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c persistent_memory.cpp
+sync_main.o: sync_main.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c sync_main.cpp
 
 

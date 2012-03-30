@@ -238,7 +238,7 @@ void *rt_task(void *p)
     struct global_t *global_p = (struct global_t *) p;
 
     struct timespec t, interval, curtime, T0;
-    struct sched_param param;
+    struct sched_param param; 
 
     param.sched_priority = prio;
     if (sched_setscheduler(0, SCHED_FIFO, &param)==-1) {

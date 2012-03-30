@@ -683,6 +683,12 @@ void libdyn::simulation_step(int update_states)
     libdyn_simulation_step(sim, update_states);
 }
 
+bool libdyn::check_pause()
+{
+  return (sim->sync_callback.sync_callback_state == 1);
+}
+
+
 void libdyn::reset_blocks()
 {
     libdyn_simulation_resetblocks(sim);

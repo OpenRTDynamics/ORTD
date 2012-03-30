@@ -64,7 +64,7 @@
 
 \title[]{ORTD --- The Open Realtime Dynamics Toolbox}
 	\subtitle{} %Mehrgrößenregelung einer Neuro-Prothese zur Generierung von Bewegungen  der oberen Extremität mittels Neuromuskulärer Elektrostimulation (NMES)
-\date{2011}
+\date{March 2012}
 \author{Christian Klauer$^{1}$\\
 {\tiny $^{1}$Fachgebiet Regelungssysteme, Technische Universität Berlin\\
 Kontakt: klauer@control.tu-berlin.de}
@@ -87,22 +87,20 @@ Kontakt: klauer@control.tu-berlin.de}
 
 \begin{frame}
 
-OpenRTDynamics is
+\textbf{OpenRTDynamics is}
 
  \begin{itemize}
   \item A simulator for time-discrete dynamical systems
-  \item A set of Scilab functions for describing such dynamical systems via a block / signal based description.
-  \item Additional things like
-  \begin{itemize}
-    \item A remote control interface
-   \end{itemize}
+  \item A Scilab-Toolbox for describing such dynamical systems via a block / signal based description.
+  \item Additional modules (e.g. remote control interface, statemachines, parallelism using threads, math formula parsing ...)
  \end{itemize}
 
-Compared to other simulation environments it features:
+\textbf{Compared to other systems it features:}
 \begin{itemize}
- \item Nested-schematics: The possibility to include multiple schematics within top level schematics. Online switching between the sub-simulations is possible.
+ \item Nested-schematics: The possibility to include multiple schematics within a top level schematic. Online switching between the sub-simulations is possible.
  \item A new way of defining schematics, which enables well structured code, which is easy to maintain as projects get bigger.
-\item Does not require a code compilation step for generating real-time code, because online interpretation is used for execution.
+\item Does not require a code compilation step for generating real-time code, because of online interpretation.
+\item On-line exchange of schematics
 \end{itemize}
 
 
@@ -121,56 +119,85 @@ Compared to other simulation environments it features:
 \end{frame}
 
 
+\begin{frame}
+\frametitle{Interfaces}
 
-% \begin{frame}
-% \frametitle{Signals and Blocks in ORTD}
-% 
-% \begin{itemize}
-%  \item A special Scilab variable type is introduced, which represents a signal.
-% \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
-% \end{itemize}
-% 
-% \end{frame}
-% 
+The interpreter can be interfaced via
+  \begin{itemize}
+   \item the provided Scicos-Block
+   \item the executable \texttt{libdyn\_generic\_exec}
+   \item third party C++ Code by linking to the shared library { \texttt{libortd.so} }
+  \end{itemize}
+
+\end{frame}
 
 
 
 \begin{frame}[fragile]
-  \frametitle{Signals and Blocks in ORTD}
+  \frametitle{Interface to Scicos}
 
-\begin{itemize}
- \item A special Scilab variable type is introduced, which represents a signal.
- \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
-\end{itemize}
+  \centering \includegraphics[trim=0mm 0mm 80mm 80mm, clip, width=1\linewidth]{figures/ortd_scicos_interface.png} 
 
-\begin{itemize}
- \item A linear combination of two signals ( $y=u_1 - u_2$ ) would look like:
-\end{itemize}
+  \begin{itemize}
+   \item Specification of the in- and output port sizes and the name of the schematic to load.
+   \item Multiple interface blocks within one Scicos diagram are possible
+  \end{itemize}
+
+\end{frame}
 
 
-{\small 
-\begin{lstlisting}
-   [sim, y] = ld_add(sim, defaultevents, list(u1, u2), [ 1, -1 ] );
-\end{lstlisting}}
+\begin{frame}[fragile]
+  \frametitle{Standalone interface}
+
+  \centering \includegraphics[trim=0mm 0mm 00mm 00mm, clip, width=0.8\linewidth]{figures/start_from_console.png} 
+
+  \begin{itemize}
+   \item Simulation mode or real-time execution with RT-Preempt scheduling or using soft RT.
+  \end{itemize}
+
+\end{frame}
+
+
+
+
+
+\begin{frame}[fragile]
+    \frametitle{Signals and Blocks in ORTD}
+
+  \begin{itemize}
+  \item A special Scilab variable type is introduced, which represents a signal.
+  \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
+  \end{itemize}
+
+  \begin{itemize}
+  \item A linear combination of two signals ( $y=u_1 - u_2$ ) would look like:
+  \end{itemize}
+
+
+  {\small 
+  \begin{lstlisting}
+    [sim, y] = ld_add(sim, defaultevents, list(u1, u2), [ 1, -1 ] );
+  \end{lstlisting}}
+    
+
+  \begin{itemize}
+  \item A time-discrete transfer function is implemented like this:
+  \end{itemize}
+
+  {\small 
+  \begin{lstlisting} 
+      [sim, y] = ld_ztf(sim, defaultevents, u, (1-0.2)/(z-0.2) );
+  \end{lstlisting}}
+
+
+  \begin{itemize}
+  \item Looks very similar to normal Scilab-Code, but for all calculations the toolbox functions have to be used.
+  \end{itemize}
   
-
-\begin{itemize}
- \item A time-discrete transfer function is implemented like this:
-\end{itemize}
-
-{\small 
-\begin{lstlisting} 
-    [sim, y] = ld_ztf(sim, defaultevents, u, (1-0.2)/(z-0.2) );
-\end{lstlisting}}
-
-
-\begin{itemize}
- \item Looks very similar to normal Scilab-Code, but for all calculations the toolbox functions have to be used.
-\end{itemize}
- 
 
 
 \end{frame}
+
 
 
 
@@ -200,25 +227,28 @@ Compared to other simulation environments it features:
  \item Every schematic is defined within a Scilab function.
 \end{itemize}
 
+\centering \includegraphics[trim=3cm 20cm 4cm 1.4cm, clip, width=0.85\linewidth]{figures/schematic_fn.pdf} 
 
-{\small 
-\begin{lstlisting} 
-// This is the main top level schematic
-function [sim, outlist] = schematic_fn(sim, inlist)
-   u1 = inlist(1); // Simulation input #1
-   u2 = inlist(2); // Simulation input #2
-   
-  // sum up two inputs
-  [sim,out] = ld_add(sim, defaultevents, list(u1, u2), [1, 1] );
-  
-  // save result to file
-  [sim, save0] = ld_dumptoiofile(sim, defaultevents, ...
-       "result.dat", out);
-  
-  // output of schematic
-  outlist = list(out); // Simulation output #1
-endfunction
-\end{lstlisting}}
+% {\small 
+% \begin{lstlisting} 
+% // This is the main top level schematic
+% function [sim, outlist] = schematic_fn(sim, inlist)
+%    u1 = inlist(1); // Simulation input #1
+%    u2 = inlist(2); // Simulation input #2
+%    
+%   // sum up two inputs
+%   [sim,out] = ld_add(sim, defaultevents, list(u1, u2), [1, 1] );
+%   
+%   // save result to file
+%   [sim, save0] = ld_dumptoiofile(sim, defaultevents, ...
+%        "result.dat", out);
+%   
+%   // output of schematic
+%   outlist = list(out); // Simulation output #1
+% endfunction
+% \end{lstlisting}}
+
+% schematic_fn
 
 \begin{itemize}
  \item It takes the simulation object \texttt{sim} as well as a list of in- and  outputs.
@@ -233,32 +263,38 @@ endfunction
 
 \begin{itemize}
  \item A schematic is generated via the following code. 
+\end{itemize}
+
+
+\centering \includegraphics[trim=3cm 19cm 4cm 1.4cm, clip, width=0.85\linewidth]{figures/schematic_fn_load.pdf} 
+
+\begin{itemize}
  \item The function \texttt{libdyn\_setup\_schematic} calls the function describing the schematic.
 \end{itemize}
 
 
-{\small 
-\begin{lstlisting} 
-defaultevents = [0]; // main event
-
-// set-up schematic by calling the user defined
-// function "schematic_fn"
-insizes = [1,1]; outsizes=[1];
-[sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, ...
-                            insizes, outsizes);
-
-// Initialise a new parameter set
-parlist = new_irparam_set();
-
-// pack simulations into irpar container with id = 901
-parlist = new_irparam_container(parlist, sim_container_irpar, 901);
-
-// irparam set is complete convert to vectors
-par = combine_irparam(parlist);
-
-// save vectors to a file
-save_irparam(par, 'simple_demo.ipar', 'simple_demo.rpar');
-\end{lstlisting}}
+% {\small 
+% \begin{lstlisting} 
+% defaultevents = [0]; // main event
+% 
+% // set-up schematic by calling the user defined
+% // function "schematic_fn"
+% insizes = [1,1]; outsizes=[1];
+% [sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, ...
+%                             insizes, outsizes);
+% 
+% // Initialise a new parameter set
+% parlist = new_irparam_set();
+% 
+% // pack simulations into irpar container with id = 901
+% parlist = new_irparam_container(parlist, sim_container_irpar, 901);
+% 
+% // irparam set is complete convert to vectors
+% par = combine_irparam(parlist);
+% 
+% // save vectors to a file
+% save_irparam(par, 'simple_demo.ipar', 'simple_demo.rpar');
+% \end{lstlisting}}
 
 \end{frame}
 
@@ -268,12 +304,6 @@ save_irparam(par, 'simple_demo.ipar', 'simple_demo.rpar');
  \begin{itemize}
   \item This Scilab-Script will generate two files \texttt{simple\_demo.ipar} and \texttt{simple\_demo.rpar}, which contain a encoded definition of the whole schematic.
 \item These file are then loaded by the provided interpreter library and executed.
-\item The interpreter can be interfaced via
-  \begin{itemize}
-   \item the executable \texttt{libdyn\_generic\_exec}
-   \item the provided Scicos-Block
-   \item third party C++ Code
-  \end{itemize}
  \end{itemize}
 
 \end{frame}
@@ -286,21 +316,25 @@ save_irparam(par, 'simple_demo.ipar', 'simple_demo.rpar');
  \item Superblocks are introduced by writing a new Scilab function.
 \end{itemize}
 
-{\small 
-\begin{lstlisting} 
-function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero )
-    [sim, zero] = ld_const(sim, ev, 0);
-    
-    if (mutewhengreaterzero == %T) then
-      [sim,y] = ld_switch2to1(sim, ev, cntrl, zero, u);
-    else
-      [sim,y] = ld_switch2to1(sim, ev, cntrl, u, zero);
-    end
-endfunction
-\end{lstlisting}}
+\centering \includegraphics[trim=3cm 22cm 4cm 1.4cm, clip, width=0.85\linewidth]{figures/ld_mute.pdf} 
+
+
+% {\small 
+% \begin{lstlisting} 
+% function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero )
+%     [sim, zero] = ld_const(sim, ev, 0);
+%     
+%     if (mutewhengreaterzero == %T) then
+%       [sim,y] = ld_switch2to1(sim, ev, cntrl, zero, u);
+%     else
+%       [sim,y] = ld_switch2to1(sim, ev, cntrl, u, zero);
+%     end
+% endfunction
+% \end{lstlisting}
+% }
 
 \begin{itemize}
- \item The example describes a superblock, which has two inputs \texttt{u} and \texttt{cntrl} and one output \texttt{y}.
+ \item This example describes a superblock, which has two inputs \texttt{u} and \texttt{cntrl} and one output \texttt{y}.
 \item \texttt{mutewhengreaterzero} describes an parameter.
 \item \textbf{NOTE}: With the if / else construction a superblock can have different behaviour depending on a parameter! (This enables great possibilities for creating reusable code)
 \end{itemize}
@@ -361,33 +395,10 @@ endfunction
  \frametitle{Feedback Loops: An example}
 
 
-  {\small 
-  \begin{lstlisting} 
-function [sim, y] = limited_int(sim, ev, u, min__, max__, Ta)
-  // Implements a time discrete integrator with saturation
-  // of the output between min__ and max__
-  // 
-  // u * - input
-  // y * - output
-  // 
-  // y(k+1) = sat( y(k) + Ta*u , min__, max__ )
 
-    [sim, u__] = ld_gain(sim, ev, u, Ta);
-    
-    // create z_fb, because it is not available by now
-    [sim,z_fb] = libdyn_new_feedback(sim);
-    
-    // do something with z_fb
-    [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-    [sim, tmp] = ld_ztf(sim, ev, sum_, 1/z);
+\centering \includegraphics[trim=3cm 16.5cm 4cm 1cm, clip, width=0.8\linewidth]{figures/limited_int.pdf} 
 
-    // Now y becomes available
-    [sim, y] = ld_sat(sim, ev, tmp, min__, max__); 
-
-    // assign z_fb = y    
-    [sim] = libdyn_close_loop(sim, y, z_fb);    
-endfunction
-\end{lstlisting}}
+\centering \includegraphics[width=0.6\linewidth]{figures/ld_limited_int_block.pdf} 
 
 
 \end{frame}
@@ -407,8 +418,8 @@ endfunction
 \hspace{-1cm}
 
      \begin{minipage}{0.7\linewidth}
-
-	\centering \includegraphics[trim=3cm 10cm 4cm 1cm, clip, width=1.3\linewidth]{figures/ld_charge_cntrl_multich.pdf} 
+       \vspace{-0.5cm}
+	\centering \includegraphics[trim=3cm 9.5cm 4cm 1cm, clip, width=1.3\linewidth]{figures/ld_charge_cntrl_multich.pdf} 
 
      \end{minipage}
 
@@ -426,12 +437,28 @@ endfunction
 
 
 \begin{frame}
-\begin{itemize}
- \item More advanced features like mathematical formula parsing, vectors, nesting schematics and the remote control interface are following. For now have a look at the website: \texttt{openrtdynamics.sf.net}.
-  \item Additionally, have a look at the demonstrations within the \texttt{examples/} directory of the toolbox. They also run the interpreter once you execute the Scilab script, so you immediately get an result.
-\end{itemize}
+Examples for advanced features like 
+
+  \begin{itemize}
+\item statemachines (\texttt{modules/nested})
+\item multiple simulations running in parallel (\texttt{modules/nested})
+\item mathematical formula parsing (\texttt{modules/muparser})
+\item vectors handling blocks (\texttt{modules/basic\_ldblocks})
+\item an on-line Scilab interface (\texttt{modules/scilab})
+\item remote control interface (\texttt{modules/rt\_server})
+  \end{itemize}
+
+
+
+are following. For now have a look at the website: \texttt{openrtdynamics.sf.net}.
+
+\vspace{6mm}
+
+
+  Additionally, have a look at the demonstrations within the \texttt{examples/} directory of the toolbox. They also run the interpreter once you execute the Scilab script, so you immediately get an visible result. Many modules (\texttt{modules/} subdirectory) also provide demonstrations.
 
 \end{frame}
+
 
 
 
