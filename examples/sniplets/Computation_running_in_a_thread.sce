@@ -41,6 +41,9 @@ function [sim, outlist] = ilc_run_calculation_fn(sim, inlist)
   compready = out__(1); //   
 
 
+  // [sim, result] = ld_constvec(sim, defaultevents, 1:10);
+
+
   // output of schematic
   outlist = list(result);
 endfunction

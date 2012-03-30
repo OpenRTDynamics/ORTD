@@ -30,9 +30,7 @@ extern "C" {
 
 
 
-extern "C" {
-    int libdyn_module_template_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
-}
+
 
 class compu_func_template_class {
 public:
@@ -59,7 +57,7 @@ int compu_func_template_class::init()
     double Nout = ipar[1];
 
 
-
+    // Return -1 to indicate an error, so the simulation will be destructed
   
     return 0;
 }
@@ -80,6 +78,7 @@ void compu_func_template_class::destruct()
 }
 
 
+// This is the main C-Callback function, which forwards requests to the C++-Class above
 int compu_func_template(int flag, struct dynlib_block_t *block)
 {
 
@@ -158,14 +157,19 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
     }
 }
 
-//#include "block_lookup.h"
+// Export to C so the libdyn simulator finds this function
+extern "C" {
+    // ADJUST HERE: must match to the function name in the end of this file
+    int libdyn_module_template_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
+}
 
+// CHANGE HERE: Adjust this function name to match the name of your module
 int libdyn_module_template_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
 
     // Register my blocks to the given simulation
 
-    int blockid = 990001;
+    int blockid = 990001;  // CHANGE HERE: choose a unique id for each block
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_template);
 
     printf("libdyn module template initialised\n");
@@ -173,4 +177,3 @@ int libdyn_module_template_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 }
 
 
-//} // extern "C"

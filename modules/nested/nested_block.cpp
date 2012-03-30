@@ -275,10 +275,12 @@ private:
 
     background_computation< ortd_asychronous_computation > *computer_mgr;
     
+    int asynchron_simsteps;
+    
 public:
     // simnest: a ready to use set-up schematic
-    ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest);
-    ortd_asychronous_computation(callback_class *cb, libdyn * simnest);
+    ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest, int asynchron_simsteps);
+    ortd_asychronous_computation(callback_class *cb, libdyn * simnest, int asynchron_simsteps); // not present
 
     ~ortd_asychronous_computation();
 
@@ -292,11 +294,12 @@ public:
 };
 
 
-template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest)
+template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest, int asynchron_simsteps)
 {
     this->cb = cb;
     this->simnest = simnest;
     this->sim = simnest->current_sim;
+    this->asynchron_simsteps = asynchron_simsteps;
 
     computer_mgr = new background_computation< ortd_asychronous_computation > (this);
 
@@ -331,21 +334,55 @@ template <class callback_class> void ortd_asychronous_computation<callback_class
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
 {
 
-     fprintf(stderr, "async_nested: running computer\n");
 //     sleep(8);
 
     // Simulate
 
     // do
-    sim->simulation_step(0);
-    sim->simulation_step(1);
+     
+     if (asynchron_simsteps == 1) {
+       fprintf(stderr, "async_nested: running computer in single mode\n");
+       sim->simulation_step(0);
+       sim->simulation_step(1);
+       
+       // call the callback to copy the results
+       cb->async_copy_output_callback();
+     }
+     
+     if (asynchron_simsteps == 2) {
+//         fprintf(stderr, "async_nested: running computer in endless mode\n");
+	
+	do { // the simulation synchronises itselft to something
+//           fprintf(stderr, "async_nested: another run\n");
+
+	  sim->event_trigger_mask(1);
+	  
+          sim->simulation_step(0);	  
+
+	  if (sim->check_pause()) {
+// 	    fprintf(stderr, "async_nested: leaving\n");
+	    break;
+	  }
+
+          sim->simulation_step(1);
+
+
+	} while (1);
+
+	// call the callback to copy the results
+	cb->async_copy_output_callback();
+	
+	sim->reset_blocks();
+
+	
+     }
+     
+     
     // while (some abort criterion set by the schematic sim)
 
 
-    // call the callback to copy the results
-    cb->async_copy_output_callback();
 
-     fprintf(stderr, "async_nested: finished\n");
+//      fprintf(stderr, "async_nested: finished\n");
 }
 
 
@@ -518,7 +555,7 @@ int compu_func_nested_class::init()
         printf("nested: Using async\n");
 
         this->async_comp = true;
-        this->async_comp_mgr = new ortd_asychronous_computation<compu_func_nested_class>(this, simnest);
+        this->async_comp_mgr = new ortd_asychronous_computation<compu_func_nested_class>(this, simnest, asynchron_simsteps);
 
         pthread_mutex_init(&this->output_mutex, NULL);
     }
@@ -609,7 +646,7 @@ void compu_func_nested_class::io_async(int update_states)
 
         if (*comptrigger_inp > 0.5) {
 	    fprintf(stderr, "Trigger computation\n");
-            this->async_comp_mgr->computeNSteps(1);
+            this->async_comp_mgr->computeNSteps(asynchron_simsteps);
         }
 
 

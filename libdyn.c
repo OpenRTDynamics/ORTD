@@ -119,6 +119,7 @@ int libdyn_config_get_datatype_len(int datatype)
 
 // This file is generated automatically by the build system
 #include "module_list__.h"
+#include <string.h>
 
 struct dynlib_simulation_t *libdyn_new_simulation()
 {
@@ -361,6 +362,7 @@ struct dynlib_block_t *libdyn_new_block__(struct dynlib_simulation_t *sim, void 
         mydebug(1) fprintf(stderr, "Output size %d Bytes\n", mem_needed);
 
         void *outdata = (void *) malloc(mem_needed);
+	memset(outdata, 0, mem_needed); // zero this memory initiallly
         block->outdata = outdata;
 
         // Share this memory among all outputs
@@ -372,7 +374,7 @@ struct dynlib_block_t *libdyn_new_block__(struct dynlib_simulation_t *sim, void 
 
       } else { // Block uses its own outputcache
         if (block->own_outcache_toconfigure != 0) {
-          mydebug(4) fprintf(stderr, "ASSERTION FAILD: NOT ALL OUTPUTS HAVE CONFIGURED CACHES", i);
+          fprintf(stderr, "ASSERTION FAILD: NOT ALL OUTPUTS HAVE CONFIGURED CACHES", i);
           // undo block creation
        
           libdyn_del_block(block);
@@ -640,7 +642,7 @@ int libdyn_block_connect(struct dynlib_block_t *blockfrom, int outNr, struct dyn
   tmpi = blockfrom->outlist[outNr].post_input;
   
   blockfrom->outlist[outNr].post = blockto; // New list head; Connection from output to input
-  blockfrom->outlist[outNr].post_input = inNr; // BUG FIXED (line was missing)
+  blockfrom->outlist[outNr].post_input = inNr;
 
   blockto->inlist[inNr].next_juncture_block[0] = tmp; // connect the previous head element to the new head element
   blockto->inlist[inNr].next_juncture_input[0] = tmpi;
@@ -649,9 +651,11 @@ int libdyn_block_connect(struct dynlib_block_t *blockfrom, int outNr, struct dyn
 
 err:
   fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
+  fprintf(stderr, "  The following missmatching interface was specified:\n\n");
   fprintf(stderr, "  inNr = %d, outNr = %d\n", inNr, outNr);
   fprintf(stderr, "  from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
-  fprintf(stderr, "  srclen = %d, dstlen = %d\n\n", blockfrom->outlist[outNr].len, blockto->inlist[inNr].len);
+  fprintf(stderr, "  srclen = %d, dstlen = %d\n", blockfrom->outlist[outNr].len, blockto->inlist[inNr].len);
+  fprintf(stderr, "  srcdatatype = %d, dstdatatype = %d\n\n", blockfrom->outlist[outNr].datatype, blockto->inlist[inNr].datatype);
   fprintf(stderr, "------\n");
   
   return test;
@@ -830,20 +834,101 @@ int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim)
 // Call COMPF_FLAG_INIT for each block and abort in case of an error
 //
 
+// int libdyn_simulation_init(struct dynlib_simulation_t * sim) // obsolete and unused
+// {
+//   struct dynlib_block_t *current;
+//   int counter;  
+//   int abort_at;
+//   
+//   
+//   
+//   
+//   current = sim->allblocks_list_head;
+//   counter = 0;
+//   if (current != 0) {
+//     do { // Destroy all blocks
+//       struct dynlib_block_t *block = current;
+//       
+// //      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
+//       
+//       int ret = (*block->comp_func)(COMPF_FLAG_INIT, block);
+//        if (ret == -1) {
+//  	 fprintf(stderr, "WARNING (for now): ERROR: libdyn_simulation_init: Computational function returned an error blockid=nn, block_irparid=%d\n", block->irpar_config_id);
+//          abort_at = counter;
+// 	 goto undo_everything;
+//        }
+//        
+//        // Mark the block as successfully initialised
+//        block->block_initialised = 1;
+//     
+//       current = current->allblocks_list_next; // step to the next block in list
+//       counter++;
+//     } while (current != 0); // while there is a next block in this list
+//   }
+//   
+//   //fprintf(stderr, "init done\n");
+//   sim->blocks_initialised = 1;
+//   
+//   return 0;
+// 
+//   
+// undo_everything :
+//   // Call destructor of all initialiesed blocks
+//   
+//   current = sim->allblocks_list_head;
+//   counter = 0;  
+//   
+//   if (current != 0) {
+//     do { // Destroy all blocks
+//       struct dynlib_block_t *block = current;
+// 
+//       if (counter == abort_at) // at this position there was an error last time
+// 	return -1;
+//       
+//       int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
+//       
+//       current = current->allblocks_list_next; // step to the next block in list
+//       counter++;
+//     } while (current != 0); // while there is a next block in this list
+//   }
+//   
+//   return -1;
+// }
+
 int libdyn_simulation_init(struct dynlib_simulation_t * sim)
 {
-  struct dynlib_block_t *current = sim->allblocks_list_head;
+  int ret;
+  
+  // call the pre-init flag for all blocks
+  ret = libdyn_simulation_callinitflag(sim, COMPF_FLAG_PREINIT, COMPF_FLAG_PREINITUNDO); 
+  if (ret < 0)
+    return ret;
+  
+  // call the init flag for all blocks
+  ret = libdyn_simulation_callinitflag(sim, COMPF_FLAG_INIT, COMPF_FLAG_DESTUCTOR);  
+  if (ret < 0)
+    return ret;
+}
 
-  int counter = 0;  
+
+int libdyn_simulation_callinitflag(struct dynlib_simulation_t * sim, int initflag, int destructorflag)
+{
+  struct dynlib_block_t *current;
+  int counter;  
   int abort_at;
   
+  
+  
+  
+  current = sim->allblocks_list_head;
+  counter = 0;
   if (current != 0) {
     do { // Destroy all blocks
       struct dynlib_block_t *block = current;
       
 //      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
       
-      int ret = (*block->comp_func)(COMPF_FLAG_INIT, block);
+      int ret = (*block->comp_func)(initflag, block);
        if (ret == -1) {
  	 fprintf(stderr, "WARNING (for now): ERROR: libdyn_simulation_init: Computational function returned an error blockid=nn, block_irparid=%d\n", block->irpar_config_id);
          abort_at = counter;
@@ -877,7 +962,7 @@ undo_everything :
       if (counter == abort_at) // at this position there was an error last time
 	return -1;
       
-      int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
+      int ret = (*block->comp_func)(destructorflag, block);
       
       current = current->allblocks_list_next; // step to the next block in list
       counter++;
@@ -887,11 +972,19 @@ undo_everything :
   return -1;
 }
 
+ /*  
+  * The callback function "sync_func" is called before any of the output or state-update flags
+  * are called. 
+  * If 0 is returned, the simulation will continue to run
+  * If 1 is returned, the simulation will pause and has to be re-triggered externally.
+  * e.g. by the trigger_computation input of the async nested_block.
+  */
 
-libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void (*sync_func)( void *userdat ), void *userdat)
+libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( void *userdat ), void *userdat)
 {
   simulation->sync_callback.sync_func = sync_func;
   simulation->sync_callback.userdat = userdat;
+  simulation->sync_callback.sync_callback_state = 0;
 }
 
 //
@@ -912,7 +1005,7 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   
   //
   // Calc outputs if update_states == 0
-  //
+  //   
   
   if (update_states == 0) {
     /*
@@ -920,7 +1013,10 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
     */
     
     if (simulation->sync_callback.sync_func != NULL) {
-      (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
+      simulation->sync_callback.sync_callback_state = (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
+      if (simulation->sync_callback.sync_callback_state == 1) {
+	return 1;
+      }
       
       // sync_callback returned --> output calculation.
     }
@@ -969,7 +1065,9 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   // Update states if update_states == 1
   //
 
-  if (update_states == 1) { // FIXME: SOLVED but untested BUG Mindestens ein dynamischer Block notwendig!
+  if (update_states == 1) {
+    
+    
     simulation->stepcounter++; // stepcounter wird nur bei stateupdates weitergeführt
 
     //
@@ -1042,6 +1140,9 @@ void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim)
   
   // reset the  simulation step counter
   sim->stepcounter = 0;
+  
+  // reset the sync_callback_state
+  sim->sync_callback.sync_callback_state = 0;
 }
 
 

@@ -209,7 +209,7 @@ parlist = new_irparam_set();
 // pack simulations into irpar container with id = 901
 parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 
-// irparam set is complete convert to vectors
+// irparam set is complete, convert to vectors
 par = combine_irparam(parlist);
 
 // save vectors to a file

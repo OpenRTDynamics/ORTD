@@ -327,6 +327,10 @@ public:
   */
   void simulation_step(int update_states);
 
+  /**
+  * \brief Check wheter the simulation wants to pause its execution. If true the simulation does not want to be called by "simulation_step" anymore
+  */
+  bool check_pause();
   
   /**
   * \brief reset the states of all block in the simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)

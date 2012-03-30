@@ -986,7 +986,7 @@ struct dynlib_block_t *new_ser2par_block(struct dynlib_simulation_t *sim, int *l
 #include "libilc.h"
 int compu_func_play_block(int flag, struct dynlib_block_t *block)
 {
-  //printf("comp_func play: flag==%d\n", flag);
+//   printf("comp_func play: flag==%d\n", flag);
   int Nout = 1;
   int Nin = 0;
 

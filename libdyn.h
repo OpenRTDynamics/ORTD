@@ -93,6 +93,8 @@
 #define COMPF_FLAG_RELOAD_IRPAR 8
 #define COMPF_FLAG_RESETSTATES 9 // NEW 25.6.11
 #define COMPF_FLAG_PREPARERESET 10 // NEW 27.2.12
+#define COMPF_FLAG_PREINIT 11
+#define COMPF_FLAG_PREINITUNDO 12
 #define COMPF_FLAG_PRINTINFO 100
 
 
@@ -238,7 +240,8 @@ struct dynlib_simulation_t {
   // Synchronisation callback function
   struct {
     void *userdat; // users data
-    void (*sync_func)( void *userdat );  // Computational function
+    int (*sync_func)( void *userdat );  // Computational function. the returned value is stored within sync_callback_state. 0 is usual, 1 means pause simulation
+    int sync_callback_state;
   } sync_callback;
   
   
@@ -377,8 +380,7 @@ int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim);
 int libdyn_simulation_init(struct dynlib_simulation_t * sim);
 
 // installa a callback function for synchronisation of the main loop
-// libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void (*sync_func)( void *userdat ), void *userdat);
-void libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void *sync_func , void *userdat);
+void libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( void *userdat ) , void *userdat);
 
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
 void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);

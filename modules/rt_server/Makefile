@@ -35,8 +35,8 @@ endif # ifeq ($(main_makefile_invoked),yes)
 all: lib ortd_client
 	echo "Module rt_server done"
 
-lib: rt_server.o parameter_manager.o directory.o rt_server_block.o ortd_buffered_io.o remote_decoder.o
-	ar rvs module.a rt_server.o parameter_manager.o directory.o  rt_server_block.o ortd_buffered_io.o remote_decoder.o # scope_block.o
+lib: rt_server.o parameter_manager.o directory.o rt_server_block.o ortd_buffered_io.o remote_decoder.o global_shared_object.o
+	ar rvs module.a rt_server.o parameter_manager.o directory.o  rt_server_block.o ortd_buffered_io.o remote_decoder.o global_shared_object.o # scope_block.o
 #	ar rvs module_Linux.a scope_block.o   # Only include for "Linux" Target
 #	$(LD) -static -o scope.o rt_preempt_scope.o rt_preempt_scope_decoder.o
 
@@ -71,4 +71,7 @@ ortd_buffered_io.o: ortd_buffered_io.cpp
 
 remote_decoder.o: remote_decoder.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c remote_decoder.cpp
+
+global_shared_object.o: global_shared_object.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c global_shared_object.cpp
 
