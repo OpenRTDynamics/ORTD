@@ -44,19 +44,10 @@ void qt_event_communication::handle_data(std::string DataFromTcpLine)
 
             double ref = data[0] / 100;
             double y = data[1];
-            double u = data[2] / 1000;
-            double angle = data[3];
-            double force = data[4] / 4;
 
             scope_ref_data->setScopeValue(ref, 0);
             scope_ref_data->setScopeValue(y, 1);
             ui->scope_ref->setValue(scope_ref_data->getScopeValue());
-
-            scope_actuating_data->setScopeValue(u, 0);
-            ui->scope_actuating->setValue(scope_actuating_data->getScopeValue());
-
-            scope_angle_data->setScopeValue(angle, 0);
-            ui->scope_angle->setValue(scope_angle_data->getScopeValue());
 
         }
     }

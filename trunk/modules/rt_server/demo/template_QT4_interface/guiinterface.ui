@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>867</height>
+    <width>838</width>
+    <height>316</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,38 +19,6 @@
      <rect>
       <x>30</x>
       <y>30</y>
-      <width>361</width>
-      <height>171</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Plotting</string>
-    </property>
-    <property name="whatsThis">
-     <string>The Scope plots data</string>
-    </property>
-   </widget>
-   <widget class="QPL_Scope" name="scope_actuating">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>230</y>
-      <width>361</width>
-      <height>171</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Plotting</string>
-    </property>
-    <property name="whatsThis">
-     <string>The Scope plots data</string>
-    </property>
-   </widget>
-   <widget class="QPL_Scope" name="scope_angle">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>430</y>
       <width>361</width>
       <height>171</height>
      </rect>
@@ -75,31 +43,25 @@
      <string>Reference</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_actuating">
+   <widget class="QListWidget" name="switch_schematic">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>210</y>
-      <width>71</width>
-      <height>17</height>
+      <x>480</x>
+      <y>50</y>
+      <width>251</width>
+      <height>111</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Stellgröße</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_angle">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>410</y>
-      <width>62</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Winkel</string>
-    </property>
+    <item>
+     <property name="text">
+      <string>oscillator</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>play sequence</string>
+     </property>
+    </item>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -107,7 +69,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
+     <width>838</width>
      <height>25</height>
     </rect>
    </property>
