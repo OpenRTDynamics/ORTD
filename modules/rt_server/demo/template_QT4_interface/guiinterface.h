@@ -19,6 +19,9 @@ public:
 protected:
     void changeEvent(QEvent *e);
 
+private slots:
+    void on_switch_schematic_currentRowChanged(int currentRow);
+
 private:
     Ui::GuiInterface *ui;
     tcpClient *tcpStream;
