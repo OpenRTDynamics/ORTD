@@ -69,7 +69,7 @@ struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_find_blockid(struct lindy
   
   struct lindyn_comp_func_list_ele_t * current = list->list_head;
   
-  do {
+  do {   
     if (current->blockid == blockid)
       return current; // found!
     

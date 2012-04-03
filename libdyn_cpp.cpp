@@ -61,7 +61,7 @@ bool irpar::load_from_afile(char *fname_i, char* fname_r)
 
     err = irpar_load_from_afile(&ipar, &rpar, &Nipar, &Nrpar, fname_i, fname_r);
     if (err == -1) {
-        printf("Error loading irpar files\n");
+        fprintf(stderr, "Error loading irpar files\n");
         return false;
     }
 
@@ -75,8 +75,8 @@ bool irpar::load_from_afile(char* fname)
     strcpy(fname_rpar, fname);
     strcat(fname_rpar, ".rpar");
 
-    printf("fnames ipar = %s\n", fname_ipar);
-    printf("fnames rpar = %s\n", fname_rpar);
+    fprintf(stderr, "fnames ipar = %s\n", fname_ipar);
+    fprintf(stderr, "fnames rpar = %s\n", fname_rpar);
 
     return this->load_from_afile(fname_ipar, fname_rpar);
 
@@ -141,7 +141,7 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
     // Initially there is no simulation
     this->current_sim = NULL;
 
-    printf("Internal init finished\n");
+//     fprintf(stderr, "Internal init finished\n");
 
     return true;
 }
@@ -276,7 +276,7 @@ void libdyn_nested::destruct()
 void libdyn_nested::allocate_slots(int n)
 {
     if (this->sim_slots != NULL) {
-        printf("nested: slotes are already allocated!\n");
+        fprintf(stderr, "nested: slotes are already allocated!\n");
         return;
     }
 
@@ -375,7 +375,7 @@ int libdyn_nested::add_simulation(int slotID, int* ipar, double* rpar, int boxid
         return err;
     }
     
-    printf("Simulation was set-up\n");
+    fprintf(stderr, "Simulation was set-up\n");
 
     if (this->add_simulation(slotID, sim) < 0)
         return -1;
@@ -698,16 +698,20 @@ void libdyn::reset_blocks()
 int libdyn::irpar_setup(int* ipar, double* rpar, int boxid)
 {
     error = libdyn_irpar_setup(ipar, rpar, boxid, &sim, &iocfg);
-    if (error < 0)
+    if (error < 0) {
+        fprintf(stderr, "libdyn_irpar_setup failed\n");
         return error;
+    }
 
     // Make master available, if any
     sim->master = (void*) ld_master; // anonymous copy for "C"-only Code
 
     // Call INIT FLag of all blocks
     error = libdyn_simulation_init(sim);
-    if (error < 0)
+    if (error < 0) {
+        fprintf(stderr, "libdyn_simulation_init failed\n");
         return error;
+    }
 }
 
 
@@ -876,7 +880,7 @@ libdyn_master::libdyn_master()
     this->realtime_environment = RTENV_UNDECIDED;
 
     global_comp_func_list = libdyn_new_compfnlist();
-    printf("Created new libdyn master\n");
+    fprintf(stderr, "Created new libdyn master\n");
 
 #ifdef REMOTE
     // Initial subsystems (not available)
@@ -895,7 +899,7 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
     this->realtime_environment = realtime_env;
 
     global_comp_func_list = libdyn_new_compfnlist();
-    printf("Created new libdyn master; tcpport = %d \n", remote_control_tcpport);
+    fprintf(stderr, "Created new libdyn master; tcpport = %d \n", remote_control_tcpport);
 
 
 #ifdef REMOTE
@@ -919,7 +923,7 @@ int libdyn_master::init_communication(int tcpport)
 {
     // init communication_server
 
-    printf("Initialising remote control interface on port %d\n", tcpport);
+    fprintf(stderr, "Initialising remote control interface on port %d\n", tcpport);
 
     this->rts_mgr = new rt_server_threads_manager();
 
@@ -936,7 +940,7 @@ int libdyn_master::init_communication(int tcpport)
     }
 
 
-    printf("Creating root directory\n");
+    fprintf(stderr, "Creating root directory\n");
     dtree = new directory_tree(this->rts_mgr); // Requires rts_mgr
 
     pmgr = new parameter_manager( rts_mgr, dtree );

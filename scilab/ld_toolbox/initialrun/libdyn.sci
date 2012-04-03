@@ -101,6 +101,7 @@ function [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, insi
   blk.objecttype = 0; // Which object type is this? 0 - Block
   blk.input_block = 0;  // FIXME raus!
   blk.magic = 678234;
+  blk.btype = btype;
 
   id = oid; // id for this parameter set - take the object id in this case as it is unique
   Nbipar = length(ipar);
@@ -136,6 +137,7 @@ function [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, insizes, o
   blk.objecttype = 0; // Which object type is this? 0 - Block
   blk.input_block = 0;  // FIXME raus!
   blk.magic = 678234;
+  blk.btype = btype;
 
   id = oid; // id for this parameter set - take the object id in this case as it is unique
   Nbipar = length(ipar);
