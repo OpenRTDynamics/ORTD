@@ -78,3 +78,13 @@ void qt_event_communication::set_ui(Ui::GuiInterface *ui)
     this->ui = ui;
 }
 
+//void GuiInterface::on_parameter_xx_valueChanged(double val) // assign this to a double spin box slot
+//{
+//    char tmp[200];
+
+//    setlocale(LC_NUMERIC,"C");         // C-Standard
+
+//    sprintf(tmp, "set_param eemgcntrl_kg # %f \n", val);
+//    qt_event_com->emit_cmd(tmp);
+//}
+
