@@ -2836,7 +2836,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 
     int blockid_ofs = 60001;
 
-    printf("Adding basic ld_blocks module\n");
+    fprintf(stderr, "Adding basic ld_blocks module\n");
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_switch2to1);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_demux);

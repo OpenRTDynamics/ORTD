@@ -812,7 +812,7 @@ int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim)
       int i;
       for (i = 0; i<block->Nin; ++i) {
 	if (block->inlist[i].data == NULL) {
-	  fprintf(stderr, "libdyn: error: port %d of block with irparid=%d is not connected\n", i, block->irpar_config_id);
+	  fprintf(stderr, "libdyn: error: port %d of block with irparid=%d of blocktype %d is not connected\n", i, block->irpar_config_id, block->block_type);
 	  
 	  fault = -1;
 	}
@@ -2127,10 +2127,10 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
   }
   
   
-  
 
   if (block == 0) { // kein vordefinierter Block -> in blocklisten nachschauen
     struct lindyn_comp_func_list_ele_t *cfn_ele;
+
     
     cfn_ele = libdyn_compfnlist_find_blockid(sim->global_comp_func_list,  btype);
 
@@ -2140,6 +2140,8 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
       
       block = libdyn_new_block(sim, comp_fn, bipar, brpar, 0,  0);
     } else {
+
+
       cfn_ele = libdyn_compfnlist_find_blockid(sim->private_comp_func_list,  btype);
       
       if (cfn_ele != 0) {
@@ -2152,7 +2154,7 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
   }
   
   if (block == 0) {
-    fprintf(stderr, "Could not find any block for this block; id = %d!\n", btype);
+    fprintf(stderr, "Could not find any block for this blockid = %d!\n", btype);
     return 0;
   }
   
@@ -2478,7 +2480,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 
   
 #ifdef __ORTD_PLUGINS_ENABLED
-  printf("Plugins are enabled\n");
+  fprintf(stderr, "Plugins are enabled\n");
   
   // Load modules, if available
   struct irpar_rvec_t *enc_libpath;
@@ -2492,7 +2494,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
     
     irpar_getstr(&plugin_fname, enc_libpath->v, 0, len);*/
     
-    printf("Loading plugin: %s\n", plugin_fname);
+    fprintf(stderr, "Loading plugin: %s\n", plugin_fname);
 
     ortd_load_plugin(*sim, plugin_fname);
     
@@ -2500,7 +2502,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 //     free(plugin_fname);
   }
 #else
-  printf("Plugins are disabled in RTAI-compatible mode\n");
+  fprintf(stderr, "Plugins are disabled in RTAI-compatible mode\n");
 #endif
 
   //
