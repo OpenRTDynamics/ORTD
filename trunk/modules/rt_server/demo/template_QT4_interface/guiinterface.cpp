@@ -84,13 +84,3 @@ void GuiInterface::on_switch_schematic_currentRowChanged(int currentRow)
     qt_event_com->emit_cmd(tmp);
 }
 
-//void GuiInterface::on_parameter_xx_valueChanged(double val) // assign this to a double spin box slot
-//{
-//    char tmp[200];
-
-//    setlocale(LC_NUMERIC,"C");         // C-Standard
-
-//    sprintf(tmp, "set_param eemgcntrl_kg # %f \n", val);
-//    qt_event_com->emit_cmd(tmp);
-//}
-
