@@ -49,7 +49,7 @@
 
 
 
-ScicosWrapper::ScicosWrapper()
+ScicosWrapper::ScicosWrapper(  )
 {
 
 }
@@ -83,8 +83,11 @@ void ScicosWrapper::setOutSize(int i, int size)
 
 
 //void ScicosWrapper::initStructure( int Nrpar, int Nipar, int *ipar, int *rpar, int Nin, int Nout, double **inptr, double **outptr, int *insizes, int *outsizes, int Nz, double *z_init )
-void ScicosWrapper::initStructure( int Nrpar, int Nipar, int *ipar, double *rpar, int Nin, int Nout, int Nz, double *z_init )
+void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag), int Nrpar, int Nipar, int *ipar, double *rpar, int Nin, int Nout, int Nz, double *z_init )
 {
+  
+    this->compfn = compfn;
+  
   // parameters
   cosblock.type = 4; //
   cosblock.ztyp = 0;

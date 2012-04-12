@@ -22,6 +22,7 @@
 extern "C" {
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
+#include "irpar.h"
 
 }
 
@@ -54,9 +55,22 @@ int compu_func_ScicosBlockWrapper_class::init()
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = ipar[0];
-    int Nout = ipar[1];
+    int Nin = ipar[1];
+    int Nout = ipar[2];
+    
+    int len_identstr = ipar[3];
+    char *identstr;
+    
+    irpar_getstr(&identstr, ipar, 4, len_identstr);
+    
+     int (*compfn)(scicos_block * block, int flag);
+     
+    printf("New scicos interface using identifier %s\n", identstr);
+    
+    free(identstr);
+    
 
+    
     
    double rpar2[] = {1,-1,1,1,0};
    int ipar2[] = {1,-1,1,1,1};
@@ -65,7 +79,7 @@ int compu_func_ScicosBlockWrapper_class::init()
    double z[] = { 0,0,0, 0,0,0, 0 };
     
     
-    cos.initStructure(sizeof(rpar2), sizeof(rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
+    cos.initStructure(compfn, sizeof(rpar2), sizeof(rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
     
     int i;
     for (i = 0; i < Nin; ++i) {
