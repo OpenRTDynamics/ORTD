@@ -39,16 +39,16 @@ exec(root_tlbx + 'initialrun/modules_loader.sce');
 
 //// Load and add help chapter
 //// =============================================================================
-//if or(getscilabmode() == ["NW";"STD"]) then
-//	mprintf("\tLoad help\n");
-//	path_addchapter = pathconvert(root_tlbx+"/jar");
-//	if ( isdir(path_addchapter) <> [] ) then
-//		add_help_chapter("ld_toolbox", path_addchapter, %F);
-//		clear add_help_chapter;
-//	end
-//	clear path_addchapter;
-//end
-//
+if or(getscilabmode() == ["NW";"STD"]) then
+	mprintf("\tLoad help\n");
+	path_addchapter = pathconvert(root_tlbx+"/jar");
+	if ( isdir(path_addchapter) <> [] ) then
+		add_help_chapter("ld_toolbox", path_addchapter, %F);
+		clear add_help_chapter;
+	end
+	clear path_addchapter;
+end
+
 //// Load demos
 //// =============================================================================
 //if or(getscilabmode() == ["NW";"STD"]) then
