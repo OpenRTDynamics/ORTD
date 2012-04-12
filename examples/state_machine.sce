@@ -37,10 +37,10 @@ z = poly(0,'z');
 //
 
 function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim, inlist, x_global, state, statename, userdata)
-  // This function is called multiple times: once for each state.
-  // At runtime these are different nested simulation. Switching
-  // between them is done, where each simulation represents a
-  // certain state.
+  // This function is called multiple times -- once for each state.
+  // At runtime, these are three different nested simulations. Switching
+  // between them represents state changing, thus each simulation 
+  // represents a certain state.
   
   printf("defining state %s (#%d) ... userdata(1)=%s\n", statename, state, userdata(1) );
   
@@ -58,6 +58,11 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
 
   // sample data fot output
   [sim, outdata1] = ld_constvec(sim, events, vec=[1200]);
+
+  // The signals "active_state" is used to indicate state switching: A value > 0 means the 
+  // the state enumed by "active_state" shall be activated in the next time step.
+  // A value less or equal to zero causes the statemachine to stay in its currently active
+  // state
 
   select state
     case 1 // state 1
@@ -87,12 +92,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
    u1 = inlist(1); // Simulation input #1
    u2 = inlist(2); // Simulation input #2
  
- 
   // some dummy input
   [sim,data1] = ld_const(sim, defaultevents, 1.234);   
   [sim, data2] = ld_constvec(sim, defaultevents, vec=[12,13]);
-
-   
 
   // set-up three states represented by three nested simulations
   [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=defaultevents, ...
@@ -105,7 +107,10 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // signal telling the currently active simulation / state
   switch_state = active_state;
   
-  // outlist contains the output of the currently active nested simulation respectively
+  // the list of signals "outlist" contains the output of the currently active 
+  // nested simulation respectively
+  // Grab each output signal via outlist(1), outlist(2), ...
+
 
 
   // just some dummy proceedings

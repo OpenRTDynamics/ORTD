@@ -435,6 +435,41 @@ The interpreter can be interfaced via
 
 
 
+\begin{frame}
+  \frametitle{Statemachines}
+
+  \textbf{Principle:}
+
+  \begin{itemize}
+   \item Each state is represente by a whole sub-schematic. Thus, a statemachine contains multiple of them.
+   \item Only one schematic is active at once, representing the active state.
+   \item Everytime, the active sub-schematic can cause a swtich to another state.
+  \end{itemize}
+
+  \textbf{Extra features:}
+  \begin{itemize}
+   \item All blocks within a schematic that is going to be inactive are reset.
+   \item Possibility to share a memory among all schematics for realising global states (counters, ...)
+  \end{itemize}
+
+  
+  
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Statemachines}
+
+\begin{itemize}
+ \item A function (Superblock) is evaluate once for each state. Differentiation by a \texttt{select} statement
+\end{itemize}
+  
+
+\centering \includegraphics[trim=2.7cm 9.5cm 4cm 1.4cm, clip, width=1.0\linewidth]{figures/state_mainfn.pdf} 
+
+\end{frame}
+
+
 
 \begin{frame}
 Examples for advanced features like 
