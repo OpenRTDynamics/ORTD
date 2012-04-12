@@ -8,7 +8,7 @@ public:
   ScicosWrapper();
   ~ScicosWrapper();
 
-  void initStructure( int Nrpar, int Nipar, int* ipar, double* rpar, int Nin, int Nout, int Nz, double* z_init );
+  void initStructure( int (*compfn)(scicos_block * block, int flag), int Nrpar, int Nipar, int* ipar, double* rpar, int Nin, int Nout, int Nz, double* z_init );
   void setOutPtr(int i, double *p);
   void setInPtr(int i, double *p);
   void setInSize(int i, int size);
