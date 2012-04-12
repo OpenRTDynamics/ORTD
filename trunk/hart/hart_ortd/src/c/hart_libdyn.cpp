@@ -182,7 +182,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   
   printf("ORTD-Block: Loaded irpar files\n");
   
-  // If a master should be used install one
+  // If a master shall be used install one
   comdev->master = NULL;
   if (use_master == 1) {
     comdev->master = new libdyn_master(RTENV_UNDECIDED, master_tcp_port);

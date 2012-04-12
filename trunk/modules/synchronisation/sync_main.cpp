@@ -64,7 +64,7 @@ private:
    int real_sync_callback();
    
    void initclock();
-   void wait();
+   void wait(double Tsamp);
 
    
    struct timespec t, interval, curtime, T0;
@@ -93,7 +93,7 @@ static inline double calcdiff(struct timespec t1, struct timespec t2)
 
 void compu_func_synctimer_class::initclock()
 {
-    double Tsamp = 0.1;
+    double Tsamp = 0.0;
   
     interval.tv_sec =  0L;
     interval.tv_nsec = (long)1e9*Tsamp;
@@ -113,22 +113,41 @@ void compu_func_synctimer_class::initclock()
 }
 
 
-void compu_func_synctimer_class::wait()
+void compu_func_synctimer_class::wait(double Tsamp)
 {
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+//   double Tsamp;
+  
+    interval.tv_sec =  0L;
+    interval.tv_nsec = (long)1e9*Tsamp;
+    tsnorm(&interval);
 
-        /* Task time T */
-        clock_gettime(CLOCK_MONOTONIC,&curtime);
-        T = calcdiff(curtime,T0);
+//         /* calculate next shot */
+//     t.tv_sec+=interval.tv_sec;
+//     t.tv_nsec+=interval.tv_nsec;
+//     tsnorm(&t);
+//     
+//      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+
+  // OR
+     
+    
+     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+     
+	
+	
+	
+	
+//         /* Task time T */
+//         clock_gettime(CLOCK_MONOTONIC,&curtime);
+//         T = calcdiff(curtime,T0);
 
         /* periodic task */
         //  NAME(MODEL,_isr)(T);
 
 
-        /* calculate next shot */
-        t.tv_sec+=interval.tv_sec;
-        t.tv_nsec+=interval.tv_nsec;
-        tsnorm(&t);
+//         t.tv_sec+=interval.tv_sec;
+//         t.tv_nsec+=interval.tv_nsec;
+//         tsnorm(&t);
 
 }
 
@@ -179,7 +198,8 @@ int compu_func_synctimer_class::real_sync_callback()
   }
   
   fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
-  sleep(1);
+  wait(*T_pause);
+//   sleep(1);
 //   wait();
  
   return 0;

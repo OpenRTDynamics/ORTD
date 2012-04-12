@@ -92,7 +92,7 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
 //  [sim] = ld_printf(sim, events, in=inlist(1), str="state"+string(state)+": indata(1)", insize=1);
 //  [sim] = ld_printf(sim, events, in=inlist(2), str="state"+string(state)+": indata(2)", insize=2);
 
-  [sim] = ld_printf(sim, events, in=x_global, str="state"+string(state)+": x_global", insize=10);
+  [sim] = ld_printf(sim, events, in=x_global, str="state"+string(state)+": x_global", insize=N);
 
   // demultiplex x_global
   //[sim, x_global] = ld_demux(sim, events, vecsize=10, invec=x_global);
@@ -104,7 +104,7 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
 
 
   select state
-    case 1 // state 1
+    case 1 // state 1 10
       // wait N simulation steps and then switch to state 2
       
       [sim, counter] = ld_play_simple(sim, events, r=1:(N+1)); // +1 to get all y_vec values into x_global
@@ -115,52 +115,45 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
       [sim] = ld_printf(sim, events, in=active_state, str="active", insize=1);
 //      [sim, save0] = ld_dumptoiofile(sim, events, "activate_state_s1.dat", active_state);
 
-      [sim, u] = ld_extract_element(sim, events, invec=x_global, pointer=counter, vecsize=10 );
+      [sim, u] = ld_extract_element(sim, events, invec=x_global, pointer=counter, vecsize=N );
       [sim] = ld_printf(sim, events, in=u, str="u=", insize=1);
       outdata1 = u;
 
       y = inlist(1);
-      [sim, y_vec] = ld_insert_element(sim, events, in=y, pointer=counter, vecsize=10 );
-      [sim] = ld_printf(sim, events, in=y_vec, str="y_vec=", insize=10);
+      [sim, y_vec] = ld_insert_element(sim, events, in=y, pointer=counter, vecsize=N );
+      [sim] = ld_printf(sim, events, in=y_vec, str="y_vec=", insize=N);
       x_global = y_vec;
 
       
       //[sim, x_global(1)] = ld_add_ofs(sim, events, x_global(1), 1); // increase counter 1 by 1
-    case 2 // state 2
-        // input should be a signal vector of size 10
-        //[sim, input1] = ld_constvec(sim, events, vec=1:10)
+    case 2         // calculate new actuation trajectory
 
         [sim, zero] = ld_const(sim, events, 0);
 //        [sim, startcalc] = ld_initimpuls(sim, events);
         [sim, startcalc] = ld_play_simple(sim, defaultevents, [1,0]); 
-//        [sim, startcalc] = ld_const(sim, events, 1);
 
 
-        //                      inlist=list(input1), ...
         // a nested simulation that runns asynchronously (in a thread) to the main simulation
         [sim, outlist, computation_finished] = ld_simnest(sim, events, ...
                               inlist=list(x_global), ...
-                              insizes=[10], outsizes=[10], ...
+                              insizes=[N], outsizes=[N], ...
                               intypes=[1], outtypes=[1], ...
                               fn_list=list(ilc_run_calculation_fn), ...
                               dfeed=1, asynchron_simsteps=1, ...
                               switch_signal=zero, reset_trigger_signal=startcalc         );
 
          output1 = outlist(1);
-         [sim] = ld_printf(sim, events, in=output1, str="output1=", insize=10);
+         [sim] = ld_printf(sim, events, in=output1, str="output1=", insize=N);
          x_global = output1;
          // computation_finished is one, when finished else zero
         //[sim, outdata1] = ld_constvec(sim, events, vec=[-2]);
 
        [sim] = ld_printf(sim, events, in=computation_finished, str="computation_finished", insize=1);
        
-       // WHEN TO CHANGE THE STATE
+       // go on to state 3 when the computation has finished
        [sim, active_state] = ld_const(sim, events, 0);  // by default: no state switch
        [ sim, active_state ] = ld_cond_overwrite(sim, events, in=active_state, condition=computation_finished, setto=3); // go to state 3 if finished
 
-//      [sim, save0] = ld_dumptoiofile(sim, events, "activate_state_s2.dat", active_state);
-      
-      //[sim, x_global(2)] = ld_add_ofs(sim, events, x_global(2), 1); // increase counter 2 by 1
   case 3 // state 3
       // wait for trigger
       // WHEN TO CHANGE THE STATE
@@ -175,10 +168,8 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
   end
 
   // multiplex the new global states
-  [sim, x_global] = ld_demux(sim, events, vecsize=10, invec=x_global);
-  [sim, x_global_kp1] = ld_mux(sim, events, vecsize=10, inlist=x_global);
-
-//  x_global_kp1 = x_global;
+  [sim, x_global] = ld_demux(sim, events, vecsize=N, invec=x_global);
+  [sim, x_global_kp1] = ld_mux(sim, events, vecsize=N, inlist=x_global);
   
   // the user defined output signals of this nested simulation
   outlist = list(outdata1);
@@ -187,22 +178,26 @@ endfunction
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
-   //u1 = inlist(1); // Simulation input #1
-   //u2 = inlist(2); // Simulation input #2
+  // ILC parameters
+  ILC.u0 = [1,2,3,4,5,6,7,8,9,10];
+  ILC.N = length(ILC.u0);
 
   //[sim, ILC.trigger_state] = ld_const(sim, defaultevents, 0);
-  [sim, ILC.trigger_state] = ld_parameter(sim, defaultevents, "trigstate", [0]);
-  [sim, ILC.y] = ld_play_simple(sim, defaultevents, [linspace(0,1000, 100000)]);
-  ILC.N = 10;
-  ILC.u0 = [1,2,3,4,5,6,7,8,9,10];
+  [sim, trigger_state] = ld_parameter(sim, defaultevents, "trigstate", [0]);
+
+  // detect changed in the control signal
+  [sim, trigger_state] = ld_detect_step_event(sim, defaultevents, in=trigger_state, eps=0.2);
+  
+  [sim, y] = ld_play_simple(sim, defaultevents, [linspace(0,1000, 100000)]);
 
   // set-up three states represented by three nested simulations
   [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=defaultevents, ...
-      inlist=list(ILC.y, ILC.trigger_state), ..
+      inlist=list(y, trigger_state), ..
       insizes=[1,1], outsizes=[1], ... 
       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT], ...
       nested_fn=state_mainfn, Nstates=3, state_names_list=list("state1", "state2","state3"), ...
       inittial_state=1, x0_global=ILC.u0, userdata=ILC  );
+
   [sim] = ld_printf(sim, defaultevents, in=outlist(1), str="outdata1=", insize=1);
   // signal telling the currently active simulation / state
   switch_state = active_state;
