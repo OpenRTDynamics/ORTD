@@ -5,46 +5,46 @@
 
 
 
-extern "C" {
-  double ScicosWrapper_ScicosTime;
-  
-  void set_block_error(int err)
-{
-  return;
-}
-
-int get_phase_simulation()
-{
-  return 1;
-}
-
-void * scicos_malloc(size_t size)
-{
-  return malloc(size);
-}
-
-void scicos_free(void *p)
-{
-  free(p);
-}
-
-double get_scicos_time()
-{
-  return ScicosWrapper_ScicosTime;
-}
-
-void do_cold_restart()
-{
-  return;
-}
-
-void sciprint (char *fmt)
-{
-  return;
-}
-
-  
-};
+// extern "C" {
+//   double ScicosWrapper_ScicosTime;
+//   
+//   void set_block_error(int err)
+// {
+//   return;
+// }
+// 
+// int get_phase_simulation()
+// {
+//   return 1;
+// }
+// 
+// void * scicos_malloc(size_t size)
+// {
+//   return malloc(size);
+// }
+// 
+// void scicos_free(void *p)
+// {
+//   free(p);
+// }
+// 
+// double get_scicos_time()
+// {
+//   return ScicosWrapper_ScicosTime;
+// }
+// 
+// void do_cold_restart()
+// {
+//   return;
+// }
+// 
+// void sciprint (char *fmt)
+// {
+//   return;
+// }
+// 
+//   
+// };
 
 
 
