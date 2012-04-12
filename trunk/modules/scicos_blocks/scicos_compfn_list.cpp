@@ -2,7 +2,7 @@
 
 
 
-void scicos_compfn_list_register(char *name, void *compfnptr)
+void ORTD_scicos_compfn_list_register(char *name, void *compfnptr)
 {
   
   std::string name__(name);
