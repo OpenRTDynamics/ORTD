@@ -19,7 +19,7 @@ void cstblk4(scicos_block *, int );
 void dsslti4(scicos_block *, int );
 
 /* prototype of 'summation' (type 4) */
-void summation(scicos_block *, int );
+extern void summation(scicos_block *, int );
 
 /* Table of constant values */
 static integer nrd_0 = 0;
