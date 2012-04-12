@@ -50,10 +50,10 @@ clean:
 ## OR THIS
 
 scicos_block_interface.o: scicos_block_interface.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c scicos_block_interface.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -Iscicos_include -c scicos_block_interface.cpp
 
 ScicosWrapper.o: ScicosWrapper.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c ScicosWrapper.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -Iscicos_include -c ScicosWrapper.cpp
 
 scicos_compfn_list.o: scicos_compfn_list.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c scicos_compfn_list.cpp
