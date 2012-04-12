@@ -19,7 +19,8 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
   [sim] = ld_printf(sim, sim.ev.defev, zero, "Hello!" , 1);
   
-
+  
+  [sim, out] = ld_scicosblock(sim, sim.ev.defev, in=zero, Nin=1, Nout=1, identstr="SuperBlock");
     
 
 
