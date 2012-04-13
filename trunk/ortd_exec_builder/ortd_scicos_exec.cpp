@@ -42,7 +42,7 @@ extern "C" {
 
 // If scicos blocks are compiled into this
 #ifdef ORTD_REGISTER_SCICOSBLOCKS
-extern void ORTD_register_scicosblocks(); 
+extern "C" void ORTD_register_scicosblocks(); 
 #endif
 
 // The libdyn simulation

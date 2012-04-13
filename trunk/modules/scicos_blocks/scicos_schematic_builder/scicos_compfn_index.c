@@ -18,4 +18,11 @@ void ORTD_register_scicosblocks() {
   
   // Do the registration for each block FIXME: Autogenerate
   ORTD_scicos_compfn_list_register("SuperBlock", &SuperBlock);
+  
+  //SuperBlock(NULL, 1);
+  
+  
+  
+  
+  
 }

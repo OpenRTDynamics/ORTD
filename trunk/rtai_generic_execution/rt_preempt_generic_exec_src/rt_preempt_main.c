@@ -31,6 +31,12 @@ static int extclock = 0;
 static int wait = 0;
 double FinalTime = 0.0;
 
+// Added by Christian Klauer
+#ifdef ORTD_REGISTER_SCICOSBLOCKS
+extern void ORTD_register_scicosblocks(); 
+#endif
+
+
 double get_scicos_time()
 {
   return(T);
@@ -58,6 +64,11 @@ void *rt_task(void *p)
   struct timespec t, interval, curtime, T0;
   struct sched_param param;
 
+  // Added by Christian Klauer
+  #ifdef ORTD_REGISTER_SCICOSBLOCKS
+  ORTD_register_scicosblocks();
+  #endif  
+  
   param.sched_priority = prio;
   if (sched_setscheduler(0, SCHED_FIFO, &param)==-1) {
       perror("sched_setscheduler failed");

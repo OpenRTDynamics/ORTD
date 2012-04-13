@@ -2,12 +2,12 @@
 
 
 # Path to Scilab
-#SCIDIR = /opt/scilab-4.1.2
-SCIDIR = /home/control/scilab/scilab-4.1.2
+SCIDIR = /opt/scilab-4.1.2
+#SCIDIR = /home/control/scilab/scilab-4.1.2
 
 # Path to hart
-#HARTDIR= /home/control/svn/hart/macros/RtaiCodeGen/../..
-HARTDIR= /home/control/scilab/hart_svn/macros/RtaiCodeGen/../..
+HARTDIR= /home/control/svn/hart/macros/RtaiCodeGen/../..
+#HARTDIR= /home/control/scilab/hart_svn/macros/RtaiCodeGen/../..
 
 # Libraries to fetch from the system
 OTHERLIBS =  -lortd  -lgsl -lblas -lgsl -lblas -lgfortran -lrt -lpthread 
@@ -42,7 +42,7 @@ SCILIBS = \
 	  $(SCIDIR)/libs/blas.a \
 	  $(SCIDIR)/libs/lapack.a \
 	  $(SCIDIR)/libs/os_specific.a 
-OTHERLIBS =  -lpthread -lpthread -lortd  -lpthread -lortd  -lpthread -lQtCore -lPhysioSense -lqextserialport -ldl -L/usr/local/lib/  -lpthread -lgsl -lblas -lrt -lpthread 
+OTHERLIBS =  -lpthread -lpthread -lortd  -lpthread -lortd  -lpthread -ldl -L/usr/local/lib/  -lpthread -lgsl -lblas -lrt -lpthread 
 ULIBRARY = $(HARTDIR)/lib/libsciblk_preempt.a
 
 #CFLAGS = $(CC_OPTIONS) -O2 -I$(SCIDIR)/routines -I$(HARTDIR)/includes -I$(HARTDIR)/includes/scicos $(C_FLAGS) -DMODEL=$(MODEL) -DMODELN=$(MODEL).c

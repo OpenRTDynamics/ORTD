@@ -19,6 +19,11 @@ MACROS = -DORTD_REGISTER_SCICOSBLOCKS
 ###################################################
 
 
+
+
+
+
+
 all: rtai_generic_exec
 
 
