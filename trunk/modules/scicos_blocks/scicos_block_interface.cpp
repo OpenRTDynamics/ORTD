@@ -177,7 +177,7 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
 
         
             libdyn_config_block_input(block, 0, insize, DATATYPE_FLOAT);
-            libdyn_config_block_output(block, 9, outsize, DATATYPE_FLOAT, 1);
+            libdyn_config_block_output(block, 0, outsize, DATATYPE_FLOAT, 1);
 
 
     }
