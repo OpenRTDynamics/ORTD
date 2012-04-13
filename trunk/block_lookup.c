@@ -54,6 +54,7 @@ int libdyn_compfnlist_add(struct lindyn_comp_func_list_head_t *list, int blockid
     list->list_head = element;
   }
   
+//   printf("register block %d\n", blockid);
 
   return 1;
 }
@@ -70,10 +71,13 @@ struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_find_blockid(struct lindy
   struct lindyn_comp_func_list_ele_t * current = list->list_head;
   
   do {   
-    if (current->blockid == blockid)
+    if (current->blockid == blockid) {
       return current; // found!
+    }
     
     current = current->next;
+
+
   } while (current != NULL);
   
   return NULL; // nothing found

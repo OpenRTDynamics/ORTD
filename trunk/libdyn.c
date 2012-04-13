@@ -335,14 +335,14 @@ struct dynlib_block_t *libdyn_new_block__(struct dynlib_simulation_t *sim, void 
         if (block->inlist[i].datatype == DATATYPE_UNCONFIGURED)  // unconfigured
           {
             failed = 1;
-            mydebug(4) fprintf(stderr, "ASSERTION FAILD: INPORT %d NOT CONFIGURED\n", i);
+            fprintf(stderr, "ASSERTION FAILD: INPORT %d NOT CONFIGURED\n", i);
           }
       }
       for (i = 0; i < block->Nout; ++i) {
         if (block->outlist[i].datatype == DATATYPE_UNCONFIGURED)  // unconfigured
           {
             failed = 1;
-            mydebug(4) fprintf(stderr, "ASSERTION FAILD: OUTPORT %d NOT CONFIGURED\n", i);
+            fprintf(stderr, "ASSERTION FAILD: OUTPORT %d NOT CONFIGURED\n", i);
           }
       }
 
@@ -2149,12 +2149,15 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
         int type = cfn_ele->comp_fn_type;
       
         block = libdyn_new_block(sim, comp_fn, bipar, brpar, 0,  0);
+      } else {
+	// Absolutely nothing was found
+	fprintf(stderr, "Could not find any block for this block type! btype = %d.\n", btype);
       }
     }
   }
   
   if (block == 0) {
-    fprintf(stderr, "Could not find any block for this blockid = %d!\n", btype);
+    fprintf(stderr, "Could not create block with blockid = %d!\n", btype);
     return 0;
   }
   
@@ -2294,7 +2297,8 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
     blocklist[i] = 0;
 
   /*
-   * Parse
+   * Parse. Go through connection list and create and connect blocks as they appear. Also keep track of the 
+   * alredy created block, so they are not created twice.
    */
   
   for (i = 0; i < entries; ++i) {
@@ -2331,7 +2335,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
       struct dynlib_block_t * blk = irpar_get_libdynblock(sim, ipar, rpar, src_blockid, blocklist);
       
       if (blk == 0) {
-	fprintf(stderr, "Error: No config found in irpar for blockid = %d\n", src_blockid);
+	fprintf(stderr, "Error: Could not create block with irparid = %d\n", src_blockid);
 	
 	goto error;
       }
@@ -2343,7 +2347,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
       struct dynlib_block_t * blk = irpar_get_libdynblock(sim, ipar, rpar, dst_blockid, blocklist);
       
       if (blk == 0) {
-	fprintf(stderr, "Error: No config found in irpar for blockid = %d\n", src_blockid);
+	fprintf(stderr, "Error: Could not create block with irparid = %d\n", src_blockid);
 	
 	goto error;
       }
