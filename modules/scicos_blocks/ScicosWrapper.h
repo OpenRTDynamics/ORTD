@@ -8,7 +8,7 @@ public:
   ScicosWrapper();
   ~ScicosWrapper();
 
-  void initStructure( int (*compfn)(scicos_block * block, int flag), int Nrpar, int Nipar, int* ipar, double* rpar, int Nin, int Nout, int Nz, double* z_init );
+  void initStructure( int (*compfn)(scicos_block * block, int flag), int Nipar, int Nrpar, int* ipar, double* rpar, int Nin, int Nout, int Nz, double* z_init );
   void setOutPtr(int i, double *p);
   void setInPtr(int i, double *p);
   void setInSize(int i, int size);
@@ -25,10 +25,14 @@ private:
   
   scicos_block cosblock;
   
+  void *ozptr[5];
+  
   int (*compfn)(scicos_block * block, int flag);
   
   int *cosipar;
   double cosrpar;
+
+  double *z_states_vector;
 
   int Nin, Nout;
   int *insizes, *outsizes;

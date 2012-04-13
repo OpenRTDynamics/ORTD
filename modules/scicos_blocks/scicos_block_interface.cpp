@@ -27,7 +27,7 @@ extern "C" {
 }
 
 #include "ScicosWrapper.h"
-
+#include "scicos_compfn_list.h"
 
 
 
@@ -64,9 +64,12 @@ int compu_func_ScicosBlockWrapper_class::init()
     
     irpar_getstr(&identstr, ipar, 4, len_identstr);
     
+    
      int (*compfn)(scicos_block * block, int flag);
      
     printf("New scicos interface using identifier %s\n", identstr);
+    
+    compfn = ( int (*)(scicos_block*, int) ) scicos_compfn_list_find(identstr);
     
     free(identstr);
     
@@ -77,15 +80,80 @@ int compu_func_ScicosBlockWrapper_class::init()
    int ipar2[] = {1,-1,1,1,1};
    
    int Nz = 7;
-   double z[] = { 0,0,0, 0,0,0, 0 };
+   double z[] = { 0,0,0, 0,  0,0, 0,0     ,0,0,0,0,0 };
     
+
+   /* def real parameters */
+ double RPAR1[ ] = {
+/* Routine name of block: cstblk4
+ * Gui name of block: CONST_m
+ * Compiled structure index: 1
+ * Exprs: 1
+ * rpar=
+ */
+1,
+
+/* Routine name of block: dsslti4
+ * Gui name of block: DLR
+ * Compiled structure index: 2
+ * Exprs: 1
+ * rpar=
+ */
+1,1,1,0,
+
+};
+
+/* def integer parameters */
+int IPAR1[ ] = {
+/* Routine name of block: summation
+ * Gui name of block: SUMMATION
+ * Compiled structure index: 3
+ * Exprs: [1;-1]
+ * ipar= {1,-1};
+ */
+1,-1,
+
+/* Routine name of block: actionneur1
+ * Gui name of block: OUTPUTPORTEVTS
+ * Compiled structure index: 4
+ * Exprs: 1
+ * ipar= {1};
+ */
+1,
+
+/* Routine name of block: bidon
+ * Gui name of block: EVTGEN_f
+ * Compiled structure index: 5
+ * Exprs: 1
+ * ipar= {1};
+ */
+1,
+
+/* Routine name of block: capteur1
+ * Gui name of block: INPUTPORTEVTS
+ * Compiled structure index: 6
+ * Exprs: 1
+ * ipar= {1};
+ */
+1,
+
+/* Routine name of block: summation
+ * Gui name of block: SUMMATION
+ * Compiled structure index: 7
+ * Exprs: [1;-1]
+ * ipar= {1,-1};
+ */
+1,-1,
+
+};
+
 
    
    
      int Nin = 1; // only one in- and outport possible
     int Nout = 1;
 
-    cos.initStructure(compfn, sizeof(rpar2), sizeof(rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
+    cos.initStructure(compfn, sizeof(IPAR1), sizeof(RPAR1), IPAR1, RPAR1, Nin, Nout, Nz, z);
     
     int i;
     for (i = 0; i < Nin; ++i) {
@@ -173,7 +241,7 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
         int i;
-        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
 
         
             libdyn_config_block_input(block, 0, insize, DATATYPE_FLOAT);

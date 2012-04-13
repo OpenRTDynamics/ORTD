@@ -22,7 +22,7 @@ else
 	LDFLAGS = -shared
 	else
 	# 32 Bit
-	CFLAGS = -O2 -I../.. -g
+	CFLAGS =  -I../.. -g
 	INCLUDE = -I../..
 	LDFLAGS = -shared 
 	endif

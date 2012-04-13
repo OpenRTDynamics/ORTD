@@ -83,7 +83,7 @@ void ScicosWrapper::setOutSize(int i, int size)
 
 
 //void ScicosWrapper::initStructure( int Nrpar, int Nipar, int *ipar, int *rpar, int Nin, int Nout, double **inptr, double **outptr, int *insizes, int *outsizes, int Nz, double *z_init )
-void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag), int Nrpar, int Nipar, int *ipar, double *rpar, int Nin, int Nout, int Nz, double *z_init )
+void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag), int Nipar, int Nrpar, int *ipar, double *rpar, int Nin, int Nout, int Nz, double *z_init )
 {
   
     this->compfn = compfn;
@@ -94,16 +94,24 @@ void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag)
   cosblock.ng = 0;
   cosblock.nz = 0;
   cosblock.noz = 0;
+  cosblock.nevout = 0; // Number of output events REQUIREMENT IS 0
+  cosblock.nmode = 0;
   
+  // block parameters
   cosblock.nrpar = Nrpar; //
   cosblock.nrpar = Nipar; //
   cosblock.nopar = 0; //
   
+  cosblock.ipar = ipar;
+  cosblock.rpar = rpar;
+  cosblock.oparptr = NULL; //(void**) malloc(10000); // FIXME: Don't what this is good for
+  
+  
+  
   cosblock.nin = Nin; //
   cosblock.nout = Nout; //
   
-  cosblock.nevout = 0; // Number of output events REQUIREMENT IS 0
-  cosblock.nmode = 0;
+  
   
   
 //   double a,b,c;
@@ -136,9 +144,21 @@ void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag)
   
   
   // states
-  cosblock.nz = Nz;
+  cosblock.nz = Nz;  
   cosblock.z = (double*) malloc( sizeof(double)*Nz );
   memcpy(cosblock.z, z_init, sizeof(double)*Nz);
+  
+  // object states ???
+  this->ozptr[0] = malloc(1000);
+  this->ozptr[1] = malloc(1000);
+  this->ozptr[2] = malloc(1000);
+  this->ozptr[3] = malloc(1000);
+  this->ozptr[4] = malloc(1000);  
+  
+//   this->z_states_vector = (double*)  malloc( sizeof(double)*Nz );
+//   memcpy(this->z_states_vector, z_init, sizeof(double)*Nz);  
+  cosblock.ozptr = (void**) this->ozptr;  
+  
   
   // out events
   cosblock.evout = NULL;
@@ -167,26 +187,34 @@ void ScicosWrapper::freeStructure()
 
 int ScicosWrapper::Cinit()
 {
-  printf("scicoswrap: init\n");
-  (*compfn)(&cosblock, 1);
+  printf("scicoswrap: init %p\n", compfn);
+  (*compfn)(&cosblock, 4);
 }
 
 int ScicosWrapper::CCalcOutputs()
 {
   printf("scicoswrap: outputs\n");
-  (*compfn)(&cosblock, 2);
+  
+  cosblock.nevprt = 1;
+  (*compfn)(&cosblock, 1);
+  
+  
+  double **p = (double**) this->cosblock.outptr;
+  
+  printf(" %f \n", p[0][0]);
 }
 
 int ScicosWrapper::CStateUpd()
 {
+  cosblock.nevprt = 1;
   printf("scicoswrap: supdate\n");
-  (*compfn)(&cosblock, 1);
+  (*compfn)(&cosblock, 2);
 }
 
 int ScicosWrapper::Cdestruct()
 {
   printf("scicoswrap: destruct\n");
-  (*compfn)(&cosblock, 1);
+  (*compfn)(&cosblock, 5);
 }
 
 
