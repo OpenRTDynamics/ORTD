@@ -55,8 +55,9 @@ int compu_func_ScicosBlockWrapper_class::init()
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = ipar[1];
-    int Nout = ipar[2];
+
+    int insize = ipar[1];
+    int outsize = ipar[2];
     
     int len_identstr = ipar[3];
     char *identstr;
@@ -78,18 +79,23 @@ int compu_func_ScicosBlockWrapper_class::init()
    int Nz = 7;
    double z[] = { 0,0,0, 0,0,0, 0 };
     
-    
+
+   
+   
+     int Nin = 1; // only one in- and outport possible
+    int Nout = 1;
+
     cos.initStructure(compfn, sizeof(rpar2), sizeof(rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
     
     int i;
     for (i = 0; i < Nin; ++i) {
-      cos.setInSize(i, 1);
+      cos.setInSize(i, insize);  // make insize depending on i for multiple ports
       
       double *p = (double*) libdyn_get_input_ptr(block, i);
       cos.setInPtr(i, p);
     }
     for (i = 0; i < Nout; ++i) {
-      cos.setOutSize(i, 1);
+      cos.setOutSize(i, outsize);  // make outsize depending on i for multiple ports
       
       double *p = (double*) libdyn_get_output_ptr(block, i);
       cos.setOutPtr(i, p);
@@ -136,8 +142,11 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = ipar[0];
-    int Nout = ipar[1];
+    int Nin = 1;
+    int Nout = 1;
+
+    int insize = ipar[1];
+    int outsize = ipar[2];
 
 
     switch (flag) {
@@ -166,11 +175,9 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
         int i;
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
-        for (i = 0; i < Nin; ++i)
-            libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT);
-
-        for (i = 0; i < Nin; ++i)
-            libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT, 1);
+        
+            libdyn_config_block_input(block, 0, insize, DATATYPE_FLOAT);
+            libdyn_config_block_output(block, 9, outsize, DATATYPE_FLOAT, 1);
 
 
     }

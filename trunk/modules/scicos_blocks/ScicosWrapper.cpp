@@ -3,7 +3,7 @@
 #include "ScicosWrapper.h"
 #include <string.h>
 
-
+#include "stdio.h"
 
 // extern "C" {
 //   double ScicosWrapper_ScicosTime;
@@ -167,21 +167,25 @@ void ScicosWrapper::freeStructure()
 
 int ScicosWrapper::Cinit()
 {
+  printf("scicoswrap: init\n");
   (*compfn)(&cosblock, 1);
 }
 
 int ScicosWrapper::CCalcOutputs()
 {
+  printf("scicoswrap: outputs\n");
   (*compfn)(&cosblock, 2);
 }
 
 int ScicosWrapper::CStateUpd()
 {
+  printf("scicoswrap: supdate\n");
   (*compfn)(&cosblock, 1);
 }
 
 int ScicosWrapper::Cdestruct()
 {
+  printf("scicoswrap: destruct\n");
   (*compfn)(&cosblock, 1);
 }
 
