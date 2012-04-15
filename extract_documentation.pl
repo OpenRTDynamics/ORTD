@@ -1,5 +1,7 @@
 #!/bin/perl
 
+# <bin> <module name> <path to scilab_loader>
+
 $datei = "modules/rt_server/scilab_loader.sce";
 $datei = $ARGV[1];
 $module_name = $ARGV[0];
@@ -27,12 +29,22 @@ while (<in>){
   if ($status_found_block == 1) {
     # find all line beginning with //
     if ($line =~ m/\s*\/\/(.*)/) {
-      # find line containg the blocks name followed by " - "
-
       $doculine = $1;
-      print "    " .$doculine . "\n";
 
-      push( @{ $STORE[$Nblock]{'doculines'} } , $doculine );
+      # find line containg %<SOMETEXT>: at start
+#       if ($doculine =~ m/\s*\%(.\w)\:/ ) {
+if ($doculine =~ m/\s*\%(\w+)\:(.*)/ ) {
+        $key = $1;
+        $linetokey = $2;
+        print ">>> $key:  $linetokey";
+        $STORE[$Nblock]{$key} = $linetokey;
+      } else {
+
+        print "    " .$doculine . "\n";
+        push( @{ $STORE[$Nblock]{'doculines'} } , $doculine );
+      }
+
+      
     } else {
 
     #if ($line =~ m/\s*endfunction/ ) {
@@ -93,7 +105,10 @@ for (my $i = 1; $i <= $#STORE; $i++) {
 
   $status_block_call = $STORE[$i]{'status_block_call'};
   $status_block_name = $STORE[$i]{'status_block_name'};
-  $purpose = "";
+
+  $purpose = $STORE[$i]{'PURPOSE'};
+  $author = $STORE[$i]{'AUTHOR'};
+#print "Pupose: $purpose";
   $text = "";
 
   @LINES = @{ $STORE[$i]{'doculines'} };

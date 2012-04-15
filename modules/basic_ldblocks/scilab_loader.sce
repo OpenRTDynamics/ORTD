@@ -5,7 +5,7 @@
 
 function [sim] = ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK
 //
-// Quick and easy dumping of signals to files
+// %PURPOSE: Quick and easy dumping of signals to files
 // 
 // fname - string of the filename
 // source *+ - source signal
@@ -30,7 +30,7 @@ endfunction
 
 function [sim, out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
 //
-// A 2 to 1 switching Block
+// %PURPOSE: A 2 to 1 switching Block
 //
 // cntr * - control input
 // in1 *
@@ -56,7 +56,7 @@ endfunction
 
 function [sim, outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
 //
-// Demultiplexer
+// %PURPOSE: Demultiplexer
 //
 // invec * - input vector signal to be split up
 // outlist *LIST - list() of output signals
@@ -88,7 +88,7 @@ endfunction
 
 function [sim, out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 //    
-// Multiplexer
+// %PURPOSE: Multiplexer
 //
 // inlist *LIST - list() of input signals of size 1
 // out *+ - output vector signal
@@ -117,7 +117,7 @@ endfunction
 
 
 function [sim, out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout) // PARSEDOCU_BLOCK
-// hysteresis - block
+// %PURPOSE: hysteresis block
 //
 // in * - input
 // out * -output
@@ -142,7 +142,7 @@ endfunction
 
 
 function [sim, out] = ld_modcounter(sim, events, in, initial_count, mod) // PARSEDOCU_BLOCK
-// Modulo Counter - Block
+// %PURPOSE: Modulo Counter - Block
 //
 // in * - input
 // out * -output
@@ -167,7 +167,7 @@ endfunction
 
 
 function [sim, out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
-// jumper - block
+// %PURPOSE: jumper - block
 //
 // out *+ - vector of size steps
 // in * - switching input
@@ -193,7 +193,7 @@ endfunction
 
 
 function [sim, out] = ld_memory(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
-// memory - block
+// %PURPOSE: memory - block
 //
 // in * - input
 // rememberin * - 
@@ -218,7 +218,7 @@ endfunction
 
 
 function [sim, out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
-// abs - block
+// %PURPOSE: abs - block
 //
 // in * - input
 // out * - output
@@ -238,7 +238,7 @@ endfunction
 
 function [sim, out] = ld_extract_element(sim, events, invec, pointer, vecsize ) // PARSEDOCU_BLOCK
   //
-  // Extract one element of a vector
+  // %PURPOSE: Extract one element of a vector
   //
   // invec *+ - the input vector signal
   // pointer * - the index signal
@@ -266,7 +266,7 @@ endfunction
 
 function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
-// a constant vector
+// %PURPOSE: a constant vector
 // 
 // vec *+ - the vector
 // 
@@ -283,7 +283,7 @@ endfunction
 
 function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) // PARSEDOCU_BLOCK
 // 
-// A resetable counter block
+// %PURPOSE: A resetable counter block
 //
 // count * - signal
 // reset * - signal
@@ -313,7 +313,7 @@ function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) //
 endfunction
 
 function [sim, out] = ld_shift_register(sim, events, in, len) // FIXME TODO
-// A shift register with access to the stored values
+// %PURPOSE: A shift register with access to the stored values
 //
 // in *
 // out *+(len)
@@ -336,7 +336,7 @@ endfunction
 
 
 function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpolation) // PARSEDOCU_BLOCK
-// Lookup table - block
+// %PURPOSE: Lookup table - block
 //
 // in * - input
 // out * - output
@@ -364,7 +364,7 @@ function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpo
 endfunction
 
 function [sim, out] = ld_not(sim, events, in) // PARSEDOCU_BLOCK
-// logic negation - block
+// %PURPOSE: logic negation - block
 //
 // in * - input
 // out * - output
@@ -383,7 +383,7 @@ endfunction
 
 
 function [sim, out] = ld_or(sim, events, inlist) // PARSEDOCU_BLOCK
-// logic or - block
+// %PURPOSE: logic or - block
 //
 // in *LIST - list() of inputs (for now the exactly two inputs are possible)
 // out * - output
@@ -410,7 +410,7 @@ endfunction
 
 function [sim, out] = ld_iszero(sim, events, in, eps) // PARSEDOCU_BLOCK
 //
-// check if input is near zero
+// %PURPOSE: check if input is near zero
 //
 // in * - input
 // out * - output
@@ -429,7 +429,7 @@ endfunction
 
 function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, initial, lower_b, upper_b) // PARSEDOCU_BLOCK
 // 
-// A resetable, limited counter block
+// %PURPOSE: A resetable, limited counter block
 //
 // count * - signal
 // reset * - signal
@@ -463,7 +463,7 @@ function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, init
 endfunction
 
 function [sim, out] = ld_memorydel(sim, events, in, rememberin, initial_state) // PARSEDOCU_BLOCK
-// delayed memory - block
+// %PURPOSE: delayed memory - block
 //
 // in * - input
 // rememberin * - 
@@ -488,7 +488,7 @@ endfunction
 
 function [sim, out] = ld_steps(sim, events, activation_simsteps, values) // PARSEDOCU_BLOCK
 //
-// steps
+// %PURPOSE: steps
 //
 // out * - output
 // 
@@ -509,7 +509,7 @@ endfunction
 
 function [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto) // PARSEDOCU_BLOCK
 //
-// conditional overwrite of the input signal's value
+// %PURPOSE: conditional overwrite of the input signal's value
 //
 // out * - output
 // 
@@ -529,7 +529,7 @@ endfunction
 
 function [sim, out] = ld_ramp(sim, events, in_from, in_to, start, reset, ramp_duration) // NOT FINISHED
 //
-// Online configurable ramp block
+// %PURPOSE: Online configurable ramp block
 //
 // out * - output (from 0 to 1)
 // start * - if > 0.5 the ramp starts
@@ -548,7 +548,7 @@ function [sim, out] = ld_ramp(sim, events, in_from, in_to, start, reset, ramp_du
 endfunction
 
 function [sim, out] = ld_and(sim, events, inlist) // PARSEDOCU_BLOCK
-// logic and - block
+// %PURPOSE: logic and - block
 //
 // in *LIST - list() of inputs (for now the exactly two inputs are possible)
 // out * - output
@@ -576,7 +576,7 @@ endfunction
 
 function [sim, out] = ld_initimpuls(sim, events) // PARSEDOCU_BLOCK
 //
-// initial impuls
+// %PURPOSE: initial impuls
 //
 // out * - output
 // 
@@ -594,7 +594,7 @@ endfunction
 
 function [sim] = ld_printfstderr(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 //
-// Print data to stderr (the console)
+// %PURPOSE: Print data to stderr (the console)
 //
 // in *+(insize) - vectorial input signal
 //
@@ -614,7 +614,7 @@ function [sim] = ld_printfstderr(sim, events, in, str, insize) // PARSEDOCU_BLOC
 endfunction
 
 function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
-// delay - block
+// %PURPOSE: delay - block
 //
 // in * - input
 // out * - output
@@ -643,7 +643,7 @@ endfunction
 
 function [sim, out] = ld_steps2(sim, events, activation_simsteps, values) // PARSEDOCU_BLOCK
 //
-// steps, counter is increased on event, which is different to ld_steps
+// %PURPOSE: steps, counter is increased on event, which is different to ld_steps
 // (EXPERIMENTAL because not tested for now)
 //
 // out * - output
@@ -665,7 +665,7 @@ endfunction
 
 function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
 //
-// return the sign of the input sigal
+// %PURPOSE: return the sign of the input sigal
 // either 1 or -1
 //
 
@@ -681,7 +681,7 @@ endfunction
 
 function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // PARSEDOCU_BLOCK
   //
-  // Insert one element in a vector
+  // %PURPOSE: Insert one element in a vector
   //
   // in *+ - the input element signal
   // pointer * - the index signal
@@ -726,7 +726,7 @@ endfunction
 
 function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
-// Vector differentiation with respect to the index
+// %PURPOSE: Vector differentiation with respect to the index
 // 
 // in *+(vecsize) - vector signal of size "vecsize"
 // out *+(vecsize-1) - vector signal of size "vecsize-1"
@@ -747,7 +747,8 @@ function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOC
 endfunction
 
 function [sim, index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize) // PARSEDOCU_BLOCK
-//    
+// %PURPOSE: find value that is grater as an constant
+//
 // in *+(vecsize) - input
 // thr * - threshold signal
 // index * - output
@@ -771,7 +772,7 @@ function [sim, index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize
 endfunction
 
 function [sim, out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
-// Vector abs()
+// %PURPOSE: Vector abs()
 //
 // in *+(vecsize) - input
 // out *+(vecsize) - output
@@ -791,7 +792,7 @@ function [sim, out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 endfunction
 
 function [sim, out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOCU_BLOCK   
-// Vector gain
+// %PURPOSE: Vector gain
 //
 // in *+(vecsize) - input
 // out *+(vecsize) - output
@@ -811,7 +812,7 @@ endfunction
 
 function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
 //    
-// Extract "in" from to from+window_len
+// %PURPOSE: Extract "in" from to from+window_len
 // 
 //  in *+(vecsize) - vector signal
 //  from * - index signal
@@ -835,7 +836,7 @@ function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsi
 endfunction
 
 function [sim, index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
-// Min / Max of a vector
+// %PURPOSE: Min / Max of a vector
 //
 // in *+(vecsize) 
 // index * - the index starting at 1,, where the max / min was found
@@ -855,7 +856,7 @@ endfunction
 
 
 function [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSEDOCU_BLOCK
-// add "add" to the vector
+// %PURPOSE: add "add" to the vector
 // 
 //  add * - signal
 //  in *+(vecsize) - vector signal
@@ -874,7 +875,7 @@ function [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARS
 endfunction
 
 function [sim, out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
-// sum over "in"
+// %PURPOSE: sum over "in"
 //
 // in *+(vecsize)
 // out *
@@ -893,7 +894,7 @@ function [sim, out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 endfunction
 
 function [sim, out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // FIXME TODO 
-// multiplicate two vectors and calc the sum of the result ( sum( in1 .* in2) )
+// %PURPOSE: multiplicate two vectors and calc the sum of the result ( sum( in1 .* in2) )
 //
 // in1 *+(vecsize)
 // in2 *+(vecsize)
@@ -913,7 +914,7 @@ function [sim, out] = ld_vector_addsum(sim, events, in1, in2, vecsize) // FIXME 
 endfunction
 
 function [sim, out] = ld_vector_abssum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
-// sum over element wise abs() of "in"
+// %PURPOSE: sum over element wise abs() of "in"
 //
 // in *+(vecsize)
 // out *
@@ -932,7 +933,7 @@ function [sim, out] = ld_vector_abssum(sim, events, in, vecsize) // PARSEDOCU_BL
 endfunction
 
 function [sim, out] = ld_vector_sqsum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
-// sum over element wise ()^2 of "in"
+// %PURPOSE: sum over element wise ()^2 of "in"
 //
 // in *+(vecsize)
 // out *
@@ -995,7 +996,7 @@ endfunction
 
 function [sim,y] = ld_add_ofs(sim, events, u, ofs) // PARSEDOCU_BLOCK
 //
-// Add a constant "ofs" to the signal u; y = u + const(ofs)
+// %PURPOSE: Add a constant "ofs" to the signal u; y = u + const(ofs)
 //
   [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
   
@@ -1005,7 +1006,7 @@ endfunction
 
 function [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero ) // PARSEDOCU_BLOCK
 //    
-//    Mute a signal based on cntrl-signal
+//    %PURPOSE: Mute a signal based on cntrl-signal
 //
 //    ev - event
 //    u * - input
@@ -1037,7 +1038,7 @@ endfunction
 
 
 function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta) // PARSEDOCU_BLOCK
-// Implements a time discrete integrator with saturation of the output between min__ and max__
+// %PURPOSE: Implements a time discrete integrator with saturation of the output between min__ and max__
 // 
 // u * - input
 // y * - output
@@ -1055,7 +1056,7 @@ function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta) // PARSE
 endfunction
 
 function [sim, y] = ld_limited_integrator2(sim, ev, u, min__, max__, Ta) // PARSEDOCU_BLOCK
-// Implements a time discrete integrator with saturation of the output between min__ and max__
+// %PURPOSE: Implements a time discrete integrator with saturation of the output between min__ and max__
 // compared to ld_limited_integrator there is no delay: Ta z / (z-1)
 //
 // u * - input
@@ -1078,7 +1079,7 @@ function [sim, y] = ld_limited_integrator2(sim, ev, u, min__, max__, Ta) // PARS
 endfunction
 
 function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__) // PARSEDOCU_BLOCK
-// linear controller with anti reset windup implemented by bounding the integral state:
+// %PURPOSE: linear controller with anti reset windup implemented by bounding the integral state:
 // e = r-y
 // u = ld_limited_integrator( e, min__, max__ ) + tfR*e
     [sim, e] = ld_sum(sim, ev, list(r, y), 1, -1);
@@ -1091,7 +1092,7 @@ endfunction
 
 
 function [sim] = ld_print_angle(sim, ev, alpha, text) // PARSEDOCU_BLOCK
-// Convert an angle in rad to degree and print to console
+// %PURPOSE: Convert an angle in rad to degree and print to console
 // 
 // alpha * - angle signal
 // text - string
@@ -1102,7 +1103,7 @@ endfunction
 
 function [sim, pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
 // 
-// PWM generator
+// %PURPOSE: PWM generator
 // 
 // plen - period length
 // u * - modulation signal; Values are between 0 and 1.
@@ -1122,7 +1123,7 @@ endfunction
 
 function [sim,y] = ld_alternate( sim, ev, start_with_zero ) // PARSEDOCU_BLOCK
 //
-// generate an alternating sequence     
+// %PURPOSE: generate an alternating sequence     
 //
 // y * - output
 //
@@ -1151,7 +1152,7 @@ endfunction
 
 function [sim, out] = ld_detect_step_event(sim, ev, in, eps) // PARSEDOCU_BLOCK
     //
-    // step detection block
+    // %PURPOSE: step detection block
     //
     // Detect jumps in the signal in
     // everytime a jump occurs out is an impulse with the intensity of th
@@ -1192,7 +1193,7 @@ endfunction
 
 function [sim,y] = ld_compare(sim, events, in,  thr) // PARSEDOCU_BLOCK
 //
-// compare block. 
+// %PURPOSE: compare block. 
 //   thr - constant
 //   in * - signal
 //   y *
@@ -1208,7 +1209,7 @@ endfunction
 
 function [sim,y] = ld_compare_01(sim, events, in,  thr) // PARSEDOCU_BLOCK
 //
-// compare block. 
+// %PURPOSE: compare block. 
 //   thr - constant
 //   in - signal
 //   y *
@@ -1422,7 +1423,7 @@ endfunction
 
 function [sim,c] = ld_const(sim, events, val) // PARSEDOCU_BLOCK
 //
-// A constant val
+// %PURPOSE: A constant val
 //
 
     [sim,c] = libdyn_new_blk_const(sim, events, val); // Instead of event a predefined initial event that only occurs once should be used
@@ -1438,7 +1439,7 @@ endfunction
 
 function [sim,sum_] = ld_add(sim, events, inp_list, fak_list) // PARSEDOCU_BLOCK
 //
-// Add signals (linear combination)
+// %PURPOSE: Add signals (linear combination)
 // inp_list = list( in1, in2 )  ; fak_list = [ c1, c2 ]
 // sum_ = in1 * c1 + in2 * c2
 //
@@ -1450,7 +1451,7 @@ endfunction
 
 
 function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
-// Multiplication 
+// %PURPOSE: Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
  // FIXME obsolete
     [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1, muldiv2);
@@ -1459,7 +1460,7 @@ function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
 endfunction
 
 function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
-// Multiplication 
+// %PURPOSE: Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
 // inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
     [sim,mul_] = libdyn_new_blk_mul(sim, events, muldiv1_list(1), muldiv1_list(2) );
@@ -1469,7 +1470,7 @@ endfunction
 
 function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list) // PARSEDOCU_BLOCK
 //
-// Multiplication 
+// %PURPOSE: Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
 // inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
 //
@@ -1481,7 +1482,7 @@ endfunction
 
 function [sim,gain] = ld_gain(sim, events, inp_list, gain) // PARSEDOCU_BLOCK
 //
-// A simple gain
+// %PURPOSE: A simple gain
 //
 //
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
@@ -1508,7 +1509,7 @@ function [sim,sign_] = ld_sign(sim, events, inp_list, thr) // PARSEDOCU_BLOCK
 endfunction
 
 function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
-// lookup table
+// %PURPOSE: lookup table
 //
 // inp_list - input signal
 // table - a vector of values to look up
@@ -1522,7 +1523,7 @@ function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
 endfunction
   
 function [sim,fngen] = ld_fngen(sim, events, inp_list, shape_)
-// function generator
+// %PURPOSE: function generator
 // need cleanup
     [sim,fngen] = libdyn_new_blk_fngen(sim, events, shape_)
     [sim,fngen] = libdyn_conn_equation(sim, fngen, inp_list);
@@ -1540,7 +1541,7 @@ endfunction
 
 function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
 //
-// Time discrete transfer function
+// %PURPOSE: Time discrete transfer function
 // H is give as a Scilab rational
 //
 
@@ -1553,7 +1554,7 @@ endfunction
 
 function [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit) // PARSEDOCU_BLOCK
 //
-// Saturation between lowerlimit and upperlimit
+// %PURPOSE: Saturation between lowerlimit and upperlimit
 //
 
 
@@ -1566,7 +1567,7 @@ endfunction
 
 function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state) // PARSEDOCU_BLOCK
 //
-// A flip-flop (FIXME: more documentation needed)
+// %PURPOSE: A flip-flop (FIXME: more documentation needed)
 //
 // set0, set1, reset * - control of the flipflop
 // initial_state - constant
@@ -1587,7 +1588,7 @@ endfunction
 
 function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 //
-// Print data to stdout (the console)
+// %PURPOSE: Print data to stdout (the console)
 //
 // in *+(insize) - vectorial input signal
 //
@@ -1610,7 +1611,7 @@ endfunction
 
 function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in) // PARSEDOCU_BLOCK
 //
-// A switching Block
+// %PURPOSE: A switching Block
 // inputs = [control_in, signal_in]
 // if control_in > 0 : signal_in is directed to output 1; output_2 is set to zero
 // if control_in < 0 : signal_in is directed to output 2; output_1 is set to zero
@@ -1625,7 +1626,7 @@ endfunction
 
 function [sim,y] = ld_play_simple(sim, events, r) // PARSEDOCU_BLOCK
 //
-// Simple sample play block
+// %PURPOSE: Simple sample play block
 //
 // plays the sequence stored in r
 // each time event 0 occurs the next value of r is put out
@@ -1639,7 +1640,7 @@ endfunction
 
 
 function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source) //OBSOLET
-// Quick and easy dumping of signals to files in one line of code
+// %PURPOSE: Quick and easy dumping of signals to files in one line of code
 // obsolete version
   [source] = libdyn_extrakt_obj( source ); // compatibility
 

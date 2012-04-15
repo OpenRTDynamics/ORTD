@@ -138,6 +138,9 @@ lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_look
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
 	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
 
+scilabhelp:
+	(cd scilab; ./build_toolbox.sh)
+
 clean:
 	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* bin/*
 	rm -f module_list module_list__.c module_list__.h
