@@ -8,7 +8,8 @@
 
 
 function [sim, out] = ld_synctimer(sim, events, in) // PARSEDOCU_BLOCK
-// 
+// %PURPOSE: Timer for synchronisation of a async simulation 
+//
 // To beused within an async nested schematic for introducing variable sample times (EXPERIMENTAL)
 // 
 // For an example see modules/synchronisation/demo/timed_thread.sce
