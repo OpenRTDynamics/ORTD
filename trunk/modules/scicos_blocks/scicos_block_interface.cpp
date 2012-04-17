@@ -59,101 +59,126 @@ int compu_func_ScicosBlockWrapper_class::init()
     int insize = ipar[1];
     int outsize = ipar[2];
     
-    int len_identstr = ipar[3];
-    char *identstr;
+    // Get further parameters
+    int *ip = &ipar[3];
+    double *rp = &rpar[0];        
+        
+    struct irpar_ivec_t identstr__, block_ipar;
+    struct irpar_rvec_t block_rpar, dstate;
+
+    int error = 0;
+    if ( irpar_get_ivec(&identstr__, ip, rp, 10) < 0 ) error = 1 ;
+    if ( irpar_get_ivec(&block_ipar, ip, rp, 11) < 0 ) error = 1 ;
+    if ( irpar_get_rvec(&block_rpar, ip, rp, 12) < 0 ) error = 1 ;
+    if ( irpar_get_rvec(&dstate, ip, rp, 13) < 0 ) error = 1 ;
+
+    if (error == 1) {
+        printf("nested: could not get parameter from irpar set\n");
+        return -1;
+    }
     
-    irpar_getstr(&identstr, ipar, 4, len_identstr);
     
+//     int len_identstr = identstr__.n;
+    char *identstr;        
+    irpar_getstr(&identstr, identstr__.v, 0, identstr__.n);    
     
-     int (*compfn)(scicos_block * block, int flag);
-     
     printf("New scicos interface using identifier %s\n", identstr);
     
-    compfn = ( int (*)(scicos_block*, int) ) scicos_compfn_list_find(identstr);
+    // The compfn
+     int (*compfn)(scicos_block * block, int flag);
+     compfn = ( int (*)(scicos_block*, int) ) scicos_compfn_list_find(identstr);
     
     free(identstr);
     
+    if (compfn == NULL) {
+      fprintf(stderr, "Can not find a Scicos computational function\n");
+      return -1;
+    }
+    
 
+   double *rpar2 = block_rpar.v;   int n_rpar2 = block_rpar.n;
+   int *ipar2 = block_ipar.v;      int n_ipar2 = block_ipar.n;   
+   double *z = dstate.v;           int Nz = dstate.n;
     
-    
-   double rpar2[] = {1,-1,1,1,0};
+/*   double rpar2[] = {1,-1,1,1,0};
    int ipar2[] = {1,-1,1,1,1};
    
    int Nz = 7;
-   double z[] = { 0,0,0, 0,  0,0, 0,0     ,0,0,0,0,0 };
+   double z[] = { 0,0,0, 0,  0,0, 0,0     ,0,0,0,0,0 };*/
     
 
-   /* def real parameters */
- double RPAR1[ ] = {
-/* Routine name of block: cstblk4
- * Gui name of block: CONST_m
- * Compiled structure index: 1
- * Exprs: 1
- * rpar=
- */
-1,
-
-/* Routine name of block: dsslti4
- * Gui name of block: DLR
- * Compiled structure index: 2
- * Exprs: 1
- * rpar=
- */
-1,1,1,0,
-
-};
-
-/* def integer parameters */
-int IPAR1[ ] = {
-/* Routine name of block: summation
- * Gui name of block: SUMMATION
- * Compiled structure index: 3
- * Exprs: [1;-1]
- * ipar= {1,-1};
- */
-1,-1,
-
-/* Routine name of block: actionneur1
- * Gui name of block: OUTPUTPORTEVTS
- * Compiled structure index: 4
- * Exprs: 1
- * ipar= {1};
- */
-1,
-
-/* Routine name of block: bidon
- * Gui name of block: EVTGEN_f
- * Compiled structure index: 5
- * Exprs: 1
- * ipar= {1};
- */
-1,
-
-/* Routine name of block: capteur1
- * Gui name of block: INPUTPORTEVTS
- * Compiled structure index: 6
- * Exprs: 1
- * ipar= {1};
- */
-1,
-
-/* Routine name of block: summation
- * Gui name of block: SUMMATION
- * Compiled structure index: 7
- * Exprs: [1;-1]
- * ipar= {1,-1};
- */
-1,-1,
-
-};
-
+//    /* def real parameters */
+//  double RPAR1[ ] = {
+// /* Routine name of block: cstblk4
+//  * Gui name of block: CONST_m
+//  * Compiled structure index: 1
+//  * Exprs: 1
+//  * rpar=
+//  */
+// 1,
+// 
+// /* Routine name of block: dsslti4
+//  * Gui name of block: DLR
+//  * Compiled structure index: 2
+//  * Exprs: 1
+//  * rpar=
+//  */
+// 1,1,1,0,
+// 
+// };
+// 
+// /* def integer parameters */
+// int IPAR1[ ] = {
+// /* Routine name of block: summation
+//  * Gui name of block: SUMMATION
+//  * Compiled structure index: 3
+//  * Exprs: [1;-1]
+//  * ipar= {1,-1};
+//  */
+// 1,-1,
+// 
+// /* Routine name of block: actionneur1
+//  * Gui name of block: OUTPUTPORTEVTS
+//  * Compiled structure index: 4
+//  * Exprs: 1
+//  * ipar= {1};
+//  */
+// 1,
+// 
+// /* Routine name of block: bidon
+//  * Gui name of block: EVTGEN_f
+//  * Compiled structure index: 5
+//  * Exprs: 1
+//  * ipar= {1};
+//  */
+// 1,
+// 
+// /* Routine name of block: capteur1
+//  * Gui name of block: INPUTPORTEVTS
+//  * Compiled structure index: 6
+//  * Exprs: 1
+//  * ipar= {1};
+//  */
+// 1,
+// 
+// /* Routine name of block: summation
+//  * Gui name of block: SUMMATION
+//  * Compiled structure index: 7
+//  * Exprs: [1;-1]
+//  * ipar= {1,-1};
+//  */
+// 1,-1,
+// 
+// };
+// 
 
    
    
      int Nin = 1; // only one in- and outport possible
     int Nout = 1;
 
-    cos.initStructure(compfn, sizeof(IPAR1), sizeof(RPAR1), IPAR1, RPAR1, Nin, Nout, Nz, z);
+//     cos.initStructure(compfn, sizeof(IPAR1), sizeof(RPAR1), IPAR1, RPAR1, Nin, Nout, Nz, z);
+    cos.initStructure(compfn, sizeof(n_ipar2), sizeof(n_rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
     
     int i;
     for (i = 0; i < Nin; ++i) {
