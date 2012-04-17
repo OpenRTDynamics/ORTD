@@ -14,7 +14,7 @@ extern int  SuperBlock(scicos_block *block, int flag);
 
 // This function is called by rtmain.c
 void ORTD_register_scicosblocks() { 
-  printf("ORTD_register_scicosblocks was called name \n");
+  printf("ORTD_register_scicosblocks was called\n");
   
   // Do the registration for each block FIXME: Autogenerate
   ORTD_scicos_compfn_list_register("SuperBlock", &SuperBlock);
