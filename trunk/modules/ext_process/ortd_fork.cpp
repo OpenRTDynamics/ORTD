@@ -93,7 +93,7 @@ bool ortd_fork::init()    // starts scilab and generates pipes to scilab to send
             }
         }
 
-        fprintf(stderr, "exec of %s\n", exec_path);
+//         fprintf(stderr, "exec of %s\n", exec_path);
 
         status = execlp(exec_path, "",  NULL);   // replaces the child process image
         // with a new scilab process image
