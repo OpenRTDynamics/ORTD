@@ -908,6 +908,11 @@ int libdyn_simulation_init(struct dynlib_simulation_t * sim)
   ret = libdyn_simulation_callinitflag(sim, COMPF_FLAG_INIT, COMPF_FLAG_DESTUCTOR);  
   if (ret < 0)
     return ret;
+
+  // call the post-init flag for all blocks. -1 means no fault handling
+  libdyn_simulation_callinitflag(sim, COMPF_FLAG_POSTINIT, -1 ); 
+  
+  
 }
 
 
@@ -929,7 +934,7 @@ int libdyn_simulation_callinitflag(struct dynlib_simulation_t * sim, int initfla
 //      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
       
       int ret = (*block->comp_func)(initflag, block);
-       if (ret == -1) {
+       if (ret == -1 && destructorflag != -1) { // check for errors if a destructorflag =! -1 is given
  	 fprintf(stderr, "WARNING (for now): ERROR: libdyn_simulation_init: Computational function returned an error blockid=nn, block_irparid=%d\n", block->irpar_config_id);
          abort_at = counter;
 	 goto undo_everything;

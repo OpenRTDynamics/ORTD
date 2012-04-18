@@ -38,6 +38,7 @@ public:
     void destruct();
     void io(int update_states);
     int init();
+    void postinit();
 private:
    struct dynlib_block_t *block;
    
@@ -62,20 +63,30 @@ int compu_func_runproc_class::init()
 
     irpar_getstr(&pathstr, ipar, 6, lenpathstr);
 
-    printf("ortd_fork path = %s\n", pathstr);
+    fprintf(stderr, "ortd_fork execpath = %s\n", pathstr);
     process = new ortd_fork(pathstr, false);
     
     free(pathstr);
     
-    if (WhenToStart == 0) {
-      printf("Starting\n");
+/*    if (WhenToStart == 0) {
+//       printf("Starting\n");
       process->init();
-    }
+    }*/
     
     // Return -1 to indicate an error, so the simulation will be destructed
   
     return 0;
 }
+
+void compu_func_runproc_class::postinit()
+{
+    if (WhenToStart == 0) {
+//       printf("Starting\n");
+      process->init();
+    }
+
+}
+
 
 
 void compu_func_runproc_class::io(int update_states)
@@ -153,6 +164,15 @@ int compu_func_runproc(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
+    case COMPF_FLAG_POSTINIT:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        compu_func_runproc_class *worker = (compu_func_runproc_class *) libdyn_get_work_ptr(block);
+
+        worker->postinit();      
+    }
+    return 0;
+    break;    
     case COMPF_FLAG_DESTUCTOR: // destroy instance
     {
         compu_func_runproc_class *worker = (compu_func_runproc_class *) libdyn_get_work_ptr(block);

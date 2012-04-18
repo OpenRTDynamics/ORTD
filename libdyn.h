@@ -95,6 +95,8 @@
 #define COMPF_FLAG_PREPARERESET 10 // NEW 27.2.12
 #define COMPF_FLAG_PREINIT 11
 #define COMPF_FLAG_PREINITUNDO 12
+#define COMPF_FLAG_POSTINIT 13 // NEW as of 18.4.2012
+#define COMPF_FLAG_NOTHING 1000  // computational functon should do nothing
 #define COMPF_FLAG_PRINTINFO 100
 
 
