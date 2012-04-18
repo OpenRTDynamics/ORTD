@@ -31,10 +31,10 @@ endif # ifeq ($(main_makefile_invoked),yes)
 
 
 all: lib
-	@echo "Module template done"
+	@echo "Module ext_process_blocks done"
 
-lib: template.o
-	ar rvs module.a template.o   # Will always be included
+lib: ext_process_blocks.o ortd_fork.o
+	ar rvs module.a ext_process_blocks.o ortd_fork.o   # Will always be included
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 
@@ -44,12 +44,18 @@ clean:
 
 ## EITHER THIS
 
-template.o: template.c
-	$(CC) $(CFLAGS) $(INCLUDE) -c template.c 
+#template.o: template.c
+#	$(CC) $(CFLAGS) $(INCLUDE) -c template.c 
 
 ## OR THIS
 
-#template_block.o: template_block.cpp
-#	$(CC) $(CFLAGS) $(INCLUDE) -c template_block.cpp
+ext_process_blocks.o: ext_process_blocks.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c ext_process_blocks.cpp -o ext_process_blocks.o
+
+ortd_fork.o: ortd_fork.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c ortd_fork.cpp -o ortd_fork.o
+
+
+
 
 
