@@ -110,7 +110,7 @@ void compu_func_runproc_class::destruct()
 int compu_func_runproc(int flag, struct dynlib_block_t *block)
 {
 
-//     printf("comp_func template: flag==%d\n", flag);
+//      printf("########### comp_func template: flag==%d\n", flag);
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);
@@ -144,7 +144,10 @@ int compu_func_runproc(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
         int i;
-        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+	
+	// FIXME: use BLOCKTYPE_DYNAMIC when dependence on in/output otherwise xx_STATIC, but then the output has to be
+	//        connected otherwise the block will not be initialised
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
         
         //libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT);
         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
