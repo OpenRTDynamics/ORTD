@@ -22,48 +22,63 @@
 extern "C" {
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
-
+#include "irpar.h"
 }
 
 
 
+#include "ortd_fork.h"
 
 
 
 
-
-class compu_func_template_class {
+class compu_func_runproc_class {
 public:
-    compu_func_template_class(struct dynlib_block_t *block);
+    compu_func_runproc_class(struct dynlib_block_t *block);
     void destruct();
     void io(int update_states);
     int init();
 private:
    struct dynlib_block_t *block;
+   
+   ortd_fork *process;
+   int WhenToStart;
 
 };
 
-compu_func_template_class::compu_func_template_class(dynlib_block_t* block)
+compu_func_runproc_class::compu_func_runproc_class(dynlib_block_t* block)
 {
     this->block = block;
 }
 
-int compu_func_template_class::init()
+int compu_func_runproc_class::init()
 {
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = ipar[0];
-    int Nout = ipar[1];
+    WhenToStart = ipar[4];
+    int lenpathstr = ipar[5];
+    char *pathstr;  
 
+    irpar_getstr(&pathstr, ipar, 6, lenpathstr);
 
+    printf("ortd_fork path = %s\n", pathstr);
+    process = new ortd_fork(pathstr, false);
+    
+    free(pathstr);
+    
+    if (WhenToStart == 0) {
+      printf("Starting\n");
+      process->init();
+    }
+    
     // Return -1 to indicate an error, so the simulation will be destructed
   
     return 0;
 }
 
 
-void compu_func_template_class::io(int update_states)
+void compu_func_runproc_class::io(int update_states)
 {
     if (update_states==0) {
         double *output = (double*) libdyn_get_output_ptr(block, 0);
@@ -72,14 +87,16 @@ void compu_func_template_class::io(int update_states)
     }
 }
 
-void compu_func_template_class::destruct()
+void compu_func_runproc_class::destruct()
 {
-    
+  process->terminate(1);  // Send "HUP" (Hangup signal)
+  
+    delete process;
 }
 
 
 // This is the main C-Callback function, which forwards requests to the C++-Class above
-int compu_func_template(int flag, struct dynlib_block_t *block)
+int compu_func_runproc(int flag, struct dynlib_block_t *block)
 {
 
 //     printf("comp_func template: flag==%d\n", flag);
@@ -88,16 +105,15 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    // The number of in- and output ports
-    int Nin = ipar[0];
-    int Nout = ipar[1];
+    int Nin = 0;
+    int Nout = 1;
 
 
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
         in = (double *) libdyn_get_input_ptr(block,0);
-        compu_func_template_class *worker = (compu_func_template_class *) libdyn_get_work_ptr(block);
+        compu_func_runproc_class *worker = (compu_func_runproc_class *) libdyn_get_work_ptr(block);
 
         worker->io(0);
 
@@ -107,7 +123,7 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_UPDATESTATES:
     {
         in = (double *) libdyn_get_input_ptr(block,0);
-        compu_func_template_class *worker = (compu_func_template_class *) libdyn_get_work_ptr(block);
+        compu_func_runproc_class *worker = (compu_func_runproc_class *) libdyn_get_work_ptr(block);
 
         worker->io(1);
 
@@ -118,13 +134,9 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
     {
         int i;
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
-
-	// configure each in and output port i
-        for (i = 0; i < Nin; ++i)
-            libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT);
-
-        for (i = 0; i < Nin; ++i)
-            libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT, 1);
+        
+        //libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
 
 
     }
@@ -132,7 +144,7 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_INIT:  // init
     {
-        compu_func_template_class *worker = new compu_func_template_class(block);
+        compu_func_runproc_class *worker = new compu_func_runproc_class(block);
         libdyn_set_work_ptr(block, (void*) worker);
 
         int ret = worker->init();
@@ -143,7 +155,7 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
     {
-        compu_func_template_class *worker = (compu_func_template_class *) libdyn_get_work_ptr(block);
+        compu_func_runproc_class *worker = (compu_func_runproc_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
 	delete worker;
@@ -162,19 +174,20 @@ int compu_func_template(int flag, struct dynlib_block_t *block)
 // Export to C so the libdyn simulator finds this function
 extern "C" {
     // ADJUST HERE: must match to the function name in the end of this file
-    int libdyn_module_template_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
+    int libdyn_module_ext_process_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
 }
 
 // CHANGE HERE: Adjust this function name to match the name of your module
-int libdyn_module_template_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
+int libdyn_module_ext_process_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
 
     // Register my blocks to the given simulation
 
-    int blockid = 990001;  // CHANGE HERE: choose a unique id for each block
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_template);
+    int blockid =  15300;  // CHANGE HERE: choose a unique id for each block
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_runproc);
 
-    printf("libdyn module template initialised\n");
+    printf("libdyn module ext_process initialised\n");
 
 }
 

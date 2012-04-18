@@ -69,7 +69,9 @@ endfunction
 
 
 function cosblk=ortd_getcosblk(blockname, pathtoscifile)
-  
+  //
+  // Extract information from Scicos block interfacing function macros (*.sci) files
+  //
 
 
   //exec(blockname + '_c.sci');
