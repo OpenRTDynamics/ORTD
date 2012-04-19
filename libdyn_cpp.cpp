@@ -64,15 +64,16 @@ irpar::~irpar()
 void irpar::destruct()
 {
   fprintf(stderr, "irpar::destruct()\n");
-    if (ipar != NULL)
+    if (ipar != NULL) {      
         free(ipar);
+	ipar = NULL;
+    }
     
-    fprintf(stderr, "passed1\n");
-    
-    if (rpar != NULL)
+    if (rpar != NULL) {
         free(rpar);
+	rpar = NULL;
+    }    
     
-    fprintf(stderr, "passed2\n");
 }
 
 
