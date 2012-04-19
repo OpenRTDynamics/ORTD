@@ -10,15 +10,17 @@
 
 class ortd_fork {
    private:
-      char *exec_path;
+      char *exec_path, *chpwdpath;
       int ToChild[2], ToParent[2]; // ToChild[0], ToParent[0] for reading and ToChild[1], ToParent[1] for writing
       FILE *readfd;
       FILE *writefd;
       
+      
+      
       int pid;
       bool replace_io;
    public:
-      ortd_fork(const char* exec_path, bool replace_io);   // initialize the scilab path
+      ortd_fork(char* exec_path, char* chpwd, int prio, bool replace_io);   // initialize the scilab path
       ~ortd_fork(); // close scilab etc...
       
       bool init(); // starts scilab and generates pipes

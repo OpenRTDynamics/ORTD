@@ -1,16 +1,19 @@
 #include "ortd_fork.h"
 #include <signal.h>
 
-ortd_fork::ortd_fork(const char* exec_path, bool replace_io) // Constructor
+ortd_fork::ortd_fork(char* exec_path, char* chpwd, int prio, bool replace_io) // Constructor
 {
     this->replace_io = replace_io;
 
     this->exec_path = new char [strlen(exec_path) + 1];
-    if (strcpy(this->exec_path, exec_path) == NULL)
-    {
-        fprintf(stderr, "Error initializing the exec path!\n");
-    }
-    //printf("scilab_path = %s\n", this->scilab_path);
+    strcpy(this->exec_path, exec_path);
+    
+    this->chpwdpath = new char [strlen(chpwd) + 1];
+    strcpy(this->chpwdpath, chpwd);
+    
+    fprintf(stderr, "execpath = %s chpwd = %s\n", this->exec_path, this->chpwdpath);
+    
+    
     ToChild[0] = 0;
     ToChild[1] = 0;
     ToParent[0] = 0;
@@ -20,6 +23,7 @@ ortd_fork::ortd_fork(const char* exec_path, bool replace_io) // Constructor
 ortd_fork::~ortd_fork()  // Destructor
 {
     delete exec_path;
+    delete chpwdpath;
     
     if (replace_io) {
     //close pipes
@@ -61,7 +65,9 @@ bool ortd_fork::init()    // starts scilab and generates pipes to scilab to send
          * if fork returns 0, it is the child process
          */
 
-        //printf ("Child process with PID: %d\n", getpid());
+//         printf ("Child process with PID: %d\n", getpid());
+
+        chdir(this->chpwdpath);
 
         if (replace_io) {
             status = close(ToChild[1]);   // the write input must be closed,
