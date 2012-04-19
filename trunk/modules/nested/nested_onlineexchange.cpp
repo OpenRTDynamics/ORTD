@@ -80,11 +80,15 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 
 nested_onlineexchange::~nested_onlineexchange()
 {
+  fprintf(stderr, "Destroying nested_onlineexchange for %s\n", identName);
+  
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry((char*) identName);
   
   if (this->current_irdata != NULL)
-    delete this->current_irdata;
+    delete this->current_irdata;  
+  
+  fprintf(stderr, "Sucessfully destroyed nested_onlineexchange for %s\n", identName);
 }
 
 
