@@ -37,6 +37,7 @@ public:
     compu_func_runproc_class(struct dynlib_block_t *block);
     void destruct();
     void io(int update_states);
+    void reset();
     int init();
     void postinit();
 private:
@@ -44,12 +45,14 @@ private:
    
    ortd_fork *process;
    int WhenToStart;
+   
+   bool firstShoot;
 
 };
 
 compu_func_runproc_class::compu_func_runproc_class(dynlib_block_t* block)
 {
-    this->block = block;
+    this->block = block;    
 }
 
 int compu_func_runproc_class::init()
@@ -68,6 +71,8 @@ int compu_func_runproc_class::init()
     
     free(pathstr);
     
+    firstShoot = true;
+    
 /*    if (WhenToStart == 0) {
 //       printf("Starting\n");
       process->init();
@@ -81,10 +86,19 @@ int compu_func_runproc_class::init()
 void compu_func_runproc_class::postinit()
 {
     if (WhenToStart == 0) {
-//       printf("Starting\n");
+      fprintf(stderr, "### post init init\n");
       process->init();
     }
 
+}
+
+void compu_func_runproc_class::reset()
+{
+      if (WhenToStart == 1) {
+	firstShoot = false;
+	fprintf(stderr, "####### Terminate\n");
+	process->terminate(2);
+      }
 }
 
 
@@ -92,15 +106,22 @@ void compu_func_runproc_class::postinit()
 void compu_func_runproc_class::io(int update_states)
 {
     if (update_states==0) {
-        double *output = (double*) libdyn_get_output_ptr(block, 0);
+      
+      if (!firstShoot && WhenToStart == 1) {
+	fprintf(stderr, "####### Init\n");
+	process->init();
+      }
+
+//       double *output = (double*) libdyn_get_output_ptr(block, 0);
+// 	*output = 1;
 	
-	*output = 1;
+	
     }
 }
 
 void compu_func_runproc_class::destruct()
 {
-  process->terminate(1);  // Send "HUP" (Hangup signal)
+  process->terminate(2);  // Send "HUP" (Hangup signal)
   
     delete process;
 }
@@ -110,7 +131,8 @@ void compu_func_runproc_class::destruct()
 int compu_func_runproc(int flag, struct dynlib_block_t *block)
 {
 
-//      printf("########### comp_func template: flag==%d\n", flag);
+
+    printf("compu_func_runproc: flag==%d\n", flag);
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);
@@ -148,6 +170,7 @@ int compu_func_runproc(int flag, struct dynlib_block_t *block)
 	// FIXME: use BLOCKTYPE_DYNAMIC when dependence on in/output otherwise xx_STATIC, but then the output has to be
 	//        connected otherwise the block will not be initialised
         libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
         
         //libdyn_config_block_input(block, i, 1, DATATYPE_FLOAT);
         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
