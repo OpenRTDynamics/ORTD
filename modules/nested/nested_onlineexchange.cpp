@@ -85,8 +85,10 @@ nested_onlineexchange::~nested_onlineexchange()
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry((char*) identName);
   
-  if (this->current_irdata != NULL)
+  if (this->current_irdata != NULL) {
+    fprintf(stderr, "Running delete this->current_irdata  ptr=%ptr\n", this->current_irdata); 
     delete this->current_irdata;  
+  }
   
   fprintf(stderr, "Sucessfully destroyed nested_onlineexchange for %s\n", identName);
 }
