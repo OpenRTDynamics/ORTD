@@ -14,7 +14,7 @@ function [sim, out] = ld_startproc(sim, events, exepath, whentorun) // PARSEDOCU
 // 
 
  btype = 15300 + 0; // the same id you are giving via the "libdyn_compfnlist_add" C-function
- [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ 0,0, 0, 0, whentorun,length(exepath), ascii(exepath)  ], rpar=[  ], ...
+ [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ 0, 0, 0, 0, whentorun,length(exepath),0, ascii(exepath)  ], rpar=[  ], ...
                   insizes=[], outsizes=[1], ...
                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
@@ -25,3 +25,22 @@ function [sim, out] = ld_startproc(sim, events, exepath, whentorun) // PARSEDOCU
  [sim, out] = ld_gain(sim, events, out, 1); // FIXME: Otherwise the block above may not be initialised
 endfunction
 
+function [sim, out] = ld_startproc2(sim, events, exepath, chpwd, prio, whentorun) // PARSEDOCU_BLOCK
+// 
+// Execute a sub process (EXPERIMENTAL)
+//
+// out * - output
+// 
+// 
+
+ btype = 15300 + 0; // the same id you are giving via the "libdyn_compfnlist_add" C-function
+ [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ 0, 0, 0, prio, whentorun,length(exepath), length(chpwd), ascii(exepath), ascii(chpwd)  ], rpar=[  ], ...
+                  insizes=[], outsizes=[1], ...
+                  intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+//  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+ [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+
+
+ [sim, out] = ld_gain(sim, events, out, 1); // FIXME: Otherwise the block above may not be initialised
+endfunction
