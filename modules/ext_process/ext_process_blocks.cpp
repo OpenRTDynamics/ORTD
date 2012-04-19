@@ -60,16 +60,20 @@ int compu_func_runproc_class::init()
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
+    int prio = ipar[3];
     WhenToStart = ipar[4];
     int lenpathstr = ipar[5];
-    char *pathstr;  
+    int lenchcmdhstr = ipar[6];
+    char *pathstr, *chpwd;  
 
-    irpar_getstr(&pathstr, ipar, 6, lenpathstr);
+    irpar_getstr(&pathstr,  ipar, 7,              lenpathstr);
+    irpar_getstr(&chpwd, ipar, 7 + lenpathstr, lenchcmdhstr);
 
-    fprintf(stderr, "ortd_fork execpath = %s\n", pathstr);
-    process = new ortd_fork(pathstr, false);
+    fprintf(stderr, "ortd_fork execpath = %s and %s\n", pathstr, chpwd);
+    process = new ortd_fork(pathstr, chpwd, prio, false);   // char* exec_path, char* chpwd, int prio, bool replace_io
     
     free(pathstr);
+    free(chpwd);
     
     firstShoot = true;
     
@@ -89,15 +93,16 @@ void compu_func_runproc_class::postinit()
       fprintf(stderr, "### post init init\n");
       process->init();
     }
-
 }
 
 void compu_func_runproc_class::reset()
 {
+  	fprintf(stderr, "####### RESET\n");
+
       if (WhenToStart == 1) {
-	firstShoot = false;
+	firstShoot = true;
 	fprintf(stderr, "####### Terminate\n");
-	process->terminate(2);
+	process->terminate(1);
       }
 }
 
@@ -107,8 +112,9 @@ void compu_func_runproc_class::io(int update_states)
 {
     if (update_states==0) {
       
-      if (!firstShoot && WhenToStart == 1) {
+      if (firstShoot && WhenToStart == 1) {
 	fprintf(stderr, "####### Init\n");
+	firstShoot = false;
 	process->init();
       }
 
@@ -163,6 +169,15 @@ int compu_func_runproc(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        compu_func_runproc_class *worker = (compu_func_runproc_class *) libdyn_get_work_ptr(block);
+
+        worker->reset();
+    }
+    return 0;
+    break;    
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
         int i;
