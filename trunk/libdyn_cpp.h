@@ -66,14 +66,14 @@ class irpar {
   private:
     char fname_ipar[256];
     char fname_rpar[256];
-    void destruct();
+    
   public:
     irpar();
     ~irpar();
     
     // allocate buffers. Usage of load_from_afile not possible for this case
     irpar(int Nipar, int Nrpar);
-    
+    void destruct();
     
     
       int err; // variable for errors
