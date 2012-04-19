@@ -39,6 +39,8 @@ extern "C" {
 
 irpar::irpar()
 {
+  fprintf(stderr, "new irpar()\n");
+  
     ipar = NULL;
     rpar = NULL;
     Nrpar = 0;
@@ -53,6 +55,26 @@ irpar::irpar(int Nipar, int Nrpar)
   this->ipar = (int*) malloc( sizeof(int) * Nipar );
   this->rpar = (double*) malloc( sizeof(double) * Nrpar );
 }
+
+irpar::~irpar()
+{
+  destruct();
+}
+
+void irpar::destruct()
+{
+  fprintf(stderr, "irpar::destruct()\n");
+    if (ipar != NULL)
+        free(ipar);
+    
+    fprintf(stderr, "passed1\n");
+    
+    if (rpar != NULL)
+        free(rpar);
+    
+    fprintf(stderr, "passed2\n");
+}
+
 
 
 bool irpar::load_from_afile(char *fname_i, char* fname_r)
@@ -82,14 +104,6 @@ bool irpar::load_from_afile(char* fname)
 
 }
 
-
-void irpar::destruct()
-{
-    if (ipar != NULL)
-        free(ipar);
-    if (rpar != NULL)
-        free(rpar);
-}
 
 
 
