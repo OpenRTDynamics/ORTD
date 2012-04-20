@@ -90,18 +90,18 @@ int compu_func_runproc_class::init()
 void compu_func_runproc_class::postinit()
 {
     if (WhenToStart == 0) {
-      fprintf(stderr, "### post init init\n");
+//       fprintf(stderr, "### post init init\n");
       process->init();
     }
 }
 
 void compu_func_runproc_class::reset()
 {
-  	fprintf(stderr, "####### RESET\n");
+//   	fprintf(stderr, "####### RESET\n");
 
       if (WhenToStart == 1) {
 	firstShoot = true;
-	fprintf(stderr, "####### Terminate\n");
+// 	fprintf(stderr, "####### Terminate\n");
 	process->terminate(1);
       }
 }
@@ -113,7 +113,7 @@ void compu_func_runproc_class::io(int update_states)
     if (update_states==0) {
       
       if (firstShoot && WhenToStart == 1) {
-	fprintf(stderr, "####### Init\n");
+// 	fprintf(stderr, "####### Init\n");
 	firstShoot = false;
 	process->init();
       }
@@ -138,7 +138,7 @@ int compu_func_runproc(int flag, struct dynlib_block_t *block)
 {
 
 
-    printf("compu_func_runproc: flag==%d\n", flag);
+//     printf("compu_func_runproc: flag==%d\n", flag);
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);

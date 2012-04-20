@@ -13,6 +13,8 @@ function [sim, out] = ld_startproc(sim, events, exepath, whentorun) // PARSEDOCU
 // 
 // 
 
+  printf("ld_startproc: starting %s\n", exepath);
+
  btype = 15300 + 0; // the same id you are giving via the "libdyn_compfnlist_add" C-function
  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ 0, 0, 0, 0, whentorun,length(exepath),0, ascii(exepath)  ], rpar=[  ], ...
                   insizes=[], outsizes=[1], ...
@@ -32,6 +34,8 @@ function [sim, out] = ld_startproc2(sim, events, exepath, chpwd, prio, whentorun
 // out * - output
 // 
 // 
+
+printf("ld_startproc: starting %s\n", exepath);
 
  btype = 15300 + 0; // the same id you are giving via the "libdyn_compfnlist_add" C-function
  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ 0, 0, 0, prio, whentorun,length(exepath), length(chpwd), ascii(exepath), ascii(chpwd)  ], rpar=[  ], ...
