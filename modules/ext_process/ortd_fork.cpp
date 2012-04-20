@@ -105,7 +105,9 @@ bool ortd_fork::init()    // starts scilab and generates pipes to scilab to send
         // with a new scilab process image
         if (status == -1)
         {
-            fprintf(stderr, "Error replacing the child process with a process!\n");
+	  char cwd[2000];
+	  getcwd(cwd, sizeof(cwd));
+            fprintf(stderr, "Error while execlp of %s; current dir is %s\n", exec_path, cwd);
             return false;
         }
 
