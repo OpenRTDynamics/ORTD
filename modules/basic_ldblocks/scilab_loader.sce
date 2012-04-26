@@ -1154,8 +1154,8 @@ function [sim, out] = ld_detect_step_event(sim, ev, in, eps) // PARSEDOCU_BLOCK
     //
     // %PURPOSE: step detection block
     //
-    // Detect jumps in the signal in
-    // everytime a jump occurs out is an impulse with the intensity of th
+    // Detect jumps in the signal "in".
+    // Everytime a jump occurs "out" is an impulse with the intensity of the
     // value after the jump i.e. if a signal steps from 1 to 2 there
     // will be an impulse out = 2
     // if no steps occur, out is zero
@@ -1168,6 +1168,25 @@ function [sim, out] = ld_detect_step_event(sim, ev, in, eps) // PARSEDOCU_BLOCK
     
     [sim,event] = ld_compare_01(sim, ev, in=i2, thr=eps);
     [sim, out] = ld_mult(sim, ev, inp_list=list(event, in), muldiv1_list=[0, 0]);
+    
+endfunction
+
+function [sim, out] = ld_detect_step_event2(sim, ev, in, eps) // PARSEDOCU_BLOCK
+    //
+    // %PURPOSE: step detection block
+    //
+    // Detect jumps in the signal "in".
+    // Everytime a jump occurs "out" is an impulse with an intensity of 1,
+    // else it is zero
+    //
+    
+    z = poly(0, 'z');
+    
+    [sim, i1] = ld_ztf(sim, ev, in, (z-1)/z ); // diff
+    [sim, i2] = ld_abs(sim, ev, i1);
+    
+    [sim,event] = ld_compare_01(sim, ev, in=i2, thr=eps);
+    out = event;
     
 endfunction
 
