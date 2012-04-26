@@ -1815,6 +1815,8 @@ int ortd_compu_func_steps2(int flag, struct dynlib_block_t *block)
 	
         output = (double *) libdyn_get_output_ptr(block,0);
 	*output = *state;
+	
+// 	fprintf(stderr, "ld_steps2: RESETSTATES, output set to %f\n", *output);
 
         return 0;
         break;
