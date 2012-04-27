@@ -1983,6 +1983,108 @@ int compu_func_insert_element(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_FlagProbe(int flag, struct dynlib_block_t *block)
+{
+  
+//   printf("comp_func printf: flag==%d\n", flag);
+  int Nout = 0;
+  int Nin = 1;
+
+  double *in;
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+
+  int vlen = ipar[0];
+  int fnamelen = ipar[1];
+  int *codedfname = &ipar[2];
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {  
+      in = (double *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      fprintf(stderr, "FlagProbe: CALCOUT %s [", str);
+      int i;
+      for (i = 0; i < vlen; ++i) {
+	fprintf(stderr, "%f, ", in[i]);
+      }
+      fprintf(stderr, "].\n"); 
+
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      in = (double *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      fprintf(stderr, "FlagProbe: UPSTATES %s [", str);
+      int i;
+      for (i = 0; i < vlen; ++i) {
+	fprintf(stderr, "%f, ", in[i]);
+      }
+      fprintf(stderr, "].\n"); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      in = (double *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      fprintf(stderr, "FlagProbe: RESETSTATES %s [", str);
+      int i;
+      for (i = 0; i < vlen; ++i) {
+	fprintf(stderr, "%f, ", in[i]);
+      }
+      fprintf(stderr, "].\n"); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+
+      // one Port of length vlen
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, vlen, DATATYPE_FLOAT); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      char *str = (char *) malloc(fnamelen+1);
+          
+      // Decode filename
+      int i;
+      for (i = 0; i < fnamelen; ++i)
+	str[i] = codedfname[i];
+      
+      str[i] = 0; // String termination
+      
+      libdyn_set_work_ptr(block, (void*) str);
+      
+//      printf("Decoded filename = %s\n", filename);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      char *str = (char *) block->work;
+
+      free(str);
+    }
+      return 0;
+      break;      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a FlagProbe block\n");
+      return 0;
+      break;
+      
+  }
+}
 
 
 
@@ -2868,6 +2970,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 25, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps2);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 26, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_getsign);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 27, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_insert_element);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 28, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_FlagProbe);
+    
     
     
     
