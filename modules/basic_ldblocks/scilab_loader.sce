@@ -703,6 +703,28 @@ function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // P
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
 endfunction
 
+function [sim] = ld_FlagProbe(sim, events, in, str, insize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Print data and Flags (calc output, update states, reset states) to stderr (the console)
+//
+// in *+(insize) - vectorial input signal
+//
+// str is a string that is printed followed by the signal vector in
+// of size insize
+//
+  //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
+  btype = 60001 + 28;
+  str = ascii(str);
+//   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ insize, length(str), str(:)' ], rpar=[ ], ...
+                   insizes=[ insize ], outsizes=[], ...
+                   intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+endfunction
+
+
 
 
 
