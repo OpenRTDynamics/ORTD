@@ -60,7 +60,7 @@ void qt_event_communication::init_sending()
 
 void qt_event_communication::run()
 {
-    std::string name("gui_interface");
+    std::string name("osc_output");
     rt_server_decoder_scope *sc = rt_server_dec->get_scope_by_name(name);
     if (sc == NULL) {
       printf("scope %s not found\n", name.c_str() );
