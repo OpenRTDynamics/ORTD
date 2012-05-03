@@ -22,6 +22,8 @@ protected:
 private slots:
     void on_switch_schematic_currentRowChanged(int currentRow);
 
+    void on_doubleSpinBox_valueChanged(double );
+
 private:
     Ui::GuiInterface *ui;
     tcpClient *tcpStream;
