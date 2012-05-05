@@ -7,9 +7,12 @@
 
 function [sim, out] = ld_startproc(sim, events, exepath, whentorun) // PARSEDOCU_BLOCK
 // 
-// Execute a sub process (EXPERIMENTAL)
+// %PURPOSE: Execute a sub process (EXPERIMENTAL)
 //
-// out * - output
+// out * - output (unused)
+// exepath - string: path to executable
+// whentorun - 0 - Start process on blocks initialisation and stop on desruction; 
+//             1 - Start process on activation in a statemachine and stop on reset
 // 
 // 
 
@@ -29,9 +32,14 @@ endfunction
 
 function [sim, out] = ld_startproc2(sim, events, exepath, chpwd, prio, whentorun) // PARSEDOCU_BLOCK
 // 
-// Execute a sub process (EXPERIMENTAL)
+// %PURPOSE: Execute a sub process with some more options (EXPERIMENTAL)
 //
 // out * - output
+// exepath - string: path to executable
+// chpwn - change current directory before running the process
+// prio - Priority (set to zero for now)
+// whentorun - 0 - Start process on blocks initialisation and stop on desruction; 
+//             1 - Start process on activation in a statemachine and stop on reset
 // 
 // 
 

@@ -1640,8 +1640,12 @@ function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 
   btype = 170;
   str = ascii(str);
-  [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
-  //[sim,blk] = libdyn_new_printf(sim, events, str, insize); // REMOVE
+//   [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ insize, length(str), str(:)' ], rpar=[ ], ...
+                   insizes=[ insize ], outsizes=[], ...
+                   intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
+
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
 endfunction
