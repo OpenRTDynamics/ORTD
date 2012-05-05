@@ -9,10 +9,10 @@
 // An example could be the following scilab function. PARSEDOCU_BLOCK is a hint for the documentation generator to generate documentation for this block
 function [sim, out] = ld_scicosblock(sim, events, in, cosblk) // PARSEDOCU_BLOCK
 // 
-// ld_scicosblock - include a scicos block / schematic (EXPERIMENTAL)
+// %PURPOSE: include a scicos block / schematic (EXPERIMENTAL)
 //
-// in * - input
-// out * - output
+// in * - input forwarded to the Scicosblock
+// out * - output forwarded to the Scicosblock
 // 
 // cosblk - structure as loaded by ortd_getcosblk 
 //
@@ -68,9 +68,11 @@ endfunction
 
 
 
-function cosblk=ortd_getcosblk(blockname, pathtoscifile)
+function cosblk=ortd_getcosblk(blockname, pathtoscifile)  // PARSEDOCU_BLOCK
   //
-  // Extract information from Scicos block interfacing function macros (*.sci) files
+  // %PURPOSE: Extract information from Scicos block interfacing function macros (*.sci) files
+  //
+  // pathtoscifile - The interfacing function macro (a *.sci file)
   //
 
 
