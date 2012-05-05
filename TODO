@@ -1,0 +1,17 @@
+
+
+  BUGS
+----------
+    
+  - Was passiert wenn bei dem Austauschen des Schaltbildes die Datei nicht gefunden wird.
+  Welche simulation ist installiert? Keine?
+  
+- Bei Austauschbarer Simulation: Eventuell wird update_states vor calc_outputs aufgerufen
+- Bei Austauschbarer Simulation: Falls das Laden der neuen Simulation fehlschlägt gibt es Fehler
+
+
+- ld_play hat eine Zeitverzögerung
+
+- ld_ztf muss neu geschrieben werden
+
+- ld_steps2 funktioniert in nicht so gut mit Zustandsautomaten
