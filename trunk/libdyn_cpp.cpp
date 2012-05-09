@@ -634,6 +634,13 @@ void libdyn_nested::copy_outport_vec(int nPort, void* dest)
     int datasize = sizeof(double); // FIXME
 
 //   printf("copying src from cs=%p, dptr=%p\n", current_sim, src);
+    int i;
+    printf("copy_outport_vec from ptr %p: ", src);
+    for (i = 0; i<= len; ++i) {
+      printf("%f ",  ( (double*) src )[i]  );
+      
+    }
+    printf("\n");
 
     memcpy(dest, src, len*datasize);
 }
