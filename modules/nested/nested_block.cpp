@@ -1059,9 +1059,11 @@ void compu_func_statemachine_class::io_sync(int update_states)
         if (active >= 0) {
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
+	    
 
 	    // FIXME REMOVE
 	    fprintf(stderr, "Switch to state %d\n", active, tmp);
+	    printf( "Switch to state %d \n", active, tmp);
 	    
             // switch to the new state
             simnest->reset_blocks();

@@ -1921,13 +1921,12 @@ int compu_func_insert_element(int flag, struct dynlib_block_t *block)
 
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
-        return 0;
-        break;
-    case COMPF_FLAG_UPDATESTATES:
     {
         in = (double *) libdyn_get_input_ptr(block,0);
         inpointer = (double *) libdyn_get_input_ptr(block,1);
         double *out = (double *) libdyn_get_output_ptr(block, 0);
+	
+	//printf("insert_element dstptr %p\n", out);
 
         int index = *inpointer - 1;
 
@@ -1940,6 +1939,27 @@ int compu_func_insert_element(int flag, struct dynlib_block_t *block)
 //         printf(" schreibe %f --> index = %d \n", *in, index);
         out[index] = *in;
     }
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+//     {
+//         in = (double *) libdyn_get_input_ptr(block,0);
+//         inpointer = (double *) libdyn_get_input_ptr(block,1);
+//         double *out = (double *) libdyn_get_output_ptr(block, 0);
+// 	
+// 	printf("insert_element dstptr %p\n", out);
+// 
+//         int index = *inpointer - 1;
+// 
+//         // prevent out of bounds access
+//         if (index < 0)
+//             index = 0;
+//         if (index > vecsize-1)
+//             index = vecsize-1;
+// 
+// //         printf(" schreibe %f --> index = %d \n", *in, index);
+//         out[index] = *in;
+//     }
     return 0;
     break;
     case COMPF_FLAG_RESETSTATES: // reset states
