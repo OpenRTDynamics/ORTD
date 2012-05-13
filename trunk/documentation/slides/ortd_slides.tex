@@ -92,7 +92,7 @@ Kontakt: klauer@control.tu-berlin.de}
  \begin{itemize}
   \item A simulator for time-discrete dynamical systems
   \item A Scilab-Toolbox for describing such dynamical systems via a block / signal based description.
-  \item Additional modules (e.g. remote control interface, statemachines, parallelism using threads, math formula parsing ...)
+  \item Additional modules (e.g. remote control interface, statemachines, parallelism using threads, math formula parsing, ...)
  \end{itemize}
 
 \textbf{Compared to other systems it features:}
@@ -122,7 +122,7 @@ Kontakt: klauer@control.tu-berlin.de}
 \begin{frame}
 \frametitle{Interfaces}
 
-The interpreter can be interfaced via
+\textbf{The interpreter can be interfaced via}
   \begin{itemize}
    \item the provided Scicos-Block
    \item the executable \texttt{libdyn\_generic\_exec}
@@ -164,15 +164,17 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
     \frametitle{Signals and Blocks in ORTD}
 
+\textbf{How schematics are defined:}
+
   \begin{itemize}
   \item A special Scilab variable type is introduced, which represents a signal.
   \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
   \end{itemize}
 
+\textbf{An Example:}
   \begin{itemize}
   \item A linear combination of two signals ( $y=u_1 - u_2$ ) would look like:
   \end{itemize}
-
 
   {\small 
   \begin{lstlisting}
@@ -204,7 +206,8 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
 \frametitle{Signals and Blocks in ORTD}
  
- 
+ \textbf{Some more explanation:}
+
 {\small 
 \begin{lstlisting}
    [sim, y] = ld_add(sim, defaultevents, list(u1, u2), [ 1, -1 ] );
@@ -215,7 +218,14 @@ The interpreter can be interfaced via
 \item \texttt{defaultevents} defines a set of events that will be forwarded to the block.
  \end{itemize}
 
+ \vspace{1.5cm}
+
+\textbf{For Help:}
+ \begin{itemize}
+  \item A list of blocks is available through the Scilab help browser, e.g. try \texttt{help ld\_add}.
+ \end{itemize}
  
+
 \end{frame}
 
 
@@ -223,30 +233,10 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
   \frametitle{A working example -- part 1}
 
-\begin{itemize}
- \item Every schematic is defined within a Scilab function.
-\end{itemize}
+\textbf{Definition:} Within Scilab by writing a function that describes the blocks and connections:
 
 \centering \includegraphics[trim=3cm 20cm 4cm 1.4cm, clip, width=0.85\linewidth]{figures/schematic_fn.pdf} 
 
-% {\small 
-% \begin{lstlisting} 
-% // This is the main top level schematic
-% function [sim, outlist] = schematic_fn(sim, inlist)
-%    u1 = inlist(1); // Simulation input #1
-%    u2 = inlist(2); // Simulation input #2
-%    
-%   // sum up two inputs
-%   [sim,out] = ld_add(sim, defaultevents, list(u1, u2), [1, 1] );
-%   
-%   // save result to file
-%   [sim, save0] = ld_dumptoiofile(sim, defaultevents, ...
-%        "result.dat", out);
-%   
-%   // output of schematic
-%   outlist = list(out); // Simulation output #1
-% endfunction
-% \end{lstlisting}}
 
 % schematic_fn
 
@@ -261,15 +251,18 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
   \frametitle{A working example -- part 2}
 
-\begin{itemize}
- \item A schematic is generated via the following code. 
-\end{itemize}
+% \begin{itemize}
+%  \item A schematic is generated via the following code. 
+% \end{itemize}
+
+  \textbf{Generation:} A set of function calls trigger evaluation of the functions describing the schematic.
 
 
 \centering \includegraphics[trim=3cm 19cm 4cm 1.4cm, clip, width=0.85\linewidth]{figures/schematic_fn_load.pdf} 
 
 \begin{itemize}
- \item The function \texttt{libdyn\_setup\_schematic} calls the function describing the schematic.
+%  \item The function \texttt{libdyn\_setup\_schematic} calls the function describing the schematic.
+ \item The schematic is saved to disk by \texttt{save\_irparam}.
 \end{itemize}
 
 
@@ -301,6 +294,8 @@ The interpreter can be interfaced via
 
 \begin{frame}[fragile]
   \frametitle{A working example -- part 3}
+
+ \textbf{Execution:}
  \begin{itemize}
   \item This Scilab-Script will generate two files \texttt{simple\_demo.ipar} and \texttt{simple\_demo.rpar}, which contain a encoded definition of the whole schematic.
 \item These file are then loaded by the provided interpreter library and executed.
@@ -312,9 +307,10 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
  \frametitle{Superblocks: definition}
  
-\begin{itemize}
- \item Superblocks are introduced by writing a new Scilab function.
-\end{itemize}
+% \begin{itemize}
+%  \item 
+\textbf{Superblocks} are introduced by writing a new Scilab function.
+% \end{itemize}
 
 \centering \includegraphics[trim=3cm 22cm 4cm 1.4cm, clip, width=0.85\linewidth]{figures/ld_mute.pdf} 
 
@@ -346,10 +342,11 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
  \frametitle{Superblocks: Usage}
  
- \begin{itemize}
-  \item Once defined, the superblock can be used like any other ORTD-Block:
- \end{itemize}
+%  \begin{itemize}
+  Once defined, the superblock can be used like any other ORTD-Block:
+%  \end{itemize}
 
+\vspace{1.5cm}
  
  {\small 
 \begin{lstlisting} 
@@ -365,10 +362,12 @@ The interpreter can be interfaced via
 \begin{frame}[fragile]
  \frametitle{Feedback Loops}
 
-  \begin{itemize}
-   \item To create a signal, which comes from an (for now) unknown source \texttt{libdyn\_new\_feedback} is used:
-  \end{itemize}
+\textbf{How to implement feedback?}
 
+  \begin{itemize}
+   \item A dummy signal is required, which can be used to connect a real block:
+  \end{itemize}
+% To initialise a signal, which comes from an (at the current definition step) unknown source \texttt{libdyn\_new\_feedback} is used:
 
   {\small 
   \begin{lstlisting} 
@@ -376,8 +375,8 @@ The interpreter can be interfaced via
   \end{lstlisting}}
 
   \begin{itemize}
-   \item Now, the signal \texttt{feedback} can be used like an usual signal.
-   \item At some point in the ongoing code the loop is closed via \texttt{libdyn\_close\_loop}, which means \texttt{feedback} is assigned to a real signal \texttt{y}:
+%    \item Now, the signal \texttt{feedback} can be used like an usual signal.
+   \item Later in the ongoing code, the loop is closed via \texttt{libdyn\_close\_loop}, which means \texttt{feedback} is assigned to a real signal \texttt{y}:
   \end{itemize}
 
   {\small 
@@ -460,9 +459,10 @@ The interpreter can be interfaced via
 \begin{frame}
   \frametitle{Statemachines}
 
-\begin{itemize}
- \item A function (Superblock) is evaluate once for each state. Differentiation by a \texttt{select} statement
-\end{itemize}
+% \begin{itemize}
+%  \item 
+A function (Superblock) is evaluate once for each state. Differentiation among schemematics is achieved by a \texttt{select} statement
+% \end{itemize}
   
 
 \centering \includegraphics[trim=2.7cm 9.5cm 4cm 1.4cm, clip, width=1.0\linewidth]{figures/state_mainfn.pdf} 
@@ -475,23 +475,18 @@ The interpreter can be interfaced via
 Examples for advanced features like 
 
   \begin{itemize}
-\item statemachines (\texttt{modules/nested})
-\item multiple simulations running in parallel (\texttt{modules/nested})
-\item mathematical formula parsing (\texttt{modules/muparser})
-\item vectors handling blocks (\texttt{modules/basic\_ldblocks})
-\item an on-line Scilab interface (\texttt{modules/scilab})
-\item remote control interface (\texttt{modules/rt\_server})
+\item Statemachines (\texttt{modules/nested})
+\item Simulations running in threads (\texttt{modules/nested})
+\item Mathematical formula parsing (\texttt{modules/muparser})
+\item Vectors handling blocks (\texttt{modules/basic\_ldblocks})
+\item Calling Scilab from the simulation (\texttt{modules/scilab})
+\item Remote control interface (\texttt{modules/rt\_server})
+\item Starting external processes (\texttt{modules/ext\_process})
+\item Timer for simulations running in threads (pending) (\texttt{modules/synchronisation})
+\item Scicos to ORTD block wrapper (\texttt{modules/scicos\_blocks})
   \end{itemize}
 
-
-
-are following. For now have a look at the website: \texttt{openrtdynamics.sf.net}.
-
-\vspace{6mm}
-
-
-  Additionally, have a look at the demonstrations within the \texttt{examples/} directory of the toolbox. They also run the interpreter once you execute the Scilab script, so you immediately get an visible result. Many modules (\texttt{modules/} subdirectory) also provide demonstrations.
-
+  can be found within the directories \texttt{modules/*/demo}. Often they are ready to run and can be started by executing a simple shell script.
 \end{frame}
 
 
