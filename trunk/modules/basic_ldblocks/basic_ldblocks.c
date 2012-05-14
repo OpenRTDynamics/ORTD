@@ -285,7 +285,10 @@ int ortd_compu_func_hysteresis(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_RESETSTATES:
+        output = (double *) libdyn_get_output_ptr(block,0);
+
         *state = initial_state;
+        *output = (state[0] > 0) ? onout : offout ;  // Added this 14.5.2012
 
         return 0;
         break;
@@ -342,6 +345,7 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
         output = (double *) libdyn_get_output_ptr(block,0);
 
         *output = state[0];
+	//printf( "modcounter is at %f\n", *output);
 
         return 0;
         break;
@@ -358,7 +362,13 @@ int ortd_compu_func_modcounter(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_RESETSTATES: // reset states
-        *state = initial_state;
+	
+	output = (double *) libdyn_get_output_ptr(block,0);
+
+	*state = initial_state;
+	*output = state[0];
+	
+	//fprintf(stderr, "modcounter resetstates to %f\n", *output);
 
         return 0;
         break;
@@ -501,9 +511,12 @@ int ortd_compu_func_memory(int flag, struct dynlib_block_t *block)
 	  rememberin = (double *) libdyn_get_input_ptr(block,1);
 	  output = (double *) libdyn_get_output_ptr(block,0);
 
-	  if (*rememberin > 0)
+	  if (*rememberin > 0) {
 	      memcpy(state, in, datasize);
+	  }
   //             state[0] = *in;
+  
+         // FIXME Set output to new value
 
 	  return 0;
 	  break;
@@ -756,7 +769,10 @@ int ortd_compu_func_counter(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_RESETSTATES: // reset states
+        output = (double *) libdyn_get_output_ptr(block,0);
+
         *state = initial_state;
+        *output = state[0];	  // Added this 14.5.2012
 
         return 0;
         break;
@@ -1095,7 +1111,10 @@ int ortd_compu_func_limitedcounter(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_RESETSTATES: // reset states
+        output = (double *) libdyn_get_output_ptr(block,0);
+
         *state = initial_state;
+        *output = state[0];
 
         return 0;
         break;
@@ -1180,6 +1199,7 @@ int ortd_compu_func_memorydel(int flag, struct dynlib_block_t *block)
       case COMPF_FLAG_RESETSTATES:
 	  memcpy(state, initial_state_vec, datasize);
 	  //*state = initial_state;
+	  // FIXME Set output to new value
 
 	  return 0;
 	  break;
@@ -1394,7 +1414,10 @@ int ortd_compu_func_ld_ramp(int flag, struct dynlib_block_t *block) // FIXME: NO
         return 0;
         break;
     case COMPF_FLAG_RESETSTATES: // reset states
+        out = (double *) libdyn_get_output_ptr(block,0);
+
         *state = 0;
+        *out = state[0];
 
         return 0;
         break;
