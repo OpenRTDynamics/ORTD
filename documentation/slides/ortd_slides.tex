@@ -64,10 +64,10 @@
 
 \title[]{ORTD --- The Open Realtime Dynamics Toolbox}
 	\subtitle{} %Mehrgrößenregelung einer Neuro-Prothese zur Generierung von Bewegungen  der oberen Extremität mittels Neuromuskulärer Elektrostimulation (NMES)
-\date{March 2012}
+\date{May 2012}
 \author{Christian Klauer$^{1}$\\
-{\tiny $^{1}$Fachgebiet Regelungssysteme, Technische Universität Berlin\\
-Kontakt: klauer@control.tu-berlin.de}
+\tiny $^{1}$Control Systems Group, Technische Universität Berlin\\
+Kontakt: klauer@control.tu-berlin.de
 }
 
 
@@ -76,7 +76,7 @@ Kontakt: klauer@control.tu-berlin.de}
 \begin{document}
 % \frame[plain]{\titlepage}
 
-\author{Christian Klauer$^{1}$}
+% \author{Christian Klauer$^{1}$}
 
 
 
@@ -91,16 +91,17 @@ Kontakt: klauer@control.tu-berlin.de}
 
  \begin{itemize}
   \item A simulator for time-discrete dynamical systems
-  \item A Scilab-Toolbox for describing such dynamical systems via a block / signal based description.
-  \item Additional modules (e.g. remote control interface, statemachines, parallelism using threads, math formula parsing, ...)
+  \item A Scilab-Toolbox for describing these systems in an block/signal based way.
+  \item Additional modules (e.g. an remote control interface, statemachines, parallelism using threads, math formula parsing, ...)
  \end{itemize}
 
 \textbf{Compared to other systems it features:}
 \begin{itemize}
- \item Nested-schematics: The possibility to include multiple schematics within a top level schematic. Online switching between the sub-simulations is possible.
  \item A new way of defining schematics, which enables well structured code, which is easy to maintain as projects get bigger.
-\item Does not require a code compilation step for generating real-time code, because of online interpretation.
-\item On-line exchange of schematics
+ \item Multiple nested-schematics: Switching around sub-schematics and reseting them (like a restart).
+ \item Because of online interpretation, schematics can be exchanged online.
+% \item Does not require a code compilation step for generating real-time code, because of online interpretation.
+% \item On-line exchange of schematics
 \end{itemize}
 
 
@@ -124,9 +125,9 @@ Kontakt: klauer@control.tu-berlin.de}
 
 \textbf{The interpreter can be interfaced via}
   \begin{itemize}
-   \item the provided Scicos-Block
-   \item the executable \texttt{libdyn\_generic\_exec}
-   \item third party C++ Code by linking to the shared library { \texttt{libortd.so} }
+   \item The provided Scicos-Block
+   \item The executable \texttt{libdyn\_generic\_exec}
+   \item Third party C++ Code by linking to the shared library { \texttt{libortd.so} }
   \end{itemize}
 
 \end{frame}
@@ -139,7 +140,7 @@ Kontakt: klauer@control.tu-berlin.de}
   \centering \includegraphics[trim=0mm 0mm 80mm 80mm, clip, width=1\linewidth]{figures/ortd_scicos_interface.png} 
 
   \begin{itemize}
-   \item Specification of the in- and output port sizes and the name of the schematic to load.
+   \item Specification of the in- and output port sizes along the name of the schematic to load.
    \item Multiple interface blocks within one Scicos diagram are possible
   \end{itemize}
 
@@ -167,8 +168,8 @@ Kontakt: klauer@control.tu-berlin.de}
 \textbf{How schematics are defined:}
 
   \begin{itemize}
-  \item A special Scilab variable type is introduced, which represents a signal.
-  \item Blocks are represented by calls to special Scilab functions, which have input and output signals.
+  \item \textbf{Signals} are represented by a special Scilab variable type.
+  \item \textbf{Blocks} are created by calls to special Scilab functions. They can take input signals and can give back new signal variables.
   \end{itemize}
 
 \textbf{An Example:}
@@ -191,9 +192,9 @@ Kontakt: klauer@control.tu-berlin.de}
       [sim, y] = ld_ztf(sim, defaultevents, u, (1-0.2)/(z-0.2) );
   \end{lstlisting}}
 
-
+\textbf{Please Note:}
   \begin{itemize}
-  \item Looks very similar to normal Scilab-Code, but for all calculations the toolbox functions have to be used.
+  \item For all calculations the toolbox functions have to be used. \textbf{Not possible:} \texttt{y = u1 - u2}
   \end{itemize}
   
 
@@ -215,7 +216,7 @@ Kontakt: klauer@control.tu-berlin.de}
  
  \begin{itemize}
   \item The variable \texttt{sim} is used to emulate Object-Orientated behaviour in Scilab.
-\item \texttt{defaultevents} defines a set of events that will be forwarded to the block.
+\item \texttt{defaultevents} defines a set of events that will be forwarded to the block. (Commonly set to \texttt{0})
  \end{itemize}
 
  \vspace{1.5cm}
