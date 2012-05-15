@@ -29,7 +29,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // detect threshold  
   [sim,peak_detected] = ld_compare_01(sim, ev, in=u_abs_d,  thr=0.5)
 
-  // save the signal us
+  // save the signal "peak_detected" to disk
   [sim] = ld_savefile(sim, ev, fname="result.dat", source=peak_detected, vlen=1);
   
   
@@ -79,10 +79,10 @@ par.rpar = [];
 // optionally execute
 messages=unix_g(ORTD.ortd_executable+ ' -s controller -i 901 -l 100');
 
-//
-//// load results
-//A = fscanfMat('result.dat');
-//
-//scf(1);clf;
-//plot(A(:,1), 'k');
+
+// load results
+A = fscanfMat('result.dat');
+
+scf(1);clf;
+plot(A(:,1), 'k');
 

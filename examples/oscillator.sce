@@ -48,53 +48,44 @@ function [sim, x,v] = oscillator(sim, u)
     // create a feedback signal
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
-    // use this as a normal signal
-    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
-    [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
-    [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
+        // use this as a normal signal
+        [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
+        [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
+        [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
     
-    // feedback gain
-    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+        // feedback gain
+        [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
     
     // close loop x_gain = x_feedback
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
-
-//pause;
-    
-//    [sim] = ld_printf(sim, defaultevents, x_gain, "fb = ", 1);
-//    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
 endfunction
 
 function [sim, x,v] = damped_oscillator(sim, u)
-    // create a feedback signal
+    // create feedback signals
     [sim,x_feedback] = libdyn_new_feedback(sim);
-    [sim,v_feedback] = libdyn_new_feedback(sim);
 
-    // use this as a normal signal
-    [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
-    [sim,a] = ld_add(sim, defaultevents, list(a, v_feedback), [1, -1]);
+        [sim,v_feedback] = libdyn_new_feedback(sim);
+
+            // use this as a normal signal
+            [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
+            [sim,a] = ld_add(sim, defaultevents, list(a, v_feedback), [1, -1]);
     
-    [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
+            [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
     
-    // feedback gain
-    [sim,v_gain] = ld_gain(sim, defaultevents, v, 0.1);
+            // feedback gain
+            [sim,v_gain] = ld_gain(sim, defaultevents, v, 0.1);
     
-    // close loop v_gain = v_feedback
-    [sim] = libdyn_close_loop(sim, v_gain, v_feedback);
+            // close loop v_gain = v_feedback
+        [sim] = libdyn_close_loop(sim, v_gain, v_feedback);
     
     
-    [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
+        [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
     
-    // feedback gain
-    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+        // feedback gain
+        [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
     
     // close loop x_gain = x_feedback
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
-
-//pause;
-    
-//    [sim] = ld_printf(sim, defaultevents, x_gain, "fb = ", 1);
-//    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
 endfunction
 
 
@@ -111,7 +102,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
     [sim, x,y] = oscillator(sim, u);  
   end
   
-  
+  pause;
   
   [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
   

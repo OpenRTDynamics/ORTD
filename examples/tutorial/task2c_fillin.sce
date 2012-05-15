@@ -1,32 +1,17 @@
-thispath = get_absolute_file_path('task2c_solution.sce');
+thispath = get_absolute_file_path('task2c_fillin.sce');
 cd(thispath);
 
 z = poly(0,'z');
 
 
 
-function [sim,peak_detected] = detect_peaks(sim, ev, in, threshold)
-  // abs
-  [sim, u_abs] = ld_abs(sim, ev, u);
 
-  // Difference
-  [sim,u_abs_d] = ld_ztf(sim, ev, u_abs, H = (z-1)/z );
-   
-  // detect threshold  
-  [sim,peak_detected] = ld_compare_01(sim, ev, in=u_abs_d,  thr=threshold);
-endfunction
-
-function [sim, y] = filter_jitter(sim, ev, in)
-  // Peak detector
-  [sim,peak_detected] = detect_peaks(sim, ev, in=in, threshold=0.5);
-    
-  // when there is no peak remember the current input sample
-  [sim, nojitter] = ld_not(sim, ev, peak_detected);
-  [sim, memorised_in] = ld_memory(sim, ev, in=in, rememberin=nojitter, initial_state=0);
-  
-  // when there is a peak put out the memorised value
-  [sim, y] = ld_switch2to1(sim, ev, cntrl=peak_detected, in1=memorised_in, in2=in);
-endfunction
+  /////////////////////////////////////////////////////////////////////////////
+  // insert you function "detect_peaks" here and
+  // write a new superblock [sim, y] = filter_jitter(sim, ev, in)
+  // which contains a the whole filter for jitter compensation
+  // using ld_not, ld_memory, ld_switch2to1
+  /////////////////////////////////////////////////////////////////////////////
 
 
 // This is the main top level schematic
@@ -38,10 +23,12 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   sinus = sin( linspace(0,%pi*6,100) );
   sinus = sinus + [ zeros(1,9), 10, zeros(1,19), -22, zeros(1,19), 5, zeros(1,9), 10, zeros(1,19), -22, zeros(1,20)     ]
   [sim, u] = ld_play_simple(sim, ev, r=sinus );
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Call your new filter and save the output "y" to disk
+  /////////////////////////////////////////////////////////////////////////////
  
-  // Filter
-  [sim, y] = filter_jitter(sim, ev, in=u);
- 
+  y = u; // remove this 
  
   // save the signal us
   [sim] = ld_savefile(sim, ev, fname="result.dat", source=y, vlen=1);  
