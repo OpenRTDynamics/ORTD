@@ -1,4 +1,4 @@
-thispath = get_absolute_file_path('task2c_solution.sce');
+thispath = get_absolute_file_path('task2b_fillin.sce');
 cd(thispath);
 
 z = poly(0,'z');
@@ -6,26 +6,15 @@ z = poly(0,'z');
 
 
 function [sim,peak_detected] = detect_peaks(sim, ev, in, threshold)
-  // abs
-  [sim, u_abs] = ld_abs(sim, ev, u);
 
-  // Difference
-  [sim,u_abs_d] = ld_ztf(sim, ev, u_abs, H = (z-1)/z );
-   
-  // detect threshold  
-  [sim,peak_detected] = ld_compare_01(sim, ev, in=u_abs_d,  thr=threshold);
-endfunction
+  /////////////////////////////////////////////////////////////////////////////
+  // Adapt your filter to fit into this superblock!
+  // 
+  // The superblock should have a parameter "threshold"
+  // which adapts your filter.
+  /////////////////////////////////////////////////////////////////////////////
 
-function [sim, y] = filter_jitter(sim, ev, in)
-  // Peak detector
-  [sim,peak_detected] = detect_peaks(sim, ev, in=in, threshold=0.5);
-    
-  // when there is no peak remember the current input sample
-  [sim, nojitter] = ld_not(sim, ev, peak_detected);
-  [sim, memorised_in] = ld_memory(sim, ev, in=in, rememberin=nojitter, initial_state=0);
-  
-  // when there is a peak put out the memorised value
-  [sim, y] = ld_switch2to1(sim, ev, cntrl=peak_detected, in1=memorised_in, in2=in);
+
 endfunction
 
 
@@ -39,12 +28,18 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   sinus = sinus + [ zeros(1,9), 10, zeros(1,19), -22, zeros(1,19), 5, zeros(1,9), 10, zeros(1,19), -22, zeros(1,20)     ]
   [sim, u] = ld_play_simple(sim, ev, r=sinus );
  
-  // Filter
-  [sim, y] = filter_jitter(sim, ev, in=u);
+  /////////////////////////////////////////////////////////////////////////////
+  // Use you new superblock, by uncommenting the following 
+  // The parameter "threshold" is set to 0.5, the input signal is "u" 
+  /////////////////////////////////////////////////////////////////////////////
+   
+//  // Peak detector
+//  [sim,peak_detected] = detect_peaks(sim, ev, in=u, threshold=0.5);
  
+  peak_detected = u; // uncomment this
  
   // save the signal us
-  [sim] = ld_savefile(sim, ev, fname="result.dat", source=y, vlen=1);  
+  [sim] = ld_savefile(sim, ev, fname="result.dat", source=peak_detected, vlen=1);  
   
   // output of schematic
   [sim, out] = ld_const(sim, ev, 0);

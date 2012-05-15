@@ -80,10 +80,10 @@ par.rpar = [];
 // optionally execute
 messages=unix_g(ORTD.ortd_executable+ ' -s controller -i 901 -l 100');
 
-//
-//// load results
-//A = fscanfMat('result.dat');
-//
-//scf(1);clf;
-//plot(A(:,1), 'k');
+
+// load results
+A = fscanfMat('result.dat');
+
+scf(1);clf;
+plot(A(:,1), 'k');
 
