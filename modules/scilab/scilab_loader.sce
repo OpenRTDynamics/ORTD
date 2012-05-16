@@ -12,6 +12,11 @@ function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, init_cmd
 // scilab_path - Path to scilab5 executable
 // 
 // out = calc_cmd        scilab_interf.outvec%d = calc_cmd(scilab_interf.invec%d);
+//
+// NOTE: The 64-Bit verion of scilab is not working for some reason,
+//       but also on 64-Bit systems you can use the 32-Bit version
+//       if you add "linux32" in front of the command that starts
+//       the controller process, as shown in demo/run.sh
 // 
 
 
@@ -82,6 +87,10 @@ function [sim, out] = ld_scilab2(sim, events, in, comp_fn, include_scilab_fns, s
 //
 // NOTE: For now the flag "update states" is not called; Also a "reset states" flag is required.
 //
+// NOTE: The 64-Bit verion of scilab is not working for some reason,
+//       but also on 64-Bit systems you can use the 32-Bit version
+//       if you add "linux32" in front of the command that starts
+//       the controller process, as shown in demo/run.sh
 //
 
   block.dummy = 0;
