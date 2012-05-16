@@ -4,9 +4,8 @@
 
 
 
-function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize,  ...
-    init_cmd, calc_cmd, destruct_cmd, scilab_path) // PARSEDOCU_BLOCK
-// scilab - block
+function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, init_cmd, calc_cmd, destruct_cmd, scilab_path) // PARSEDOCU_BLOCK
+// %PURPOSE: Block for interfacing scilab
 //
 // in *+(invecsize) - input        scilab_interf.invec%d = [ .... ];
 // out *+(outvecsize) - output        scilab_interf.outvec%d = [ .... ];
@@ -33,17 +32,42 @@ function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize,  ...
 endfunction
 
 
-
+// Computaional function example:
+// 
+//function [block]=sample_comp_fn( block, flag )
+//  select flag
+//    case 0 // update
+//      printf("update states\n");
+//
+//    case 1 // output
+//      printf("update outputs\n");
+//      outvec = [1:6]';
+//
+//      block.outptr(1) = outvec;
+//
+//    case 4 // init
+//      printf("init\n");
+//
+//    case 5 // terminate
+//      printf("terminate\n");
+//
+//    case 10 // configure
+//      printf("configure\n");
+//      block.invecsize = 5;
+//      block.outvecsize = 6;
+//
+//  end
+//endfunction
 
 function [sim, out] = ld_scilab2(sim, events, in, comp_fn, include_scilab_fns, scilab_path) // PARSEDOCU_BLOCK
-// scilab2 - block
+// %PURPOSE: Block for calling a computational function written in scilab
 //
 // A nicer interface to scilab. (See modules/scilab/demo/scilab_demo.sce for an example)
 //
-// in *+(invecsize) - input        scilab_interf.invec%d = [ .... ];
-// out *+(outvecsize) - output        scilab_interf.outvec%d = [ .... ];
+// in *+(invecsize) - input
+// out *+(outvecsize) - output
 // 
-// out = calc_cmd        scilab_interf.outvec%d = calc_cmd(scilab_interf.invec%d);
+// out = calc_cmd
 //
 //
 // comp_fn - scilab function that is executed online. Prototype:
@@ -51,11 +75,14 @@ function [sim, out] = ld_scilab2(sim, events, in, comp_fn, include_scilab_fns, s
 //
 //           flags are: 1 calc outputs, 4 initialise, 5 terminate, 10 configure I/O
 //
+//           For further details have a look at the example.
+//
 // include_scilab_fns - unused for now. Set to list()
 // scilab_path - Path to scilab5 executable
 //
+// NOTE: For now the flag "update states" is not called; Also a "reset states" flag is required.
 //
-// 
+//
 
   block.dummy = 0;
 

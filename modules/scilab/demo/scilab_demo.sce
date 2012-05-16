@@ -45,6 +45,10 @@ z = poly(0,'z');
 // 
 
 function [block]=sample_comp_fn( block, flag )
+    function outvec=calc_outputs()
+      printf("...\n");
+      outvec=(1:6)';
+    endfunction
 
   select flag
     case 0 // update
@@ -52,7 +56,8 @@ function [block]=sample_comp_fn( block, flag )
 
     case 1 // output
       printf("update outputs\n");
-      outvec = [1:6]';
+//      outvec = [1:6]';
+      outvec = calc_outputs();
 
       block.outptr(1) = outvec;
 
@@ -68,7 +73,6 @@ function [block]=sample_comp_fn( block, flag )
       block.outvecsize = 6;
 
   end
-
 endfunction
 
 
@@ -148,4 +152,5 @@ par.rpar = [];
 
 //scf(1);clf;
 //plot(A(:,1), 'k');
+
 
