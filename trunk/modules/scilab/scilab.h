@@ -20,6 +20,8 @@ class run_scilab {
       bool init(); // starts scilab and generates pipes
       
       bool send_to_scilab(const char *cmd);  // send command to scilab
+      bool send_to_scilab_noFlush(const char *cmd);  // send command to scilab
+      
       
       FILE * get_readfd();    // read from scilab
       
