@@ -17,6 +17,9 @@ run_scilab::run_scilab(const char* scilab_path) // Constructor
     ToChild[1] = 0;
     ToParent[0] = 0;
     ToParent[1] = 0;
+    
+    readfd = NULL;
+    writefd = NULL;
 }
 
 run_scilab::~run_scilab()  // Destructor
@@ -27,8 +30,8 @@ run_scilab::~run_scilab()  // Destructor
     ToChild[1] = 0;
     ToParent[0] = 0;
     ToParent[1] = 0;
-    fclose(readfd);
-    fclose(writefd);
+    if (readfd != NULL) fclose(readfd);
+    if (writefd != NULL) fclose(writefd);
 
     //printf("run_scilab deleted\n");
 }
@@ -65,35 +68,38 @@ bool run_scilab::init()    // starts scilab and generates pipes to scilab to sen
         if (status == -1)
         {
             fprintf(stderr, "Error closing write input of pipe ToChild in child process!\n");
-            return false;
+            exit (1);
         }
         status = close(ToParent[0]);  // the read output must be closed,
         // because the child reads from the ToChild-pipe
         if (status == -1)
         {
             fprintf(stderr, "Error closing read output of pipe ToParent in child process!\n");
-            return false;
+            exit (1);
         }
 
         status = dup2(ToChild[0],0);  // Replace stdin with the in-side of the ToChild-pipe
         if (status == -1)
         {
             fprintf(stderr, "Error replacing stdin with the in-side of the ToChild-pipe in child process!\n");
-            return false;
+            exit (1);
         }
         status = dup2(ToParent[1],1); // Replace stdout with the out-side of the ToParent-pipe
         if (status == -1)
         {
             fprintf(stderr, "Error replacing stdout with the out-side of the ToParent-pipe in child process!\n");
-            return false;
+            exit (1);
         }
 
-        status = execl(scilab_path, "scilab", "-nw", NULL);   // replaces the child process image
+        // run scilab
+//         status = execl(scilab_path, "scilab", "-nw", NULL);   // replaces the child process image
+        status = execl(scilab_path, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image
         // with a new scilab process image
         if (status == -1)
         {
             fprintf(stderr, "Error replacing the child process with a scilab process!\n");
-            return false;
+	    fprintf(stderr, "Tried to run %s\n", scilab_path);
+            exit (1);
         }
 
         exit (1);
@@ -144,7 +150,8 @@ bool run_scilab::init()    // starts scilab and generates pipes to scilab to sen
     {
         /* If a negative value (-1) is returned, an error has occurred */
         fprintf (stderr, "Error creating child process (PID < 0)\n");
-        exit (0);
+	return false;
+//         exit (0);
     }
 
     return true;
@@ -199,6 +206,8 @@ scilab_calculation::scilab_calculation(const char *scilab_path, char *init_cmd, 
     if (status == false)
     {
         fprintf(stderr, "scilab_interf: Error init a scilab instance!\n");
+	delete scilab;
+	
         exit(0);
     }
 

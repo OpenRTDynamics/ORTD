@@ -47,13 +47,17 @@ private:
    struct dynlib_block_t *block;
    char *retstr;
    scilab_calculation *scilab_calc;
+   
+   // strings that are parameters to the block
+   char *init_cmd, *calc_cmd, *destruct_cmd, *scilab_path;
 
 };
 
 compu_func_scilab_class::compu_func_scilab_class(dynlib_block_t* block)
 {
     this->block = block;
-    retstr = "";
+    
+    
 }
 
 int compu_func_scilab_class::init()
@@ -61,23 +65,27 @@ int compu_func_scilab_class::init()
     int *ipar = libdyn_get_ipar_ptr(block);
 
     int start_init_param = 11;
+    
     int length_init_cmd = ipar[start_init_param];
     int length_calc_cmd = ipar[start_init_param + 1];
     int length_destruct_cmd = ipar[start_init_param + 2];
     int length_scilab_path = ipar[start_init_param + 3];
+    
     int start_init_cmd = start_init_param + 4;
     int start_calc_cmd = start_init_cmd + length_init_cmd;
     int start_destruct_cmd = start_calc_cmd + length_calc_cmd;
     int start_scilab_path = start_destruct_cmd + length_destruct_cmd;
     
-    irpar_getstr(&retstr, ipar, start_init_cmd, length_init_cmd);
-    char *init_cmd = retstr;
-    irpar_getstr(&retstr, ipar, start_calc_cmd, length_calc_cmd);
-    char *calc_cmd = retstr;
-    irpar_getstr(&retstr, ipar, start_destruct_cmd, length_destruct_cmd);
-    char *destruct_cmd = retstr;
-    irpar_getstr(&retstr, ipar, start_scilab_path, length_scilab_path);
-    char *scilab_path = retstr;
+    
+ 
+    
+    irpar_getstr(&init_cmd, ipar, start_init_cmd, length_init_cmd);    
+    irpar_getstr(&calc_cmd, ipar, start_calc_cmd, length_calc_cmd);
+    irpar_getstr(&destruct_cmd, ipar, start_destruct_cmd, length_destruct_cmd);
+    irpar_getstr(&scilab_path, ipar, start_scilab_path, length_scilab_path);
+
+        printf("scilab PATH read from position %d: >>%s<<\n", start_scilab_path, scilab_path);
+
 
     scilab_calc = new scilab_calculation(scilab_path, init_cmd, destruct_cmd, calc_cmd);
     scilab_calc->init(); // send init_cmd to scilab
@@ -117,7 +125,7 @@ void compu_func_scilab_class::destruct()
 {
     delete scilab_calc; // destruct_cmd and "exit" to scilab
     
-    free(retstr);
+    free(init_cmd); free(calc_cmd); free(destruct_cmd); free(scilab_path);
 }
 
 

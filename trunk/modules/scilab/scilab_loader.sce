@@ -22,10 +22,17 @@ function [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, init_cmd
 
   invecno=1; outvecno=1;
 
+  init_cmd = ascii(init_cmd);
+  calc_cmd = ascii(calc_cmd);
+  destruct_cmd = ascii(destruct_cmd);
+  scilab_path = ascii(scilab_path);
+  
   btype = 22000;
   ipar = [invecsize; outvecsize; invecno; outvecno; 0; 0; 0; 0; 0; 0; 0; length(init_cmd); length(calc_cmd); ...
-                   length(destruct_cmd); length(scilab_path); ascii(init_cmd)';...
-                   ascii(calc_cmd)'; ascii(destruct_cmd)'; ascii(scilab_path)'; 0; ]; rpar = [];
+                   length(destruct_cmd); length(scilab_path); (init_cmd)';...
+                   (calc_cmd)'; (destruct_cmd)'; (scilab_path)'; 0; ]; rpar = [];
+  
+//   pause;
   
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                    insizes=[invecsize], outsizes=[outvecsize], ...
