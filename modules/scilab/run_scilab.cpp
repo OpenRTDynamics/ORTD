@@ -622,6 +622,7 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
 {
     bool status;
     char buf[1024];
+        
 
     status = scilab->send_to_scilab("exit\nquit\n");
     if (status == false)
@@ -636,6 +637,8 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
             && !ferror(read_fd)
             && fgets(buf, sizeof buf, read_fd) != NULL)
     {
+        fprintf(stderr, "scilab says: >>> %s\n", buf);      
+	
         // Was ist das hier? - leere Zeilen abfangen
         if (((int)buf[0] != 32) && ((int)buf[0] != 10) && ((int)buf[3] != 0))
         {
