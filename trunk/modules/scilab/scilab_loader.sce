@@ -100,6 +100,16 @@ function [sim, out] = ld_scilab2(sim, events, in, comp_fn, include_scilab_fns, s
 //       the controller process, as shown in demo/run.sh
 //
 
+  function [result] = check_structure( str )
+    // give something like str="a.b" to see wheter this would lead to an error
+
+    result = %T;
+    err = execstr(str, 'errcatch');
+    if (err ~= 0) then
+      result = %F;
+    end
+  endfunction
+
   block.dummy = 0;
 
   // Get the number of I/O
