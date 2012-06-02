@@ -74,37 +74,37 @@ private:
 
 
 
-// A stupid helper classe which accesses the directory
-class persistent_memory_init {
-public:
-  persistent_memory_init() { }
-  
-  persistent_memory_shobj  * persistent_memory_register(libdyn_master *master, char *fname) {
-        if (master == NULL || master->dtree == NULL) {  // no master available
-           fprintf(stderr, "WARNING: persistent_memory: block requires a libdyn master\n");
-	   
-	   return NULL;
-	}
-	
-	// get the identifier
-	directory_entry::direntry *dentr = master->dtree->access(fname, NULL);
-	
-	if (dentr == NULL) {
-	  fprintf(stderr, "WARNING: persistent_memory: Can not find directory entry %s\n", fname);
-	   return NULL;
-	}
-
-	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY) {
-	  fprintf(stderr, "WARNING: persistent_memory: wrong type for %s\n", fname);
-	   return NULL;
-	}
-	
-	persistent_memory_shobj  *pmem = (persistent_memory_shobj  *) dentr->userptr;
- 
-  }
-  
-  
-};
+// // A stupid helper classe which accesses the directory
+// class persistent_memory_init {
+// public:
+//   persistent_memory_init() { }
+//   
+//   persistent_memory_shobj  * persistent_memory_register(libdyn_master *master, char *fname) {
+//         if (master == NULL || master->dtree == NULL) {  // no master available
+//            fprintf(stderr, "WARNING: persistent_memory: block requires a libdyn master\n");
+// 	   
+// 	   return NULL;
+// 	}
+// 	
+// 	// get the identifier
+// 	directory_entry::direntry *dentr = master->dtree->access(fname, NULL);
+// 	
+// 	if (dentr == NULL) {
+// 	  fprintf(stderr, "WARNING: persistent_memory: Can not find directory entry %s\n", fname);
+// 	   return NULL;
+// 	}
+// 
+// 	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY) {
+// 	  fprintf(stderr, "WARNING: persistent_memory: wrong type for %s\n", fname);
+// 	   return NULL;
+// 	}
+// 	
+// 	persistent_memory_shobj  *pmem = (persistent_memory_shobj  *) dentr->userptr;
+//  
+//   }
+//   
+//   
+// };
 
 
 
@@ -255,7 +255,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
-    case COMPF_FLAG_PREINIT:  // init
+    case COMPF_FLAG_PREINIT:  // pre- init
     {
         persistent_memory_block_class *worker = new persistent_memory_block_class(block);
         libdyn_set_work_ptr(block, (void*) worker);

@@ -1,7 +1,7 @@
 /*
     Copyright (C) 2010, 2011  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+    This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by

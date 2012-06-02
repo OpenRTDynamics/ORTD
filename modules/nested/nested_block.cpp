@@ -268,7 +268,7 @@ class ortd_asychronous_computation_thread {
 template <class callback_class> class ortd_asychronous_computation {
 private:
 
-    libdyn_nested * simnest;
+    libdyn_nested2 * simnest;
     libdyn *sim;
 
     callback_class *cb;
@@ -279,7 +279,7 @@ private:
     
 public:
     // simnest: a ready to use set-up schematic
-    ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest, int asynchron_simsteps);
+    ortd_asychronous_computation(callback_class *cb, libdyn_nested2 * simnest, int asynchron_simsteps);
     ortd_asychronous_computation(callback_class *cb, libdyn * simnest, int asynchron_simsteps); // not present
 
     ~ortd_asychronous_computation();
@@ -294,7 +294,7 @@ public:
 };
 
 
-template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested * simnest, int asynchron_simsteps)
+template <class callback_class> ortd_asychronous_computation<callback_class>::ortd_asychronous_computation(callback_class *cb, libdyn_nested2 * simnest, int asynchron_simsteps)
 {
     this->cb = cb;
     this->simnest = simnest;
@@ -416,7 +416,7 @@ private:
     bool async_comp;
     ortd_asychronous_computation<compu_func_nested_class> * async_comp_mgr;
 
-    libdyn_nested * simnest;
+    libdyn_nested2 * simnest;
     libdyn_master * master;
     nested_onlineexchange *exchange_helper; // ifdef REMOTE
     irpar *param;
@@ -500,7 +500,7 @@ int compu_func_nested_class::init()
     }
 
     // create a new container for multiple simulations
-    simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+    simnest = new libdyn_nested2(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
     simnest->allocate_slots(Nsimulations);
 
     // If there is a libdyn master : use it
@@ -590,7 +590,8 @@ void compu_func_nested_class::io_sync(int update_states)
         // update states
         //
 
-        simnest->simulation_step(1);
+//         simnest->simulation_step(1);
+	simnest->simulation_step_supdate();
 
         //        printf("neszed sup\n");
     } else {
@@ -599,7 +600,10 @@ void compu_func_nested_class::io_sync(int update_states)
         //
 
 
-        simnest->simulation_step(0);
+//         simnest->simulation_step(0);
+	simnest->simulation_step_outpute();
+	
+// 	simnest->initialised_replaced_simulation = true;
 
         for (i=0; i< Nout ; ++i) {
             double *out_p = (double*) libdyn_get_output_ptr(block, i);
@@ -892,7 +896,7 @@ private:
 //     pthread_mutex_t output_mutex;
 
 
-    libdyn_nested * simnest;
+    libdyn_nested2 * simnest;
     libdyn_master * master;
     irpar *param;
 
@@ -985,7 +989,7 @@ int compu_func_statemachine_class::init()
     bool use_buffered_input = false;  // in- and out port values are not buffered
 
     // create a new container for multiple simulations
-    simnest = new libdyn_nested(Ndatain+1, insizes, intypes, Ndataout+2, outsizes, outtypes, use_buffered_input);
+    simnest = new libdyn_nested2(Ndatain+1, insizes, intypes, Ndataout+2, outsizes, outtypes, use_buffered_input);
     simnest->allocate_slots(Nsimulations);
 
     //

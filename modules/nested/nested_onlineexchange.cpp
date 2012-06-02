@@ -3,7 +3,7 @@
 #include "nested_onlineexchange.h"
 #include <libdyn_cpp.h>
 
-nested_onlineexchange::nested_onlineexchange(const char* identName, libdyn_nested* simnest)
+nested_onlineexchange::nested_onlineexchange(const char* identName, libdyn_nested2* simnest)
 {
   this->identName = identName;
   this->simnest = simnest;
@@ -51,7 +51,7 @@ int nested_onlineexchange::replace_simulation(irpar* irdata, int id, int slot)
 
 int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 {
-  fprintf(stderr, "stderr: nested_onlineexchange: removing old simulation\n");
+  fprintf(stderr, "nested_onlineexchange: removing old simulation\n");
   
   int standby_slot = 0;
   int slot = 1; // exchange the second slot
@@ -71,7 +71,8 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
   if (ret < 0) {
     // error setting up the simulation
     // irdata is unused now
-    delete irdata;
+    delete this->current_irdata;
+    this->current_irdata = NULL;
   }
     
   return ret;

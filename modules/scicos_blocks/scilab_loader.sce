@@ -140,7 +140,76 @@ function cosblk=ortd_getcosblk(blockname, pathtoscifile)  // PARSEDOCU_BLOCK
 
 endfunction
 
+function cosblk=ortd_getcosblk2(blockname, pathtoscifile)  // PARSEDOCU_BLOCK
+  //
+  // %PURPOSE: Extract information from Scicos block interfacing function macros (*.sci) files
+  //
+  // pathtoscifile - The interfacing function macro (a *.sci file)
+  //
 
+
+  //exec(blockname + '_c.sci');
+  exec(pathtoscifile);
+
+  function model = scicos_model(sim,..
+			in,..
+			in2,..
+			intyp,..
+			out,..
+			out2,..
+			outtyp,..
+			evtin,..
+			evtout,..
+			firing,..
+			state,..
+			dstate,..
+			odstate,..
+			rpar,..
+			ipar,..
+			opar,..
+			blocktype,..
+			dep_ut,..
+			nzcross,..
+			nmode )
+			
+			model.sim=sim,..
+			model.in=in,..
+			model.in2=in2,..
+			model.intyp=intyp,..
+			model.out=out,..
+			model.out2=out2,..
+			model.outtyp=outtyp,..
+			model.evtin=clkinput,..
+			model.evtout=clkoutput,..
+			model.firing=firing,..
+			model.state=x,..
+			model.dstate=Z,..
+			model.odstate=odstate,..
+			model.rpar=rpar,..
+			model.ipar=ipar,..
+			model.opar=opar,..
+			model.blocktype='c',..
+			model.dep_ut=dep_ut,..
+			model.nzcross=nzcross,..
+			model.nmode=nmode           
+			
+  endfunction
+
+  function x=standard_define( a, b, c, d )
+    x.a =  a;
+    x.b = b;
+    x.c = c;
+    x.d = d;
+  endfunction
+
+  definecommand = "" + blockname + "(job=''define'',arg1=0,arg2=0);";
+  X = eval(definecommand);
+  cosblk = X.b;
+  cosblk.timestamp = getdate();
+  cosblk.blockname = blockname;
+  clear X;
+
+endfunction
 
 // model=ortd_getcosblk(blockname="SuperBlock");
 // save(blockname+"_scicosblockcfg.dat", model);
