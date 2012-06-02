@@ -140,7 +140,7 @@ TODO
 ----
 
 - Makefile (done)
-- Better Documentation (the provided one is out of date)
+- Better Documentation (the provided one is out of date):
 
 - Wrapper block for backgroud computations for state updates
 - nestet schematics (done)
@@ -160,12 +160,13 @@ BUGS
 - Transfer function blocks are limited by a order of max 20 for the given tf
   No error catching
 - Objects created by libdyn_new_feedback can by ONLY used once
-- Otherwise it works quite stable (Used for many controller implementations in medical
-  control at TU-Berlin)
 - The IO-Performance of the rt_server module is quite suboptimal.
   Needs a better implementation of buffered io.
 - If an ld_stream block is not connected with another block
   the initialisation of the parameter is not done (but its actually not needed in this case)
+
+- Otherwise it works quite stable (Used for many controller implementations in medical
+  control at TU-Berlin)
 
 CONTACT
 -------
@@ -230,9 +231,10 @@ v0.99h ( ... )
   - Nested schematics can now be exchanged online! (while the controller is running)
     this is done by loading new [i,r]par - files into the simulation nests
   - New Flag COMPF_FLAG_PREPARERESET, which comes before blocks are reset
-  - Scicos Block Wrapper (module scicos_blocks)
-  - Syn
-  - run external processes and terminate them by the end of the simulation
+  - Scicos Block Wrapper (module scicos_blocks) Experimental!
+  - Clock-synchronised threaded simulations
+  - run external processes and terminate them by the end of the simulation (module ext_process)
   - Global shared object class
+  - Scilab help documentation
   
   

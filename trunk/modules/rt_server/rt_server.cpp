@@ -455,7 +455,7 @@ void *rt_server_thread(void *data)
 // Start main readout loop
 //
 
-    char buf[1024]; // The line buffer
+    char buf[10240]; // The line buffer
 
     for (;;) {
         rt_server_i->iohelper->register_usage(); // Tell that the iohelper is in use

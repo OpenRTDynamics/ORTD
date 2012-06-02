@@ -35,6 +35,7 @@ extern "C" {
 #ifdef REMOTE
 // #include "modules/rt_server/parameter_manager.h"
 #include "parameter_manager.h"
+#include "libdyn_cpp.h"
 #endif
 
 // The different realtime envoronments
@@ -48,6 +49,8 @@ class irpar;
 class libdyn_master;
 class libdyn;
 class libdyn_nested;
+class libdyn_nested2;
+
 
 // Änderungen:
 // - dynlib_simulation_t soll einen void *cpp_huelle - link zu libdyn_cpp Klasse erhalten
@@ -133,8 +136,14 @@ class libdyn_master {
     int realtime_environment;
     
     
+
+   
+  
 };
 
+
+
+// The old, ugnly interface, which is also used by the Scicos block
 class libdyn_nested {
   private:
     bool internal_init(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
@@ -234,6 +243,153 @@ class libdyn_nested {
     
     libdyn *current_sim; // FIXME: Needs volatile
     
+    struct libdyn_io_config_t iocfg;
+    
+    
+
+};
+
+
+
+
+class libdyn_simple_if {
+  
+};
+
+class libdyn_nested2 { // TODO derive from libdyn_simple_if
+  private:
+    bool internal_init(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
+    bool allocate_inbuffers();
+    void set_buffer_inptrs();
+    
+    void* InputBuffer;
+
+  public:
+    libdyn_master * ld_master;
+
+   //     
+   // slot management
+   //     
+  private:
+    void free_slots();
+    int slots_available();
+    bool slotindexOK(int nSim); // Test if nSim is in correct range
+    void lock_slots() { pthread_mutex_lock(&slots_mutex); };
+    void unlock_slots() { pthread_mutex_unlock(&slots_mutex); };
+    
+    pthread_mutex_t slots_mutex;
+//     libdyn **sim_slots;    
+    typedef struct {
+      libdyn *sim;  // If sim == NULL --> slot is empty
+      bool replaceable_simulation_initialised;
+    } sim_slot_t;
+
+    sim_slot_t *sim_slots;        // Array of size  Nslots, if sim_slots == NULL then no slots are configured
+    int Nslots;
+    int slot_addsim_pointer;
+    int current_slot_nr; // FIXME VOLATILE
+     sim_slot_t *current_slot; // replacement for the old current_sim variable
+    int usedSlots; // The number of slots with actually contain simulations (index from 0 to usedSlots-1)
+
+  public:
+     // slot management; call BEFORE add_simulation
+    void allocate_slots(int n);
+
+    
+//     // for online exchange support
+//    public:
+//     bool replaceable_simulation;
+//     bool initialised_replaced_simulation;
+    
+       
+//     bool set_current_simulation(struct dynlib_simulation_t *sim);
+    
+  //
+  // main
+  //
+
+
+  public:
+    bool is_current_simulation(int slotID);
+
+
+  public:
+
+    libdyn_nested2(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
+    libdyn_nested2(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
+
+    void destruct();
+    
+    void set_master(libdyn_master *master);
+    
+  /**
+    * \brief Configure pointer to input port source variables
+    *        only usefull if use_buffered_input == false
+    *        This function has to be called BEFORE add_simulation
+    * 
+    * \param in number of input port
+    * \param inptr array of a double variables that will be used as input vector
+    */
+    bool cfg_inptr(int in, void *inptr);
+
+    
+    // uses a buffer for copies of the input data - necessary within scicos blocks or for a threaded nested simulation
+    bool use_buffered_input;
+
+    
+    // Add a simulation into the next free slot (slotID == -1) or to the specified slot
+    // This can also occur while other simulations are running
+    int add_simulation(int slotID, irpar* param, int boxid); // 
+    int add_simulation(irpar* param, int boxid); // same as above with slotid = -1
+    int add_simulation(int slotID, int *ipar, double *rpar, int boxid);
+    int add_simulation(int slotID, libdyn* sim);
+    
+    // remove a simulation from the list
+    // the simulation instance will be destructed
+    int del_simulation(int slotID);
+    
+    // before removal switch to another simulation
+    int del_simulation(int slotID, int switchto_slotID);
+
+//     bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
+
+    
+    // Activate a simulation from the slots
+    bool set_current_simulation(int nSim);
+
+    /**
+    * \brief reset the states of all blocks in the current simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)
+    */
+    void reset_blocks();
+    void reset_blocks(int slotId); // UNTESTED AND UNUSED FOR NOW
+    
+    // laods NSimulations schematics from an irpar container with increasing irparid starting irparid = at start_boxid.
+    // add_simulation is called for each
+    bool load_simulations(int *ipar, double *rpar, int start_boxid, int NSimulations);
+    
+    // length of one element depends on datatype
+    void copy_outport_vec(int nPort, void *dest);
+    
+    // 
+    void copy_inport_vec(int nPort, void *src);
+    
+    void event_trigger_mask(int mask);
+    void simulation_step(int update_states);
+    
+    // Similar to simulation_step bur split up into two functions
+    // Additionally they are checking wheter after simulation 
+    // initialisation, at first the outputs are calculated.
+    // This has to be used, if there shall be the possibility to 
+    // online replace the simulation.
+    void simulation_step_outpute();
+    void simulation_step_supdate();
+    
+    // pointer to the currently active simulation
+    libdyn *current_sim; // FIXME: Needs volatile
+    
+    
+    
+    // configuration for in and output ports
     struct libdyn_io_config_t iocfg;
     
     
