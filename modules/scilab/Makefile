@@ -42,7 +42,9 @@ clean:
 
 .PHONY: scilabconfig
 scilabconfig:
-	@if [ -f ../../scilabdir.conf ] ; then echo "#define SCILAB_EXEC "'"'`cat ../../scilabdir.conf`"/bin/scilab"'"' > scilabconf.h ; else echo "#define SCILAB_EXEC "'"' "NOT FOUND DURING INSTALLATION"'"' > scilabconf.h ; fi
+	./config_scilab.sh
+
+
 
 ## EITHER THIS
 
