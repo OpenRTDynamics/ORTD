@@ -38,8 +38,11 @@ lib: scilab_block.o run_scilab.o
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 clean:
-	rm -f *.o module.a module_Linux.a
+	rm -f *.o module.a module_Linux.a scilabconf.h
 
+.PHONY: scilabconfig
+scilabconfig:
+	@if [ -f ../../scilabdir.conf ] ; then echo "#define SCILAB_EXEC "'"'`cat ../../scilabdir.conf`"/bin/scilab"'"' > scilabconf.h ; else echo "#define SCILAB_EXEC "'"' "NOT FOUND DURING INSTALLATION"'"' > scilabconf.h ; fi
 
 ## EITHER THIS
 
@@ -50,7 +53,7 @@ clean:
 
 scilab_block.o: scilab_block.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c scilab_block.cpp
-run_scilab.o: run_scilab.cpp
+run_scilab.o: run_scilab.cpp scilabconfig
 	$(CC) $(CFLAGS) $(INCLUDE) -c run_scilab.cpp
 
 

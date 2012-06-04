@@ -41,6 +41,9 @@ else
 
 fi
 
+# Install Scilab Toolbox
+make install_toolbox
+
 # Build
 make
 
@@ -55,5 +58,5 @@ then
   sudo make install
 fi
 
-make install_toolbox
+
 
