@@ -90,15 +90,28 @@ bool run_scilab::init()    // starts scilab and generates pipes to scilab to sen
             fprintf(stderr, "Error replacing stdout with the out-side of the ToParent-pipe in child process!\n");
             exit (1);
         }
+        
+        
+        #include "scilabconf.h"
 
         // run scilab
 //         status = execl(scilab_path, "scilab", "-nw", NULL);   // replaces the child process image
-        status = execl(scilab_path, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image
+
+//  fprintf(stderr, "**** compare path %d \n", strcmp(scilab_path, "BUILDIN_PATH"));
+
+        if ( strcmp(scilab_path, "BUILDIN_PATH") == 0 ) {
+	  fprintf(stderr, "running scilab from buildin path: %s\n", SCILAB_EXEC);
+          status = execl(SCILAB_EXEC, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image	  	  
+	} else {
+	  fprintf(stderr, "running scilab from the given path: %s\n", scilab_path);
+          status = execl(scilab_path, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image
+	}
+	
         // with a new scilab process image
         if (status == -1)
         {
             fprintf(stderr, "Error replacing the child process with a scilab process!\n");
-	    fprintf(stderr, "Tried to run %s\n", scilab_path);
+// 	    fprintf(stderr, "Tried to run %s\n", scilab_path);
             exit (1);
         }
 

@@ -255,6 +255,8 @@ libdyn_cpp.o: libdyn_cpp.cpp
 # Installation
 #
 
+.PHONY: install
+
 install: all
 	sudo cp libortd.so /usr/local/lib
 	sudo cp libortd.a /usr/local/lib
@@ -269,7 +271,8 @@ install: all
 clean_scilabdir:
 	rm -f scilabdir.conf
 
-install_toolbox: scilabdir.conf
+## install toolbox may require compile the toolbox again through make install, since scilabdir.conf is now available which is used by the scilab-module
+install_toolbox: scilabdir.conf 
 	$(SH) install_toolbox
 
 .PHONY: scilabdir.conf
