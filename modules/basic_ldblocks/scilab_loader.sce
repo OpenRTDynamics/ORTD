@@ -975,7 +975,7 @@ endfunction
 
 function [sim, out] = ld_vector_extractandsum(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
 //    
-// %PURPOSE: Extract "in" from "from"-index to "to"-index and sum up EXPERIMENTAL FOR NOW
+// %PURPOSE: Extract "in" from "from"-index to "to"-index and sum up (untested) EXPERIMENTAL FOR NOW
 // 
 //  in *+(vecsize) - vector signal
 //  from * - index signal
@@ -995,6 +995,31 @@ function [sim, out] = ld_vector_extractandsum(sim, events, in, from, window_len,
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_simplecorr(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: stupid correlation EXPERIMENTAL FOR NOW
+// 
+//  in *+(vecsize) - vector signal
+//  shape - vector
+//  out *+(length(shape)) - output
+//
+//    
+  btype = 60001 + 62;
+  ipar = [vecsize, length(shape) ]; rpar = [ shape ];
+
+  if vecsize<length(shape) then
+    error("vecsize<length(shape) !");
+  end
+  
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize  ], outsizes=[ vecsize-length(shape) ], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -1164,6 +1189,43 @@ function [sim, pwm] = ld_pwm(sim, ev, plen, u) // PARSEDOCU_BLOCK
     
     [sim, test] = ld_add(sim, ev, list(modcount, u), [-1,1] );
     [sim,pwm] = ld_compare_01(sim, ev, test,  thr=0);
+endfunction
+
+function [sim, outvec, Nvecplay] = ld_vector_play(sim, ev, A, special) // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Play a vectorial signal
+// 
+// A - matrix containing the vectors to play
+// outvec*+(length(A(:,1))) - 
+// Nvecplay = length of output signal vector
+//
+// outputs A(:,i), where i is increasing within each time step
+// special = [ "repeate" ]
+//
+
+  [Nvecplay,Nsamples] = size(A); // m is the number of samples in time
+
+  data = A(:); Ndata = length(data);
+
+  // create a new vector
+  [sim,vector] = ld_constvec(sim, ev, data );
+  
+  // vector extract test
+//  [sim,index] = ld_const(sim, defaultevents, 2);  // max is Nsamples
+
+  if special == "repeate" then
+    [sim,one] = ld_const(sim, ev, 1);
+    [sim, index] = ld_modcounter(sim, ev, in=one, initial_count=0, mod=Nsamples);
+  else
+    error("wrong special string. Should be one of ""repeate"", ...");
+  end
+
+//  [sim] = ld_printf(sim, ev, index, "index = ", 1);
+
+  [sim, start_at] = ld_gain(sim, ev, index, Nvecplay);
+  [sim, start_at] = ld_add_ofs(sim, ev, start_at, 1);
+
+  [sim,outvec] = ld_vector_extract(sim, ev, in=vector, from=start_at, window_len=Nvecplay, vecsize=Ndata );
 endfunction
 
 
