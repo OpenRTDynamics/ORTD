@@ -40,6 +40,8 @@ lib: scilab_block.o run_scilab.o
 clean:
 	rm -f *.o module.a module_Linux.a scilabconf.h
 
+
+# FIXME: This required GNU's readlink implementation ?
 .PHONY: scilabconfig
 scilabconfig:
 	./config_scilab.sh
