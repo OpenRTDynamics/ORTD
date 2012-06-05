@@ -28,6 +28,7 @@
 
 
 
+
 //
 // A 2 to 1 switching Block
 // inputs = [control_in, signal_in1, signal_in2]
@@ -2979,6 +2980,91 @@ int ortd_compu_func_vectorextractandsum(int flag, struct dynlib_block_t *block)
     }
 }
 
+int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0]; // len input vector
+    int shape_len = ipar[1]; // len shape sample
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i;
+	for (i = 1; i <= size-shape_len+1; ++i) { // go through the input vector
+	 
+          printf("i=%d\n", i);
+
+          // apply the sample "shape" to the current position i in the input vector
+	  int j;
+	  double sum = 0.0;
+	  for (j = 1; j <= shape_len; ++j) {
+	    sum += in[ i-1 ] * out[ j-1 ];  // -1 is to match the C-way of counting indices
+	    
+	    printf("j=%d\n", j);  
+	  }
+	  
+	  out[ i-1 ] = sum;
+	  
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("size cannot be smaller than 1\n");
+            printf("size = %d\n", size);
+
+            return -1;
+        }
+        if (shape_len < 1) {
+            printf("shape_len cannot be smaller than 1\n");
+            printf("shape_len = %d\n", size);
+
+            return -1;
+        }
+        if (shape_len > size) {
+            printf("shape_len > size !\n");
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size-shape_len, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm corr block\n");
+        return 0;
+        break;
+
+    }
+}
+
 
 
 
@@ -3111,6 +3197,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 59, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorabssum);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 60, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorsqsum);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 61, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorextractandsum);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 62, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_simplecorr);
     
     
 
