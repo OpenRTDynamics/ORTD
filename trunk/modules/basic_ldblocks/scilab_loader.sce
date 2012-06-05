@@ -973,6 +973,30 @@ function [sim, out] = ld_vector_sqsum(sim, events, in, vecsize) // PARSEDOCU_BLO
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_vector_extractandsum(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Extract "in" from "from"-index to "to"-index and sum up EXPERIMENTAL FOR NOW
+// 
+//  in *+(vecsize) - vector signal
+//  from * - index signal
+//  to * - index signal
+//
+//    
+  btype = 60001 + 61;
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1, 1], outsizes=[1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, from, to ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
 
 // 
 // 
