@@ -54,7 +54,7 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
   
   // a zero
   [sim, zero] = ld_const(sim, ev, 0);
-  [sim] = ld_printf(sim, ev, in=zero, str="Hi, I''m the new simulation", insize=1);
+  [sim] = ld_printf(sim, ev, in=zero, str="Hi, I''m the new simulation and now modified", insize=1);
 
   [sim] = ld_FlagProbe(sim, ev, in=zero, str="probe", insize=1)
   
