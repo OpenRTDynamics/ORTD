@@ -41,6 +41,25 @@ ifeq ($(target),LINUX)
 
 endif
 
+ifeq ($(target),LINUX_AND_HART)
+  targetmacro=__ORTD_TARGET_LINUX
+
+  # Detect system type and set Fflags
+  ifeq ($(host-type),x86_64)
+    # 64 Bit
+    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = -l hart
+  else
+    # 32 Bit
+    export CFLAGS = -g -O2 -D$(targetmacro)
+    export INCLUDE =  -I$(ortd_root)
+    export LDFLAGS = -l hart
+  endif
+
+endif
+
+
 ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
 
@@ -121,11 +140,12 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 # FIXME: lib: wird nicht geupdated, wenn etwas in den Modulen geändert wird
 #
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
-	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
+	echo "Static binary is disabled"
+	#$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD) $(LDFLAGS) libdyn_generic_exec.o -L. -lortd -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec
+	$(LD) $(LDFLAGS)  libdyn_generic_exec.o -L. -lortd `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
@@ -153,6 +173,7 @@ superclean:
 #$(MODULES)clean:
 #	$(MAKE) --directory=modules/$@ clean
 
+# Better call this init modules
 .PHONY: clear_scilab_modules
 clear_scilab_modules:
 	rm -f scilab/modules_loader.sce scilab/ld_toolbox/initialrun/modules_loader.sce
@@ -162,12 +183,21 @@ clear_scilab_modules:
 	rm -f tmp/block_list.txt
 	touch tmp/block_list.txt
 
+	# Create new LDFLAGS list
+	rm -f tmp/LDFALGS.list  # clear list of libraries
+	touch tmp/LDFALGS.list # create a new one
+
+	# Collect the LDFLAGS
+	sh collect_config.sh
+
+
 	# Create header for module_list.c_
 	echo "int libdyn_siminit_modules(struct dynlib_simulation_t *sim);" > module_list__.h
 
 	echo "#include \"libdyn.h\"" > module_list__.c
 	echo "#include \"module_list__.h\"" >> module_list__.c
 	echo "int libdyn_siminit_modules(struct dynlib_simulation_t *sim) {" >> module_list__.c
+
 
 	echo "cleaned up scilab modules"
 
@@ -176,6 +206,13 @@ clear_scilab_modules:
 # all .o files of modules are collected within Linux_Target
 .PHONY: $(MODULES) 
 $(MODULES): clear_scilab_modules
+	@echo
+	@echo "............................................................."
+	@echo "               Going to module $@ "
+	@echo "............................................................."
+	@echo
+
+	# Compile the module
 	$(MAKE) --directory=modules/$@
 
 	# extract all object files from evry module for all targets 
@@ -191,6 +228,10 @@ $(MODULES): clear_scilab_modules
 	  /bin/cat modules/$@/scilab_loader.sce >> scilab/ld_toolbox/initialrun/modules_loader.sce ; \
 	fi
 
+
+	  
+	
+
 	# Create module list
 	echo $@ >> module_list
 
@@ -202,7 +243,7 @@ $(MODULES): clear_scilab_modules
 
 	echo "int libdyn_module_$@_siminit(struct dynlib_simulation_t *sim, int bid_ofs);" >> module_list__.h
 
-	echo "--------> Processed module" $@
+	@echo "Successfully Processed module" $@
 
 
 .PHONY: finish_module_list

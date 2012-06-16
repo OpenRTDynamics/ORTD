@@ -1,0 +1,33 @@
+The Real Time Dynamics Toolbox is a noval approach to the implementation of block / signal based schematics, commonly used in control engineering and signal processing, for realtime usage (like Real-Time Workshop® or Scicos Code Generation). It is suitable to create time discrete implementations, like one would do in Scicos or Simulink, within Scilab-scripts (Matlab like) by using the toolbox functions. This enables the programmer to create well structured code which integrates design and implementation in one place and also enables functional and object orientated design schemes. The latter makes it possible to reuse parametrised functionality that may also change in its structure based on parametrisation.
+
+The creation of the implementation doesn't involve source code compilation steps and therefore can be easily integrated into other simulation frameworks e.g. Scicos or used within other software by including a shared library.
+
+The latestest versions include highly advanced features like
+
+* Online replacement of sub-controllers; Yes, can can exchange wires and blocks during the controller is running (modules/nested)
+* State machines (modules/nested)
+* Simulations running in threads (modules/nested)
+* Mathematical formula parsing (modules/muparser)
+* Vectors handling blocks (modules/basic_ldblocks)
+* Calling Scilab from the simulation (modules/scilab)
+* Remote control interface (modules/rt_server)
+* Starting external processes (modules/ext\_process)
+* Timer for simulations running in threads (pending) (modules/synchronisation)
+* Scicos to ORTD block wrapper (modules/scicos_blocks)
+
+
+Further information is found on the projects website http://openrtdynamics.sourceforge.net/.
+
+UPDATES
+
+24.9.2011 - new version 0.99f
+4.11.2011 - new version 0.99g
+16.11.2011 - Added some slides that serve as an introduction.
+28.3.2012 - Updated the slides.
+8.6.2012 - Updated the slides.
+
+The newest version is found in subversion and can be installed by a graphical userinterface via pasting
+
+wget openrtdynamics.sf.net/getit.sh -O - | bash
+
+into your Terminal on Linux (See http://openrtdynamics.sourceforge.net/bigace/public/index.php?cmd=smarty&id=6_len).
