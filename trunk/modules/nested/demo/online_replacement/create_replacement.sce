@@ -21,8 +21,17 @@
 thispath = get_absolute_file_path('create_replacement.sce');
 cd(thispath);
 
+//
+// These are some parameters. You can adjust them, re-run this script and push the "Reaload Controller"-Button
+// in the gui to see a modified sin-wave.
+//
+
+sinamp = 3;
+sinofs = 5;
+
 
 z = poly(0,'z');
+
 
 
 
@@ -54,13 +63,14 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
   
   // a zero
   [sim, zero] = ld_const(sim, ev, 0);
-  [sim] = ld_printf(sim, ev, in=zero, str="Hi, I''m the new simulation and now modified", insize=1);
+  [sim] = ld_printf(sim, ev, in=input1, str="Hello, I''m the new simulation. My input is", insize=1);
 
   [sim] = ld_FlagProbe(sim, ev, in=zero, str="probe", insize=1)
   
       
 
-  [sim, output] = ld_gain(sim, ev, input1, 2); // 
+//  [sim, output] = ld_gain(sim, ev, input1, 2); // 
+  [sim,output] = ld_play_simple(sim, ev, r=sin( linspace(0,100*%pi,1000 ) )*sinamp + sinofs  );
           
 
   

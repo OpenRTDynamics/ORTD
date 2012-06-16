@@ -138,7 +138,7 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
   
   if (cntrlN == 2) then  // is this the schematic 2) ?
           // Here the  default controller can be defined
-          [sim, output] = ld_gain(sim, ev, input1, 2); // 
+          [sim, output] = ld_gain(sim, ev, input1, 5); // 
           [sim] = ld_printf(sim, ev, in=zero, str="This is just a dummy simulation, which can be replaced.", insize=1);
   end
 
@@ -216,6 +216,7 @@ function [sim] = main(sim, ev)
                         userdata=list() );
 
   [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
+  [sim] = ld_stream(sim, ev, in=outlist(1), str="ControlOutput", insize=1);
                   
 endfunction
 
