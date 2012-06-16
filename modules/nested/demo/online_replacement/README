@@ -1,0 +1,21 @@
+Short introduction on using the demo for online replaceable schematics
+----------------------------------------------------------------------
+
+Compile the gui (needs qt-dev and qwtplotlib included in /thirdparty)
+
+cd gui
+qmake-qt4
+make
+
+Run the main schematic:
+
+  sh Run.sh
+
+Then you can start the gui, contained in the subfolder "gui" using 
+
+  gui/gui_interface 
+
+The file main.sce contains the main schematic, which includes a
+nested one. The file create_replacement.sce is used to generate 
+a schematic / controller, which replaces the current one contained 
+in main.sce at runtime.

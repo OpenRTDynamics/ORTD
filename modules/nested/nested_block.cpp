@@ -1142,8 +1142,8 @@ int compu_func_statemachine(int flag, struct dynlib_block_t *block)
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = ipar[0];
-    int Nout = ipar[1];
+//     int Nin = ipar[0];
+//     int Nout = ipar[1];
 
 
     switch (flag) {
