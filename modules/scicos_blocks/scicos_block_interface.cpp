@@ -56,24 +56,41 @@ int compu_func_ScicosBlockWrapper_class::init()
     int *ipar = libdyn_get_ipar_ptr(block);
 
 
-    int insize = ipar[1];
-    int outsize = ipar[2];
+//     int insize = ipar[1];
+//     int outsize = ipar[2];
     
-    // Get further parameters
-    int *ip = &ipar[3];
-    double *rp = &rpar[0];        
         
+
+int error = 0;
+    
+    struct irpar_ivec_t insizes, outsizes, intypes, outtypes, param;
+
+        if ( irpar_get_ivec(&insizes, ipar, rpar, 10) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&outsizes, ipar, rpar, 11) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&intypes, ipar, rpar, 12) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&outtypes, ipar, rpar, 13) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&param, ipar, rpar, 18) <  0 ) error = 1 ;
+        
+        int dfeed = param.v[1];
+
+
+        // N io ports
+        int Ndatainports = insizes.n; 
+        int Ndataoutports = outsizes.n;
+
     struct irpar_ivec_t identstr__, block_ipar;
     struct irpar_rvec_t block_rpar, dstate;
 
-    int error = 0;
-    if ( irpar_get_ivec(&identstr__, ip, rp, 10) < 0 ) error = 1 ;
-    if ( irpar_get_ivec(&block_ipar, ip, rp, 11) < 0 ) error = 1 ;
-    if ( irpar_get_rvec(&block_rpar, ip, rp, 12) < 0 ) error = 1 ;
-    if ( irpar_get_rvec(&dstate, ip, rp, 13) < 0 ) error = 1 ;
-
+    
+    if ( irpar_get_ivec(&identstr__, ipar, rpar, 20) < 0 ) error = 1 ;
+    if ( irpar_get_ivec(&block_ipar, ipar, rpar, 21) < 0 ) error = 1 ;
+    if ( irpar_get_rvec(&block_rpar, ipar, rpar, 22) < 0 ) error = 1 ;
+    if ( irpar_get_rvec(&dstate, ipar, rpar, 23) < 0 ) error = 1 ;
+    
+    
+    
     if (error == 1) {
-        printf("nested: could not get parameter from irpar set\n");
+        printf("scicos_block: could not get all parameters from irpar set\n");
         return -1;
     }
     
@@ -99,99 +116,33 @@ int compu_func_ScicosBlockWrapper_class::init()
    double *rpar2 = block_rpar.v;   int n_rpar2 = block_rpar.n;
    int *ipar2 = block_ipar.v;      int n_ipar2 = block_ipar.n;   
    double *z = dstate.v;           int Nz = dstate.n;
-    
-/*   double rpar2[] = {1,-1,1,1,0};
-   int ipar2[] = {1,-1,1,1,1};
-   
-   int Nz = 7;
-   double z[] = { 0,0,0, 0,  0,0, 0,0     ,0,0,0,0,0 };*/
-    
-
-//    /* def real parameters */
-//  double RPAR1[ ] = {
-// /* Routine name of block: cstblk4
-//  * Gui name of block: CONST_m
-//  * Compiled structure index: 1
-//  * Exprs: 1
-//  * rpar=
-//  */
-// 1,
-// 
-// /* Routine name of block: dsslti4
-//  * Gui name of block: DLR
-//  * Compiled structure index: 2
-//  * Exprs: 1
-//  * rpar=
-//  */
-// 1,1,1,0,
-// 
-// };
-// 
-// /* def integer parameters */
-// int IPAR1[ ] = {
-// /* Routine name of block: summation
-//  * Gui name of block: SUMMATION
-//  * Compiled structure index: 3
-//  * Exprs: [1;-1]
-//  * ipar= {1,-1};
-//  */
-// 1,-1,
-// 
-// /* Routine name of block: actionneur1
-//  * Gui name of block: OUTPUTPORTEVTS
-//  * Compiled structure index: 4
-//  * Exprs: 1
-//  * ipar= {1};
-//  */
-// 1,
-// 
-// /* Routine name of block: bidon
-//  * Gui name of block: EVTGEN_f
-//  * Compiled structure index: 5
-//  * Exprs: 1
-//  * ipar= {1};
-//  */
-// 1,
-// 
-// /* Routine name of block: capteur1
-//  * Gui name of block: INPUTPORTEVTS
-//  * Compiled structure index: 6
-//  * Exprs: 1
-//  * ipar= {1};
-//  */
-// 1,
-// 
-// /* Routine name of block: summation
-//  * Gui name of block: SUMMATION
-//  * Compiled structure index: 7
-//  * Exprs: [1;-1]
-//  * ipar= {1,-1};
-//  */
-// 1,-1,
-// 
-// };
-// 
 
    
    
-     int Nin = 1; // only one in- and outport possible
-    int Nout = 1;
+   
+   // Set.up IO of the scicos block
+     int Nin = Ndatainports; // only one in- and outport possible
+    int Nout = Ndataoutports;
 
 //     cos.initStructure(compfn, sizeof(IPAR1), sizeof(RPAR1), IPAR1, RPAR1, Nin, Nout, Nz, z);
     cos.initStructure(compfn, sizeof(n_ipar2), sizeof(n_rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
     
     int i;
     for (i = 0; i < Nin; ++i) {
-      cos.setInSize(i, insize);  // make insize depending on i for multiple ports
+      cos.setInSize(i, insizes.v[i]);  // make insize depending on i for multiple ports
       
       double *p = (double*) libdyn_get_input_ptr(block, i);
       cos.setInPtr(i, p);
+      
+//       printf("insize port %d is %d\n", i, insizes.v[i]);
     }
     for (i = 0; i < Nout; ++i) {
-      cos.setOutSize(i, outsize);  // make outsize depending on i for multiple ports
+      cos.setOutSize(i, outsizes.v[i]);  // make outsize depending on i for multiple ports
       
       double *p = (double*) libdyn_get_output_ptr(block, i);
       cos.setOutPtr(i, p);
+      
+//       printf("outsize port %d is %d\n", i, outsizes.v[i]);
     }
     
 
@@ -238,8 +189,8 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
     int Nin = 1;
     int Nout = 1;
 
-    int insize = ipar[1];
-    int outsize = ipar[2];
+//     int insize = ipar[1];
+//     int outsize = ipar[2];
 
 
     switch (flag) {
@@ -265,14 +216,64 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
+//         int i;
+//         libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+// 
+//         
+//             libdyn_config_block_input(block, 0, insize, DATATYPE_FLOAT);
+//             libdyn_config_block_output(block, 0, outsize, DATATYPE_FLOAT, 1);
+
+	    
+	    
+	    
+// 	      parlist = new_irparam_elemet_ivec(parlist, cosblk.in, 10);
+//   parlist = new_irparam_elemet_ivec(parlist, cosblk.out, 11);
+//   parlist = new_irparam_elemet_ivec(parlist, ORTD.DATATYPE_FLOAT*ones(cosblk.in) , 12); // only float is supported by now
+//   parlist = new_irparam_elemet_ivec(parlist, ORTD.DATATYPE_FLOAT*ones(cosblk.out) , 13); // only float is supported by now
+//   parlist = new_irparam_elemet_ivec(parlist, parameters, 18);
+
+	    
+// 	    printf("ipar = %d %d %d %d %d\n", ipar[0], ipar[1], ipar[2], ipar[3], ipar[4]);
+	    
+
+	    int error = 0;
+        struct irpar_ivec_t insizes, outsizes, intypes, outtypes, param;
+        if ( irpar_get_ivec(&insizes, ipar, rpar, 10) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&outsizes, ipar, rpar, 11) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&intypes, ipar, rpar, 12) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&outtypes, ipar, rpar, 13) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&param, ipar, rpar, 18) <  0 ) error = 1 ;
+    
+    if (error == 1) {
+        printf("scicos_block: could not get all parameters from irpar set\n");
+        return -1;
+    }
+
+        int dfeed = param.v[1];
+
+        // IO of the OUTER block
+        int Ndatainports = insizes.n; 
+        int Ndataoutports = outsizes.n;
+
+
+//         printf("Ndatainports = %d, Ndataoutports = %d\n", Ndatainports, Ndataoutports);
+
         int i;
-        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Ndataoutports, Ndatainports, (void *) 0, 0);
 
-        
-            libdyn_config_block_input(block, 0, insize, DATATYPE_FLOAT);
-            libdyn_config_block_output(block, 0, outsize, DATATYPE_FLOAT, 1);
+        for (i = 0; i < Ndatainports; ++i) {
+            libdyn_config_block_input(block, i, insizes.v[i], intypes.v[i]);
+//           printf("insize port %d is %d\n", i, insizes.v[i]);
+        }
+
+        for (i = 0; i < Ndataoutports; ++i) {
+            libdyn_config_block_output(block, i, outsizes.v[i], outtypes.v[i], dfeed);
+//           printf("outsize port %d is %d\n", i, insizes.v[i]);
+        }
 
 
+	    
+	    
     }
     return 0;
     break;
