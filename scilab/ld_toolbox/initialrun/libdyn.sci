@@ -510,7 +510,18 @@ endfunction
 // input_list is the parameter list which contain:
 // list(sblk, sport, ...) or list(sportHintObject, ...) or a mixture of both
 //
+
+// FIXME: Should be renamed to something like "libdyn_connect_inputs"
 function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
+// pause;
+// printf("conn eq\n");
+  if (length(input_list) == 0) // if there are no inputs given, then skip this function
+//     printf("no inputs\n");
+    output = dblk;
+    
+    return; // nothing to do
+  end
+
   Nin_times2_ = length(input_list); // Anzahl Inputs in input_list * 2
   dport = 0; // start with first port
   
