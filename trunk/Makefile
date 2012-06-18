@@ -141,7 +141,7 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 #
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	echo "Static binary is disabled"
-	#$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a  -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
+	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
@@ -187,8 +187,15 @@ clear_scilab_modules:
 	rm -f tmp/LDFALGS.list  # clear list of libraries
 	touch tmp/LDFALGS.list # create a new one
 
-	# Collect the LDFLAGS
+	rm -f tmp/MACROS.list  # clear list of MACROS
+	touch tmp/MACROS.list # create a new one
+
+	# Collect the LDFLAGS and MACROS ...
 	sh collect_config.sh
+
+	export CFLAGS="$(CFLAGS) $(cat tmp/MACROS.list)"
+
+	echo "New CFLAGS are: "$(CFLAGS)
 
 
 	# Create header for module_list.c_

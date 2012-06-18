@@ -997,7 +997,7 @@ endfunction
 
 function [sim, out] = ld_simplecorr(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
 //    
-// %PURPOSE: stupid correlation EXPERIMENTAL FOR NOW
+// %PURPOSE: stupid cross-correlation EXPERIMENTAL FOR NOW
 // 
 //  in *+(vecsize) - vector signal
 //  shape - vector
@@ -1017,6 +1017,29 @@ function [sim, out] = ld_simplecorr(sim, events, in, from, window_len, vecsize) 
 
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_vector_mute(sim, events, in, from, len, setto, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: mute a vector from and to a spacified index
+// 
+//  in *+(vecsize) - vector signal
+//  from * - signal (index counting starts at )
+//  len * - signal (length of the window to mute)
+//  setto * - signal
+//
+//
+
+  btype = 60001 + 63;	
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1, 1, 1, 1], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, from, len, setto ) );
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction

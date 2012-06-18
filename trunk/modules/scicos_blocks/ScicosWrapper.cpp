@@ -3,48 +3,68 @@
 #include "ScicosWrapper.h"
 #include <string.h>
 
-#include "stdio.h"
+// #include "stdio.h"
 
-// extern "C" {
-//   double ScicosWrapper_ScicosTime;
-//   
-//   void set_block_error(int err)
+
+
+
+//#define SCICOS_WRAPPER_INCLUDESCICOSFN 1
+
+
+#ifdef SCICOS_WRAPPER_INCLUDESCICOSFN
+extern "C" { // C-functions that are used by Scicos-Blocks
+
+// /*----------------------------------------  Lapack messag function */
+// void C2F(xerbla)(SRNAME,INFO,L)
+//      char *SRNAME;
+//      int *INFO;
+//      long int L;
 // {
-//   return;
+//   printf("** On entry to %s, parameter number %d"
+//          "  had an illegal value\n",SRNAME,*INFO);
 // }
-// 
-// int get_phase_simulation()
-// {
-//   return 1;
-// }
-// 
-// void * scicos_malloc(size_t size)
-// {
-//   return malloc(size);
-// }
-// 
-// void scicos_free(void *p)
-// {
-//   free(p);
-// }
-// 
-// double get_scicos_time()
-// {
-//   return ScicosWrapper_ScicosTime;
-// }
-// 
-// void do_cold_restart()
-// {
-//   return;
-// }
-// 
-// void sciprint (char *fmt)
-// {
-//   return;
-// }
-// 
-//   
-// };
+
+void set_block_error(int err)
+{
+  return;
+}
+
+int get_phase_simulation()
+{
+  return 1;
+}
+
+void * scicos_malloc(size_t size)
+{
+  return malloc(size);
+}
+
+void scicos_free(void *p)
+{
+  free(p);
+}
+
+double get_scicos_time()
+{
+  return 0.0;
+}
+
+void do_cold_restart()
+{
+  return;
+}
+
+void sciprint (char *fmt)
+{
+  return;
+}
+
+
+}
+#endif
+
+
+
 
 
 
@@ -187,13 +207,13 @@ void ScicosWrapper::freeStructure()
 
 int ScicosWrapper::Cinit()
 {
-  printf("scicoswrap: init %p\n", compfn);
+//   printf("scicoswrap: init %p\n", compfn);
   (*compfn)(&cosblock, 4);
 }
 
 int ScicosWrapper::CCalcOutputs()
 {
-  printf("scicoswrap: outputs\n");
+//   printf("scicoswrap: outputs\n");
   
   cosblock.nevprt = 1;
   (*compfn)(&cosblock, 1);
@@ -201,19 +221,19 @@ int ScicosWrapper::CCalcOutputs()
   
   double **p = (double**) this->cosblock.outptr;
   
-  printf(" %f \n", p[0][0]);
+//   printf(" %f \n", p[0][0]);
 }
 
 int ScicosWrapper::CStateUpd()
 {
   cosblock.nevprt = 1;
-  printf("scicoswrap: supdate\n");
+//   printf("scicoswrap: supdate\n");
   (*compfn)(&cosblock, 2);
 }
 
 int ScicosWrapper::Cdestruct()
 {
-  printf("scicoswrap: destruct\n");
+//   printf("scicoswrap: destruct\n");
   (*compfn)(&cosblock, 5);
 }
 
