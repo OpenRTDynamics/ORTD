@@ -218,6 +218,7 @@ $(MODULES): clear_scilab_modules
 	@echo "               Going to module $@ "
 	@echo "............................................................."
 	@echo
+	
 
 	# Compile the module
 	$(MAKE) --directory=modules/$@

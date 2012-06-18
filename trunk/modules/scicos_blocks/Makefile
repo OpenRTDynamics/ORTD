@@ -1,3 +1,15 @@
+#
+# If you want to include the functions like scicos_get_time(), ... 
+# enable -DSCICOS_WRAPPER_INCLUDESCICOSFN .
+# Since in this case the functions are already there, you can not link
+# the libortd to scilab any more.
+#
+# So: .) If you want to use scicos blocks from libdyn_generic_exec enable this
+#     .) If you want to use scicos blocks from real Scicos or Code Generation disable this
+#
+
+#export CONFIG = -DSCICOS_WRAPPER_INCLUDESCICOSFN
+export CONFIG = 
 
 ifeq ($(main_makefile_invoked),yes)
 
@@ -53,7 +65,7 @@ scicos_block_interface.o: scicos_block_interface.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -Iscicos_include -c scicos_block_interface.cpp
 
 ScicosWrapper.o: ScicosWrapper.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -Iscicos_include -c ScicosWrapper.cpp
+	$(CC) $(CFLAGS) $(CONFIG) $(INCLUDE) -Iscicos_include -c ScicosWrapper.cpp
 
 scicos_compfn_list.o: scicos_compfn_list.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c scicos_compfn_list.cpp
