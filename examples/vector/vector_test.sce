@@ -89,6 +89,13 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim,out] = ld_vector_abssum(sim, defaultevents, in=vector, vecsize=8);
   [sim] = ld_printf(sim, defaultevents, out, "sum(abs(vector)) = ", 1);
   
+  // mute a part of the vector
+  [sim,from] = ld_const(sim, defaultevents, 3);
+  [sim,len] = ld_const(sim, defaultevents, 2);
+  [sim,setto] = ld_const(sim, defaultevents, 1111);
+  [sim, out] = ld_vector_mute(sim, defaultevents, in=vector, from, len, setto, vecsize=8);
+  [sim] = ld_printf(sim, defaultevents, out, "muted vector = ", 8);
+
   
   // save the vector to a file 
   [sim]=ld_savefile(sim, defaultevents, fname="saved_vector.dat", source=vector, vlen=8);
