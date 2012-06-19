@@ -76,7 +76,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>In order to exchange the controller modify and run &quot;create_replacement.sce&quot;. Then,whenf the new nested controller was generated, click below to load the new controller from the files &quot;replacement.[i,r]par&quot;</string>
+     <string>In order to exchange the controller modify and run &quot;create_replacement.sce&quot;. Then, when the new nested controller was generated, click below to load the new controller from the files &quot;replacement.[i,r]par&quot;</string>
     </property>
     <property name="wordWrap">
      <bool>true</bool>
