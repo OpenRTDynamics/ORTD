@@ -995,12 +995,12 @@ function [sim, out] = ld_vector_extractandsum(sim, events, in, from, window_len,
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim, out] = ld_simplecorr(sim, events, in, from, window_len, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_simplecorr(sim, events, in, from, shape, vecsize) // PARSEDOCU_BLOCK
 //    
 // %PURPOSE: stupid cross-correlation EXPERIMENTAL FOR NOW
 // 
 //  in *+(vecsize) - vector signal
-//  shape - vector
+//  shape - vector to cross correlate the input with
 //  out *+(length(shape)) - output
 //
 //    
