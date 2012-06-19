@@ -654,3 +654,187 @@ function [sim, outvec] = ld_survivereset(sim, events, invec, initvec) // PARSEDO
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
+
+
+
+
+
+
+
+// 
+// A higher level for defining online replaceable schematics using callback functions
+// 
+
+
+function [sim, outlist, userdata, replaced] = ld_ReplaceableNest(sim, ev, inlist, trigger_reload, fnlist, insizes, outsizes, intypes, outtypes, simnest_name, irpar_fname, dfeed, userdata) // PARSEDOCU_BLOCK
+// %PURPOSE: A higher level for defining online replaceable schematics using callback functions
+//
+// inlist - input list()
+// outlist - output list()
+// 
+// For an example see modules/nested/demo/online_replacement
+//    
+
+
+function [sim, outlist] = exch_helper_thread(sim, inlist)
+      // This superblock will run the evaluation of the experiment in a thread.
+      // The superblock describes a sub-simulation, whereby only one step is simulated
+      // which is enough to call scilab one signle time
+
+
+  defaultevents = 0;
+    
+  inputv = inlist(1);
+
+  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
+
+  //
+  // A resource demanding Scilab calculation
+  //
+  
+  [sim, dummyin] = ld_const(sim, defaultevents, 1);
+
+  if 1==0 then
+      // Scilab commands
+
+      //  init_command = " exec(" + char(39) + "online_estimation/init.sce" + char(39) + "); ";    // execute an sce-file
+
+      init_command = "";
+      exec_command = " scilab_interf.outvec1 = 1:10  ";
+
+      [sim,out] = ld_scilab(sim, defaultevents, in=inputv, invecsize=10, outvecsize=10, init_command, ...
+      exec_command, "", "/home/chr/scilab/scilab-5.3.3_64/bin/scilab");
+
+      [sim,out__] = ld_demux(sim, defaultevents, 10, out);
+
+      result = out;    
+      [sim] = ld_printf(sim, defaultevents, out, "result: = ", 10);
+
+
+
+      // is scilab ready?
+      compready = out__(1); //   
+  else
+      [sim, compready]  = ld_const(sim, defaultevents, 1);
+//      [sim, result]  = ld_const_vec(sim, defaultevents, 123);
+      [sim, result] = ld_constvec(sim, defaultevents, vec=1:10)
+  end
+
+  // replace schematic RST_ident
+  [sim, exchslot] = ld_const(sim, defaultevents, 2);                            
+  [sim, out] = ld_nested_exchffile(sim, defaultevents, compresult=compready, slot=exchslot, ... 
+                                   fname=irpar_fname, simnest_name);
+
+
+  // output of schematic
+  outlist = list(result);
+endfunction
+
+
+
+
+function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
+//    
+//    The nested simulation contains two sub-simulations:
+//    
+//    1) A schematic, which commonly contains nothing and is switched to
+//       when the replacement is in progress (which may take some time)
+//
+//    2) The schematic, which actually contains the algorithm to execute
+//
+//    Here, the initial simulations are defined, which can then be 
+//   replaced during runtime
+//    
+
+
+  ev = 0;
+
+  cntrlN = par(1); // the number of the nested schematics (one of two) "1" means the 
+                   // dummy schematic which is activated while the 2nd "2" is exchanged during runtime
+  userdata = par(2);
+  
+  useruserdata = userdata(1);
+  define_fn = userdata(2);
+  
+//  input1 = inlist(1);
+  
+  
+  // a zero
+  [sim, zero] = ld_const(sim, ev, 0);
+
+ // printf("Defining a replaceable controller\n");
+
+  if (cntrlN == 1) then  // is this the schematic 2) ?
+    [sim, outlist, useruserdata] = define_schematics( sim, inlist, schematic_type='spare', useruserdata );
+
+  end
+  
+  if (cntrlN == 2) then  // is this the schematic 2) ?
+
+    [sim, outlist, useruserdata] = define_schematics( sim, inlist, schematic_type='default', useruserdata );
+
+//          // Here the  default controller can be defined
+//          [sim, output] = ld_gain(sim, ev, input1, 5); // 
+//          [sim] = ld_printf(sim, ev, in=zero, str="This is just a dummy simulation, which can be replaced.", insize=1);
+  end
+
+  userdata(1) = useruserdata;
+
+
+
+  outlist = list(zero);
+endfunction
+
+  [sim,zero] = ld_const(sim, ev, 0);
+  [sim,active_sim] = ld_const(sim, ev, 1);
+
+  // get the callback functions
+  define_fn = fnlist(1);
+
+
+  //
+  // Here the controller is nested, which can be replaced online
+  //
+
+        [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev=[ ev ] , ...
+                       inlist, ...
+                       insizes, outsizes, ...
+                       intypes, ...
+                       outtypes, ...
+                       nested_fn=replaceable_cntrl_main, Nsimulations=2, dfeed, ...
+                       asynchron_simsteps=0, switch_signal=active_sim, ...
+                       reset_trigger_signal=zero, userdata=list(userdata, define_fn), ...
+                       simnest_name );
+
+       [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
+
+
+  //
+  // The exchange helper, which consits of a threaded sub-simulation
+  // for loading the schematic from files.
+  // The replacement is triggered by setting "startcalc" to 1 for one sample
+  //
+
+        // input to the calculation
+        [sim, input1] = ld_constvec(sim, ev, vec=1:10);
+
+        [sim, zero] = ld_const(sim, ev, 0);
+//        [sim, startcalc] = ld_initimpuls(sim, ev);
+        startcalc = trigger_reload;
+
+
+        // a nested simulation that runns asynchronously (in a thread) to the main simulation
+        [sim, outlist__, computation_finished] = ld_simnest(sim, ev, ...
+                              inlist=list(input1), ...
+                              insizes=[10], outsizes=[10], ...
+                              intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT], ...
+                              fn_list=list(exch_helper_thread), ...
+                              dfeed=1, asynchron_simsteps=1, ...
+                              switch_signal=zero, reset_trigger_signal=startcalc         );
+
+         output1 = outlist__(1);
+         // computation_finished is one, when finished else zero
+
+         replaced = computation_finished; // FIXME and successful
+endfunction
+

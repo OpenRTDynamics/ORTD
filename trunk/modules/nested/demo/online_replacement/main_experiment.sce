@@ -39,75 +39,8 @@ z = poly(0,'z');
 
 
 
-
-
-
-
-//
-// Set up simulation schematic
-//
-
-
-function [sim, outlist, userdata, replaced] = ReplaceableController(sim, ev, inlist, trigger_reload, insizes, outsizes, intypes, outtypes, simnest_name, irpar_fname, dfeed, userdata)
-
-
-function [sim, outlist] = exch_helper_thread(sim, inlist)
-      // This superblock will run the evaluation of the experiment in a thread.
-      // The superblock describes a sub-simulation, whereby only one step is simulated
-      // which is enough to call scilab one signle time
-
-
-  defaultevents = 0;
-    
-  inputv = inlist(1);
-
-  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
-
-  //
-  // A resource demanding Scilab calculation
-  //
-  
-  [sim, dummyin] = ld_const(sim, defaultevents, 1);
-
-  if 1==0 then
-      // Scilab commands
-
-      //  init_command = " exec(" + char(39) + "online_estimation/init.sce" + char(39) + "); ";    // execute an sce-file
-
-      init_command = "";
-      exec_command = " scilab_interf.outvec1 = 1:10  ";
-
-      [sim,out] = ld_scilab(sim, defaultevents, in=inputv, invecsize=10, outvecsize=10, init_command, ...
-      exec_command, "", "/home/chr/scilab/scilab-5.3.3_64/bin/scilab");
-
-      [sim,out__] = ld_demux(sim, defaultevents, 10, out);
-
-      result = out;    
-      [sim] = ld_printf(sim, defaultevents, out, "result: = ", 10);
-
-
-
-      // is scilab ready?
-      compready = out__(1); //   
-  else
-      [sim, compready]  = ld_const(sim, defaultevents, 1);
-//      [sim, result]  = ld_const_vec(sim, defaultevents, 123);
-      [sim, result] = ld_constvec(sim, defaultevents, vec=1:10)
-  end
-
-  // replace schematic RST_ident
-  [sim, exchslot] = ld_const(sim, defaultevents, 2);                            
-  [sim, out] = ld_nested_exchffile(sim, defaultevents, compresult=compready, slot=exchslot, ... 
-                                   fname=irpar_fname, simnest_name);
-
-
-  // output of schematic
-  outlist = list(result);
-endfunction
-
-
-
-function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
+               
+function [sim, outlist, userdata] = define_schematics( sim, inlist, schematic_type, userdata )
 //    
 //    The nested simulation contains two sub-simulations:
 //    
@@ -118,85 +51,31 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
 //
 //    Here, the initial simulations are defined, which can then be 
 //   replaced during runtime
-//    
+// 
 
+  printf("Defining a replaceable controller. My userdata string is %s\n", userdata(1) );
+
+  // an input
+  input1 = inlist(1);
+
+  // default event
   ev = 0;
 
-  cntrlN = par(1); // the number of the nested schematics (one of two) "1" means the 
-                   // dummy schematic which is activated while the 2nd "2" is exchanged during runtime
-  userdata = par(2);
-  
-  string1 = userdata(1);
-  
-  input1 = inlist(1);
-  
-  
   // a zero
   [sim, zero] = ld_const(sim, ev, 0);
 
-  printf("Defining a replaceable controller\n");
-  
-  if (cntrlN == 2) then  // is this the schematic 2) ?
-          // Here the  default controller can be defined
-          [sim, output] = ld_gain(sim, ev, input1, 5); // 
-          [sim] = ld_printf(sim, ev, in=zero, str="This is just a dummy simulation, which can be replaced.", insize=1);
+  select schematic_type  
+
+    case 'spare' then
+      outlist = list(zero);
+
+    case 'default'       // Here the  default controller can be defined
+      outlist = list(zero);
+      [sim] = ld_printf(sim, ev, in=input1, str="This is just a dummy simulation, which can be replaced.", insize=1);
+
   end
-
-  
-  outlist = list(zero);
 endfunction
 
-  [sim,zero] = ld_const(sim, ev, 0);
-  [sim,active_sim] = ld_const(sim, ev, 1);
-
-  //
-  // Here the controller is nested, which can be replaced online
-  //
-
-        [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev=[ ev ] , ...
-                       inlist, ...
-                       insizes, outsizes, ...
-                       intypes, ...
-                       outtypes, ...
-                       nested_fn=replaceable_cntrl_main, Nsimulations=2, dfeed, ...
-                       asynchron_simsteps=0, switch_signal=active_sim, ...
-                       reset_trigger_signal=zero, userdata=list(userdata, "any", "data"), ...
-                       simnest_name );
-
-       [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
-
-
-  //
-  // The exchange helper, which consits of a threaded sub-simulation
-  // for loading the schematic from files.
-  // The replacement is triggered by setting "startcalc" to 1 for one sample
-  //
-
-        // input to the calculation
-        [sim, input1] = ld_constvec(sim, ev, vec=1:10);
-
-        [sim, zero] = ld_const(sim, ev, 0);
-//        [sim, startcalc] = ld_initimpuls(sim, ev);
-        startcalc = trigger_reload;
-
-
-        // a nested simulation that runns asynchronously (in a thread) to the main simulation
-        [sim, outlist__, computation_finished] = ld_simnest(sim, ev, ...
-                              inlist=list(input1), ...
-                              insizes=[10], outsizes=[10], ...
-                              intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT], ...
-                              fn_list=list(exch_helper_thread), ...
-                              dfeed=1, asynchron_simsteps=1, ...
-                              switch_signal=zero, reset_trigger_signal=startcalc         );
-
-         output1 = outlist__(1);
-         // computation_finished is one, when finished else zero
-
-         replaced = computation_finished; // FIXME and successful
-endfunction
-
-
-               
 
 function [sim] = main(sim, ev)
 
@@ -207,18 +86,24 @@ function [sim] = main(sim, ev)
   [sim, gui_trigger_reload] = ld_parameter(sim, ev, str="gui_trigger_reload", initial_param=0);
   [sim, trigger_reload] = ld_detect_step_event2(sim, ev, in=gui_trigger_reload, eps=0.1);
 
-  [sim, outlist, userdata, replaced] = ReplaceableController(sim, ev, ...
-                        inlist=list(aninput), trigger_reload, ...
+  [sim, outlist, userdata, replaced] = ld_ReplaceableNest(sim, ev, ...
+                        inlist=list(aninput), trigger_reload, list(define_schematics), ...
                         insizes=[1], outsizes=[1], ...
                         intypes=ORTD.DATATYPE_FLOAT*[1], ...
                         outtypes=ORTD.DATATYPE_FLOAT*[1], ...
                         simnest_name="DemoReplaceableController", irpar_fname="replacement", dfeed=1, ...
-                        userdata=list() );
+                        userdata=list("Hallo") );
 
   [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
   [sim] = ld_stream(sim, ev, in=outlist(1), str="ControlOutput", insize=1);
                   
 endfunction
+
+
+
+
+
+
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)

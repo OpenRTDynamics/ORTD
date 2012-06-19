@@ -26,8 +26,8 @@ cd(thispath);
 // in the gui to see a modified sin-wave.
 //
 
-sinamp = 3;
-sinofs = 5;
+sinamp = 1;
+sinofs = 3;
 
 
 z = poly(0,'z');
@@ -64,6 +64,8 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
   // a zero
   [sim, zero] = ld_const(sim, ev, 0);
   [sim] = ld_printf(sim, ev, in=input1, str="Hello, I''m the new simulation. My input is", insize=1);
+
+  [sim] = ld_printf(sim, ev, in=zero, str="***** Another printf. It just prints zero ******", insize=1);
 
   [sim] = ld_FlagProbe(sim, ev, in=zero, str="probe", insize=1)
   
