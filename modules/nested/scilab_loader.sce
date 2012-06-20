@@ -806,7 +806,7 @@ endfunction
                        reset_trigger_signal=zero, userdata=list(userdata, define_fn), ...
                        simnest_name );
 
-       [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
+//        [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
 
 
   //

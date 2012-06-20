@@ -66,10 +66,10 @@ function [sim, outlist, userdata] = define_schematics( sim, inlist, schematic_ty
 
   select schematic_type  
 
-    case 'spare' then
+    case 'spare'  // Here the controller can be defined, which is active while the replacement process is ongoing
       outlist = list(zero);
 
-    case 'default'       // Here the  default controller can be defined
+    case 'default' // Here the default controller can be defined
       outlist = list(zero);
       [sim] = ld_printf(sim, ev, in=input1, str="This is just a dummy simulation, which can be replaced.", insize=1);
 
@@ -83,6 +83,7 @@ function [sim] = main(sim, ev)
 
   //[sim, trigger_reload] = ld_play_simple(sim, ev, [0,0,0,0,0,0,1,0]);
 
+  // set-up the inteface to the GUI
   [sim, gui_trigger_reload] = ld_parameter(sim, ev, str="gui_trigger_reload", initial_param=0);
   [sim, trigger_reload] = ld_detect_step_event2(sim, ev, in=gui_trigger_reload, eps=0.1);
 
@@ -95,6 +96,8 @@ function [sim] = main(sim, ev)
                         userdata=list("Hallo") );
 
   [sim] = ld_printf(sim, ev, in=outlist(1), str="The nested, replaceable sim returns", insize=1);
+
+  // set-up the inteface to the GUI
   [sim] = ld_stream(sim, ev, in=outlist(1), str="ControlOutput", insize=1);
                   
 endfunction
