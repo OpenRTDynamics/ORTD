@@ -244,15 +244,16 @@ endfunction
 //  endfunction
 
   function [model,graphics,ok]=check_io(model,graphics,in,out,clkin,clkout,in_implicit,out_implicit)
-
-ok=%t
-
-
-
-model.evtin=clkin
-model.evtout=clkout
+    // no actual check, just a copy into the model structure
+    ok=%t
 
 
+    model.evtin=clkin
+    model.evtout=clkout
+    model.in = in;
+    model.out = out;
+    model.evkin = clkin;
+    model.evout = clkout;
   endfunction
 
 
@@ -266,6 +267,8 @@ model.evtout=clkout
 
 
   if (flag == 'rundialog') then
+  
+  
     definecommand = "" + blockname + "(job=''define'',arg1=0,arg2=0);";
     X = eval(definecommand);
     cosblk = X.b;
