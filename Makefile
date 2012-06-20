@@ -96,7 +96,7 @@ ifeq ($(target),RTAI_COMPATIBLE)
   # Detect system type and set Fflags
   ifeq ($(host-type),x86_64)
     # 64 Bit
-    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
+    export CFLAGS = -g -fPIC      -D$(targetmacro)
     export INCLUDE =  -I$(ortd_root)
     export LDFLAGS = 
   else

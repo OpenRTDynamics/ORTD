@@ -69,6 +69,7 @@ class irpar {
   private:
     char fname_ipar[256];
     char fname_rpar[256];
+    unsigned int magic;
     
   public:
     irpar();
