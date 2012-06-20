@@ -765,13 +765,13 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
  // printf("Defining a replaceable controller\n");
 
   if (cntrlN == 1) then  // is this the schematic 2) ?
-    [sim, outlist, useruserdata] = define_schematics( sim, inlist, schematic_type='spare', useruserdata );
+    [sim, outlist, useruserdata] = define_fn( sim, inlist, schematic_type='spare', useruserdata );
 
   end
   
   if (cntrlN == 2) then  // is this the schematic 2) ?
 
-    [sim, outlist, useruserdata] = define_schematics( sim, inlist, schematic_type='default', useruserdata );
+    [sim, outlist, useruserdata] = define_fn( sim, inlist, schematic_type='default', useruserdata );
 
 //          // Here the  default controller can be defined
 //          [sim, output] = ld_gain(sim, ev, input1, 5); // 

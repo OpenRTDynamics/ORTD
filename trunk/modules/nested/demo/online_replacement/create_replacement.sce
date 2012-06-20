@@ -64,17 +64,14 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
   // a zero
   [sim, zero] = ld_const(sim, ev, 0);
   [sim] = ld_printf(sim, ev, in=input1, str="Hello, I''m the new simulation. My input is", insize=1);
-
-  [sim] = ld_printf(sim, ev, in=zero, str="***** Another printf. It just prints zero ******", insize=1);
-
-  [sim] = ld_FlagProbe(sim, ev, in=zero, str="probe", insize=1)
-  
+  [sim] = ld_printf(sim, ev, in=input1, str="****** This is another printf loaded at runtime ******", insize=1);
+ 
       
 
 //  [sim, output] = ld_gain(sim, ev, input1, 2); // 
   [sim,output] = ld_play_simple(sim, ev, r=sin( linspace(0,100*%pi,1000 ) )*sinamp + sinofs  );
           
-
+  [sim] = ld_FlagProbe(sim, ev, in=zero, str="probe", insize=1)
   
   outlist = list(output);
 endfunction
