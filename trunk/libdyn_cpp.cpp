@@ -39,12 +39,15 @@ extern "C" {
 
 irpar::irpar()
 {
-    fprintf(stderr, "new irpar()\n");
+//     fprintf(stderr, "new irpar() \n");
 
     ipar = NULL;
     rpar = NULL;
     Nrpar = 0;
     Nipar = 0;
+    
+    magic = 0xabcd34;
+//     fprintf(stderr, "irpar::ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
 }
 
 irpar::irpar(int Nipar, int Nrpar)
@@ -54,16 +57,25 @@ irpar::irpar(int Nipar, int Nrpar)
 
     this->ipar = (int*) malloc( sizeof(int) * Nipar );
     this->rpar = (double*) malloc( sizeof(double) * Nrpar );
+    
+//     fprintf(stderr, "irpar::ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
 }
 
 irpar::~irpar()
 {
+//   fprintf(stderr, "irpar::~ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
     destruct();
 }
 
 void irpar::destruct()
 {
-    fprintf(stderr, "irpar::destruct()\n");
+//   fprintf(stderr, "irpar::destruct() this=%p\n", this);
+//   fprintf(stderr, "irpar::destruct() magic=%p\n", magic);
+  if (magic != 0xabcd34) {
+    printf("irpar: this ptr seems to be wroing\n");
+  }
+  
+//     fprintf(stderr, "irpar::destruct() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
     if (ipar != NULL) {
         free(ipar);
         ipar = NULL;
@@ -88,6 +100,9 @@ bool irpar::load_from_afile(char *fname_i, char* fname_r)
         return false;
     }
 
+//     fprintf(stderr, "irpar::load_from_afile(char*, char*) this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
+    
+    
     return true;
 }
 
@@ -101,7 +116,11 @@ bool irpar::load_from_afile(char* fname)
     fprintf(stderr, "fnames ipar = %s\n", fname_ipar);
     fprintf(stderr, "fnames rpar = %s\n", fname_rpar);
 
-    return this->load_from_afile(fname_ipar, fname_rpar);
+    bool ret = this->load_from_afile(fname_ipar, fname_rpar);
+
+//    fprintf(stderr, "irpar::load_from_afile(char *fname) this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
+   
+   return ret;
 
 }
 

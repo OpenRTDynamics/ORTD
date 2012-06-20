@@ -138,8 +138,9 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	// the irpar instance is automatically deleted by nested_onlineexchange
 	irpar *par = new irpar();
 	if (!par->load_from_afile(this->ifname, this->rfname)) {
-	  delete par;
 	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: <%s> and/or <%s> were not found\n", ifname, rfname);
+	  delete par;
+	  
 	  
 	  return;
 	}

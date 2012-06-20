@@ -8,10 +8,10 @@ The latestest versions include highly advanced features like
 * State machines (modules/nested)
 * Simulations running in threads (modules/nested)
 * Mathematical formula parsing (modules/muparser)
-* Vectors handling blocks (modules/basic_ldblocks)
+* Vector handling blocks (modules/basic_ldblocks)
 * Calling Scilab from the simulation (modules/scilab)
 * Remote control interface (modules/rt_server)
-* Starting external processes (modules/ext\_process)
+* Starting external processes (modules/ext_process)
 * Timer for simulations running in threads (pending) (modules/synchronisation)
 * Scicos to ORTD block wrapper (modules/scicos_blocks)
 
