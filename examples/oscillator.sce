@@ -102,8 +102,6 @@ function [sim, outlist] = schematic_fn(sim, inlist)
     [sim, x,y] = oscillator(sim, u);  
   end
   
-  pause;
-  
   [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
   
   // save result to file
