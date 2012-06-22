@@ -25,6 +25,24 @@
 // endfunction
 // 
 
+// function [sim,out] = ld_constmat(sim, events, mat) // PARSEDOCU_BLOCK
+// // 
+// // a constant matrix
+// // 
+// // mat *+ - the matrix
+// // 
+// 
+//   [nr, nc] = size(mat);
+//   //rpar = [nr,nc];
+//   rpar = [];
+//   for i=1:nr,
+//     rpar=cat(2,rpar, mat(i,:))
+//   end
+//   //rpar=rpar';
+// 
+//   [sim,out] = ld_constvec(sim, defaultevents, rpar );
+// endfunction
+
 function [sim,out] = ld_constmat(sim, events, mat) // PARSEDOCU_BLOCK
 // 
 // a constant matrix
@@ -32,18 +50,19 @@ function [sim,out] = ld_constmat(sim, events, mat) // PARSEDOCU_BLOCK
 // mat *+ - the matrix
 // 
 
-  [nr, nc] = size(mat);
-  //rpar = [nr,nc];
-  rpar = [];
-  for i=1:nr,
-    rpar=cat(2,rpar, mat(i,:))
-  end
-  //rpar=rpar';
+//   [nr, nc] = size(mat);
+//   //rpar = [nr,nc];
+//   rpar = zeros(1,nr*nc);
+//   for i=1:nr,
+// //     rpar=cat(2,rpar, mat(i,:))
+//     rpar( nc*(i-1)+1 : nc*i ) = mat(i,:);
+//   end
+//   //rpar=rpar';
 
-  [sim,out] = ld_constvec(sim, defaultevents, rpar );
+  tmp = mat';
+
+  [sim,out] = ld_constvec(sim, events, tmp(:)' );
 endfunction
-
-
 
 function [sim,out] = ld_matmul(sim, events, left_matrix, left_matrix_size, right_matrix, right_matrix_size) // PARSEDOCU_BLOCK
 // matrix multiplication of two matrices

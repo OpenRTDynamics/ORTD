@@ -3100,25 +3100,25 @@ int ortd_compu_func_vectormute(int flag, struct dynlib_block_t *block)
 	if (to_ > size) to_ = size;
 	if (to_ < 1) to_ = 1;
 
- 	printf("to_ %d from_ %d\n", to_, from_);
+//  	printf("to_ %d from_ %d\n", to_, from_);
 	
         int i;
 
 	// copy 1. part
 	for (i=1; i <= from_-1; ++i) {
-	  printf("copy p1 %d\n", i);
+// 	  printf("copy p1 %d\n", i);
 	  out[i-1] = in[i-1];
 	}
 	
 	// copy 2. part
 	for (i=to_; i <= size; ++i) {
-	  printf("copy p2 %d\n", i);
+// 	  printf("copy p2 %d\n", i);
 	  out[i-1] = in[i-1];
 	} 
 	
 	// mute
         for (i=from_; i <= to_; ++i) {
-	  printf("mute %d\n", i);
+// 	  printf("mute %d\n", i);
             out[ i - 1  ] = *setto;
         }
 
