@@ -31,8 +31,13 @@ M1 = [1;2;3;4];
 M2 = M1';
 M3 = [1,2; 3,4;];
 M4 = [1,2; 3,4; 5,6; 7,8]
+M5 = [3,2,4,7
+      2,6,8,3
+      8,5,5,2
+      1,4,8,3 ];
 
 V1 = [0.1,0.2,0.3,0.4];
+V2 = V1';
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
@@ -46,10 +51,11 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim,u_m3] = ld_constmat(sim, defaultevents, M3 ); //  2x2 Matrix
 
   [sim,u_m4] = ld_constmat(sim, defaultevents, M4 ); //  4x2 Matrix
+  [sim,u_m5] = ld_constmat(sim, defaultevents, M5 ); //  4x4 Matrix
 
 
   [sim,u_v1] = ld_constvec(sim, defaultevents, V1 );
-
+  [sim,u_v2] = ld_constvec(sim, defaultevents, V2 );
 
 
   // Matrix Multiplikationen
@@ -68,9 +74,11 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // Matrix - Vektor Multiplikationen
   [sim,y4] = ld_matmul(sim, defaultevents, u_v1, [1,4], u_m4, [4,2]);
 
+  // sqaure matrix * vector
+  [sim,y5] = ld_matmul(sim, defaultevents, u_m5, size(M5), u_v1, size(V2) );
+  
 
-
-  //[sim] = ld_printf(sim, defaultevents, y1, "y = ", 1);
+  [sim] = ld_printf(sim, defaultevents, y5, "y = ", 4);
   
   // save result to file
   // save the matrix to a file
@@ -122,6 +130,7 @@ par.rpar = [];
 
 // optionally execute
 messages = unix_g(ORTD.ortd_executable+' -s matmul_test -i 901 -l 1');
+disp(messages);
 
 
 // // load results
@@ -133,3 +142,4 @@ y2 = M2*M4;
 y3 = M4*M3;
 
 y4 = V1*M4;
+y5 = M5*V2;

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
 
@@ -152,14 +154,14 @@ int compu_func_matmul(int flag, struct dynlib_block_t *block)
       for (rows_c=1; rows_c <= lm_nr; ++rows_c) {
 	for (colums_c=1; colums_c <= rm_nc; ++colums_c){
 	  temp = 0;
-	  printf("c%d,%d(%d) = ", rows_c, colums_c, ((-1)+((rows_c-1)*rm_nc + colums_c)) );
+// 	  printf("c%d,%d(%d) = ", rows_c, colums_c, ((-1)+((rows_c-1)*rm_nc + colums_c)) );
 	  for (i=1; i <= lm_nc; ++i){
 	      temp += (double) A(rows_c,i)*B(i,colums_c);
-	      printf(" + a%d,%d[%d](%f) * b%d,%d[%d](%f)", rows_c, i, ((-1)+((rows_c-1)*lm_nc + i)), A(rows_c,i), i, colums_c, ((-1)+((rows_c-1)*rm_nc + colums_c)), B(i, colums_c) );
+// 	      printf(" + a%d,%d[%d](%f) * b%d,%d[%d](%f)", rows_c, i, ((-1)+((rows_c-1)*lm_nc + i)), A(rows_c,i), i, colums_c, ((-1)+((rows_c-1)*rm_nc + colums_c)), B(i, colums_c) );
 	  }
 	  
 	  C(rows_c,colums_c) = (double) temp;
-	  printf(" = %f\n", C(rows_c,colums_c));
+// 	  printf(" = %f\n", C(rows_c,colums_c));
 	}
       }
       //memcpy((void*) out, (void*) vec, veclen*sizeof(double) );
@@ -172,8 +174,8 @@ int compu_func_matmul(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CONFIGURE:  // configure
       {
 	if (rm_nr < 1 || rm_nc < 1 || lm_nr < 1 || lm_nc < 1) {
-	  printf("matmul: matrix size cannot be smaller than 1\n");
-	  printf("matmul:  -> out[%dx%d] = left_mat[%dx%d] * right_mat[%dx%d]\n", lm_nr, rm_nc, lm_nr, lm_nc, rm_nr, rm_nc);
+	  fprintf(stderr, "matmul: matrix size cannot be smaller than 1\n");
+	  fprintf(stderr, "matmul:  -> out[%dx%d] = left_mat[%dx%d] * right_mat[%dx%d]\n", lm_nr, rm_nc, lm_nr, lm_nc, rm_nr, rm_nc);
 	  return -1;
 	}
 	libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
