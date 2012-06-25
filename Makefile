@@ -162,7 +162,7 @@ scilabhelp:
 	(cd scilab; ./build_toolbox.sh)
 
 clean:
-	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* bin/*
+	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* 
 	rm -f module_list module_list__.c module_list__.h
 	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done
 	#for d in $(MODULES); do (echo "cd to modules/$$d"; cd modules/$$d; pwd; cd $(ortd_root)  ); done
@@ -313,6 +313,9 @@ install: all
 	sudo cp libortd_hart.a /usr/local/lib
 	sudo ldconfig
 	sudo cp bin/libdyn_generic_exec /usr/local/bin
+	sudo cp bin/libdyn_generic_exec_scilab /usr/local/bin
+	chmod +x bin/libdyn_generic_exec_scilab
+	chmod +x bin/libdyn_generic_exec_static_scilab
 
 
 
