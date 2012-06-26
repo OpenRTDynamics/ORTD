@@ -2984,10 +2984,11 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
     int *ipar = libdyn_get_ipar_ptr(block);
-    double *rpar = libdyn_get_rpar_ptr(block);
+    double *shape = libdyn_get_rpar_ptr(block); // reference-vector
 
     int size = ipar[0]; // len input vector
     int shape_len = ipar[1]; // len shape sample
+
     int Nout = 1;
     int Nin = 1;
 
@@ -3009,7 +3010,7 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
 	  int j;
 	  double sum = 0.0;
 	  for (j = 1; j <= shape_len; ++j) {
-	    sum += in[ i-1 ] * out[ j-1 ];  // -1 is to match the C-way of counting indices
+	    sum += in[ i-1 ] * shape[ j-1 ];  // -1 is to match the C-way of counting indices
 	    
 	    printf("j=%d\n", j);  
 	  }
@@ -3046,7 +3047,7 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
 
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
-        libdyn_config_block_output(block, 0, size-shape_len, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_output(block, 0, size-shape_len+1, DATATYPE_FLOAT,1 ); // in, intype,
         libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
     }
     return 0;
