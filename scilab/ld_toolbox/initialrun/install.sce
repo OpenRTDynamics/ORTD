@@ -46,5 +46,5 @@ try
     ORTD.ortd_executable = ORTD.ortdpath + "/bin/libdyn_generic_exec_static_scilab";
 catch
   printf("\nNOTE: The OpenRTDynamics main directory was not found. Tell me the path using ORTD_install()\n\n");  
-  ORTD.ortd_executable = "libdyn_generic_exec ";  
+  ORTD.ortd_executable = "libdyn_generic_exec_scilab ";  
 end

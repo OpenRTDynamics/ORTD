@@ -5,6 +5,12 @@ export CPP = c++
 export LD = g++
 export SH = bash
 
+#
+# CFGLAGS, some more are added later on depending on the target
+#
+
+#export CFLAGS += -DDEBUG
+
 
 # create list of modules
 #MODULES = scope template muparser basic_ldblocks rt_server
@@ -29,14 +35,14 @@ ifeq ($(target),LINUX)
   # Detect system type and set Fflags
   ifeq ($(host-type),x86_64)
     # 64 Bit
-    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = 
+    export CFLAGS += -g -fPIC -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += 
   else
     # 32 Bit
-    export CFLAGS = -g -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = 
+    export CFLAGS += -g -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += 
   endif
 
 endif
@@ -47,14 +53,14 @@ ifeq ($(target),LINUX_AND_HART)
   # Detect system type and set Fflags
   ifeq ($(host-type),x86_64)
     # 64 Bit
-    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = -l hart
+    export CFLAGS += -g -fPIC -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += -l hart
   else
     # 32 Bit
-    export CFLAGS = -g -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = -l hart
+    export CFLAGS += -g -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += -l hart
   endif
 
 endif
@@ -64,18 +70,18 @@ ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
 
     # 32 Bit
-    export CFLAGS = -m32 -g -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = -m32 
+    export CFLAGS += -m32 -g -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += -m32 
 endif
 
 ifeq ($(target),RTAI_COMPATIBLE_x86_32)
   targetmacro=__ORTD_TARGET_RTAI
 
     # 32 Bit
-    export CFLAGS = -m32 -g -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = -m32 
+    export CFLAGS += -m32 -g -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += -m32 
 endif
 
 
@@ -83,9 +89,9 @@ ifeq ($(target),LINUX_pentium)
   targetmacro=__ORTD_TARGET_LINUX
 
     # 32 Bit
-    export CFLAGS = -m32 -march=pentium -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = -m32
+    export CFLAGS += -m32 -march=pentium -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += -m32
 
 endif
 
@@ -96,14 +102,14 @@ ifeq ($(target),RTAI_COMPATIBLE)
   # Detect system type and set Fflags
   ifeq ($(host-type),x86_64)
     # 64 Bit
-    export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = 
+    export CFLAGS += -g -fPIC -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += 
   else
     # 32 Bit
-    export CFLAGS = -g -O2 -D$(targetmacro)
-    export INCLUDE =  -I$(ortd_root)
-    export LDFLAGS = 
+    export CFLAGS += -g -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += 
   endif
 
 endif
@@ -111,9 +117,9 @@ endif
 ifeq ($(target),CYGWIN) 
   targetmacro=__ORTD_TARGET_CYGWIN
 
-  export CFLAGS = -g -O2 -D$(targetmacro)
-  export INCLUDE =  -I$(ortd_root)
-  export LDFLAGS = 
+  export CFLAGS += -g -O2 -D$(targetmacro)
+  export INCLUDE +=  -I$(ortd_root)
+  export LDFLAGS += 
 endif
 
 # Tell the sub makefiles that the variables from this makefile are available
@@ -195,6 +201,7 @@ clear_scilab_modules:
 
 	export CFLAGS="$(CFLAGS) $(cat tmp/MACROS.list)"
 
+	echo "Macros are: $(cat tmp/MACROS.list)"
 	echo "New CFLAGS are: "$(CFLAGS)
 
 
