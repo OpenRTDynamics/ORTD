@@ -107,7 +107,7 @@ void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag)
 {
   
 #ifdef DEBUG
-     printf("cosblock ptr %p\n", (void*) cosblock);
+     printf("cosblock ptr %p\n", (void*) &cosblock);
 #endif
   
     this->compfn = compfn;
