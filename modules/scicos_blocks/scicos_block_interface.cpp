@@ -117,7 +117,17 @@ int error = 0;
    int *ipar2 = block_ipar.v;      int n_ipar2 = block_ipar.n;   
    double *z = dstate.v;           int Nz = dstate.n;
 
-   
+#ifdef DEBUG
+   printf("rpar ptr %p\n", (void*) rpar2);
+   printf("ipar ptr %p\n", (void*) ipar2);
+   int lpc;
+   for( lpc=0; lpc < n_rpar2; ++lpc) {
+     printf("rpar %d\n", rpar2[lpc]); 
+   }
+   for( lpc=0; lpc < n_ipar2; ++lpc) {
+     printf("ipar %d\n", ipar2[lpc]); 
+   }
+#endif
    
    
    // Set.up IO of the scicos block

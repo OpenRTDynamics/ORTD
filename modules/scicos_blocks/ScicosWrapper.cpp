@@ -106,6 +106,10 @@ void ScicosWrapper::setOutSize(int i, int size)
 void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag), int Nipar, int Nrpar, int *ipar, double *rpar, int Nin, int Nout, int Nz, double *z_init )
 {
   
+#ifdef DEBUG
+     printf("cosblock ptr %p\n", (void*) cosblock);
+#endif
+  
     this->compfn = compfn;
   
   // parameters
@@ -126,7 +130,10 @@ void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag)
   cosblock.rpar = rpar;
   cosblock.oparptr = NULL; //(void**) malloc(10000); // FIXME: Don't what this is good for
   
-  
+  #ifdef DEBUG
+     printf("ScicosWrapper::initStructure ipar ptr %p rpar %p\n", ipar, rpar);
+#endif
+
   
   cosblock.nin = Nin; //
   cosblock.nout = Nout; //
@@ -168,7 +175,7 @@ void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag)
   cosblock.z = (double*) malloc( sizeof(double)*Nz );
   memcpy(cosblock.z, z_init, sizeof(double)*Nz);
   
-  // object states ???
+  // object states ??? FIXME!!!
   this->ozptr[0] = malloc(1000);
   this->ozptr[1] = malloc(1000);
   this->ozptr[2] = malloc(1000);
@@ -195,12 +202,25 @@ void ScicosWrapper::initStructure( int (*compfn)(scicos_block * block, int flag)
 
 void ScicosWrapper::freeStructure()
 {
+#ifdef DEBUG
+     printf("ScicosWrapper::freeStructure\n");
+#endif
+
+  
   free(cosblock.inptr);
   free(cosblock.outptr);
   free(insizes);
   free(outsizes);
   free(cosblock.z);
   
+  free(this->ozptr[0]);
+  free(this->ozptr[1]);
+  free(this->ozptr[2]);
+  free(this->ozptr[3]);
+  free(this->ozptr[4]);
+#ifdef DEBUG
+     printf("ScicosWrapper::freeStructure ok\n");
+#endif
   
 }
 
