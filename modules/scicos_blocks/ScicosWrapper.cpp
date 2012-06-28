@@ -3,7 +3,7 @@
 #include "ScicosWrapper.h"
 #include <string.h>
 
-// #include "stdio.h"
+#include "stdio.h"
 
 
 
@@ -207,13 +207,17 @@ void ScicosWrapper::freeStructure()
 
 int ScicosWrapper::Cinit()
 {
-//   printf("scicoswrap: init %p\n", compfn);
+#ifdef DEBUG
+   printf("scicoswrap: init %p\n", compfn);
+#endif;
   (*compfn)(&cosblock, 4);
 }
 
 int ScicosWrapper::CCalcOutputs()
 {
-//   printf("scicoswrap: outputs\n");
+#ifdef DEBUG
+  fprintf(stderr, "scicoswrap: outputs\n");
+#endif;
   
   cosblock.nevprt = 1;
   (*compfn)(&cosblock, 1);
@@ -221,19 +225,25 @@ int ScicosWrapper::CCalcOutputs()
   
   double **p = (double**) this->cosblock.outptr;
   
-//   printf(" %f \n", p[0][0]);
+#ifdef DEBUG
+   printf(" %f \n", p[0][0]);
+#endif;
 }
 
 int ScicosWrapper::CStateUpd()
 {
   cosblock.nevprt = 1;
-//   printf("scicoswrap: supdate\n");
+#ifdef DEBUG
+   printf("scicoswrap: supdate\n");
+#endif;
   (*compfn)(&cosblock, 2);
 }
 
 int ScicosWrapper::Cdestruct()
 {
-//   printf("scicoswrap: destruct\n");
+#ifdef DEBUG
+   printf("scicoswrap: destruct\n");
+#endif;
   (*compfn)(&cosblock, 5);
 }
 

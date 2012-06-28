@@ -134,7 +134,9 @@ int error = 0;
       double *p = (double*) libdyn_get_input_ptr(block, i);
       cos.setInPtr(i, p);
       
-//       printf("insize port %d is %d\n", i, insizes.v[i]);
+#ifdef DEBUG
+       printf("insize port %d is %d\n", i, insizes.v[i]);
+#endif;
     }
     for (i = 0; i < Nout; ++i) {
       cos.setOutSize(i, outsizes.v[i]);  // make outsize depending on i for multiple ports
@@ -142,7 +144,9 @@ int error = 0;
       double *p = (double*) libdyn_get_output_ptr(block, i);
       cos.setOutPtr(i, p);
       
-//       printf("outsize port %d is %d\n", i, outsizes.v[i]);
+#ifdef DEBUG
+       printf("outsize port %d is %d\n", i, outsizes.v[i]);
+#endif;
     }
     
 
@@ -180,7 +184,9 @@ void compu_func_ScicosBlockWrapper_class::destruct()
 int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
 {
 
-//     printf("comp_func template: flag==%d\n", flag);
+#ifdef DEBUG
+     printf("comp_func template: flag==%d\n", flag);
+#endif;
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);
@@ -201,6 +207,10 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
 
         worker->io(0);
 
+#ifdef DEBUG
+       printf("calclout OK\n", flag);
+#endif;
+
     }
     return 0;
     break;
@@ -210,6 +220,10 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
         compu_func_ScicosBlockWrapper_class *worker = (compu_func_ScicosBlockWrapper_class *) libdyn_get_work_ptr(block);
 
         worker->io(1);
+
+#ifdef DEBUG
+       printf("sup OK\n", flag);
+#endif;
 
     }
     return 0;
@@ -256,19 +270,25 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
         int Ndataoutports = outsizes.n;
 
 
-//         printf("Ndatainports = %d, Ndataoutports = %d\n", Ndatainports, Ndataoutports);
+#ifdef DEBUG
+         printf("ScicosBlock; Ndatainports = %d, Ndataoutports = %d\n", Ndatainports, Ndataoutports);
+#endif;
 
         int i;
         libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Ndataoutports, Ndatainports, (void *) 0, 0);
 
         for (i = 0; i < Ndatainports; ++i) {
             libdyn_config_block_input(block, i, insizes.v[i], intypes.v[i]);
-//           printf("insize port %d is %d\n", i, insizes.v[i]);
+#ifdef DEBUG
+           printf("insize port %d is %d\n", i, insizes.v[i]);
+#endif;
         }
 
         for (i = 0; i < Ndataoutports; ++i) {
             libdyn_config_block_output(block, i, outsizes.v[i], outtypes.v[i], dfeed);
-//           printf("outsize port %d is %d\n", i, insizes.v[i]);
+#ifdef DEBUG
+           printf("outsize port %d is %d\n", i, insizes.v[i]);
+#endif;
         }
 
 
@@ -285,6 +305,11 @@ int compu_func_scicosinterface(int flag, struct dynlib_block_t *block)
         int ret = worker->init();
         if (ret < 0)
             return -1;
+	
+#ifdef DEBUG
+       printf("init OK\n", flag);
+#endif;
+	
     }
     return 0;
     break;
