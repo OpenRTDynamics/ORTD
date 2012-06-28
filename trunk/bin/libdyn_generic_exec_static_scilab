@@ -1,7 +1,27 @@
 #!/bin/sh
 
-# Set again the standard lib path, which has been changed by scilab prviously
+echo "The script you are running has basename `basename $0`, dirname `dirname $0`"
+echo "The present working directory is `pwd`"
 
+#SCRIPT_PATH="${BASH_SOURCE[0]}";
+#if ([ -h "${SCRIPT_PATH}" ]) then
+#  while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+#fi
+#pushd . > /dev/null
+#cd `dirname ${SCRIPT_PATH}` > /dev/null
+#SCRIPT_PATH=`pwd`;
+#popd  > /dev/null
+
+#DIR=$SCRIPT_PATH
+
+# Directory of this file
+#DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#DIR=dirname $0
+
+#echo Path is $DIR
+
+# Set again the standard lib path, which has been changed by scilab prviously
 export LD_LIBRARY_PATH=
 
+#exec $DIR/libdyn_generic_exec $@
 exec libdyn_generic_exec $@
