@@ -1,0 +1,17 @@
+Executes time discrete Scicos/Xcos - blocks
+
+NOTE: The scicos computaional functions have to be linked 
+to the executable with which you run your simulation.
+
+Compatibility
+-------------
+
+depending on the version of scicos_block4.h this wrapper
+is compatible with scilab5 or scilab4 or scicoslab.
+Currently only scilab5 (Xcos) is supported.
+
+You can use the additional module include_hart to use
+the blocks of the HART-Toolbox (hart.sf.net). For this,
+you have to choose a version of scilab5 in the Makefile
+of the hart toolbox
+
