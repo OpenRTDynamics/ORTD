@@ -1,9 +1,10 @@
+# Toolchain
 export CC = cc
 export CPP = c++
-#LD = ld
+
 # Use g++ as linker because of c++
 export LD = g++
-export SH = bash
+export SH = sh
 
 #
 # CFGLAGS, some more are added later on depending on the target
@@ -12,17 +13,26 @@ export SH = bash
 #export CFLAGS += -DDEBUG
 
 
+# detect host type
+export host-type := $(shell arch)
+ifeq ($(host-type),x86_64)
+    # 64 Bit
+    export CFLAGS += -fPIC
+endif
+
+ifeq ($(host-type),armv7l)
+    # 64 Bit
+    export CFLAGS += -fPIC
+endif
+
+
 # create list of modules
-#MODULES = scope template muparser basic_ldblocks rt_server
 MODULES := $(shell ls modules)
 
-# if modules provide header file needed by the base component
-#MODULES_INCLUDE := modules/rt_server
-# -I$(MODULES_INCLUDE)
-
-# detect system type
-export host-type := $(shell arch)
+# get the current dir and assume it is the one of ortd
 export ortd_root := $(shell pwd)
+
+
 
 # Configure target
 export target := $(shell cat target.conf)
@@ -33,38 +43,11 @@ ifeq ($(target),LINUX)
   targetmacro=__ORTD_TARGET_LINUX
 
   # Detect system type and set Fflags
-  ifeq ($(host-type),x86_64)
-    # 64 Bit
-    export CFLAGS += -g -fPIC -O2 -D$(targetmacro)
-    export INCLUDE +=  -I$(ortd_root)
-    export LDFLAGS += 
-  else
-    # 32 Bit
     export CFLAGS += -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
-  endif
 
 endif
-
-ifeq ($(target),LINUX_AND_HART)
-  targetmacro=__ORTD_TARGET_LINUX
-
-  # Detect system type and set Fflags
-  ifeq ($(host-type),x86_64)
-    # 64 Bit
-    export CFLAGS += -g -fPIC -O2 -D$(targetmacro)
-    export INCLUDE +=  -I$(ortd_root)
-    export LDFLAGS += -l hart
-  else
-    # 32 Bit
-    export CFLAGS += -g -O2 -D$(targetmacro)
-    export INCLUDE +=  -I$(ortd_root)
-    export LDFLAGS += -l hart
-  endif
-
-endif
-
 
 ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
@@ -99,18 +82,9 @@ endif
 ifeq ($(target),RTAI_COMPATIBLE) 
   targetmacro=__ORTD_TARGET_RTAI
 
-  # Detect system type and set Fflags
-  ifeq ($(host-type),x86_64)
-    # 64 Bit
-    export CFLAGS += -g -fPIC -O2 -D$(targetmacro)
-    export INCLUDE +=  -I$(ortd_root)
-    export LDFLAGS += 
-  else
-    # 32 Bit
     export CFLAGS += -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
-  endif
 
 endif
 
@@ -122,21 +96,19 @@ ifeq ($(target),CYGWIN)
   export LDFLAGS += 
 endif
 
-# Tell the sub makefiles that the variables from this makefile are available
+
+
+#
+# This tells the sub makefiles that the variables 
+#from this makefile are available
+#
+
 export main_makefile_invoked := yes
 
-# Detect system type and set Fflags
-# ifeq ($(host-type),x86_64)
-# # 64 Bit
-# export CFLAGS = -g -fPIC -O2 -D$(targetmacro)
-# export INCLUDE =  -I$(ortd_root)
-# export LDFLAGS = -shared
-# else
-# # 32 Bit
-# export CFLAGS = -g -O2 -D$(targetmacro)
-# export INCLUDE =  -I$(ortd_root)
-# export LDFLAGS = -shared
-# endif
+
+
+
+
 
 all: libdyn_generic_exec_static libdyn_generic_exec lib
 	#echo "------- Build finished: Now you can do > make install <  -------"
