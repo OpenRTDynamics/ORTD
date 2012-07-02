@@ -106,7 +106,7 @@ endfunction
 
 
 
-function cosblk=ortd_getcosblk2(blockname, pathtoscifile, flag)  // PARSEDOCU_BLOCK
+function cosblk=ortd_getcosblk2(blockname, flag, cachefile)  // PARSEDOCU_BLOCK
   //
   // %PURPOSE: Extract information from Scicos block interfacing function macros (*.sci) files
   //
@@ -116,7 +116,7 @@ function cosblk=ortd_getcosblk2(blockname, pathtoscifile, flag)  // PARSEDOCU_BL
 
 
   //exec(blockname + '_c.sci');
-  exec(pathtoscifile);
+//   exec(pathtoscifile);
 
 //  Scicos
 //
@@ -195,53 +195,6 @@ function model=scicos_model(v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v
 			model.nmode=nmode  
 endfunction
 
-//function o=standard_define(sz,model,label,gr_i)
-//
-//endfunction
-
-//  function model = scicos_model(sim,..
-//			in,..
-//			in2,..
-//			intyp,..
-//			out,..
-//			out2,..
-//			outtyp,..
-//			evtin,..
-//			evtout,..
-//			firing,..
-//			state,..
-//			dstate,..
-//			odstate,..
-//			rpar,..
-//			ipar,..
-//			opar,..
-//			blocktype,..
-//			dep_ut,..
-//			nzcross,..
-//			nmode )
-//			
-//			model.sim=sim,..
-//			model.in=in,..
-//			model.in2=in2,..
-//			model.intyp=intyp,..
-//			model.out=out,..
-//			model.out2=out2,..
-//			model.outtyp=outtyp,..
-//			model.evtin=clkinput,..
-//			model.evtout=clkoutput,..
-//			model.firing=firing,..
-//			model.state=x,..
-//			model.dstate=Z,..
-//			model.odstate=odstate,..
-//			model.rpar=rpar,..
-//			model.ipar=ipar,..
-//			model.opar=opar,..
-//			model.blocktype='c',..
-//			model.dep_ut=dep_ut,..
-//			model.nzcross=nzcross,..
-//			model.nmode=nmode           
-//			
-//  endfunction
 
   function [model,graphics,ok]=check_io(model,graphics,in,out,clkin,clkout,in_implicit,out_implicit)
     // no actual check, just a copy into the model structure
@@ -262,27 +215,82 @@ endfunction
     x.b = b; // model
     x.c = c; // exprs
     x.d = d;
+
+    x.a =  a;
+    x.model = b; // model
+    x.graphics.exprs = c; // exprs
+    x.d = d;
   endfunction
 
+  if (flag == 'usecachefile') then
+      [lhs,rhs]=argn(0);
+      if rhs >= 3 then
+        try
+          load(cachefile);  // ideally results in a new variable X, which is a structure
+          printf("Using cachefile %s\n", cachefile);
+          
+          cosblk = X.model;
+          cosblk.timestamp = getdate();
+          cosblk.blockname = blockname;
 
+        catch
+          1;
+        end
+        1;
+      else
+        error("No cachefile was specified");
+      end
 
+      
+  end
+  
   if (flag == 'rundialog') then
   
+    // overwrite a potenially already available X, which does not belong this code.
+    X=0; // make typeof X to be constant
   
-    definecommand = "" + blockname + "(job=''define'',arg1=0,arg2=0);";
-    X = eval(definecommand);
-    cosblk = X.b;
+    // check for cached cosblk
+      [lhs,rhs]=argn(0);
+      if rhs >= 3 then
+        try
+          load(cachefile);  // ideally results in a new variable X, which is a structure
+          printf("Using cachefile %s\n", cachefile);
+        catch
+          1;
+        end
+        1;
+      end
+      
+    // if not available, call standard_define
+    if (typeof(X) == 'constant') then // no new X was loaded, call macro for default values
+      printf("loading block''s standard parameters\n");
+    
+      definecommand = "" + blockname + "(job=''define'',arg1=0,arg2=0);";
+      X = eval(definecommand);
+//       cosblk = X.b;
+    end
 
+    
 
-    arg1.graphics.exprs = X.c;
-    arg1.model = cosblk;
+//     arg1.graphics.exprs = X.graphics.exprs;
+    arg1.graphics = X.graphics;
+    arg1.model = X.model;
     definecommand = "" + blockname + "(job=''set'',arg1,arg2=0);";
     X = eval(definecommand);
 
-
+    
     cosblk = X.model;
     cosblk.timestamp = getdate();
     cosblk.blockname = blockname;
+    
+    // check for cached cosblk
+    [lhs,rhs]=argn(0) 
+    if rhs >= 3 then
+      printf("Saving cachefile %s\n", cachefile);
+      save(cachefile, X);
+    end
+      
+
   end
 //  clear X;
 
@@ -298,9 +306,15 @@ function cosblk=ortd_getcosblk(blockname, pathtoscifile)  // PARSEDOCU_BLOCK
   // pathtoscifile - The interfacing function macro (a *.sci file)
   //
 
+  
+  // check if pathtoscifile is a function
 
   //exec(blockname + '_c.sci');
-  exec(pathtoscifile);
+//   if (typeof(pathtoscifile) == 'string') then
+   if pathtoscifile ~= "" then
+     exec(pathtoscifile);
+   end
+//   end
 
   function model = scicos_model(sim,..
 			in,..
