@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "stdio.h"
+#include <sys/time.h>
 
 
 
@@ -46,7 +47,17 @@ void scicos_free(void *p)
 
 double get_scicos_time()
 {
-  return 0.0;
+  
+  struct timeval mytime;
+  struct timezone myzone;
+
+  gettimeofday(&mytime, &myzone);
+  double usTos = 1/1000000.0;
+  double scicostime = (mytime.tv_sec+mytime.tv_usec * usTos );
+  
+//   printf("scicos time %f\n", scicostime);
+  
+  return scicostime;
 }
 
 void do_cold_restart()

@@ -11,8 +11,10 @@ void ORTD_scicos_compfn_list_register(char *name, void *compfnptr)
   
   std::string name__(name);
   
+#ifdef DEBUG
   std::cout << "Registering scicos block " << name__ << "\n";
   printf("ptr is %p\n", compfnptr);
+#endif
   
   
 /*  int (*compfn)(void * block, int flag);
@@ -28,13 +30,17 @@ void *scicos_compfn_list_find(char *name)
 {
   std::string name__(name);
   
+// #ifdef DEBUG
   std::cout << "Searching for scicos block " << name__ << "\n";
+// #endif
+
   
+  // FIXME: what heppens if the block was not found?
   scicos_compfn_mapT::iterator it;
   it = scicos_compfn_list.find(name__);
   
   void *compfnptr = it->second;
-  printf("found %p\n", compfnptr);
+//   printf("found %p\n", compfnptr);
   
   return compfnptr;
 }
