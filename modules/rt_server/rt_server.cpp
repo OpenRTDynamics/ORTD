@@ -964,7 +964,9 @@ void rt_server_threads_manager::destruct()
 
 
     if (mainloop_thread_started) {
+#ifdef DEBUG
         printf("rt_server: Trying to kill tcp accept thread\n");
+#endif
         pthread_kill( mainloop_thread, SIGUSR1 );
 //        this->mainlook_rendevous_start(NULL); // signal the main loop thread for its termination
 
@@ -986,7 +988,7 @@ void rt_server_threads_manager::destruct()
     client_list.clear();
 
     // FIXME Close sockets; Was ist das
-    printf("delete something\n");
+//     printf("delete something\n");
 //   iohelper->destruct();
     delete iohelper;
 

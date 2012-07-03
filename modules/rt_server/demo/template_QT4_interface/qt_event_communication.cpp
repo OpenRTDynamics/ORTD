@@ -43,7 +43,9 @@ void qt_event_communication::handle_data(std::string DataFromTcpLine)
             //printf("v = %f, %f, %f, %f, %f\n", data[0] / 100, data[1], data[2] / 1000, data[3], data[4] / 4);
 
             double ref = data[0] / 100;
-            double y = data[1];
+            // double y = data[1];
+
+            double y = 0;
 
             scope_ref_data->setScopeValue(ref, 0);
             scope_ref_data->setScopeValue(y, 1);
