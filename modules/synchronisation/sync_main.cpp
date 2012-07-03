@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <time.h>
+#include <sys/time.h>
 #include <sched.h>
 #include <signal.h>
 #include <unistd.h>
@@ -298,6 +299,88 @@ int compu_func_synctimer(int flag, struct dynlib_block_t *block)
     }
 }
 
+
+
+
+int ortd_compu_func_clock(int flag, struct dynlib_block_t *block)
+{
+// printf("comp_func flipflop: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 0;
+
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int tmp = ipar[0];
+
+    
+
+    double *output;
+
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+	struct timeval mytime;
+        struct timezone myzone;
+
+	gettimeofday(&mytime, &myzone);
+	double usTos = 1/1000000.0;
+	double time = (mytime.tv_sec+mytime.tv_usec * usTos );
+	
+	*output = time;
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        //printf("New flipflop Block\n");
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        libdyn_set_work_ptr(block, (void *) NULL);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a clock readout block.\n");
+        return 0;
+        break;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // Export to C so the libdyn simulator finds this function
 extern "C" {
     // ADJUST HERE: must match to the function name in the end of this file
@@ -311,7 +394,10 @@ int libdyn_module_synchronisation_siminit(struct dynlib_simulation_t *sim, int b
     // Register my blocks to the given simulation
 
     int blockid = 15100;  // CHANGE HERE: choose a unique id for each block
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_synctimer);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_synctimer);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ortd_compu_func_clock);
+    
+    
 
     printf("libdyn module sync initialised\n");
 
