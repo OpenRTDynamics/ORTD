@@ -3,9 +3,11 @@
 #include "nested_onlineexchange.h"
 #include <libdyn_cpp.h>
 
-nested_onlineexchange::nested_onlineexchange(const char* identName, libdyn_nested2* simnest)
+nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* simnest)
 {
   this->identName = identName;
+   
+  
   this->simnest = simnest;
   this->current_irdata = NULL; // HISTORY: Here was a very stupid bug: it was == insted of = . Fixed on 20.6.2012
   
@@ -24,7 +26,7 @@ nested_onlineexchange::nested_onlineexchange(const char* identName, libdyn_neste
      
   }
     
-  dtree->add_entry((char*) identName, ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this, this);
+  dtree->add_entry((char*) this->identName.c_str(), ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this, this);
   
 //   fprintf(stderr, "nested_onlineexchange created. this=%p current_irdata=%p\n", this, current_irdata);
 }
@@ -92,17 +94,25 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 
 nested_onlineexchange::~nested_onlineexchange()
 {
-  fprintf(stderr, "Destroying nested_onlineexchange for %s\n", identName);
+  fprintf(stderr, "Destroying nested_onlineexchange for %s\n", identName.c_str());
   
   directory_tree *dtree = ldmaster->dtree;
-  dtree->delete_entry((char*) identName);
+  dtree->delete_entry((char*) identName.c_str());
   
   if (this->current_irdata != NULL) {
+#ifdef DEBUG
     fprintf(stderr, "Running delete this->current_irdata  ptr=%p\n", this->current_irdata); 
+#endif
     delete this->current_irdata; 
+    this->current_irdata = NULL;
+    
+    fprintf(stderr, "Sucessfully destroyed nested_onlineexchange for %s\n", identName.c_str());
+  } else {
+    fprintf(stderr, "Could not find %s\n", identName.c_str());
   }
+    
   
-  fprintf(stderr, "Sucessfully destroyed nested_onlineexchange for %s\n", identName);
+  
 }
 
 

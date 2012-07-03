@@ -223,7 +223,7 @@ template <class compute_instance> background_computation<compute_instance>::back
 
     int rc = pthread_create(&thread, NULL, &background_computation<compute_instance>::start_thread, (void *) this);
     if (rc) {
-        printf("ERROR; return code from pthread_create() is %d\n", rc);
+        fprintf(stderr, "ERROR; return code from pthread_create() is %d\n", rc);
     }
 
 
@@ -239,7 +239,7 @@ template <class compute_instance> background_computation<compute_instance>::~bac
 
     join_computation();
 
-    printf("background computer: joinined\n");
+    fprintf(stderr, "background computer: joinined\n");
 
 
     pthread_mutex_destroy(&mutex);
@@ -341,7 +341,9 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
     // do
      
      if (asynchron_simsteps == 1) {
+#ifdef DEBUG
        fprintf(stderr, "async_nested: running computer in single mode\n");
+#endif
        sim->simulation_step(0);
        sim->simulation_step(1);
        
@@ -350,17 +352,23 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
      }
      
      if (asynchron_simsteps == 2) {
-//         fprintf(stderr, "async_nested: running computer in endless mode\n");
+#ifdef DEBUG
+         fprintf(stderr, "async_nested: running computer in endless mode\n");
+#endif
 	
 	do { // the simulation synchronises itselft to something
-//           fprintf(stderr, "async_nested: another run\n");
+#ifdef DEBUG
+           fprintf(stderr, "async_nested: another run\n");
+#endif
 
 	  sim->event_trigger_mask(1);
 	  
           sim->simulation_step(0);	  
 
 	  if (sim->check_pause()) {
-// 	    fprintf(stderr, "async_nested: leaving\n");
+#ifdef DEBUG
+ 	    fprintf(stderr, "async_nested: leaving\n");
+#endif
 	    break;
 	  }
 
@@ -382,7 +390,9 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 
 
 
-//      fprintf(stderr, "async_nested: finished\n");
+#ifdef DEBUG
+      fprintf(stderr, "async_nested: finished\n");
+#endif
 }
 
 
@@ -649,7 +659,9 @@ void compu_func_nested_class::io_async(int update_states)
 //         printf("starting comp = %f\n", *comptrigger_inp);
 
         if (*comptrigger_inp > 0.5) {
+#ifdef DEBUG
 	    fprintf(stderr, "Trigger computation\n");
+#endif	    
             this->async_comp_mgr->computeNSteps(asynchron_simsteps);
         }
 
@@ -713,9 +725,13 @@ void compu_func_nested_class::reset()
 {
     if (async_comp == false) {
       simnest->reset_blocks();
-//       fprintf(stderr, "Resetting sync simnest\n");
+#ifdef DEBUG
+      fprintf(stderr, "Resetting sync simnest\n");
+#endif      
     } else {
-//        fprintf(stderr, "Resetting async\n");
+#ifdef DEBUG
+        fprintf(stderr, "Resetting async\n");
+#endif      
        async_comp_mgr->reset();     
     }
 }
@@ -728,17 +744,23 @@ void compu_func_nested_class::destruct()
         pthread_mutex_destroy(&this->output_mutex);
     }
 
-    if (exchange_helper != NULL) {
-      fprintf(stderr, "compu_func_nested_class: delete exchange helper for %s\n", nested_sim_name);
-      delete exchange_helper;      
-    }
 
     // exchange_helper depends on nested_sim_name
     if (this->nested_sim_name != NULL)
       free(this->nested_sim_name);
     
+     simnest->destruct();   // HERE WAS A BUG solved at 2.7.12: both lines were flipped  and the exchange_helper was deleted before this!
     delete simnest;
-    simnest->destruct();
+
+    // do this AFTER simnest has been destroyed because its potentially deletes the managed irpar data
+    if (exchange_helper != NULL) {
+#ifdef DEBUG
+      fprintf(stderr, "compu_func_nested_class: delete exchange helper for %s\n", nested_sim_name);
+#endif      
+      delete exchange_helper;      
+    }
+    
+  
 }
 
 void compu_func_nested_class::lock_output()
