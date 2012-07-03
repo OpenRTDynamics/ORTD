@@ -392,7 +392,8 @@ function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
              error("Incorrect port sizes");
       end
     catch 
-        error("There was an error concerning the portsize checking. Maybe an interfacing function maldefined some input / output sizes\n");
+        error("There was an error concerning the portsize checking. Check wheter you are connection to much input ports to a block. If not, also an interfacing function could have maldefined some input / output sizes\n");
+        
     end
     
   end    
@@ -401,11 +402,16 @@ function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
       // test for port sizes is possible -- otherwise the interpreter lib has to check
       
   //    printf("checking port types\n");
-      
+    try      
       if src.outsizes(src_port+1) ~= dst.insizes(dst_port+1) then
          printf("Error connecting port types %d --> %d\n", src.outtypes(src_port+1) , dst.intypes(dst_port+1) );
              error("Incorrect port types");
       end
+    catch 
+        error("There was an error concerning the porttypes checking. Check wheter you are connection to much input ports to a block. If not, also an interfacing function could have maldefined some input / output sizes\n");
+        
+    end
+      
   end    
 
   
