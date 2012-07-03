@@ -27,7 +27,7 @@ cd(thispath);
 //
 
 sinamp = 1;
-sinofs = 3;
+sinofs = 2;
 
 
 z = poly(0,'z');
@@ -66,6 +66,7 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
   [sim] = ld_printf(sim, ev, in=input1, str="Hello, I''m the new simulation. My input is", insize=1);
   [sim] = ld_printf(sim, ev, in=input1, str="****** This is another printf loaded at runtime ******", insize=1);
  
+  [sim] = ld_printf(sim, ev, in=input1, str="* Something added ****", insize=1);
       
 
 //  [sim, output] = ld_gain(sim, ev, input1, 2); // 
