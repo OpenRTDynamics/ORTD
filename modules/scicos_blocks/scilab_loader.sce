@@ -213,15 +213,15 @@ endfunction
   function x=standard_define( a, b, c, d )
     x.a =  a;
     x.b = b; // model
-    x.c = c; // exprs
+    x.c = c(:); // exprs
     x.d = d;
 
     x.a =  a;
     x.model = b; // model
-    x.graphics.exprs = c; // exprs
+    x.graphics.exprs = c(:); // exprs
     x.d = d;
   endfunction
-
+  
   if (flag == 'usecachefile') then
       [lhs,rhs]=argn(0);
       if rhs >= 3 then
