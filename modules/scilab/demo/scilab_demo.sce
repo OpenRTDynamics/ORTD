@@ -96,7 +96,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
 // The nicer interface
 
-  [sim, out] = ld_scilab2(sim, defaultevents, in=u1, comp_fn=sample_comp_fn, include_scilab_fns=list(), scilab_path="/home/chr/scilab/scilab-5.3.3/bin/scilab");
+  [sim, out] = ld_scilab2(sim, defaultevents, in=u1, comp_fn=sample_comp_fn, include_scilab_fns=list(), scilab_path="BUILDIN_PATH");
 
   // save result to file
 //  [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", out);
