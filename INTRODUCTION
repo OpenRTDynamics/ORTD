@@ -1,6 +1,11 @@
 The Real Time Dynamics Toolbox is a noval approach to the implementation of block / signal based schematics, commonly used in control engineering and signal processing, for realtime usage (like Real-Time Workshop® or Scicos Code Generation). It is suitable to create time discrete implementations, like one would do in Scicos or Simulink, within Scilab-scripts (Matlab like) by using the toolbox functions. This enables the programmer to create well structured code which integrates design and implementation in one place and also enables functional and object orientated design schemes. The latter makes it possible to reuse parametrised functionality that may also change in its structure based on parametrisation.
 
-The creation of the implementation doesn't involve source code compilation steps and therefore can be easily integrated into other simulation frameworks e.g. Scicos or used within other software by including a shared library.
+The actual generation process (which would be equivalent to code generation in Scicos/Simulink) of the implementation doesn't involve source code generation / compilation steps and therefore does not rely on having compilers for the target system to be installed on the development computer. Having Scilab along the installed toolbox is sufficient for designing implementations. 
+
+Further, ORTD can be easily integrated into other simulation frameworks e.g. Scicos or used within other software by including a shared library.
+
+
+
 
 The latestest versions include highly advanced features like
 
@@ -26,8 +31,16 @@ UPDATES
 28.3.2012 - Updated the slides.
 8.6.2012 - Updated the slides.
 
-The newest version is found in subversion and can be installed by a graphical userinterface via pasting
 
-wget openrtdynamics.sf.net/getit.sh -O - | bash
+The newest version is found in subversion and can be installed by a graphical 
+userinterface via pasting
 
-into your Terminal on Linux (See http://openrtdynamics.sourceforge.net/bigace/public/index.php?cmd=smarty&id=6_len).
+  sudo apt-get install g++ make subversion
+
+and 
+
+  wget openrtdynamics.sf.net/getit.sh -O - | bash
+
+into your Terminal on Linux. (See http://openrtdynamics.sourceforge.net/bigace/public/index.php?cmd=smarty&id=6_len).
+
+For further information please read the README file.

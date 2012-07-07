@@ -1,35 +1,50 @@
 
-OpenRTDynamics v0.99h -- Real Time Dynamics Toolbox suitable for
-                         implementing time discrete controllers 
-                         using block schematics similar to to 
-                         Simulink or Scicos. 
+OpenRTDynamics v0.99h -- Real Time Dynamics Toolbox - A framework
+                         for implementation of real-time controllers
+                         or signal processing algorithms.
 
                          (openrtdynamics.sf.net)
 
 
-OS Dependency
+OS DEPENDENCY
 -------------
 
 - Linux. Maybe other UNIX-like.
-- Just requires libpthreads besides the standard C/++ - libraries
+- Also compiles on the armv7l / Linux platform (Beaglebone, maybe others)
+- Just requires libpthreads besides the standard C++ - libraries
 - Shouldn't be a problem to port to other OS
   or even embedded systems
 
-License
+LICENSE
 -------
 
 LGPL, see COPYING / COPYING.LESSER
 
-Requirements
+REQUIREMENTS
 ------------
 
-Scilab 5 or above. The toolbox will only load with Scilab 5.3.0 at the moment 
-                   (maybe a builder.sce problem?)
-Scilab 4.1.2 also works, but the toolbox will not load. Manually loading
-             the *sci is required.
+Scilab 5.3. or above. It will can be automatically installed via the grapical installer.
 
-Compile / Install
------------------
+INSTALLATION (GRAPHICAL INSTALLATION)
+-------------------------------------
+
+The newest version is found in subversion and can be installed by a graphical 
+userinterface via pasting
+
+  sudo apt-get install g++ make subversion
+
+and 
+
+  wget openrtdynamics.sf.net/getit.sh -O - | bash
+
+into your Terminal on Linux. You should also install scilab if you're
+asked.
+
+
+COMPILATION / INSTALLATION (normal PC x86/amd64)
+------------------------------------------------
+
+If you used the grapical installer this might not be neccessary.
 
 Run "make" followed by "make install" on 32/64 Linux platforms
 
@@ -54,16 +69,45 @@ Cleaning up is done via
 This should be executed when compiling and updated version from subversion.
 
 
+
+INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
+--------------------------------------------------------------------------------
+
+1) Install Ubuntu 12.04
+2) sudo apt-get update
+3) sudo apt-get install subversion g++ make
+3b) sudo apt-get install scilab  # optional
+4) cd
+5) svn co https://openrtdynamics.svn.sf.net/svnroot/openrtdynamics/trunk   # get latest version from subversion
+6) cd trunk
+7) make clean; make; make install    # Compiles ORTD from source
+
+
+In order to develop schematics ,you can prepare them on your PC using Scilab and the 
+installed Toolbox and upload the *.[i,r]par files to your Beaglebone, where they get 
+executed. For this it is suggested to use some file transfer protocoll like SFTP to 
+upload files. You can install the ssh-server on your Beaglebone using
+
+$ sudo apt-get install openssh-server .
+
+Then you can connect via Gnome "Connect to server" or whatever you like. For directly 
+storing your whole project on the Beaglebone Filesystem you can also investigate 
+the "~/.gvfs" folder and use it to edit / execute scilab files directly on your PC, 
+whereby the files are stored on your Beaglebone. By this you would not copy the 
+irpar-files by hand everytime.
+
+
+
 TARGET CONFIGURATION
 --------------------
 
 The following targets can be choosen before compilation within target.conf:
 
 1) RTAI_COMPATIBLE (default, runns within RTAI; Plugins are disabled)
-2) LINUX
+2) LINUX (if you do not want to have compatibility for the RTAI-realtime OS)
 3) CYGWIN (soon)
 
-HART-Module installation
+HART-Module INSTALLATION
 ------------------------
 
 Link hart/hart_ortd to the modules/ directory of your HART-Toolbox. 
@@ -73,22 +117,33 @@ Link hart/hart_ortd to the modules/ directory of your HART-Toolbox.
 WARNING: Do not make a copy -- otherwise some header files are not found
          during compilation.
 
-Tools
+TOOLS
 -----
 
 - libdyn_generic_exec
     executes schematics in realtime (rt_preempt) OR as fast as possible
-    Schematics are getting some dummy in and outputs
+    Schematics are getting some dummy in and outputs, but should not be
+    used.
+
     type "libdyn_generic_exec --help" for help
 
-List of provided blocks
+LIST OF PROVIDED BLOCKS
 -----------------------
 
 Have a look at documentation/List_of_Module_Blocks.txt.
 It is an automatically generated list of available blocks.
 
+In Scilab try "help ld_gain" to get into the help folders for ORTD.
 
-Modules
+INCLUDING YOUR HARDWARE 
+-----------------------
+
+Hardware can be added via new blocks by the plugin interface or by adding your own 
+module in the modules/ folder. Use the template module for this as a starting point. 
+For an example on plugins, please have a look at examples/plugin_example. For using
+plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
+
+MODULES
 -------
 
 Modules are placed within the modules subdirectory. For now, you will find the
@@ -236,5 +291,8 @@ v0.99h ( ... )
   - run external processes and terminate them by the end of the simulation (module ext_process)
   - Global shared object class
   - Scilab help documentation
+  - Again fixed to online replaceable schematics. Now it runns smooth.
+  - A nicer interface for Scilab, which looks very much like the Scicos Generic Block
+    or a Matlab S-function.
   
   

@@ -24,3 +24,4 @@
    or
    # sh sh_runoscillator_realtime
 
+.) have a look at INTRODUCTION and REAME files
