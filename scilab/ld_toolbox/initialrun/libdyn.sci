@@ -770,10 +770,16 @@ function [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsiz
    
    // check the number of provided outputs
    if (length(outsizes) > length(outlist)) then
+      printf("libdyn: config for I/O: Your function provides %d outports and %d inports\n", length(outlist), length(inlist)  );
+      printf("configured was\n");
+      disp(outsizes); disp(insizes);
       error("libdyn: libdyn_setup_schematic: your function did not provide enough outputs");
    end
    
    if (length(outsizes) < length(outlist)) then
+      printf("libdyn: config for I/O: Your function provides %d outports and %d inports\n", length(outlist), length(inlist)  );
+      printf("configured was\n");
+      disp(outsizes); disp(insizes);
       error("libdyn: libdyn_setup_schematic: your function provides too much outputs");
    end
 
@@ -801,6 +807,17 @@ function [sim_container_irpar, sim, userdata] = libdyn_setup_sch2(fn, insizes, o
 // the same as libdyn_setup_schematic but userdata is feed to the schematic fn
 // as well as returned and intypes and outtypes are now reserverd, but not used at the moment
 
+// DEBUG
+try
+  if (ORTDdebug == 1) then
+    printf("In libdyn_setup_sch2\n");
+    pause;
+  end
+catch
+ 1;
+end
+
+
    Ninports = length(insizes);
    Noutports = length(outsizes);
 
@@ -826,24 +843,34 @@ function [sim_container_irpar, sim, userdata] = libdyn_setup_sch2(fn, insizes, o
    // It will fill in sim
 
    [sim, outlist, userdata] = fn(sim, inlist, userdata);
+//    printf("outlist:\n"); disp(outlist);
+   
    
    // check the number of provided outputs
    if (length(outsizes) > length(outlist)) then
+      printf("libdyn: config for I/O: Your function provides %d outports and %d inports\n", length(outlist), length(inlist)  );
+      printf("configured was\noutsizes:\n");
+      disp(outsizes); printf("insizes: \n"); disp(insizes);
       error("libdyn: libdyn_setup_schematic: your function did not provide enough outputs");
    end
    
    if (length(outsizes) < length(outlist)) then
+      printf("libdyn: config for I/O: Your function provides %d outports and %d inports\n", length(outlist), length(inlist)  );
+      printf("configured was\noutsizes:\n");
+      disp(outsizes); printf("insizes: \n"); disp(insizes);
       error("libdyn: libdyn_setup_schematic: your function provides too much outputs");
    end
 
    // connect outputs
    for i = 1:length(outsizes);
-//       if exists(outlist(i)) then
-//           1; // ok
-//       else
-//           error("libdyn: libdyn_setup_schematic: yout function did not provide enough outputs");
-//       end
-     sim = libdyn_connect_outport(sim, outlist(i), i-1);
+
+//      try
+
+       sim = libdyn_connect_outport(sim, outlist(i), i-1);
+       
+//      catch
+//        printf("Error while libdyn_connect_outport\n");        
+//      end
    end
   
   

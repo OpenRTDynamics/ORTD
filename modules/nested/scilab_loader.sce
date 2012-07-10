@@ -759,8 +759,8 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
 //  input1 = inlist(1);
   
   
-  // a zero
-  [sim, zero] = ld_const(sim, ev, 0);
+//   // a zero
+//   [sim, zero] = ld_const(sim, ev, 0);
 
  // printf("Defining a replaceable controller\n");
 
@@ -782,7 +782,7 @@ function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
 
 
 
-  outlist = list(zero);
+//   outlist = list(zero);
 endfunction
 
   [sim,zero] = ld_const(sim, ev, 0);
@@ -796,7 +796,7 @@ endfunction
   // Here the controller is nested, which can be replaced online
   //
 
-        [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev=[ ev ] , ...
+        [sim, outlist_42342, computation_finished, userdata] = ld_simnest2(sim, ev=[ ev ] , ...
                        inlist, ...
                        insizes, outsizes, ...
                        intypes, ...
@@ -836,5 +836,10 @@ endfunction
          // computation_finished is one, when finished else zero
 
          replaced = computation_finished; // FIXME and successful
+         
+         // The output list() of the nested schematic
+         outlist = outlist_42342;
+         
+         
 endfunction
 

@@ -703,7 +703,7 @@ int compu_func_constvec(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CALCOUTPUTS:
         out = (double *) libdyn_get_output_ptr(block,0);
 
-        memcpy((void*) out, (void*) vec, veclen*sizeof(double) );
+         memcpy((void*) out, (void*) vec, veclen*sizeof(double) );
 
         return 0;
         break;

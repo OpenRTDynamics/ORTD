@@ -18,7 +18,8 @@
 */
 
 #include <malloc.h>
-
+#include <sched.h>
+ 
 extern "C" {
 
 #include "libdyn_scicos_macros.h"
@@ -137,6 +138,8 @@ template <class compute_instance> void background_computation<compute_instance>:
     signal = sig;
     pthread_mutex_unlock(&mutex);
     pthread_cond_signal(&cond); // Notify reader thread
+    
+    sched_yield();
 
 }
 
