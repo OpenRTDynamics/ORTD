@@ -119,11 +119,11 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 #
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	echo "Static binary is disabled"
-	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static
+	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static 
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD) $(LDFLAGS)  libdyn_generic_exec.o -L. -lortd `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec
+	$(LD) $(LDFLAGS)  libdyn_generic_exec.o -L. -lortd `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec  -Wl,-R,'$$ORIGIN/:$$ORIGIN/lib'
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
