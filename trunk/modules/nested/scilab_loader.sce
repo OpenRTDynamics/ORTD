@@ -43,6 +43,20 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
   N3 = length(intypes);
   N4 = length(outtypes);
 
+  // check input signals for correctness
+  try 
+    libdyn_check_object(sim, switch_signal);
+  catch
+    error("Input signal switch_signal is not correct");
+  end
+
+  try
+    libdyn_check_object(sim, reset_trigger_signal);
+  catch
+    error("Input signal reset_trigger_signal is not correct");
+  end
+    
+  
   // check for sizes
   // ...
   if (length(inlist) ~= N1) then
@@ -128,7 +142,12 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
   end
 
   // connect all inputs
-  [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
+  printf("ld_simnest: connection of inputs\n");
+  try
+    [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
+  catch
+    error("ld_simnest: One of the input signals in inlist could not be connected");
+  end
  
   // connect all outputs
   Noutp = length(outsizes);
