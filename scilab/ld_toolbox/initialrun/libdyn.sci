@@ -176,11 +176,13 @@ endfunction
 // Check wheter the object given by the user is part of the given simulation
 function libdyn_check_object(sim,obj) 
   if libdyn_is_ldobject(obj) == %F then
-    error("The given variable is no libdyn object");
+    printf("The given variable is no libdyn object");
+    error("");
   end
 
   if obj.simid ~= sim.simid then
-    error("Object does not belong to this simulation");
+    printf("Object does not belong to this simulation");
+    error("");
   end
 endfunction
 
@@ -352,7 +354,7 @@ function [blk, port] = libdyn_deref_porthint(sim, obj)
       catch
         printf("The signal identifier highleveloid (Object ID of a block) = %d is not known to the internal list\n", highoid);
         printf("Propably you forgot the >sim< in [sim,obj] = ...\n");
-        error(".");
+        error("");
       end
 endfunction
 
@@ -367,7 +369,8 @@ endfunction
 // src_port and dst_port are integers used as index. counting starts from 0
 function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
   if src.magic ~= 678234 | dst.magic ~= 678234 then
-    error("bad block magic!");
+    printf("bad block magic!");
+    error("");
   end
   libdyn_check_object(sim,src);
   libdyn_check_object(sim,dst);
@@ -389,11 +392,12 @@ function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
       
       if src.outsizes(src_port+1) ~= dst.insizes(dst_port+1) then
          printf("Error connecting port sizes %d --> %d\n", src.outsizes(src_port+1) , dst.insizes(dst_port+1) );
-             error("Incorrect port sizes");
+         printf("Incorrect port sizes");
+         error("");
       end
     catch 
-        error("There was an error concerning the portsize checking. Check wheter you are connection to much input ports to a block. If not, also an interfacing function could have maldefined some input / output sizes\n");
-        
+        printf("There was an error concerning the portsize checking. Check wheter you are connection to much input ports to a block. If not, also an interfacing function could have maldefined some input / output sizes\n");
+        error("");
     end
     
   end    
@@ -405,10 +409,12 @@ function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
     try      
       if src.outsizes(src_port+1) ~= dst.insizes(dst_port+1) then
          printf("Error connecting port types %d --> %d\n", src.outtypes(src_port+1) , dst.intypes(dst_port+1) );
-             error("Incorrect port types");
+         printf("Incorrect port types");
+         error("");
       end
     catch 
-        error("There was an error concerning the porttypes checking. Check wheter you are connection to much input ports to a block. If not, also an interfacing function could have maldefined some input / output sizes\n");
+        printf("There was an error concerning the porttypes checking. Check wheter you are connection to much input ports to a block. If not, also an interfacing function could have maldefined some input / output sizes\n");
+        error("");
         
     end
       
@@ -425,7 +431,8 @@ endfunction
 // Connection to external inputs
 function sim = libdyn_connect_extern_in(sim, src_port, dst, dst_port)
   if dst.magic ~= 678234 then
-    error("bad block magic!");
+    printf("bad block magic!");
+    error("");
   end
   libdyn_check_object(sim,dst);
 
@@ -438,7 +445,8 @@ function sim = libdyn_connect_extern_in(sim, src_port, dst, dst_port)
       
       if sim.insizes(src_port+1) ~= dst.insizes(dst_port+1) then
          printf("Error connecting port sizes %d --> %d\n", sim.insizes(src_port+1) , dst.insizes(dst_port+1) );
-             error("Incorrect port sizes for simulation inputs");
+         printf("Incorrect port sizes for simulation inputs");
+         error("");
       end
   end    
 
@@ -463,7 +471,8 @@ function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
      // A normal block
       
     if src.magic ~= 678234 then
-      error("bad block magic!");
+      printf("bad block magic!");
+      error("");
     end
    
     // test port sizes and types
@@ -477,7 +486,8 @@ function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
 
       if src.outsizes(src_port+1) ~= sim.outsizes(dst_port+1) then
           printf("Error connecting port sizes %d --> %d\n", src.outsizes(src_port+1) , sim.outsizes(dst_port+1) );
-          error("Incorrect port sizes for simulation outputs");
+          printf("Incorrect port sizes for simulation outputs");
+          error("");
       end
     end    
   
@@ -528,6 +538,11 @@ function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
     return; // nothing to do
   end
 
+  
+ 
+
+
+
   Nin_times2_ = length(input_list); // Anzahl Inputs in input_list * 2
   dport = 0; // start with first port
   
@@ -538,11 +553,17 @@ function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
     if (type(input_list(i)) == 17) then // FIXME Weiter überprüfen, ob es ein gültiger objecttype ist
       //printf("Ein object i=%d\n",i);
     else
-      error("unexpected entry in input_list (No libdyn object found)\n");
+      printf("Unexpected entry in input_list position %d (No libdyn object found)\n", i/2);      
+      error("");
     end
     
-    sblk = input_list(i);
-    libdyn_check_object(sim,sblk);
+    try
+      sblk = input_list(i);
+      libdyn_check_object(sim,sblk);
+    catch
+      printf("Unexpected entry in input_list position %d (No libdyn object found, or one that does not belong to the given simulation)\n", i/2);
+      error("");    
+    end
 
     
     // Check what kind of object sblk is
@@ -551,7 +572,8 @@ function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
     if (sblk.objecttype == 0 | sblk.objecttype == 1 | sblk.objecttype == 2) then
       sport = input_list(i+1); // hier müsste ein skalar (portnummer) anliegen
       if (type(sport) ~= 1) then
-        error("unexpected entry - I expected a port num\n");        
+         printf("unexpected entry - I expected a port num\n");        
+         error("");
       end    
       i=i+2; // Eins weiter in der parameter list; source portinformation überspringen
       
@@ -606,35 +628,13 @@ function [sim, output] = libdyn_conn_equation(sim, dblk, input_list)
     
     
     if CheckSuccess == 0 then
-      error("libdyn_conn_equation: unknown libdyn objecttype in input_list\n");
+      printf("libdyn_conn_equation: unknown libdyn objecttype in input_list\n");
+      error("");
     end
 
     
     // Jetzt steht "sblk" und "sport" zur Verfügung
-    
-    
-//    // Untersuche, ob dblk oder sblk superblöcke sind, Wenn ja den dahintersteckenden Block auslesen
-//    // und sblk oder dblk überschreiben (EXPERIMENTAL)
-//    
-//    if sblk.objecttype == 2 then // Quelle ist ein Superblock
-//      new_sblk = sblk.super_outobjs(sport*2 + 1); // Lese den Block der für den Superblockausgang verantwortlich ist
-//      new_sport = sblk.super_outobjs(sport*2 + 2);
-//      
-//      printf("Substituted a superblock out with block %d\n", new_sblk.oid);
-//      
-//      sblk = new_sblk;
-//      sport = new_sport;
-//    end
-//    
-//    if dblk.objecttype == 2 then // Ziel ist ein Superblock
-//      new_dblk = dblk.super_inobjs(dport*2 + 1); // Lese den Block der für den Superblockeingang verantwortlich ist
-//      new_dport = dblk.super_inobjs(dport*2 + 2);
-//
-//      printf("Substituted a superblock in with block %d\n", new_sblk.oid);
-//
-//      dblk = new_dblk;
-//      dport = new_dport;
-//    end
+        
 
     // Verbinde: Entweder zu Externem Input oder zu anderem Block; noop für feeback
     
