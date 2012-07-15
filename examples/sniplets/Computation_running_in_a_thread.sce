@@ -14,6 +14,9 @@ function [sim, outlist] = ilc_run_calculation_fn(sim, inlist)
     
   inputv = inlist(1);
 
+  [sim, zero] = ld_const(sim, events, 0);
+
+
   [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
 
   //
@@ -22,9 +25,6 @@ function [sim, outlist] = ilc_run_calculation_fn(sim, inlist)
   
   [sim, dummyin] = ld_const(sim, defaultevents, 1);
 
-  // Scilab commands
-
-//  init_command = " exec(" + char(39) + "online_estimation/init.sce" + char(39) + "); ";    // execute an sce-file
 
   init_command = "";
   exec_command = " scilab_interf.outvec1 = 1:10  ";
@@ -43,7 +43,8 @@ function [sim, outlist] = ilc_run_calculation_fn(sim, inlist)
   compready = out__(1); //   
 
 
-  // [sim, result] = ld_constvec(sim, defaultevents, 1:10);
+  [sim, result] = ld_constvec(sim, defaultevents, 1:10);
+
 
 
   // output of schematic
@@ -52,9 +53,9 @@ endfunction
 
 
 
-#
-# To be included into an state machine
-#
+//
+// To be included into an state machine
+//
 
 
         // input should be a signal vector of size 10
