@@ -2507,7 +2507,7 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
 
     int size = ipar[0];
     int findmax = ipar[1];
-    int Nout = 1;
+    int Nout = 2;
     int Nin = 1;
 
     double *in;
@@ -2517,10 +2517,12 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CALCOUTPUTS:
     {
         in = (double *) libdyn_get_input_ptr(block,0);
-        double *out = (double *) libdyn_get_output_ptr(block, 0);
+        double *minmax_index = (double *) libdyn_get_output_ptr(block, 0);
+	double *minmax_value = (double *) libdyn_get_output_ptr(block, 1);
 
         int i;
         double potential_minmax;
+	double index = 1.0;
 
         potential_minmax = in[0];
 
@@ -2529,6 +2531,7 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
             for (i=1; i < size; ++i) {
                 if (potential_minmax < in[i]) {
                     potential_minmax = in[i];
+		    index = i + 1; // +1 to match the c-way of counting indices
                 }
             }
 
@@ -2537,12 +2540,14 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
             for (i=1; i < size; ++i) {
                 if (potential_minmax > in[i]) {
                     potential_minmax = in[i];
+		    index = i + 1; // +1 to match the c-way of counting indices
                 }
             }
 
         }
 
-        *out = potential_minmax;
+        minmax_index[0] = index;
+	minmax_value[0] = potential_minmax;
 
     }
     return 0;
@@ -2562,6 +2567,7 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_output(block, 1, 1, DATATYPE_FLOAT,1 );
         libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
     }
     return 0;
@@ -2994,31 +3000,38 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
 
     double *in;
 
-
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
+        //freopen("/home/max/corr_test.dat", "w", stdout);
+      
         in = (double *) libdyn_get_input_ptr(block,0);
-        double *out = (double *) libdyn_get_output_ptr(block, 0);
+	double *out = (double *) libdyn_get_output_ptr(block, 0);
 
-	int i;
+	int i,j;
+	double sum;
 	for (i = 1; i <= size-shape_len+1; ++i) { // go through the input vector
-	 
-          printf("i=%d\n", i);
 
           // apply the sample "shape" to the current position i in the input vector
-	  int j;
-	  double sum = 0.0;
+	  sum = 0;
 	  for (j = 1; j <= shape_len; ++j) {
-	    sum += in[ i-1 ] * shape[ j-1 ];  // -1 is to match the C-way of counting indices
-	    
-	    printf("j=%d\n", j);  
+	    sum = sum + ( in[ i+j-2 ] * shape[ j-1 ] );  // -1 and -2 is to match the C-way of counting indices
 	  }
-	  
+	  //printf("%f\n", sum);
 	  out[ i-1 ] = sum;
-	  
 	}
-
+	
+// 	for (i=1;i<=size-shape_len+1;i++){
+// 	  printf("%f\n", out[i-1]);
+// 	}
+// 	//printf("\n");
+// 	for (i=1;i<=size;i++){
+// 	  printf("%f\n", in[ i-1 ]);
+// 	}
+// 	for (i=1;i<=4;i++){
+// 	  printf("%f\n", shape[ i-1 ]);
+// 	}
+// 	freopen("CON", "w", stdout);
     }
     return 0;
     break;

@@ -857,7 +857,7 @@ function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsi
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim, index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
+function [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
 // %PURPOSE: Min / Max of a vector
 //
 // in *+(vecsize) 
@@ -867,13 +867,14 @@ function [sim, index] = ld_vector_minmax(sim, events, in, findmax, vecsize) // P
   ipar = [vecsize; findmax]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
-                                     insizes=[vecsize], outsizes=[1], ...
-                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+                                     insizes=[vecsize], outsizes=[1, 1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT] );
  
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
 
   [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,value] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
 endfunction
 
 
