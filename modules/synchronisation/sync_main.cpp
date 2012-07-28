@@ -52,26 +52,29 @@ public:
     void destruct();
     void io(int update_states);
     int init();
-    
-    static int sync_callback(void *obj) {
-      compu_func_synctimer_class *p = (compu_func_synctimer_class *) obj;
-      return p->real_sync_callback();
+
+    static int sync_callback(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdat;
+        compu_func_synctimer_class *p = (compu_func_synctimer_class *) obj;
+        return p->real_sync_callback(sim);
     }
-   
-   
+
+
 private:
-   struct dynlib_block_t *block;
-   
-   int real_sync_callback();
-   
-   void initclock();
-   void wait(double Tsamp);
+    int magic;
 
-   
-   struct timespec t, interval, curtime, T0;
-   double T; 
+    struct dynlib_block_t *block;
 
-  
+    int real_sync_callback(struct dynlib_simulation_t * sim );
+
+    void initclock();
+    void wait(double Tsamp);
+
+
+    struct timespec t, interval, curtime, T0;
+    double T;
+
+
 };
 
 #define NSEC_PER_SEC    1000000000
@@ -95,7 +98,7 @@ static inline double calcdiff(struct timespec t1, struct timespec t2)
 void compu_func_synctimer_class::initclock()
 {
     double Tsamp = 0.0;
-  
+
     interval.tv_sec =  0L;
     interval.tv_nsec = (long)1e9*Tsamp;
     tsnorm(&interval);
@@ -117,7 +120,12 @@ void compu_func_synctimer_class::initclock()
 void compu_func_synctimer_class::wait(double Tsamp)
 {
 //   double Tsamp;
-  
+
+    if (magic != 18454) {
+        printf("wrong place\n");
+        exit(-1);
+    }
+
     interval.tv_sec =  0L;
     interval.tv_nsec = (long)1e9*Tsamp;
     tsnorm(&interval);
@@ -126,24 +134,24 @@ void compu_func_synctimer_class::wait(double Tsamp)
 //     t.tv_sec+=interval.tv_sec;
 //     t.tv_nsec+=interval.tv_nsec;
 //     tsnorm(&t);
-//     
+//
 //      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
 
-  // OR
-     
-    
-     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
-     
-	
-	
-	
-	
+    // OR
+
+
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+
+
+// 	sleep(1);
+
+
 //         /* Task time T */
 //         clock_gettime(CLOCK_MONOTONIC,&curtime);
 //         T = calcdiff(curtime,T0);
 
-        /* periodic task */
-        //  NAME(MODEL,_isr)(T);
+    /* periodic task */
+    //  NAME(MODEL,_isr)(T);
 
 
 //         t.tv_sec+=interval.tv_sec;
@@ -156,6 +164,8 @@ void compu_func_synctimer_class::wait(double Tsamp)
 compu_func_synctimer_class::compu_func_synctimer_class(dynlib_block_t* block)
 {
     this->block = block;
+
+    magic = 18454;
 }
 
 int compu_func_synctimer_class::init()
@@ -165,45 +175,136 @@ int compu_func_synctimer_class::init()
 
     double Nin = ipar[0];
     double Nout = ipar[1];
-    
+
     initclock();
-    
+
     libdyn_simulation_setSyncCallback(block->sim, &compu_func_synctimer_class::sync_callback , this);
 
-      // libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void (*sync_func)( void *userdat ), void *userdat)
+    // libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, void (*sync_func)( void *userdat ), void *userdat)
 
     // Return -1 to indicate an error, so the simulation will be destructed
-  
+
     return 0;
 }
 
 
-int compu_func_synctimer_class::real_sync_callback()
+int compu_func_synctimer_class::real_sync_callback( struct dynlib_simulation_t * sim )
 {
- /*  
-  * This function is called before any of the output or state-update flags
-  * are called. 
-  * If 0 is returned, the simulation will continue to run
-  * If 1 is returned, the simulation will pause and has to be re-triggered externally.
-  * e.g. by the trigger_computation input of the async nested_block.
-  */
- 
-  double *T_pause = (double*) libdyn_get_input_ptr(block, 0);
- 
-  fprintf(stderr, "Sync callback was called\n");
-  
-  if (*T_pause < 0) {
-    fprintf(stderr, "simulation is idle now\n");
-    
-    return 1;
-  }
-  
-  fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
-  wait(*T_pause);
-//   sleep(1);
-//   wait();
- 
-  return 0;
+    /*
+     * This function is called before any of the output or state-update flags
+     * are called.
+     * If 0 is returned, the simulation will continue to run
+     * If 1 is returned, the simulation will pause and has to be re-triggered externally.
+     * e.g. by the trigger_computation input of the async nested_block.
+
+
+    */
+
+    if (true) { // Loop with absolute times
+
+      // time for execution t and the interval
+      struct timespec t, interval;
+      
+      // measure the current time
+      clock_gettime(CLOCK_MONOTONIC,&t);
+
+      
+      
+        do { // Main loop is now here
+
+            // run the simulation
+            // run one simulation step
+
+            // Use C-functions to simulation one timestep
+            libdyn_event_trigger_mask(sim, 1);
+            libdyn_simulation_step(sim, 0);
+            libdyn_simulation_step(sim, 1);
+
+            // The simulation tells how long to wait
+            double *T_pause = (double*) libdyn_get_input_ptr(block, 0);
+
+#ifdef DEBUG
+            fprintf(stderr, "Sync callback was called\n");
+#endif
+
+            if (*T_pause < 0) {
+#ifdef DEBUG
+                fprintf(stderr, "simulation is idle now\n");
+#endif
+
+                return 1; // return 1 exits the loop calling this callback
+            }
+
+#ifdef DEBUG
+            fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
+#endif
+
+	    // calc time to wait
+	        interval.tv_sec =  0L;
+           interval.tv_nsec = (long)1e9* (*T_pause);
+           tsnorm(&interval);
+
+	    
+
+//            // Task time T
+//            clock_gettime(CLOCK_MONOTONIC,&curtime);
+//            T = calcdiff(curtime,T0);
+
+	   
+        // calculate time for the next execution
+        t.tv_sec+=interval.tv_sec;
+        t.tv_nsec+=interval.tv_nsec;
+        tsnorm(&t);
+	   
+	   // wait 
+           clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+	    
+
+            // Wait for the next simulation step
+//   wait(*T_pause);
+
+        } while (true);
+
+    }
+
+
+    if (false) {
+
+        // run the simulation
+        // run one simulation step
+
+        // Use C-functions to simulation one timestep
+        libdyn_event_trigger_mask(sim, 1);
+        libdyn_simulation_step(sim, 0);
+        libdyn_simulation_step(sim, 1);
+
+
+        double *T_pause = (double*) libdyn_get_input_ptr(block, 0);
+
+#ifdef DEBUG
+        fprintf(stderr, "Sync callback was called\n");
+#endif
+
+        if (*T_pause < 0) {
+#ifdef DEBUG
+            fprintf(stderr, "simulation is idle now\n");
+#endif
+
+            return 1; // return 1 exits the loop calling this callback
+        }
+
+#ifdef DEBUG
+        fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
+#endif
+
+
+        // Wait for the next simulation step
+        wait(*T_pause);
+
+    }
+
+
+    return 0; // return zero means that this callback is called again
 }
 
 
@@ -211,14 +312,14 @@ void compu_func_synctimer_class::io(int update_states)
 {
     if (update_states==0) {
         double *output = (double*) libdyn_get_output_ptr(block, 0);
-	
-	*output = 1;
+
+        *output = 1;
     }
 }
 
 void compu_func_synctimer_class::destruct()
 {
-    
+
 }
 
 
@@ -262,9 +363,9 @@ int compu_func_synctimer(int flag, struct dynlib_block_t *block)
         int i;
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
-        
-            libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
-            libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
 
 
     }
@@ -286,7 +387,7 @@ int compu_func_synctimer(int flag, struct dynlib_block_t *block)
         compu_func_synctimer_class *worker = (compu_func_synctimer_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
-	delete worker;
+        delete worker;
 
     }
     return 0;
@@ -313,7 +414,7 @@ int ortd_compu_func_clock(int flag, struct dynlib_block_t *block)
 
     int tmp = ipar[0];
 
-    
+
 
     double *output;
 
@@ -324,18 +425,18 @@ int ortd_compu_func_clock(int flag, struct dynlib_block_t *block)
     {
         output = (double *) libdyn_get_output_ptr(block,0);
 
-	struct timeval mytime;
+        struct timeval mytime;
         struct timezone myzone;
 
-	gettimeofday(&mytime, &myzone);
-	double usTos = 1/1000000.0;
-	double time = (mytime.tv_sec+mytime.tv_usec * usTos );
-	
-	*output = time;
+        gettimeofday(&mytime, &myzone);
+        double usTos = 1/1000000.0;
+        double time = (mytime.tv_sec+mytime.tv_usec * usTos );
+
+        *output = time;
     }
 
-        return 0;
-        break;
+    return 0;
+    break;
     case COMPF_FLAG_UPDATESTATES:
         output = (double *) libdyn_get_output_ptr(block,0);
 
@@ -396,8 +497,8 @@ int libdyn_module_synchronisation_siminit(struct dynlib_simulation_t *sim, int b
     int blockid = 15100;  // CHANGE HERE: choose a unique id for each block
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_synctimer);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ortd_compu_func_clock);
-    
-    
+
+
 
     printf("libdyn module sync initialised\n");
 

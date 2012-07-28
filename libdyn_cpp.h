@@ -427,6 +427,13 @@ private:
   void libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_);
   
 public:
+  struct dynlib_simulation_t * get_C_SimulationObject();
+  
+  // For Synchronisation
+  bool IsSyncronised();
+  int RunSyncCallbackFn();
+  
+  
   // NEU set a new master
   void set_master(libdyn_master *ld_master);
   
@@ -487,9 +494,9 @@ public:
   void simulation_step(int update_states);
 
   /**
-  * \brief Check wheter the simulation wants to pause its execution. If true the simulation does not want to be called by "simulation_step" anymore
+  * \brief Check wheter the simulation wants to pause its execution for synchronisation reasons. If true the simulation does not want to be called by "simulation_step" anymore FIXME obsolete
   */
-  bool check_pause();
+  bool getSyncState();
   
   /**
   * \brief reset the states of all block in the simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)

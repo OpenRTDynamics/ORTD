@@ -985,7 +985,7 @@ undo_everything :
   * e.g. by the trigger_computation input of the async nested_block.
   */
 
-libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( void *userdat ), void *userdat)
+libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ), void *userdat)
 {
   simulation->sync_callback.sync_func = sync_func;
   simulation->sync_callback.userdat = userdat;
@@ -1013,18 +1013,22 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   //   
   
   if (update_states == 0) {
-    /*
-     * Wait for synhronisation callback function
-    */
     
-    if (simulation->sync_callback.sync_func != NULL) {
-      simulation->sync_callback.sync_callback_state = (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
-      if (simulation->sync_callback.sync_callback_state == 1) {
-	return 1;
-      }
-      
-      // sync_callback returned --> output calculation.
-    }
+    
+//     /*
+//      * Wait for synhronisation callback function
+//     */
+//     
+//     if (simulation->sync_callback.sync_func != NULL) {
+//       simulation->sync_callback.sync_callback_state = (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
+//       if (simulation->sync_callback.sync_callback_state == 1) {
+// 	return 1;
+//       }
+//       
+//       // sync_callback returned --> output calculation.
+//     }
+    
+    
     
     
     //
