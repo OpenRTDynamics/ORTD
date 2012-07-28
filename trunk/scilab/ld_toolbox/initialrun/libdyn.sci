@@ -920,3 +920,104 @@ endfunction
 
 
 
+
+
+
+
+
+
+
+// 
+// Signal collector framework
+// 
+
+function [sim] = ld_collect_signal_init(sim)
+  sim.signal_collector = struct();
+  sim.signal_collector.GroupNameList = [];
+  sim.signal_collector.GroupStructs = list();
+endfunction
+
+
+
+
+function [sim] = ld_collect_signal(sim, group_ident_str, signal_name, in)
+
+  GroupIndex = 0;
+
+  N = length(sim.signal_collector.GroupNameList);
+
+  for i=1:N-1
+    printf(":: %d\n", i);
+    str = sim.signal_collector.GroupNameList(i);
+
+    printf(": %s\n", str);
+    if str == group_ident_str then
+      GroupIndex = i;
+      printf("found %s\n", group_ident_str);
+    end
+
+  end
+
+printf("ok\n");
+
+  if ( GroupIndex == 0 ) then
+    printf("%s was not found\n", group_ident_str);
+    sim.signal_collector.GroupNameList = [ sim.signal_collector.GroupNameList; group_ident_str ];
+  end
+
+
+
+  // signal struct
+  signal.name = signal_name;
+  signal.libdyn_obj = in;
+
+endfunction
+
+//  [sim] = ld_collect_signal_init(sim)
+// [sim] = ld_collect_signal(sim, group_ident_str="testgroup2", signal_name="cntrlvar", in="asignal")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function [sim] = ld_collect_signal__(sim, group_ident_str, signal_name, in)
+  try
+    getfield(group_ident_str, sim.signal_collector);
+  catch
+    group_list = list();
+
+    // setfield
+    cmd = sprintf("sim.signal_collector.%s = group_list", group_ident_str);
+pause;
+    eval(cmd);
+
+//    error("ld_collect_signal: signal_name was not "
+  end
+
+  // signal struct
+  signal.name = signal_name;
+  signal.libdyn_obj = in;
+
+  // get group list
+  group_list = getfield(group_ident_str, sim.signal_collector);
+
+  // insert into the group list
+  i = length(group_list);
+  group_list(i+1) = signal;
+
+  // setfield
+  cmd = sprintf("sim.signal_collector.%s = group_list", group_ident_str);
+  eval(cmd);
+
+endfunction
+
+

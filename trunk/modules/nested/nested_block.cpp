@@ -19,7 +19,7 @@
 
 #include <malloc.h>
 #include <sched.h>
- 
+
 extern "C" {
 
 #include "libdyn_scicos_macros.h"
@@ -50,7 +50,7 @@ public:
 
     bool get_CompNotRunning();
     void set_CompNotRunning(bool f);
-    
+
     bool finishedAComputation();
     void reset_ThereWasAComputaion();
 
@@ -70,7 +70,7 @@ private:
     volatile bool CompNotRunning;
     pthread_mutex_t CompNotRunning_mutex;
     bool ThereWasAComputaion;
-    
+
     pthread_mutex_t comp_active_mutex;
 
 
@@ -138,7 +138,7 @@ template <class compute_instance> void background_computation<compute_instance>:
     signal = sig;
     pthread_mutex_unlock(&mutex);
     pthread_cond_signal(&cond); // Notify reader thread
-    
+
     sched_yield();
 
 }
@@ -170,8 +170,8 @@ template <class compute_instance> void background_computation<compute_instance>:
 template <class compute_instance> bool background_computation<compute_instance>::get_CompNotRunning()
 {
 
-    pthread_mutex_lock(&CompNotRunning_mutex);   
-    bool CompNotRunning_cpy = CompNotRunning;    
+    pthread_mutex_lock(&CompNotRunning_mutex);
+    bool CompNotRunning_cpy = CompNotRunning;
     pthread_mutex_unlock(&CompNotRunning_mutex);
 
 //      printf("get finished %d\n", finished_cpy ? 1 : 0);
@@ -189,21 +189,21 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 template <class compute_instance> bool background_computation<compute_instance>::finishedAComputation()
 {
-    pthread_mutex_lock(&CompNotRunning_mutex);   
-    bool CompNotRunning_cpy = CompNotRunning;    
+    pthread_mutex_lock(&CompNotRunning_mutex);
+    bool CompNotRunning_cpy = CompNotRunning;
     pthread_mutex_unlock(&CompNotRunning_mutex);
 
     if (ThereWasAComputaion && CompNotRunning_cpy)
-      return true;
+        return true;
     else
-      return false;
-      
+        return false;
+
 }
 
 template <class compute_instance> void background_computation<compute_instance>::reset_ThereWasAComputaion()
 {
 //   fprintf(stderr, "Now there has never been a computatoin\n");
-    ThereWasAComputaion = false;      
+    ThereWasAComputaion = false;
 }
 
 template <class compute_instance> background_computation<compute_instance>::background_computation(compute_instance *ci)
@@ -277,9 +277,9 @@ private:
     callback_class *cb;
 
     background_computation< ortd_asychronous_computation > *computer_mgr;
-    
+
     int asynchron_simsteps;
-    
+
 public:
     // simnest: a ready to use set-up schematic
     ortd_asychronous_computation(callback_class *cb, libdyn_nested2 * simnest, int asynchron_simsteps);
@@ -324,77 +324,130 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 
 template <class callback_class> bool ortd_asychronous_computation<callback_class>::computation_finished()
 {
-  bool finished = computer_mgr->finishedAComputation();
-  return finished;
+    bool finished = computer_mgr->finishedAComputation();
+    return finished;
 }
 
 template <class callback_class> void ortd_asychronous_computation<callback_class>::reset()
 {
-  computer_mgr->reset_ThereWasAComputaion();  
+    computer_mgr->reset_ThereWasAComputaion();
 }
 
 
 template <class callback_class> int ortd_asychronous_computation<callback_class>::computer()
 {
+    // Simulate in a thread
 
-//     sleep(8);
+    // Get the C-libdyn object
+    dynlib_simulation_t* C_sim = sim->get_C_SimulationObject();
 
-    // Simulate
 
-    // do
-     
-     if (asynchron_simsteps == 1) {
+    if (asynchron_simsteps == 1) {
 #ifdef DEBUG
-       fprintf(stderr, "async_nested: running computer in single mode\n");
+        fprintf(stderr, "async_nested: running computer in single mode\n");
 #endif
-       sim->simulation_step(0);
-       sim->simulation_step(1);
-       
-       // call the callback to copy the results
-       cb->async_copy_output_callback();
-     }
-     
-     if (asynchron_simsteps == 2) {
+        sim->simulation_step(0);
+        sim->simulation_step(1);
+
+        // call the callback to copy the results
+        cb->async_copy_output_callback();
+    }
+
+    if (asynchron_simsteps == 2) {
 #ifdef DEBUG
-         fprintf(stderr, "async_nested: running computer in endless mode\n");
-#endif
-	
-	do { // the simulation synchronises itselft to something
-#ifdef DEBUG
-           fprintf(stderr, "async_nested: another run\n");
+        fprintf(stderr, "async_nested: running computer in endless mode\n");
 #endif
 
-	  sim->event_trigger_mask(1);
-	  
-          sim->simulation_step(0);	  
 
-	  if (sim->check_pause()) {
+        if ( !sim->IsSyncronised() ) { // unsynchronised simulation
+
+            do { // the simulation synchronises itselft to something
 #ifdef DEBUG
- 	    fprintf(stderr, "async_nested: leaving\n");
+                fprintf(stderr, "async_nested: another run\n");
 #endif
-	    break;
-	  }
-
-          sim->simulation_step(1);
 
 
-	} while (1);
 
-	// call the callback to copy the results
-	cb->async_copy_output_callback();
-	
-	sim->reset_blocks();
+                sim->event_trigger_mask(1);
 
-	
-     }
-     
-     
+                sim->simulation_step(0);
+
+                if (sim->getSyncState()) {
+#ifdef DEBUG
+                    fprintf(stderr, "async_nested: leaving\n");
+#endif
+                    break;
+                }
+
+                sim->simulation_step(1);
+
+
+            } while (1);
+        } else if ( sim->IsSyncronised() ) {
+            // synchronised simulation
+#ifdef DEBUG
+            fprintf(stderr, "async_nested: Starting the computation of a synchronised simuation\n");
+#endif
+
+
+            do { // the simulation synchronises itselft to something
+
+
+                /*
+                * Wait for synhronisation callback function
+                */
+
+                int SyncCallbackRetState = sim->RunSyncCallbackFn();
+                if ( SyncCallbackRetState == 1 ) {
+                    // abort
+#ifdef DEBUG
+                    fprintf(stderr, "async_nested: leaving\n");
+#endif
+                    break;
+                }
+
+
+#ifdef DEBUG
+                fprintf(stderr, "async_nested: another run\n");
+#endif
+
+
+//                 // sync_callback returned --> run one simulation step
+//                  sim->event_trigger_mask(1);
+//                 sim->simulation_step(0);
+//                 sim->simulation_step(1);
+
+
+		
+		
+		//             if (simulation->sync_callback.sync_func != NULL) {
+//                 simulation->sync_callback.sync_callback_state = (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
+//                 if (simulation->sync_callback.sync_callback_state == 1) {
+//                     return 1;
+//                 }
+//
+//                 // sync_callback returned --> output calculation.
+//             }
+//
+            } while (1);
+
+        }
+
+        // call the callback to copy the results
+        cb->async_copy_output_callback();
+
+        sim->reset_blocks();
+
+
+    }
+
+
     // while (some abort criterion set by the schematic sim)
 
 
 
 #ifdef DEBUG
-      fprintf(stderr, "async_nested: finished\n");
+    fprintf(stderr, "async_nested: finished\n");
 #endif
 }
 
@@ -478,10 +531,10 @@ int compu_func_nested_class::init()
 
     struct irpar_ivec_t nested_sim_name__;
     if ( irpar_get_ivec(&nested_sim_name__, ipar, rpar, 21) < 0 ) {
-      // no name was provided
-      nested_sim_name = NULL;
+        // no name was provided
+        nested_sim_name = NULL;
     } else {
-      irpar_getstr(&nested_sim_name, nested_sim_name__.v, 0, nested_sim_name__.n );
+        irpar_getstr(&nested_sim_name, nested_sim_name__.v, 0, nested_sim_name__.n );
     }
 
     this->insizes = insizes_irp.v;
@@ -506,7 +559,7 @@ int compu_func_nested_class::init()
       */
 
 
-    
+
     bool use_buffered_input = false;  // in- and out port values are not buffered (default)
     if (asynchron_simsteps > 0) {
         use_buffered_input == true;  // with async computation buffered inputs have to be used
@@ -523,17 +576,17 @@ int compu_func_nested_class::init()
     }
 
     simnest->set_master(master);
-    
+
     // init the simulation exchange helper if required
     exchange_helper = NULL;
-    
+
     if (nested_sim_name != NULL)
-      if (master != NULL && master->dtree != NULL) {
-	  fprintf(stderr, "libdyn nested: Register <%s> for online exchange\n", nested_sim_name);
-	  exchange_helper = new nested_onlineexchange(nested_sim_name, simnest);
-      } else {
-	fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");      
-      }
+        if (master != NULL && master->dtree != NULL) {
+            fprintf(stderr, "libdyn nested: Register <%s> for online exchange\n", nested_sim_name);
+            exchange_helper = new nested_onlineexchange(nested_sim_name, simnest);
+        } else {
+            fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");
+        }
 
     //
     // set pointers to the input ports of this block
@@ -604,7 +657,7 @@ void compu_func_nested_class::io_sync(int update_states)
         //
 
 //         simnest->simulation_step(1);
-	simnest->simulation_step_supdate();
+        simnest->simulation_step_supdate();
 
         //        printf("neszed sup\n");
     } else {
@@ -614,8 +667,8 @@ void compu_func_nested_class::io_sync(int update_states)
 
 
 //         simnest->simulation_step(0);
-	simnest->simulation_step_outpute();
-	
+        simnest->simulation_step_outpute();
+
 // 	simnest->initialised_replaced_simulation = true;
 
         for (i=0; i< Nout ; ++i) {
@@ -663,8 +716,8 @@ void compu_func_nested_class::io_async(int update_states)
 
         if (*comptrigger_inp > 0.5) {
 #ifdef DEBUG
-	    fprintf(stderr, "Trigger computation\n");
-#endif	    
+            fprintf(stderr, "Trigger computation\n");
+#endif
             this->async_comp_mgr->computeNSteps(asynchron_simsteps);
         }
 
@@ -678,7 +731,7 @@ void compu_func_nested_class::io_async(int update_states)
 
         // If the background computation is finished the the output to 1
         // nonblocking check for a result
-        if (this->async_comp_mgr->computation_finished()) {	    
+        if (this->async_comp_mgr->computation_finished()) {
             *comp_finished = 1;
         } else {
             *comp_finished = 0;
@@ -727,15 +780,15 @@ void compu_func_nested_class::io(int update_states)
 void compu_func_nested_class::reset()
 {
     if (async_comp == false) {
-      simnest->reset_blocks();
+        simnest->reset_blocks();
 #ifdef DEBUG
-      fprintf(stderr, "Resetting sync simnest\n");
-#endif      
+        fprintf(stderr, "Resetting sync simnest\n");
+#endif
     } else {
 #ifdef DEBUG
         fprintf(stderr, "Resetting async\n");
-#endif      
-       async_comp_mgr->reset();     
+#endif
+        async_comp_mgr->reset();
     }
 }
 
@@ -750,20 +803,20 @@ void compu_func_nested_class::destruct()
 
     // exchange_helper depends on nested_sim_name
     if (this->nested_sim_name != NULL)
-      free(this->nested_sim_name);
-    
-     simnest->destruct();   // HERE WAS A BUG solved at 2.7.12: both lines were flipped  and the exchange_helper was deleted before this!
+        free(this->nested_sim_name);
+
+    simnest->destruct();   // HERE WAS A BUG solved at 2.7.12: both lines were flipped  and the exchange_helper was deleted before this!
     delete simnest;
 
     // do this AFTER simnest has been destroyed because its potentially deletes the managed irpar data
     if (exchange_helper != NULL) {
 #ifdef DEBUG
-      fprintf(stderr, "compu_func_nested_class: delete exchange helper for %s\n", nested_sim_name);
-#endif      
-      delete exchange_helper;      
+        fprintf(stderr, "compu_func_nested_class: delete exchange helper for %s\n", nested_sim_name);
+#endif
+        delete exchange_helper;
     }
-    
-  
+
+
 }
 
 void compu_func_nested_class::lock_output()
@@ -819,7 +872,7 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
         worker->reset();;
     }
     return 0;
-    break;    
+    break;
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
 //         int irpar_get_ivec(struct irpar_ivec_t *ret, int *ipar, double *rpar, int id);
@@ -1059,7 +1112,7 @@ destruct_simulations:
 
     if (this->global_states_buffer != NULL) {
         free(this->global_states_buffer);
-	this->global_states_buffer = NULL;
+        this->global_states_buffer = NULL;
     }
 
     return -1;
@@ -1088,18 +1141,18 @@ void compu_func_statemachine_class::io_sync(int update_states)
         if (active >= 0) {
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
-	    
 
-	    // FIXME REMOVE
-	    fprintf(stderr, "Switch to state %d\n", active, tmp);
-	    printf( "Switch to state %d \n", active, tmp);
-	    
+
+            // FIXME REMOVE
+            fprintf(stderr, "Switch to state %d\n", active, tmp);
+            printf( "Switch to state %d \n", active, tmp);
+
             // switch to the new state
             simnest->reset_blocks();
             simnest->set_current_simulation(active);
-    	    this->active_state = active;
-	    
-	    
+            this->active_state = active;
+
+
         }
 
     } else {
@@ -1108,9 +1161,9 @@ void compu_func_statemachine_class::io_sync(int update_states)
         //
 
         simnest->simulation_step(0);
-	
-	double *current_state = (double*) libdyn_get_output_ptr(block, Ndataout); // FIXME: This output does not work by now
-	*current_state = this->active_state;
+
+        double *current_state = (double*) libdyn_get_output_ptr(block, Ndataout); // FIXME: This output does not work by now
+        *current_state = this->active_state;
 
         for (i=0; i< Ndataout ; ++i) {
             double *out_p = (double*) libdyn_get_output_ptr(block, i);
@@ -1124,7 +1177,7 @@ void compu_func_statemachine_class::reset()
 //     fprintf(stderr, "nested: reset (NOT TESTED FOR NOW; contact the author)\n");
     // the initial state
     simnest->reset_blocks();
-    
+
     // go to the initial state
     simnest->set_current_simulation(inittial_state-1);
 
@@ -1199,7 +1252,7 @@ int compu_func_statemachine(int flag, struct dynlib_block_t *block)
         worker->reset();;
     }
     return 0;
-    break;    
+    break;
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
 //         int irpar_get_ivec(struct irpar_ivec_t *ret, int *ipar, double *rpar, int id);
@@ -1284,14 +1337,14 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 
     int len = ipar[0];
     double initval = rpar[0];
-    
+
     int Nout = 1;
     int Nin = 1;
 
 
     double *buffer = (double*) libdyn_get_work_ptr(block);
 
-    
+
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
@@ -1315,52 +1368,52 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
-    case COMPF_FLAG_PREPARERESET:  // 
+    case COMPF_FLAG_PREPARERESET:  //
     {
         void *out = (void *) libdyn_get_output_ptr(block,0);
         void *in = (void *) libdyn_get_input_ptr(block, 0);
 
-	unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
+        unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
         memcpy(buffer, in, Nbytes);
-	
-	// FIXME: REMOVE
-	fprintf(stderr, "Saved data\n");
+
+        // FIXME: REMOVE
+        fprintf(stderr, "Saved data\n");
     }
-        return 0;
-        break;
-    case COMPF_FLAG_RESETSTATES:  // 
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:  //
     {
-      // initialise the output
+        // initialise the output
         void *out = (void *) libdyn_get_output_ptr(block,0);
         void *in = (void *) libdyn_get_input_ptr(block, 0);
 
-	unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
+        unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
         memcpy(out, buffer, Nbytes);
 
-      	// FIXME: REMOVE
-	fprintf(stderr, "Restored data\n");
+        // FIXME: REMOVE
+        fprintf(stderr, "Restored data\n");
     }
-        return 0;
-        break;
+    return 0;
+    break;
     case COMPF_FLAG_INIT:  // init
     {
-	  unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
-	  void *buffer__ = malloc(Nbytes);
+        unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
+        void *buffer__ = malloc(Nbytes);
 // 	  memset((void*) buffer, 0,  Nbytes );
-	  
-	  memcpy(buffer__, (void*) &initval, Nbytes);
 
-	  libdyn_set_work_ptr(block, (void *) buffer__);
+        memcpy(buffer__, (void*) &initval, Nbytes);
+
+        libdyn_set_work_ptr(block, (void *) buffer__);
     }
-        return 0;
-        break;
+    return 0;
+    break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
     {
-	  void *buffer__ = (void*) libdyn_get_work_ptr(block);
-	  free(buffer__);
+        void *buffer__ = (void*) libdyn_get_work_ptr(block);
+        free(buffer__);
     }
-        return 0;
-        break;
+    return 0;
+    break;
     case COMPF_FLAG_PRINTINFO:
         printf("I'm a survivereset block\n");
         return 0;
@@ -1374,7 +1427,7 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 
 // External block comp functions
 extern "C" {
-  extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
+    extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
 };
 
 int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
@@ -1385,11 +1438,11 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     int blockid = 15001;
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_statemachine);
-    
+
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested_exchange_fromfile);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_survivereset);
-    
-    
+
+
     printf("libdyn module nested initialised\n");
 
 }

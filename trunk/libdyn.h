@@ -243,7 +243,7 @@ struct dynlib_simulation_t {
   // Synchronisation callback function
   struct {
     void *userdat; // users data
-    int (*sync_func)( void *userdat );  // Computational function. the returned value is stored within sync_callback_state. 0 is usual, 1 means pause simulation
+    int (*sync_func)( struct dynlib_simulation_t *sim );  // Callback function. the returned value is stored within sync_callback_state. 0 is usual, 1 means pause simulation
     int sync_callback_state;
   } sync_callback;
   
@@ -383,7 +383,7 @@ int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim);
 int libdyn_simulation_init(struct dynlib_simulation_t * sim);
 
 // installa a callback function for synchronisation of the main loop
-void libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( void *userdat ) , void *userdat);
+void libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
 
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
 void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);

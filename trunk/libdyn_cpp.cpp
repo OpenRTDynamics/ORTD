@@ -1393,6 +1393,28 @@ void libdyn_nested2::event_trigger_mask(int mask)
 // class libdyn
 //
 
+dynlib_simulation_t* libdyn::get_C_SimulationObject()
+{
+  return sim;
+}
+
+bool libdyn::IsSyncronised()
+{
+  // check for a sync_callback function
+  if ( sim->sync_callback.sync_func != NULL )
+    return true;
+  else
+    return false;
+}
+
+int libdyn::RunSyncCallbackFn()
+{
+  int ret = sim->sync_callback.sync_callback_state = (*sim->sync_callback.sync_func)(sim);
+  
+  return ret;
+}
+
+
 void libdyn::event_trigger_mask(int mask)
 {
     libdyn_event_trigger_mask(sim, mask);
@@ -1413,7 +1435,7 @@ void libdyn::simulation_step(int update_states)
     libdyn_simulation_step(sim, update_states);
 }
 
-bool libdyn::check_pause()
+bool libdyn::getSyncState()
 {
     return (sim->sync_callback.sync_callback_state == 1);
 }

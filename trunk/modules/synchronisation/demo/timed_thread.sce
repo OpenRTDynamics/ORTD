@@ -1,5 +1,5 @@
 //
-//    Copyright (C) 2010, 2011  Christian Klauer
+//    Copyright (C) 2010, 2011, 2012  Christian Klauer
 //
 //    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
 //
@@ -19,16 +19,17 @@
 
 
 
-
-
 //
-// An oscillator example for using the Scilab interface to libdyn
-// NOTE: The "ld_toolbox" is needed to run
+// Example for varying sampling times
 //
-// Execute within scilab. The shell command "libdyn_generic_exec -s oscillator -i 901 -l 1000"
-// will be executed to simulate this example. It will write output data to *dat files.
-// Finally, the results are plotted
+// This is an example for running simulations in a thread with non-constant
+// sampling time. Using the "ld_synctimer" the interval time to the next
+// simulation step can be specified by an input sigal to this block.
+// Currently the "ld_synctimer" only works for nested simulations.
 //
+// Run with 
+//
+// $ sh timed_thread.sh
 //
 
 
@@ -54,23 +55,21 @@ function [sim, outlist] = run_thread_fn(sim, inlist)
   defaultevents = 0;
     
   inputv = inlist(1);
+//  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
 
-  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
+  //
+  // Define non-constant sample times
+  //
 
 //  [sim, Tpause] = ld_const(sim, events, 1);
-  [sim,Tpause] = ld_play_simple(sim, events, r=[0.1, 0.2, 0.15, -1]);
+//  [sim,Tpause] = ld_play_simple(sim, events, r=[0.51, 0.52, 0.53, 0.54, 0.55, -1]);
+  [sim,Tpause] = ld_play_simple(sim, events, r=[ exp( linspace( -4, -0.5, 40) ), -1  ]);
+
+  // Set the time interval between the simulation steps
   [sim, out] = ld_synctimer(sim, events, in=Tpause);
-
-  //
-  // A resource demanding Scilab calculation
-  //
-  
-  [sim, dummyin] = ld_const(sim, defaultevents, 1);
+  [sim] = ld_printf(sim, events, Tpause, "Time interval [s]", 1);
 
 
- 
-  // is scilab ready?
-//  compready = out__(1); //   
 
   [sim, result] = ld_constvec(sim, defaultevents, 1:10);
 
