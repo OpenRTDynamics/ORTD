@@ -45,7 +45,7 @@
 
 function [sim,out] = ld_constmat(sim, events, mat) // PARSEDOCU_BLOCK
 // 
-// a constant matrix
+// %PURPOSE: a constant matrix
 // 
 // mat *+ - the matrix
 // 
@@ -65,7 +65,8 @@ function [sim,out] = ld_constmat(sim, events, mat) // PARSEDOCU_BLOCK
 endfunction
 
 function [sim,out] = ld_matmul(sim, events, left_matrix, left_matrix_size, right_matrix, right_matrix_size) // PARSEDOCU_BLOCK
-// matrix multiplication of two matrices
+// %PURPOSE: matrix multiplication of two matrices
+// 
 // out = left_matrix * right_matrix 
 //
 //    left_matrix *+(left_matrix_size)  - matrix signal
@@ -113,3 +114,38 @@ function [sim,out] = ld_matmul(sim, events, left_matrix, left_matrix_size, right
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
+
+function [sim,y] = ld_matvecmul_3d(sim, events, A, v) // PARSEDOCU_BLOCK
+// %PURPOSE: Matrix multiplication against a vector for 3d-vectors
+// 
+// y = A * v, whereby A is 3x3 and v is a vector of size 3
+// 
+// 
+// 
+
+  [sim,y] = ld_matmul(sim, events, A, [3,3], v, [3,1] );
+endfunction
+
+function [sim, v1, v2, v3] = ld_getvecelements_3d(sim, events, v);
+// %PURPOSE: Return the elements of a 3d-vector
+// 
+// v = [v1, v2, v3]
+
+  [sim,elements] = ld_demux(sim, events, vecsize=3, invec=v);
+  
+  v1 = elements(1); v2 = elements(2); v3 = elements(3);
+endfunction
+
+function [sim, v] = ld_setvecelements_3d(sim, events, v1, v2, v3);
+// %PURPOSE: Combine three vector elements to a 3d-vector
+// 
+// v = [v1, v2, v3]
+
+  [sim, v] = ld_mux(sim, events, vecsize=3, inlist=list( v1, v2, v3) );
+endfunction
+
+
+
+
+
+
