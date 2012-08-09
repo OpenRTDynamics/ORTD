@@ -4,7 +4,7 @@
 #include "directory.h"
 #include "global_shared_object.h"
 
-ortd_global_shared_object::ortd_global_shared_object(const char* identName, libdyn_master *master)
+ortd_global_shared_object::ortd_global_shared_object(const char* identName, libdyn_master *master)  // FIXME: Add type of file like ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY
 {
   this->identName = identName; // FIXME MAKE A COPY INSTEAD!
   this->usage_counter = 0;  
@@ -25,7 +25,9 @@ ortd_global_shared_object::ortd_global_shared_object(const char* identName, libd
   }
   
   
-  if (dtree->add_entry((char*) identName, ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY, this, this) == false) {
+  // Check wheter the dir entry is already available
+  
+  if (dtree->add_entry((char*) identName, ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY, this, this) == false) { // remove ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY
      fprintf(stderr, "stderr: ortd_global_shared_object: cound not allocate the filename %s\n", identName);
   }
   
