@@ -2986,7 +2986,7 @@ int ortd_compu_func_vectorextractandsum(int flag, struct dynlib_block_t *block)
     }
 }
 
-int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
+int ortd_compu_func_simplecovar(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
     int *ipar = libdyn_get_ipar_ptr(block);
@@ -3003,8 +3003,6 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-        //freopen("/home/max/corr_test.dat", "w", stdout);
-      
         in = (double *) libdyn_get_input_ptr(block,0);
 	double *out = (double *) libdyn_get_output_ptr(block, 0);
 
@@ -3017,21 +3015,9 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
 	  for (j = 1; j <= shape_len; ++j) {
 	    sum = sum + ( in[ i+j-2 ] * shape[ j-1 ] );  // -1 and -2 is to match the C-way of counting indices
 	  }
-	  //printf("%f\n", sum);
+	  
 	  out[ i-1 ] = sum;
 	}
-	
-// 	for (i=1;i<=size-shape_len+1;i++){
-// 	  printf("%f\n", out[i-1]);
-// 	}
-// 	//printf("\n");
-// 	for (i=1;i<=size;i++){
-// 	  printf("%f\n", in[ i-1 ]);
-// 	}
-// 	for (i=1;i<=4;i++){
-// 	  printf("%f\n", shape[ i-1 ]);
-// 	}
-// 	freopen("CON", "w", stdout);
     }
     return 0;
     break;
@@ -3072,7 +3058,7 @@ int ortd_compu_func_simplecorr(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm corr block\n");
+        printf("I'm covar block\n");
         return 0;
         break;
 
@@ -3309,7 +3295,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 59, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorabssum);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 60, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorsqsum);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 61, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorextractandsum);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 62, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_simplecorr);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 62, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_simplecovar);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 63, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectormute);
     
     

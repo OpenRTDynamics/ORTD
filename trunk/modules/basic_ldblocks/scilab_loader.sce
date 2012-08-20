@@ -858,10 +858,14 @@ function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsi
 endfunction
 
 function [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsize) // PARSEDOCU_BLOCK
-// %PURPOSE: Min / Max of a vector
+// %PURPOSE: Min / Max of a vector (finds the first appearance of the minimum/maximum)
 //
-// in *+(vecsize) 
-// index * - the index starting at 1,, where the max / min was found
+// Function is buggy somehow. Find maximum should work. Minimum perhaps not!
+//
+// in *+(vecsize)
+// findmax greater than 0 means "find the maximum"
+// index * - the index starting at 1, where the max / min was found
+// value * - min/max value
 //    
   btype = 60001 + 55;	
   ipar = [vecsize; findmax]; rpar = [];
@@ -996,12 +1000,12 @@ function [sim, out] = ld_vector_extractandsum(sim, events, in, from, window_len,
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim, out] = ld_simplecorr(sim, events, in, shape, vecsize) // PARSEDOCU_BLOCK
+function [sim, out] = ld_simplecovar(sim, events, in, shape, vecsize) // PARSEDOCU_BLOCK
 //    
-// %PURPOSE: stupid cross-correlation EXPERIMENTAL FOR NOW
+// %PURPOSE: stupid covariance function
 // 
 //  in *+(vecsize) - vector signal
-//  shape - vector to cross correlate the input with
+//  shape - vector to compare the input with
 //  out *+(length(shape)) - output
 //
 //    
