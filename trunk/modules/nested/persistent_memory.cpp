@@ -20,7 +20,7 @@
 /*
   zwei Typen von Blöcken:
 
-    * Ersteller Block: Hier wird größe und datentyp festgelegt. Er erstellt die Instanz der Klasse persistent_memory, 
+    * Ersteller Block: Hier wird größe und datentyp festgelegt. Er erstellt die Instanz der Klasse persistent_memory,
       sobald PREINIT aufgerufen wird (bevor andere Blöcke initialisiert werden). EIn directory Eintrag wird angelegt
     * Blöcke, die hierauf über das directory zugreifen
     * Falls der usage counter von persistent_memory wieder null ist wird die Instanz von persistent_memory wieder zerstört
@@ -43,72 +43,92 @@ extern "C" {
 #include <libdyn_cpp.h>
 #include "global_shared_object.h"
 
- #include "directory.h"
-
-
-extern "C" int persistent_memory_block(int flag, struct dynlib_block_t *block);
+#include "directory.h"
 
 
 
 
-
-
-
-
-// Abgeleitete Klasse
-
-class persistent_memory_shobj : public ortd_global_shared_object {
-public:
-    persistent_memory_shobj(const char* identName, libdyn_master* master) : ortd_global_shared_object(identName, master) {}
-  
-private:
-  void init() {
-    printf("init persistent_memory\n");
-  }
-  
+extern "C" {
+    extern int persistent_memory_block(int flag, struct dynlib_block_t *block);
+    extern int write_persistent_memory_block(int flag, struct dynlib_block_t *block);
+    extern int read_persistent_memory_block(int flag, struct dynlib_block_t *block);
 };
 
 
 
-// #endif
 
 
 
-// // A stupid helper classe which accesses the directory
-// class persistent_memory_init {
-// public:
-//   persistent_memory_init() { }
-//   
-//   persistent_memory_shobj  * persistent_memory_register(libdyn_master *master, char *fname) {
-//         if (master == NULL || master->dtree == NULL) {  // no master available
-//            fprintf(stderr, "WARNING: persistent_memory: block requires a libdyn master\n");
-// 	   
-// 	   return NULL;
-// 	}
-// 	
-// 	// get the identifier
-// 	directory_entry::direntry *dentr = master->dtree->access(fname, NULL);
-// 	
-// 	if (dentr == NULL) {
-// 	  fprintf(stderr, "WARNING: persistent_memory: Can not find directory entry %s\n", fname);
-// 	   return NULL;
-// 	}
-// 
-// 	if (dentr->type != ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY) {
-// 	  fprintf(stderr, "WARNING: persistent_memory: wrong type for %s\n", fname);
-// 	   return NULL;
-// 	}
-// 	
-// 	persistent_memory_shobj  *pmem = (persistent_memory_shobj  *) dentr->userptr;
-//  
-//   }
-//   
-//   
-// };
+// Shared object that manages the memory
+
+class persistent_memory_shobj : public ortd_global_shared_object {
+public:
+    persistent_memory_shobj(const char* identName, libdyn_master* master, int datatype, int len, void *initial_data, bool useMutex) : ortd_global_shared_object(identName, master) {
+        this->datatype = datatype;
+        this->data_num_elements = len;
+        this->useMutex = useMutex;
 
 
+        this->data_element_size = libdyn_config_get_datatype_len(datatype);
+        this->memsize = this->data_element_size*this->data_num_elements;
+
+//         printf("init persistent_memory. Memsize = %d\n", memsize);
+
+        // allocate data
+        data = malloc(memsize);
+
+        if (initial_data != NULL)
+            memcpy(data, initial_data, memsize);
+        else
+            memset(data, 0, memsize);
+
+        // initialise mutex, if desired
+        if (useMutex) {
+            pthread_mutex_init(&data_mutex, NULL);
+        }
+
+    }
+
+    void* get_dataptr() {
+        return data;
+    }
+    void lock_data() {
+        pthread_mutex_lock(&data_mutex);
+    }
+    void unlock_data() {
+        pthread_mutex_unlock(&data_mutex);
+    }
+    void set_wholedata(void *src) {
+        lock_data();
+        memcpy(data, src, memsize);
+        unlock_data();
+    }
+    bool getuseMutex() {
+        return useMutex;
+    }
 
 
+    ~persistent_memory_shobj() {
+        free(data);
+
+        if (useMutex) {
+            pthread_mutex_destroy(&data_mutex);
+        }
+
+    }
+public:
+    uint data_element_size;
+    uint data_num_elements;
+    int datatype;
+
+private:
+    void *data;
+    bool useMutex;
+
+    uint memsize;
+
+    pthread_mutex_t data_mutex;
+};
 
 
 
@@ -117,102 +137,73 @@ private:
 
 class persistent_memory_block_class {
 public:
-    persistent_memory_block_class(struct dynlib_block_t *block);
-    void destruct();
-    void io(int update_states);
-    void reset();
-    int init();
-private:
-   struct dynlib_block_t *block;
-   
-   char * directory_entry_fname;
-   
-   int datatype;
-   int size;
-   
-   persistent_memory_shobj  *pmem;
-};
-
-persistent_memory_block_class::persistent_memory_block_class(dynlib_block_t* block)
-{
-    this->block = block;
-}
-
-int persistent_memory_block_class::init()
-{
-    double *rpar = libdyn_get_rpar_ptr(block);
-    int *ipar = libdyn_get_ipar_ptr(block);
-
-    double Nin = ipar[0];
-    double Nout = ipar[1];
-
-//     this->ifname = "ident1_exch.ipar";
-//     this->rfname = "ident1_exch.rpar";
-
-  
-    this->datatype = ipar[1];
-    this->size = ipar[2];
-    
-    int len_s1 = ipar[3];
-
-    int ofs = 4;
-    
-    int *s1 = &ipar[ofs+0];
-    
-    irpar_getstr(&this->directory_entry_fname, s1, 0, len_s1);
-    
-//     fprintf(stderr, "persistent_memory_block_class: %s %s %s\n", ifname, rfname, nested_simname);
-    
-
-    libdyn_master *master = (libdyn_master *) block->sim->master;
-    pmem = new persistent_memory_shobj( directory_entry_fname, master );
-    
-/*    persistent_memory_init meminit; 
-    pmem = meminit.persistent_memory_register(master, this->directory_entry_fname);*/
-    
-    
-    return 0;
-}
-
-
-void persistent_memory_block_class::io(int update_states)
-{
-    if (update_states==0) {
- 
+    persistent_memory_block_class(struct dynlib_block_t *block)    {
+        this->block = block;
     }
-}
+    void destruct() {
+        free(directory_entry_fname);
+        if (pmem->isUnused()) {
+            delete pmem;
+        } else {
+#ifdef DEBUG
+            fprintf(stderr, "persistent_memory_block_class: object is still in use and will therefore remain in memory\n");
+#endif
+        }
+    }
 
-void persistent_memory_block_class::reset()
-{
+    void io(int update_states) {};
+    void reset() {};
+    int init() {
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
 
-}
+        this->datatype = ipar[1];
+        this->size = ipar[2];
+        this->useMutex = ipar[3];
 
+        int len_ident_str = ipar[10];
+        irpar_getstr(&this->directory_entry_fname, ipar, 11, len_ident_str);
+	
+#ifdef DEBUG
+        fprintf(stderr, "persistent_memory_block_class: datatype %d size %d indentStr %s\n", this->datatype, this->size, this->directory_entry_fname);
+#endif
 
-void persistent_memory_block_class::destruct()
-{  
-  libdyn_master *master = (libdyn_master *) block->sim->master;
-  
-//     persistent_memory_init meminit;
-//     
-//     pmem = meminit.persistent_memory_register(master, this->directory_entry_fname);
-//     if (pmem != NULL) // another block counld have been deleted this one
-//       delete pmem;
+        libdyn_master *master = (libdyn_master *) block->sim->master;
+	
+	// FIXME: catch exception herer
+        pmem = new persistent_memory_shobj( directory_entry_fname, master, this->datatype, this->size, NULL, this->useMutex );
+	
+	// if error return -1;!!!!
 
-  free(directory_entry_fname);
-}
+	
+// 	fprintf(stderr,"pmem ptr = %p\n", pmem);
 
+        return 0;
+    }
+
+private:
+    struct dynlib_block_t *block;
+
+    char * directory_entry_fname;
+
+    int datatype;
+    int size;
+    int useMutex;
+
+    persistent_memory_shobj  *pmem;
+};
 
 int persistent_memory_block(int flag, struct dynlib_block_t *block)
 {
 
-//     printf("comp_func nested_exchange_fromfile: flag==%d\n", flag);
+//     printf("persistent_memory_block: flag==%d\n", flag);
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = 1;
-    int Nout = 1;
+    int Nin = 0;
+    int Nout = 0;
 
 
     switch (flag) {
@@ -222,9 +213,6 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
         worker->io(0);
-	
-	
-
     }
     return 0;
     break;
@@ -240,16 +228,16 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
-        
-	
-	    int datatype = ipar[1];
-       int size = ipar[2];
+
+
+        int datatype = ipar[1];
+        int size = ipar[2];
 
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
-        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
-        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
-        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+//         libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+//         libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+//         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
 
 
     }
@@ -279,18 +267,27 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
 //     {
 //         in = (double *) libdyn_get_input_ptr(block,0);
 //         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
-// 
+//
 //         worker->io(1);
 //     }
 //     return 0;
-//     break;  
+//     break;
     case COMPF_FLAG_PREINITUNDO: // destroy instance
     {
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
         worker->destruct();
-	delete worker;
+        delete worker;
 
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
+
+        worker->destruct();
+        delete worker;
     }
     return 0;
     break;
@@ -301,5 +298,402 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// NOTE: MUSTER für C++ compfn
+class persistent_memory_write_block_class {
+public:
+    persistent_memory_write_block_class(struct dynlib_block_t *block)    {
+        this->block = block;
+    }
+    void destruct() {        }
+
+    void io_output() {};
+    void io_update() {
+        void *dataToWrite = (void *) libdyn_get_input_ptr(block,0);
+        double *index__ = (double *) libdyn_get_input_ptr(block,1);
+        int index = round(*index__); // is starting at 1
+
+        int maxindex = pmem->data_num_elements - elements_to_write + 1;
+        if (index < 1) index=1;
+        if (index > maxindex) index=maxindex;
+
+//         printf("write %d elements to index %d\n", elements_to_write, index);
+
+        index--; // convert to C-index
+
+
+        // calc destination ptr
+        void *destptr = (void*) ( ((char*) pmem->get_dataptr()) + pmem->data_element_size*index );
+
+        if (useMutex) {
+            pmem->lock_data();
+            memcpy(destptr, dataToWrite, elements_to_write*pmem->data_element_size);
+            pmem->unlock_data();
+        } else {
+            memcpy(destptr, dataToWrite, elements_to_write*pmem->data_element_size);
+        }
+
+    };
+    void reset() {};
+    int init() {
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
+
+        int datatype = ipar[1];
+        this->elements_to_write = ipar[2];
+
+        int len_ident_str = ipar[10];
+        char * directory_entry_fname;
+        irpar_getstr(&directory_entry_fname, ipar, 11, len_ident_str);
+
+#ifdef DEBUG
+        fprintf(stderr, "write_persistent_memory_block: datatype %d size to write %d indentStr %s\n", datatype, this->elements_to_write, directory_entry_fname);
+#endif
+
+        libdyn_master *master = (libdyn_master *) block->sim->master;
+//         pmem = new persistent_memory_shobj( directory_entry_fname, master, this->datatype, this->size, NULL, this->useMutex );
+
+        // FIXME: need to make sure that this is really a memory object and not something else
+        pmem = (persistent_memory_shobj*) get_ortd_global_shared_object(directory_entry_fname, master);        
+
+        if (pmem == NULL) {
+            fprintf(stderr, "ERROR: write_persistent_memory_block: memory <%s> could not be found\n", directory_entry_fname);
+	    free(directory_entry_fname);
+            return -1;
+        }
+        free(directory_entry_fname);
+	
+        useMutex = pmem->getuseMutex();
+
+
+        // check consistency
+        if (pmem->datatype != datatype) {
+            fprintf(stderr, "ERROR: write_persistent_memory_block: missmatching datatype for memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+        if (pmem->data_num_elements < this->elements_to_write) {
+            fprintf(stderr, "ERROR: write_persistent_memory_block: elements_to_write is bigger than the number of elements in memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+
+// 	fprintf(stderr,"pmem ptr = %p\n", pmem);
+
+        return 0;
+    }
+
+private:
+    struct dynlib_block_t *block;
+
+
+
+
+    int elements_to_write;
+    bool useMutex;
+
+    persistent_memory_shobj  *pmem;
+};
+
+
+
+// NOTE: MUSTER für C++ compfn
+int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
+{
+//     printf("persistent_memory_ write block: flag==%d\n", flag);
+
+    double *in;
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int Nin = 2;
+    int Nout = 0;
+
+    in = (double *) libdyn_get_input_ptr(block,0);
+    persistent_memory_write_block_class *worker = (persistent_memory_write_block_class *) libdyn_get_work_ptr(block);
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        worker->io_output();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        worker->io_update();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
+    {
+        int datatype = ipar[1];
+        int size = ipar[2]; // len of datainput
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, size, datatype); // data input
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // control input
+//         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:
+    {
+        worker = new persistent_memory_write_block_class(block);
+        libdyn_set_work_ptr(block, (void*) worker);
+
+        int ret = worker->init();
+        if (ret < 0)
+            return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        worker->reset();
+    }
+    return 0;
+    break;
+//     case COMPF_FLAG_HIGHERLEVELRESET:
+//     {
+//         worker->io(1);
+//     }
+//     return 0;
+//     break;
+    case COMPF_FLAG_PREINITUNDO: // destroy instance
+    {
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        worker->destruct();
+        delete worker;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a persistent_memory writing block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class persistent_memory_read_block_class {
+public:
+    persistent_memory_read_block_class(struct dynlib_block_t *block)    {
+        this->block = block;
+    }
+    void destruct() {        }
+
+    void io_output() {
+        void *outputPtr = (void *) libdyn_get_output_ptr(block,0);
+        double *index__ = (double *) libdyn_get_input_ptr(block,0);
+        int index = round(*index__); // is starting at 1
+
+        int maxindex = pmem->data_num_elements - elements_to_write + 1;
+        if (index < 1) index=1;
+        if (index > maxindex) index=maxindex;
+
+//         printf("read %d elements to index %d\n", elements_to_write, index);
+
+        index--; // convert to C-index
+
+
+        // calc destination ptr
+        void *srcptr = (void*) ( ((char*) pmem->get_dataptr()) + pmem->data_element_size*index );
+
+        if (useMutex) {
+            pmem->lock_data();
+            memcpy(outputPtr, srcptr, elements_to_write*pmem->data_element_size);
+            pmem->unlock_data();
+        } else {
+            memcpy(outputPtr, srcptr, elements_to_write*pmem->data_element_size);
+        }
+
+    };
+    void io_update() {       };
+    void reset() {};
+    int init() {
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
+
+        int datatype = ipar[1];
+        this->elements_to_write = ipar[2];
+
+        int len_ident_str = ipar[10];
+        char * directory_entry_fname;
+        irpar_getstr(&directory_entry_fname, ipar, 11, len_ident_str);
+
+        fprintf(stderr, "write_persistent_memory_block: datatype %d size to write %d indentStr %s\n", datatype, this->elements_to_write, directory_entry_fname);
+
+        libdyn_master *master = (libdyn_master *) block->sim->master;
+//         pmem = new persistent_memory_shobj( directory_entry_fname, master, this->datatype, this->size, NULL, this->useMutex );
+
+        // FIXME: need to make sure that this is really a memory object and not something else
+        pmem = (persistent_memory_shobj*) get_ortd_global_shared_object(directory_entry_fname, master);
+        
+
+        if (pmem == NULL) {
+            fprintf(stderr, "ERROR: read_persistent_memory_block: memory <%s> could not be found\n", directory_entry_fname);
+	    free(directory_entry_fname);
+            return -1;
+        }
+        
+        free(directory_entry_fname);
+        
+        useMutex = pmem->getuseMutex();
+
+
+
+
+        // check consistency
+        if (pmem->datatype != datatype) {
+            fprintf(stderr, "ERROR: read_persistent_memory_block: missmatching datatype for memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+        if (pmem->data_num_elements < this->elements_to_write) {
+            fprintf(stderr, "ERROR: read_persistent_memory_block: elements_to_write is bigger than the number of elements in memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+
+// 	fprintf(stderr,"pmem ptr = %p\n", pmem);
+
+        return 0;
+    }
+
+private:
+    struct dynlib_block_t *block;
+
+
+
+
+    int elements_to_write;
+    bool useMutex;
+
+    persistent_memory_shobj  *pmem;
+};
+
+
+
+int read_persistent_memory_block(int flag, struct dynlib_block_t *block)
+{
+//     printf("persistent_memory_ read block: flag==%d\n", flag);
+
+    double *in;
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int Nin = 1;
+    int Nout = 1; // should be 1
+
+    in = (double *) libdyn_get_input_ptr(block,0);
+    persistent_memory_read_block_class *worker = (persistent_memory_read_block_class *) libdyn_get_work_ptr(block);
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        worker->io_output();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        worker->io_update();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
+    {
+        int datatype = ipar[1];
+        int size = ipar[2]; // len of datainput
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // control input
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:
+    {
+        worker = new persistent_memory_read_block_class(block);
+        libdyn_set_work_ptr(block, (void*) worker);
+
+        int ret = worker->init();
+        if (ret < 0)
+            return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        worker->reset();
+    }
+    return 0;
+    break;
+//     case COMPF_FLAG_HIGHERLEVELRESET:
+//     {
+//         worker->io(1);
+//     }
+//     return 0;
+//     break;
+    case COMPF_FLAG_PREINITUNDO: // destroy instance
+    {
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        worker->destruct();
+        delete worker;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a persistent_memory reading block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 
 

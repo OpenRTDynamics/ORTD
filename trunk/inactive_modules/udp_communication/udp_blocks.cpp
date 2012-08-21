@@ -474,6 +474,15 @@ int udp_main_sender_block(int flag, struct dynlib_block_t *block)
     }
     return 0;
     break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        udp_main_SendRecv_block_class *worker = (udp_main_SendRecv_block_class *) libdyn_get_work_ptr(block);
+
+        worker->destruct();
+        delete worker;
+    }
+    return 0;
+    break;
     case COMPF_FLAG_PRINTINFO:
         printf("I'm a udp_main_sender initialising block\n");
         return 0;

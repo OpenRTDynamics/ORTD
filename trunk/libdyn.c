@@ -483,7 +483,7 @@ int libdyn_config_block_input(struct dynlib_block_t *block, int in, int len, int
     mydebug(1) fprintf(stderr, "confiured inport #%d\n", in);
     return 0;
   } else {
-    fprintf(stderr, "ASSERTION FAILD: TRIED TO CONFIGURE A NON-AVAILABLE INPUT\n  You made a mistake in your computational c-function\n");
+    fprintf(stderr, "ASSERTION FAILD: libdyn_config_block_input: TRIED TO CONFIGURE A NON-AVAILABLE INPUT\n  You made a mistake in your computational c-function\n");
     return -1;
   }
 }
@@ -501,7 +501,7 @@ int libdyn_config_block_output(struct dynlib_block_t *block, int out, int len, i
     block->outlist[out].datasize = len * libdyn_config_get_datatype_len(datatype); //sizeof(double); // FIXME SOLVED Hier auf Datentyp eingehen
  
     if (dinput_dependence == 1 && block->Nin == 0) {
-       mydebug(4) fprintf(stderr, "ASSERTION FAILD: TRIED TO HAVE DFEED WITH NO INPUT\n");
+       fprintf(stderr, "ASSERTION FAILD: libdyn_config_block_output; TRIED TO HAVE DFEED WITH NO INPUT\n");
        return -1;
     }
     block->outlist[out].dinput_dependence = dinput_dependence; // FIXME check if there is an input
@@ -512,7 +512,7 @@ int libdyn_config_block_output(struct dynlib_block_t *block, int out, int len, i
     mydebug(1) fprintf(stderr, "confiured outport #%d df=%d\n", out, block->d_feedthrough);
     return 0;
   } else {
-    mydebug(4) fprintf(stderr, "ASSERTION FAILD: TRIED TO CONFIGURE A NON-AVAILABLE OUTPUT\n");
+    fprintf(stderr, "ASSERTION FAILD: libdyn_config_block_output: TRIED TO CONFIGURE A NON-AVAILABLE OUTPUT\n");
     return -1;
   }
   
@@ -608,15 +608,17 @@ void libdyn_del_block(struct dynlib_block_t *block)
 int libdyn_block_connect(struct dynlib_block_t *blockfrom, int outNr, struct dynlib_block_t *blockto, int inNr)
 {
   // FIXME: POSPONED - MAYBE FOREVER Subinput are not considered
-  // FIXME: DONE Testen ob port schon verbunden ist
+  //  DONE Testen ob port schon verbunden ist  
+  // 14.8.2012 - fixed a possible segfault with incorrect error handling
+  
 
   // check conditions
   int test = 0;
 
   if ((inNr < 0) || (inNr >= blockto->Nin)) 
-    { test = -1; goto err; }
+    { test = -1; goto err_nonavailin; }
   if ((outNr < 0) || (outNr >= blockfrom->Nout))
-    { test = -2; goto err; }
+    { test = -2; goto err_nonavailout; }
 
   if (blockto->inlist[inNr].len != blockfrom->outlist[outNr].len)
     { test = -3; goto err; }
@@ -649,19 +651,37 @@ int libdyn_block_connect(struct dynlib_block_t *blockfrom, int outNr, struct dyn
 
   return 1;
 
+err_nonavailin:
+  fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
+  fprintf(stderr, "  Ports to connect: inport = %d, outport = %d\n", inNr, outNr);
+  fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
+  fprintf(stderr, "  Tryed to connect to an non available input\n");
+  fprintf(stderr, "\n");
+
+  return test;
+
+err_nonavailout:
+  fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
+  fprintf(stderr, "  Ports to connect: inport = %d, outport = %d\n", inNr, outNr);
+  fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
+  fprintf(stderr, "  Tryed to connect to an non available output\n");
+  fprintf(stderr, "\n");
+
+  return test;
+
 err:
   fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
   fprintf(stderr, "  The following missmatching interface was specified:\n\n");
-  fprintf(stderr, "  inNr = %d, outNr = %d\n", inNr, outNr);
-  fprintf(stderr, "  from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
+  fprintf(stderr, "  Ports to connect: inport = %d, outport = %d\n", inNr, outNr);
+  fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
   fprintf(stderr, "  srclen = %d, dstlen = %d\n", blockfrom->outlist[outNr].len, blockto->inlist[inNr].len);
   fprintf(stderr, "  srcdatatype = %d, dstdatatype = %d\n\n", blockfrom->outlist[outNr].datatype, blockto->inlist[inNr].datatype);
-  fprintf(stderr, "------\n");
+  fprintf(stderr, "\n");
   
   return test;
 }
 
-// Connect Block input port to external data pointer *external
+// Connect Block input port to external data pointer *external // ADD datatype
 int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void *external_data, int portsize)
 {
   if ((inNr < 0) || (inNr >= blockto->Nin)) {
@@ -673,13 +693,10 @@ int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void
     fprintf(stderr, "Faild to connect external of block irparid=%d; invalid port sizes %d (extern in) != %d (blockto)\n", blockto->irpar_config_id, portsize, blockto->inlist[inNr].len );
     return -2;
   }
-
   
   blockto->inlist[inNr].intype = INTYPE_EXTERN;
   blockto->inlist[inNr].pre[0] = (struct dynlib_block_t *) external_data; // Feld wird missbraucht // misstreated field
-
   blockto->inlist[inNr].data = external_data;
-  mydebug(1)  fprintf(stderr, "Set external data to %x\n",  (unsigned int) external_data);
  
   return 0;
 }
@@ -1979,18 +1996,27 @@ struct dynlib_filter_t *libdyn_new_tf_filter_irpar(int *ipar, double *rpar, int 
 struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, int *ipar, double *rpar, 
 					      int id, struct dynlib_block_t **blocklist)
 {
+  // searches for the block with irpar id id
+  // creates it and
+  // writes the newly created block pointer into blocklist
+  
   int i, err;
   struct irpar_header_element_t ret_;
+ 
+#ifdef DEBUG
+  fprintf(stderr, "irpar_get_libdynblock: Trying to get block with id %d\n", id);
+#endif
   
-  irpar_get_element_by_id(&ret_, ipar, rpar, id);
+  irpar_get_element_by_id(&ret_, ipar, rpar, id);  // ret_.setindex is a unique index for each id starting from 0
   
   if (ret_.typ != IRPAR_LIBDYN_BLOCK) {
     fprintf(stderr, "irpar id %d is not of type IRPAR_LIBDYN_BLOCK!\n", id);
     
-    return 0;
+    return NULL;
   }
   
-  if (blocklist[ret_.setindex] != 0) { // Block is already available; irpar should give a unique index "setindex" for each set
+  // Make sure the block with irpar id id is not already there
+  if (blocklist[ret_.setindex] != NULL) { // Block is already available; irpar should give a unique index "setindex" for each set
     mydebug(7) fprintf(stderr, "Block already created\n");
     return blocklist[ret_.setindex];
   }
@@ -2018,13 +2044,10 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
    * Create new Block
    */ 
   
-  mydebug(7) fprintf(stderr, "new block btype=%d, blockid=%d, eventlistlen=%d\n", btype, blockid, eventlist_len);
+#ifdef DEBUG
+  fprintf(stderr, "  --> OK. New Block: btype=%d, blockid=%d, eventlistlen=%d\nTring to find the computational function...\n", btype, blockid, eventlist_len);
+#endif
   
-  /*
-  	int (*comp_func)(int flag, struct dynlib_outlist_t *block);
-	comp_func = libdyn_get_comp_fn("bla");
-	(*comp_func)(1, 0);
-*/
   
   struct dynlib_block_t *block = 0;
   
@@ -2160,13 +2183,13 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
         block = libdyn_new_block(sim, comp_fn, bipar, brpar, 0,  0);
       } else {
 	// Absolutely nothing was found
-	fprintf(stderr, "Could not find any block for this block type! btype = %d.\n", btype);
+	fprintf(stderr, "libdyn: Could not find any block for this block type! btype = %d.\n", btype);
       }
     }
   }
   
   if (block == 0) {
-    fprintf(stderr, "Could not create block with blockid = %d!\n", btype);
+    fprintf(stderr, "libdyn: Could not create block with blockid = %d!\n", btype);
     return 0;
   }
   
@@ -2182,20 +2205,20 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
     err = libdyn_new_event_notifier(sim, block, eventlist[i]); // register event for this block
 
     if (err == 1) {
-       fprintf(stderr, "error assigning event!\n");
+       fprintf(stderr, "libdyn: error assigning event!\n");
       return 0;
     }
   }
   mydebug(7) fprintf(stderr, "\n");
   
   
-//  libdyn_new_event_notifier(sim, block, 0); // register event 0 for this block
-  
   
   
   blocklist[ret_.setindex] = block;
   
-  mydebug(7) libdyn_block_dumpinfo(block);
+#ifdef DEBUG
+   libdyn_block_dumpinfo(block);
+#endif
   
   return block;
 }
@@ -2287,18 +2310,18 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
     return -1;
   
   int type = ret_.ipar_ptr[0]; // Hmm
-  int entries = ret_.ipar_ptr[1]; // Nr of list elements
-  int listelesize = ret_.ipar_ptr[2]; // Size of list element
+  int NrConnectionListEntries = ret_.ipar_ptr[1]; // Nr of list elements
+  int ConnectionLIstElementSize = ret_.ipar_ptr[2]; // Size of list element
 
-  int listofs = ret_.ipar_ptr[3]; // BEGIN OF connectionlist
+  int listofs = ret_.ipar_ptr[3]; // BEGIN OF connectionlist in irpar array
 
-  mydebug(7) fprintf(stderr, "clist header: type=%d, entries=%d, listelesize=%d, listofs=%d\n", type, entries, listelesize, listofs);
+  mydebug(7) fprintf(stderr, "clist header: type=%d, entries=%d, listelesize=%d, listofs=%d\n", type, NrConnectionListEntries, ConnectionLIstElementSize, listofs);
 
   /*
    * Alloc mem for parsed copy
    */
   
-  struct libdyn_conn_list_element_t *cl = libdyn_conn_list_new(entries);
+  struct libdyn_conn_list_element_t *cl = libdyn_conn_list_new(NrConnectionListEntries);
   
   // DEF Blocklist arrindex->blockptr
   struct dynlib_block_t ** blocklist = (struct dynlib_block_t **) malloc( maxirparsets * sizeof(struct dynlib_block_t *) );
@@ -2310,16 +2333,21 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
    * alredy created block, so they are not created twice.
    */
   
-  for (i = 0; i < entries; ++i) {
-    int src_type = ret_.ipar_ptr[listofs + i * listelesize + 0];
-    int src_blockid = ret_.ipar_ptr[listofs + i * listelesize + 1];
-    int src_blockparid = ret_.ipar_ptr[listofs + i * listelesize + 2];
-    int src_port = ret_.ipar_ptr[listofs + i * listelesize + 3];
+  
+#ifdef DEBUG
+    fprintf(stderr, "Number of new connections: %d\n", NrConnectionListEntries);
+#endif
+  
+  for (i = 0; i < NrConnectionListEntries; ++i) {
+    int src_type = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 0];
+    int src_blockid = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 1];
+    int src_blockparid = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 2];
+    int src_port = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 3];
 
-    int dst_type = ret_.ipar_ptr[listofs + i * listelesize + 4]; // 0: normal block; 1: IN/OUT
-    int dst_blockid = ret_.ipar_ptr[listofs + i * listelesize + 5]; // blocks unique id
-    int dst_blockparid = ret_.ipar_ptr[listofs + i * listelesize + 6]; // blocks parameter id
-    int dst_port = ret_.ipar_ptr[listofs + i * listelesize + 7]; // which port of this dest block
+    int dst_type = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 4]; // 0: normal block; 1: IN/OUT   2: the destination describes a totally unconnected block, to be set-up
+    int dst_blockid = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 5]; // blocks unique id
+    int dst_blockparid = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 6]; // blocks parameter id
+    int dst_port = ret_.ipar_ptr[listofs + i * ConnectionLIstElementSize + 7]; // which port of this dest block
     
     
     cl[i].dst_type = dst_type;
@@ -2332,15 +2360,38 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
     cl[i].src_blockparid = src_blockparid;
     cl[i].src_port = src_port;
 
-    mydebug(7) fprintf(stderr, "  clist element: dst: type=%d, blockid=%d, blockparid=%d, port=%d\n", dst_type, dst_blockid, dst_blockparid, dst_port);
-    mydebug(7) fprintf(stderr, "  clist element: src: type=%d, blockid=%d, blockparid=%d, port=%d\n\n", src_type, src_blockid, src_blockparid, src_port);
-
+#ifdef DEBUG
+    fprintf(stderr, "new connection: src: type=%d, blockid=%d, blockparid=%d, port=%d  -->", src_type, src_blockid, src_blockparid, src_port);
+    fprintf(stderr, "  dst: type=%d, blockid=%d, blockparid=%d, port=%d\n", dst_type, dst_blockid, dst_blockparid, dst_port);
+#endif
     
     /*
      * Create Blocks
      */
+    // Create specioal totally unconnected blocks -- specially signed by dst_type == 2
+    if (cl[i].dst_block == 0 && cl[i].dst_type == 2) {
+
+      // the following fn creates a block if it is not already in the "blocklist"
+      struct dynlib_block_t * blk = irpar_get_libdynblock(sim, ipar, rpar, dst_blockid, blocklist);
+      
+#ifdef DEBUG
+	fprintf(stderr, "libdyn: Created special block without any in/outputs. irparid = %d\n", src_blockid);      
+#endif
+      
+      if (blk == 0) {
+	fprintf(stderr, "Error: Could not create block with irparid = %d\n", src_blockid);
+	
+	goto error;
+      }
+      
+      cl[i].dst_block = blk; 
+      
+      goto GoOnInConnectionList; // go on in the loop for the connection list
+    }
     
     if (cl[i].src_block == 0 && cl[i].src_type == 0) { // If this block wasn't already created
+
+      // the following fn creates a block if it is not already in the "blocklist"
       struct dynlib_block_t * blk = irpar_get_libdynblock(sim, ipar, rpar, src_blockid, blocklist);
       
       if (blk == 0) {
@@ -2353,6 +2404,8 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
     }
 
     if (cl[i].dst_block == 0 && cl[i].dst_type == 0) { // If this block wasn't already created
+
+      // the following fn creates a block if it is not already in the "blocklist"
       struct dynlib_block_t * blk = irpar_get_libdynblock(sim, ipar, rpar, dst_blockid, blocklist);
       
       if (blk == 0) {
@@ -2363,6 +2416,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
       
       cl[i].dst_block = blk; 
     }
+
     
     /*
      * Connect blocks
@@ -2382,12 +2436,13 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
       }
     }
     
-    // FIXME: CHeck Ports
-    if (cl[i].src_type == 1 && cl[i].dst_type == 0) {// connect external in
+    // FIXME: CHeck Ports types
+    if (cl[i].src_type == 1 && cl[i].dst_type == 0) {// connect external in to a block
       if (cl[i].src_port < iocfg->inports) {
 	int portsize = iocfg->insizes[cl[i].src_port];
+	
 	mydebug(7) fprintf(stderr, "external inp to inport =%d ; addr =%x; portsize = %d\n"  , cl[i].src_port,  (unsigned int)  inports[cl[i].src_port], portsize);
-        if (err = libdyn_block_connect_external(cl[i].dst_block, cl[i].dst_port, inports[cl[i].src_port], portsize) != 0) {// FIXME: Hier noch übergeben und testen lassen, wie groß der Ausgang ist DONE
+        if (err = libdyn_block_connect_external(cl[i].dst_block, cl[i].dst_port, inports[cl[i].src_port], portsize) != 0) {
    	  fprintf(stderr, "Error connecting external input for block id %d - destination port not defined or wrong port sizes! Code = %d\n", cl[i].dst_block->numID, err);
 	  goto error;
 	}
@@ -2399,7 +2454,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
       
     }
 
-    if (cl[i].src_type == 0 && cl[i].dst_type == 1) { // connect external out
+    if (cl[i].src_type == 0 && cl[i].dst_type == 1) { // connect block to external out
       if (cl[i].dst_port < iocfg->outports) {
 	
 	if (iocfg->outptr[ cl[i].dst_port ] != &constant_nan) {
@@ -2408,6 +2463,17 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
 	  goto error;
 	}
 	
+	if (iocfg->outsizes[ cl[i].dst_port ] != cl[i].src_block->outlist[ cl[i].src_port ].len ) {
+	  fprintf(stderr, "Libdyn Error: Invalid port when connecting output #%d of the simulation\n", cl[i].dst_port);
+	  goto error;	  
+	}
+
+	// FIXME: The same for the datatype please
+//         if (iocfg->outsizes[ cl[i].dst_port ] != cl[i].src_block->outlist[ cl[i].src_port ].len ) {
+// 	  fprintf(stderr, "Libdyn Error: Invalid port when connecting an output of the simulation\n");
+// 	  goto error;	  
+// 	}
+
 	double *output = libdyn_get_output_ptr( cl[i].src_block, cl[i].src_port  );
 	if (output == 0) {
 	  fprintf(stderr, "Error connecting output: sourceport not defined; port = %d, max=%d\n", cl[i].src_port, cl[i].src_block->Nout);
@@ -2423,12 +2489,37 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
       }
     }
 
-    if (cl[i].src_type == 1 && cl[i].dst_type == 1) // connect ex in to ex out: not possible at the moment
-      return -1;
+    if (cl[i].src_type == 1 && cl[i].dst_type == 1) { // connect ex in to ex out: not possible at the moment
+      fprintf(stderr, "libdyn: EXPERIMENTAL: Try to connect simulation output directly to a simulation input. This is not tested by now.\n");
+
+      int in_portsize = iocfg->insizes[cl[i].src_port];
+      int out_portsize = iocfg->outsizes[cl[i].dst_port];
+
+      if (in_portsize != out_portsize) {
+	fprintf(stderr, "Error while connecting external out %d because of incorrect port size\n",  cl[i].dst_port);	
+	goto error;
+      }
+//       int in_porttype = iocfg->intypes[cl[i].src_port];
+//       int out_porttype = iocfg->outtypes[cl[i].dst_port];
+// 
+//       if (in_porttype != out_porttype) {
+// 	fprintf(stderr, "Error while connecting external out %d because of incorrect port type\n",  cl[i].dst_port);	
+// 	goto error;
+//       }
+      
+      // 
+      iocfg->outptr[ cl[i].dst_port ] = iocfg->inptr[ cl[i].src_port ];
+      
+//       goto error;
+    }
 
    
     mydebug(0) fprintf(stderr, "sup exec list head: %p\n", sim->execution_sup_list_head);
 
+    
+  GoOnInConnectionList:
+    ;
+    
   }
   
   //
@@ -2442,7 +2533,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
 	fprintf(stderr, "ERROR: outport %d is not connected and its size is greater than one --\nso there is also no default output provieded\n", i);
 	goto error;
       } else {
-	fprintf(stderr, "WARNING: outport %d is not connected\n", i);
+	fprintf(stderr, "WARNING: outport %d is not connected, but since it is of size one NaN will be put out\n", i);
       }
     }
   }

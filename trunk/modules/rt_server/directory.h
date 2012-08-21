@@ -23,6 +23,9 @@
 #define ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY 7
 #define ORTD_DIRECTORY_ENTRYTYPE_UDPCOMMUNICATION 8
 
+#define ORTD_DIRECTORY_ENTRYTYPE_SHAREDOBJECT 7
+
+
 class directory_leaf;
 
 class directory_entry {
@@ -115,6 +118,7 @@ class directory_tree {
     bool delete_entry(char *name);
     
     directory_entry::direntry* access(char* path, void* belonges_to_class);
+    void * access_userptr(char* path, void* belonges_to_class);
     
     // list the pwd directory
     void begin_list();
