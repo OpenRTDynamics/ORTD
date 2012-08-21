@@ -461,12 +461,15 @@ endfunction
 function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
   libdyn_check_object(sim,src);
   
-  if (src.objecttype == 4 | src.objecttype == 5) then // port specialiser bearbeiten FIXME: remove this as it is only a compatibility layer
+  if (src.objecttype == 4 | src.objecttype == 5) then // port specialiser bearbeiten FIXME: remove and chage the remainder of this fn as it is only a compatibility layer
    // FIXME REMOVED
    // printf("WARNING: libdyn_connect_extern_ou is not designed for handling port specialisers - your request\n");
    // printf("is redirected to libdyn_connect_outport, which you should use instead. src_port was ignored\n");
       // fixme: Aus Kompatiblitätsgrüden hier libdyn_connect_outport(sim, src, dst_out_port) aufrufen und src_port verwerfen
+
+    // this recalls libdyn_connect_extern_ou ( this function )
     sim = libdyn_connect_outport(sim, src, dst_port);
+
   else
      // A normal block
       
@@ -498,6 +501,25 @@ function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
     sim.cllist($+1) = [0, src_id, src_id, src_port,   1, 0, 0, dst_port];
   end
 endfunction
+
+// 
+// Include a block that has no connections
+// 
+function sim = libdyn_include_block(sim, block)
+  if block.magic ~= 678234 then
+    printf("bad block magic!");
+    error("");
+  end
+  libdyn_check_object(sim,block);
+  
+  
+  // Add a special entry to the connectionlist
+  src_id = 0; src_port = 0;
+  dst_id = block.oid; dst_port = 0;
+  
+  sim.cllist($+1) = [0, src_id, src_id, src_port,   2, dst_id, dst_id, dst_port]; // 2 means a block without connections
+endfunction
+
 
 //
 // Connection of port hint objects to external outputs high level

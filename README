@@ -62,12 +62,27 @@ Scilab Website was extracted) and installs the Scilab toolbox.
 Alternatively, link or copy the the "ld_toolbox" directory (not only its contents) 
 to your <scilab installation directory>/share/scilab/contrib .
 
+Use
+
+  make scilabhelp
+
+to generate help files to the scilab help.
+
 Cleaning up is done via
 
   make clean
 
 This should be executed when compiling and updated version from subversion.
 
+
+UPDATING THE SUBVERSION VERSION
+-------------------------------
+
+Use 
+
+  svn up;  make clean; make; make install; make scilabhelp
+
+to have a correct update.
 
 
 INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)

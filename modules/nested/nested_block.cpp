@@ -1428,6 +1428,11 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 // External block comp functions
 extern "C" {
     extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
+    
+    // persistent_memory.cpp
+    extern int persistent_memory_block(int flag, struct dynlib_block_t *block);
+    extern int write_persistent_memory_block(int flag, struct dynlib_block_t *block);    
+    extern int read_persistent_memory_block(int flag, struct dynlib_block_t *block);
 };
 
 int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
@@ -1441,6 +1446,15 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested_exchange_fromfile);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_survivereset);
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+4, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &persistent_memory_block);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+5, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &write_persistent_memory_block);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+6, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &read_persistent_memory_block);
+    
+    
+    //  INSET
+    
+    
 
 
     printf("libdyn module nested initialised\n");

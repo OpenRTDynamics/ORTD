@@ -314,6 +314,17 @@ directory_entry::direntry* directory_tree::access(char* path, void* belonges_to_
   return dentr;
 }
 
+void* directory_tree::access_userptr(char* path, void* belonges_to_class)
+{
+  directory_entry::direntry* entr = access(path, belonges_to_class);
+  
+  if (entr == NULL) 
+    return NULL;
+  
+  return entr->userptr;
+}
+
+
 bool directory_tree::add_entry(char* name, int type, void* belonges_to_class, void* userptr)
 {
 /*  if (magic != 0xabcdef) {

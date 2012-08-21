@@ -705,7 +705,7 @@ function [sim, outlist] = exch_helper_thread(sim, inlist)
     
   inputv = inlist(1);
 
-  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
+//   [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
 
   //
   // A resource demanding Scilab calculation
@@ -713,31 +713,9 @@ function [sim, outlist] = exch_helper_thread(sim, inlist)
   
   [sim, dummyin] = ld_const(sim, defaultevents, 1);
 
-  if 1==0 then
-      // Scilab commands
-
-      //  init_command = " exec(" + char(39) + "online_estimation/init.sce" + char(39) + "); ";    // execute an sce-file
-
-      init_command = "";
-      exec_command = " scilab_interf.outvec1 = 1:10  ";
-
-      [sim,out] = ld_scilab(sim, defaultevents, in=inputv, invecsize=10, outvecsize=10, init_command, ...
-      exec_command, "", "/home/chr/scilab/scilab-5.3.3_64/bin/scilab");
-
-      [sim,out__] = ld_demux(sim, defaultevents, 10, out);
-
-      result = out;    
-      [sim] = ld_printf(sim, defaultevents, out, "result: = ", 10);
-
-
-
-      // is scilab ready?
-      compready = out__(1); //   
-  else
       [sim, compready]  = ld_const(sim, defaultevents, 1);
 //      [sim, result]  = ld_const_vec(sim, defaultevents, 123);
       [sim, result] = ld_constvec(sim, defaultevents, vec=1:10)
-  end
 
   // replace schematic RST_ident
   [sim, exchslot] = ld_const(sim, defaultevents, 2);                            
@@ -861,4 +839,126 @@ endfunction
          
          
 endfunction
+
+
+
+
+
+
+
+
+function [sim] = ld_global_memory(sim, events, ident_str, datatype, len, initial_data, visibility, useMutex)  // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: inittialise a persistent globally shared memory
+// 
+// ident_str (string) - name of the memory
+// datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+// len (integer) - number of elements
+// initial_data - initial data of the memory
+// visibility (string) - 'global', ... (more are following)
+// useMutex (integer) - 0 or 1. Use a mutex if you access the memory from different threads
+// 
+// 
+
+  ident_str = ident_str + '.memory';
+
+  if (visibility == 'global') then
+  
+  else
+    error("Visibility has to be one of global, ... (more are following)");
+  end
+
+  btype = 15001 + 4   ;	
+  ipar = [0, datatype, len, useMutex, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
+  
+  if datatype == ORTD.DATATYPE_FLOAT then
+    rpar = [ initial_data ];
+    if (length(initial_data) ~= len) then
+      error("length(initial_data) ~= len");
+    end
+  else
+    rpar = [ ];
+    error("datatype is not one of ORTD.DATATYPE_FLOAT, ...");
+  end
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[], outsizes=[], ...
+                   intypes=[], outtypes=[]  );
+ 
+ // ensure the block is included in the simulation even without any I/O ports
+ sim = libdyn_include_block(sim, blk);
+ 
+//   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim] = ld_write_global_memory(sim, events, data, index, ident_str, datatype, ElementsToWrite)   // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Write a portion to a persistent globally shared memory
+// 
+// Initialises a memory structure which can be refered by an
+// identifier. Data is available for read and write access
+// accross different state machines as well as accross
+// different threads.
+// 
+// Make sure to only use the memory created by this function in 
+// lower level simulations such as nested state machines, etc.
+// Access from higher level simulations is possible but should
+// be avoided, as the memory can not be freed on destruction.
+// 
+// data *+(ElementsToWrite) - data
+// index * - index to store the data. Starts at 1
+// ident_str (string) - name of the memory
+// datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+// ElementsToWrite (integer) - number of elements to write to the memory
+// 
+// 
+
+  ident_str = ident_str + '.memory';
+
+  btype = 15001 + 5   ;	
+  ipar = [0, datatype, ElementsToWrite, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
+  rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[ElementsToWrite , 1], outsizes=[], ...
+                   intypes=[ datatype, ORTD.DATATYPE_FLOAT  ], outtypes=[]  );
+ 
+ // ensure the block is included in the simulation even without any I/O ports
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(data, index) );
+ 
+ 
+ 
+//   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, data] = ld_read_global_memory(sim, events, index, ident_str, datatype, ElementsToRead)   // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Read a portion from a persistent globally shared memory
+// 
+// data *+(ElementsToRead) - data
+// index * - index to store the data. Starts at 1
+// ident_str (string) - name of the memory
+// datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+// ElementsToRead (integer) - number of elements to read from the memory
+// 
+
+  ident_str = ident_str + '.memory';
+
+  btype = 15001 + 6;
+  ipar = [0, datatype, ElementsToRead, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
+  rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[1], outsizes=[ElementsToRead], ...
+                   intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[datatype*[1]]  );
+ 
+ // ensure the block is included in the simulation even without any I/O ports
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(index) );
+ 
+   [sim,data] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
 
