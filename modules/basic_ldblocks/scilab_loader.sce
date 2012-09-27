@@ -1147,9 +1147,9 @@ function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta) // PARSE
     
     [sim,z_fb] = libdyn_new_feedback(sim);
     
-    [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-    [sim, tmp] = ld_ztf(sim, ev, sum_, 1/z);
-    [sim, y] = ld_sat(sim, ev, tmp, min__, max__);
+	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+	[sim, tmp] = ld_ztf(sim, ev, sum_, 1/z);
+	[sim, y] = ld_sat(sim, ev, tmp, min__, max__);
     
     [sim] = libdyn_close_loop(sim, y, z_fb);    
 endfunction
@@ -1168,11 +1168,35 @@ function [sim, y] = ld_limited_integrator2(sim, ev, u, min__, max__, Ta) // PARS
     
     [sim,z_fb] = libdyn_new_feedback(sim);
     
-    [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-    [sim, y] = ld_sat(sim, ev, sum_, min__, max__);
+	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+	[sim, y] = ld_sat(sim, ev, sum_, min__, max__);
 
 
-    [sim, y_] = ld_ztf(sim, ev, y, 1/z);
+	[sim, y_] = ld_ztf(sim, ev, y, 1/z);
+    
+    [sim] = libdyn_close_loop(sim, y_, z_fb);    
+
+endfunction
+
+function [sim, y] = ld_limited_integrator3(sim, ev, u, min__, max__, Ta) // PARSEDOCU_BLOCK
+// %PURPOSE: Implements a time discrete integrator (trapeziodal rule) with saturation of the output between min__ and max__
+//
+// u * - input
+// y * - output
+// 
+// y(k+1) = sat(  Ta/2 ( u(k)+u(k+1) ) + y(k), min__, max__ )
+
+    ukp1 = u;
+    [sim, uk] = ld_ztf(sim, ev, ukp1, 1/z);
+    [sim, u__] = ld_add(sim, ev, list(uk, ukp1), [Ta/2, Ta/2] );     
+//     [sim, u__] = ld_gain(sim, ev, tmp, Ta/2);
+    
+    [sim,z_fb] = libdyn_new_feedback(sim);
+    
+	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+	[sim, y] = ld_sat(sim, ev, sum_, min__, max__);
+
+	[sim, y_] = ld_ztf(sim, ev, y, 1/z);
     
     [sim] = libdyn_close_loop(sim, y_, z_fb);    
 endfunction
@@ -1327,6 +1351,92 @@ function [sim, out] = ld_detect_step_event2(sim, ev, in, eps) // PARSEDOCU_BLOCK
 endfunction
 
 
+function [sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Start and stop saving of data to files
+// 
+//   in *+(size) - Data to write
+//   cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped
+//   intype - ORTD input type of data
+//   size - amount of elements in the vector in
+//   fname - string: Filename for saving
+// 
+// Note: The implementation of this function is a superblock using state machines
+//       and the ld_savefile block. If you're interested take the source as an example.
+// 
+// 
+
+    function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim, inlist, x_global, state, statename, userdata)
+      // This function is called multiple times -- once for each state.
+      // At runtime, these are three different nested simulations. Switching
+      // between them represents state changing, thus each simulation 
+      // represents a certain state.
+      
+//       printf("defining savemachine state %s (#%d) ... userdata(1)=%s\n", statename, state, userdata(1) );
+      
+      // define names for the first event in the simulation
+      ev = 0; events = ev;
+
+      // 
+      dataToSave = inlist(1);
+      switch = inlist(2);  [sim, switch] = ld_gain(sim, ev, switch, 1);
+
+
+      // demultiplex x_global
+      [sim, x_global] = ld_demux(sim, events, vecsize=1, invec=x_global);
+
+
+      // The signals "active_state" is used to indicate state switching: A value > 0 means the 
+      // the state enumed by "active_state" shall be activated in the next time step.
+      // A value less or equal to zero causes the statemachine to stay in its currently active
+      // state
+
+      select state
+	case 1 // state 1
+	  active_state = switch;
+	  [sim] = ld_printf(sim, ev, in=dataToSave, str="Pauseing Save", insize=DataLen);
+
+	case 2 // state 2
+	  [sim] = ld_savefile(sim, ev, fname, source=dataToSave, vlen=DataLen);
+	  [sim] = ld_printf(sim, ev, in=dataToSave, str="Saveing", insize=DataLen);
+
+	  active_state = switch;
+      end
+
+      // multiplex the new global states
+      [sim, x_global_kp1] = ld_mux(sim, ev, vecsize=1, inlist=x_global);
+      
+      // the user defined output signals of this nested simulation
+      outlist = list();
+  endfunction
+
+  DataLen = insize;
+
+
+//   [sim] = ld_printf(sim, ev, cntrl, "cntrl", 1);
+
+  [sim, cntrl] = ld_detect_step_event(sim, ev, in=cntrl, eps=0.2);
+
+//   [sim] = ld_printf(sim, ev, cntrl, "Dcntrl", 1);
+
+
+  // set-up two states represented by two nested simulations
+  [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=defaultevents, ...
+      inlist=list(in, cntrl), ..
+      insizes=[insize,1], outsizes=[], ... 
+      intypes=[intype ,ORTD.DATATYPE_FLOAT  ], outtypes=[], ...
+      nested_fn=state_mainfn, Nstates=2, state_names_list=list("pause", "save"), ...
+      inittial_state=1, x0_global=[1], userdata=list("hallo")  );
+
+
+endfunction
+
+
+
+
+
+
+
 // 
 // Blocks, which C functions have not been move to the basic module yet, but the interfacing function
 // 
@@ -1416,6 +1526,7 @@ function [sim,bid] = libdyn_new_blk_gen(sim, events, symbol_name, ipar, rpar)
 endfunction
 
 
+// FIXME no port size checking
 function [sim,bid] = libdyn_new_blk_sum(sim, events, c1, c2)
   btype = 12;
   
@@ -1427,6 +1538,8 @@ function [sim,bid] = libdyn_new_blk_sum(sim, events, c1, c2)
 //  sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; bid], [c1; c2]);
 endfunction
 
+
+// FIXME no port size checking
 function [sim,bid] = libdyn_new_blk_zTF(sim, events, H)
   btype = 30;
   bip = [ degree(H.num); degree(H.den) ];
