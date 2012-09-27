@@ -434,6 +434,16 @@ The whole space of blocks and functionality of this Toolbox is divided into seve
 
 Interfacing functions are Scilab functions, which define a certain block including its parameters. Each computational function should have at least one or more interfacing functions. TODO.
 
+
+Inportant functions:
+
+\begin{itemize}
+ \item \texttt{sim = libdyn\_include\_block(sim, blk);} use this instead of \texttt{libdyn\_conn\_equation}, when you have a block without any in or output ports. This command ensured that the blocks initialisation routines are actually executed.
+ \item \texttt{[sim,data] = libdyn\_new\_oport\_hint(sim, blk, 0);} creates a new output object for a block. The output object \texttt{data} is connected to the first (0) output port in this case.
+\end{itemize}
+
+
+
 \subsection{Computitional function structure}
 
 The computational functions are very similar in their structure compared to Simulink S-functions or Scicos computational functions. Though there are some additional features e.g. a flag for resetting internal states.
