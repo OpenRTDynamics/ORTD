@@ -3,7 +3,7 @@
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
 
-
+// FIXME raus
 int compu_func_constmat(int flag, struct dynlib_block_t *block)
 {
   
@@ -54,6 +54,7 @@ int compu_func_constmat(int flag, struct dynlib_block_t *block)
 }
 
 
+// FIXME raus
 int compu_func_vec2mat(int flag, struct dynlib_block_t *block)
 {
   
