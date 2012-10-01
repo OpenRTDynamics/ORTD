@@ -554,7 +554,7 @@ int ortd_stream_multiplexer::multiplex(void *data)
 
     rt_server_client = this->rt_server_i;
 
-    char str[256];
+    char str[10000]; // A large buffer, because double float numbers printed with %f can become quite long for huge values
     int ret;
 
     // decide on datatype
