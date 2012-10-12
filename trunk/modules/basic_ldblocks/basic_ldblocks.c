@@ -2148,6 +2148,133 @@ int compu_func_FlagProbe(int flag, struct dynlib_block_t *block)
 */
 
 
+int ortd_compu_func_vectordelay(int flag, struct dynlib_block_t *block)
+{
+  int err;
+  
+  int Nout = 1;
+  int Nin = 1;
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int veclen = ipar[0];
+  
+  int dfeed = 0;  
+  int i = 0;
+  
+  double *out;
+  double *inp;
+
+  void *buffer__ = (void*) libdyn_get_work_ptr(block);
+//   int *buf_position_read =  (int*) buffer__;
+
+  double *stat_buf = (double*) (buffer__ + sizeof(int) );
+//   int stat_buf_begin;
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+      freopen( "/home/max/outfile.txt", "a", stdout );
+      out = (double *) libdyn_get_output_ptr(block,0);
+      
+//       stat_buf = stat_buf_begin;
+      printf("stat_buf_ptr = %p\n", stat_buf);
+      
+      for(i = 0; i < veclen; i++){
+	printf("i = %d\n", i);
+	printf("stat_buf = %f\n", stat_buf[i]);
+// 	*out = *stat_buf;
+	out[i] = stat_buf[i];
+	printf("out = %f\n", out[i]);
+// 	stat_buf++;
+// 	out++;
+      }
+      freopen( "CON", "a", stdout );
+
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      freopen( "/home/max/inpfile.txt", "a", stdout );
+      inp = (double *) libdyn_get_input_ptr(block,0);
+      
+//       stat_buf = stat_buf_begin;
+      printf("stat_buf_ptr = %p\n", stat_buf);
+      
+      for(i = 0; i < veclen; i++){
+	printf("i = %d\n", i);
+	printf("inp = %f\n", inp[i]);
+// 	*stat_buf = *inp;
+	stat_buf[i] = inp[i];
+	printf("stat_buf = %f\n", stat_buf[i]);
+//  	stat_buf++;
+//  	inp++;
+      }
+      freopen( "CON", "a", stdout );
+      
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block_input(block, 0, veclen, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_output(block, 0, veclen, DATATYPE_FLOAT, dfeed);
+  
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_INIT:  // configure
+    {      
+      if (veclen < 1) {
+	fprintf(stderr, "ld_vector_delay: invalid vector length\n");
+	return -1;
+      }
+      
+      unsigned int Nbytes = sizeof(double)*(veclen) + sizeof(unsigned int);
+      void *buffer = malloc(Nbytes);
+      memset((void*) buffer, 0,  Nbytes );
+      
+       int *bpr = &( (int*) buffer)[0];
+
+       *bpr = 0;
+
+      libdyn_set_work_ptr(block, (void *) buffer);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // destroy instance
+    {
+      unsigned int Nbytes = sizeof(double)*(veclen) + sizeof(unsigned int);
+      void *buffer = buffer__;
+      memset((void*) buffer, 0,  Nbytes );
+      
+       int *bpr = &( (int*) buffer)[0];
+
+       *bpr = 0;
+              
+       out = (double *) libdyn_get_output_ptr(block,0);
+       *out = 0;
+
+    }
+      return 0;
+      break;      
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      void *buffer = (void*) libdyn_get_work_ptr(block);
+      free(buffer);
+    }
+      return 0;
+      break;
+      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a vector-delay block.\n");
+      return 0;
+      break;
+  }
+}
+
 int ortd_compu_func_vectordiff(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
@@ -2586,6 +2713,116 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
     }
 }
 
+int ortd_compu_func_vectorglue(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int veclen = ipar[0];
+    int Nout = 2;
+    int Nin = 6;
+
+    int outlen = 2*veclen;
+    int k = 0;
+
+    double *in1;
+    double *in2;
+    double *fromind1;
+    double *fromind2;
+    double *toind1;
+    double *toind2;
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in1 = (double *) libdyn_get_input_ptr(block,0);
+	fromind1 = (double *) libdyn_get_input_ptr(block,1);
+	toind1 = (double *) libdyn_get_input_ptr(block,2);
+        in2 = (double *) libdyn_get_input_ptr(block,3);
+        fromind2 = (double *) libdyn_get_input_ptr(block,4);
+	toind2 = (double *) libdyn_get_input_ptr(block,5);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+	double *valnum = (double *) libdyn_get_output_ptr(block, 1);
+	
+	valnum[0] = 0.0;
+
+	int ifromind1 = fromind1[0];
+	ifromind1 = ifromind1 - 1; // to match the c-way of counting indices
+	int itoind1 = toind1[0];
+	itoind1 = itoind1 - 1; // to match the c-way of counting indices
+        int ifromind2 = fromind2[0];
+	ifromind2 = ifromind2 - 1; // to match the c-way of counting indices
+	int itoind2 = toind2[0];
+	itoind2 = itoind2 - 1; // to match the c-way of counting indices
+
+	if(ifromind1 < 0)
+	  goto glue_error;
+	
+	if(itoind1 >= veclen)
+	  goto glue_error;
+
+	if(itoind1 < ifromind1)
+	  goto glue_error;
+	
+	if(ifromind2 < 0)
+	  goto glue_error;
+	
+	if(itoind2 >= veclen)
+	  goto glue_error;
+	
+	if(itoind2 < ifromind2)
+	  goto glue_error;
+
+	int cpylen1 = itoind1 - ifromind1;
+	int cpylen2 = itoind2 - ifromind2;
+
+        memcpy(out, (in1 + ifromind1), sizeof(double) * cpylen1);
+	memcpy((out + cpylen1), (in2 + ifromind2), sizeof(double) * cpylen2);
+	
+	valnum[0] = (double)(cpylen1 + cpylen2);
+        
+	  for(k = (cpylen1 + cpylen2 + 1); k < outlen; k++){
+	    out[k] = 0.0;
+	  }
+	  glue_error:
+	    printf("Inconsistent call of vectorglue block.\n");
+	    return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, outlen, DATATYPE_FLOAT,1 );
+	libdyn_config_block_output(block, 1, 1, DATATYPE_FLOAT,1 );
+        libdyn_config_block_input(block, 0, veclen, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+	libdyn_config_block_input(block, 2, 1, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 3, veclen, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 4, 1, DATATYPE_FLOAT);
+	libdyn_config_block_input(block, 5, 1, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorglue block\n");
+        return 0;
+        break;
+
+    }
+}
+
 
 int ortd_compu_func_vectoraddscalar(int flag, struct dynlib_block_t *block)
 {
@@ -2649,7 +2886,6 @@ int ortd_compu_func_vectoraddscalar(int flag, struct dynlib_block_t *block)
 
     }
 }
-
 
 int ortd_compu_func_vectorsum(int flag, struct dynlib_block_t *block)
 {
@@ -3297,7 +3533,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 61, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorextractandsum);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 62, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_simplecovar);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 63, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectormute);
-    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 64, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorglue);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 65, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordelay);
     
 
     

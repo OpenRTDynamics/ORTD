@@ -641,6 +641,7 @@ function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
 endfunction
 
 
+
 function [sim, out] = ld_steps2(sim, events, activation_simsteps, values) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: steps, counter is increased on event, which is different to ld_steps
@@ -744,6 +745,27 @@ endfunction
 // 
 //  Vector functions
 // 
+
+function [sim, out] = ld_vector_delay(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: delay - block
+//
+// in * - input
+// out * - output
+// vecsize - size of vector in*
+// 
+// delay the hole vector in by one step
+// 
+// 
+
+
+  btype = 60001 + 65;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [ ], ...
+                   insizes=[vecsize], outsizes=[vecsize], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
@@ -880,6 +902,40 @@ function [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsiz
   [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
   [sim,value] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
 endfunction
+
+function [sim, out, num] = ld_vector_glue(sim, events, in1, fromindex1, toindex1, in2, fromindex2, toindex2, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: Extract parts from two input vectors and glue them together to receive one vector.
+//
+// Output starting with in1 from fromindex1 until toindex1, continuing with in2 from fromindex2 until toindex2.
+// Function is under developement!
+//
+// in1 *+(vecsize)
+// in2 *+(vecsize)
+// fromindex1 * - first index considered from in1
+// toindex1 * - last index considered from in1
+// fromindex2 * - first index considered from in2
+// toindex2 * - last index considered from in2
+// vecsize - size of each input vector. Vectors need to have equal size!
+// out * - as explained above. Size of output is (2*vecsize).
+// num * - number of values that have been glued together.
+// 
+//    
+  btype = 60001 + 64;
+  outsize = 2*vecsize;
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1, 1, vecsize, 1, 1], outsizes=[outsize, 1], ...
+                                     intypes=[ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT], ...
+                                     outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]);
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in1,fromindex1,toindex1,in2,fromindex2,toindex2 ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,num] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
+endfunction
+
 
 
 function [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARSEDOCU_BLOCK
