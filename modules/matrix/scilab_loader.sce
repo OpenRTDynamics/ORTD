@@ -144,7 +144,66 @@ function [sim, v] = ld_setvecelements_3d(sim, events, v1, v2, v3);
   [sim, v] = ld_mux(sim, events, vecsize=3, inlist=list( v1, v2, v3) );
 endfunction
 
+function [sim, out, param] = ld_leastsquares(sim, events, inplist, veclen, n_param) // PARSEDOCU_BLOCK
+// %PURPOSE: estimate n linear model parameters (a,b,c...) and compute yvec_hat.
+// 
+// yvec_hat = a * phi0 + b * phi1 + c * phi2 ...
+// Estimation of a, b, c ... minimizes the sum of squared errors (\chi^2 = \sum_i (yvec - yvec_hat)^2).
+// out = yvec_hat
+//
+// inplist* - list(phi0*, phi1*, phi2*, ..., phi(n_param-1)*, yvec*)
+// + phi0* - input vector0 (The vectors phiX form the matrix of predictor variables.)
+// + phi1* - input vector1 (The vectors phiX form the matrix of predictor variables.)
+// + phi2* - input vector2 (The vectors phiX form the matrix of predictor variables.)
+// + ...
+// + phi(n_param-1)* - input vector(n_param-1) (The vectors phiX form the matrix of predictor variables.)
+// + yvec* - the original vector
+//
+// veclen - the number of observations which have been made (the length of each vector phiX, yvec and yvec_hat)
+// n_param - the number of vectors belonging to Phi as well as the number of parameters in param*.
+// out* = yvec_hat (the best prediction of yvec)
+// param* - [a, b, c, ...]
+//
+// NOTICE: ld_leastsquares is not available by default since you need to include the GSL - GNU Scientific Library.
+// Please follow the instructions which have been testet under Ubuntu 12.04. LTS:
+//
+// - install the required library with the following command or with a package-manager of your choice:
+// 'sudo apt-get install libgsl0-dev'
+//
+// - change to the directory /YOUR_PATH/openrtdynamics/trunk/modules/matrix/ and rename the file 'LDFLAGS.disabled'
+// to 'LDFLAGS'
+//
+// - open the file 'matrix.c' which is located in the same directory with an editor of your choice and change the
+// line '#define GSL_INCLUDED 0' to '#define GSL_INCLUDED 1' - then save and close the file.
+//
+// - change to the directory /YOUR_PATH/openrtdynamics/trunk/ and type run 'make clean', 'make' and 'sudo make install'
+//
+// - reload the toolbox in scilab and you should be able to use it.
+//    
+  btype = 69001 + 4;
 
+  ipar = [veclen, n_param]; rpar = [];
+  
+  insizelist = [];
+  intypelist = [];
+  
+  for j=1:(n_param + 1) // yvec is part of the list as well
+    insizelist = [insizelist, veclen];
+    intypelist = [intypelist, ORTD.DATATYPE_FLOAT];
+  end
+    
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=insizelist, outsizes=[veclen, n_param], ...
+                                     intypes=intypelist, ...
+                                     outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, inplist );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,param] = libdyn_new_oport_hint(sim, blk, 1);   // 0th port
+endfunction
 
 
 

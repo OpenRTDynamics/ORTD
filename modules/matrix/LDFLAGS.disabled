@@ -1,1 +1,1 @@
--lm -lgsl -lblas
+-lm -lgsl -lgslcblas
