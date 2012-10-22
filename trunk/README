@@ -23,7 +23,17 @@ LGPL, see COPYING / COPYING.LESSER
 REQUIREMENTS
 ------------
 
-Scilab 5.3. or above. It will can be automatically installed via the grapical installer.
+On the development host:
+ * Linux (Ubuntu tested)
+ * Scilab 5.3. or above. It will be automatically installed via the grapical installer.
+
+On the executing / real time host (can also be the development host):
+ * Linux (Ubuntu tested, possibly with rt_preemption enabled)
+ * Nothing more than standard libraries (libc, libpthreads, ...)
+ * Optional: An installation of Scilab
+
+For compiling
+ * Standard tools like: gcc, g++, make, perl
 
 INSTALLATION (GRAPHICAL INSTALLATION)
 -------------------------------------
@@ -109,12 +119,21 @@ Then you can connect via Gnome "Connect to server" or whatever you like. For dir
 storing your whole project on the Beaglebone Filesystem you can also investigate 
 the "~/.gvfs" folder and use it to edit / execute scilab files directly on your PC, 
 whereby the files are stored on your Beaglebone. By this you would not copy the 
-irpar-files by hand everytime.
+irpar-files by hand everytime. You also need an installation of ORTD on your host
+for development using Scilab (see above).
 
 
+INCLUDING YOUR HARDWARE VIA PLUGINS OR MODULES
+----------------------------------------------
 
-TARGET CONFIGURATION
---------------------
+Hardware can be added via new blocks by the plugin interface or by adding your own 
+module in the modules/ folder. Use the template module for this as a starting point. 
+For an example on plugins, please have a look at examples/plugin_example. For using
+plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
+
+
+TARGET CONFIGURATION (for usage in a hard realtime environment)
+---------------------------------------------------------------
 
 The following targets can be choosen before compilation within target.conf:
 
@@ -149,14 +168,6 @@ Have a look at documentation/List_of_Module_Blocks.txt.
 It is an automatically generated list of available blocks.
 
 In Scilab try "help ld_gain" to get into the help folders for ORTD.
-
-INCLUDING YOUR HARDWARE 
------------------------
-
-Hardware can be added via new blocks by the plugin interface or by adding your own 
-module in the modules/ folder. Use the template module for this as a starting point. 
-For an example on plugins, please have a look at examples/plugin_example. For using
-plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
 
 MODULES
 -------
