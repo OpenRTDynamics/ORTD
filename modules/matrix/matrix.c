@@ -3,6 +3,12 @@
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
 
+#define GSL_INCLUDED 0
+
+#if GSL_INCLUDED == 1
+#include <gsl/gsl_multifit.h>
+#endif
+
 // FIXME raus
 int compu_func_constmat(int flag, struct dynlib_block_t *block)
 {
@@ -200,6 +206,132 @@ int compu_func_matmul(int flag, struct dynlib_block_t *block)
   }
 }
 
+#if GSL_INCLUDED == 1
+
+#define C(i) (gsl_vector_get(workptr->c,(i)))
+
+struct lsq_block_work {
+	  gsl_matrix *X, *cov;
+	  gsl_vector *y, *c;
+	  gsl_multifit_linear_workspace *work;
+};
+
+int compu_func_leastsquares(int flag, struct dynlib_block_t *block)
+{
+  
+  //printf("comp_func gain: flag==%d\n", flag);
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+
+  int n_observations = ipar[0];  // Length of each Vector. Needs to be equal for each Vector!
+  
+  int j = 0, i = 0, n = ipar[1];
+  double chisq, *parameter;
+  double *out, *vec, inpmatrix[n + 1][n_observations];
+  
+  int Nout = 2;
+  int Nin = n + 1;
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:  
+    {
+      struct lsq_block_work *workptr = (void*) libdyn_get_work_ptr(block);
+      
+      for(i = 0; i <= n; i++) { // yvec is part of the input as well
+	vec = (double *) libdyn_get_input_ptr(block,i);
+	
+	memcpy(&inpmatrix[i][0], vec, (sizeof(double) * n_observations));
+	for(j = 0; j < n_observations; j++) {
+	  if(i < n) {
+	    gsl_matrix_set (workptr->X, j, i, vec[j]);
+	  }
+	  else {
+	    gsl_vector_set (workptr->y, j, vec[j]);
+	  }
+	}
+      }
+      
+      out = (double *) libdyn_get_output_ptr(block,0);
+      parameter = (double *) libdyn_get_output_ptr(block,1);
+      for(j = 0; j < n_observations; j++) {
+	out[j] = 0;
+      }
+
+      gsl_multifit_linear (workptr->X, workptr->y, workptr->c, workptr->cov, &chisq, workptr->work);
+      
+      for (i = 0; i < n; i++) {
+	parameter[i] = C(i);
+	for(j = 0; j < n_observations; j++) {
+	  out[j] = out[j] + (parameter[i] * inpmatrix[i][j]);
+	} 
+      }
+    }
+      
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+      {
+	if (n_observations < n) {
+	  fprintf(stderr, "least squares algorithm: Number of observations (vector-length) cannot be smaller than the number of parameters!\n");
+
+	  return -1;
+	}
+	libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+	for(i = 0; i <= n; i++) { // yvec is part of the input as well
+	  libdyn_config_block_input(block, i, n_observations, DATATYPE_FLOAT);
+	}	
+	
+	libdyn_config_block_output(block, 0, n_observations, DATATYPE_FLOAT,1 ); // in, intype,
+	libdyn_config_block_output(block, 1, n, DATATYPE_FLOAT,1 ); // in, intype,
+      }
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+{
+      struct lsq_block_work *workptr = malloc(sizeof(struct lsq_block_work));
+
+      workptr->X = gsl_matrix_alloc (n_observations, n);
+      workptr->y = gsl_vector_alloc (n_observations);
+
+      workptr->c = gsl_vector_alloc (n);
+      workptr->cov = gsl_matrix_alloc (n, n);
+      
+      workptr->work = gsl_multifit_linear_alloc (n_observations, n);
+      
+      libdyn_set_work_ptr(block, (void *) workptr);
+}
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+{
+
+      struct lsq_block_work *workptr = (void*) libdyn_get_work_ptr(block);
+
+      gsl_multifit_linear_free (workptr->work);
+      gsl_matrix_free (workptr->X);
+      gsl_vector_free (workptr->y);
+      gsl_vector_free (workptr->c);
+      gsl_matrix_free (workptr->cov);
+      
+      free(workptr);
+
+}
+      return 0;
+      break;      
+    case COMPF_FLAG_PRINTINFO:
+      printf("This block performs a least squares algorithm.\n");
+      return 0;
+      break;      
+  }
+}
+
+#endif
+
+
 //#include "block_lookup.h"
 
 int libdyn_module_matrix_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
@@ -214,7 +346,9 @@ int libdyn_module_matrix_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
   libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constmat);
   libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_vec2mat);
   libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 3, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_matmul);
+#if GSL_INCLUDED == 1
+  libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 4, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_leastsquares);
+#endif
 }
-
 
 //} // extern "C"
