@@ -1,0 +1,4 @@
+**.o
+*.a
+gpiommap
+.DS_Store
