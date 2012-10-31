@@ -1,0 +1,7 @@
+This is only the Scilab Interface of ORTD (openrtdynamics.sf.net).
+You can create the encoded implementations and e.g. transfer it
+to the target machine, where ORTD is installed.
+
+Put this folder into the folder for Scilab-toolboxes:
+
+<scilab installation directory>/share/scilab/contrib
