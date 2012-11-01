@@ -1,10 +1,10 @@
 Plugin example
 --------------
 
-Make sure ORTD was build with target.conf containing "LINUX", which enables the
+Make sure ORTD was build with target.conf containing "LINUX" (standard), which enables the
 use of shared libraries (*.so files)
 
-1) Run ./build.sh to compile the C-Code within plugin.c
-2) Run the demo_controller.sce Scilab Script
-3) ./run.sh
-
+1) Run ./build.sh to compile the C-Code within plugin.c (chmod +x build.sh to make it executable)
+2) Run the demo_controller.sce Scilab Script 
+   (produces *.[ir]par files; not needed unless you changed something inside)
+3) ./run.sh (chmod +x run.sh to make it executable)

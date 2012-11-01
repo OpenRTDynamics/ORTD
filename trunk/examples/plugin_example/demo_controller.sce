@@ -38,16 +38,27 @@ cd(thispath);
 z = poly(0,'z');
 
 
-function [sim,out] = sensor_actor_block(sim, events, in)
-// 
+function [sim,oututSignal] = sensor_actor_block(sim, events, InputSignal)
+// This is the Scilab interface to the hardware accessing C computational function (like S-function in simulink)
 
-  btype = 100001 + 0;
-  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
-                   insizes=[1], outsizes=[1], ...
-                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+  // parameters
+  GPIO_PORT_NUM = 1;
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
-  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  IntegerParam = GPIO_PORT_NUM; // ipar
+  FloatParam = [ 1.2, 1.4 ]; // rpar
+
+  // definition of the block
+  btype = 100001 + 0; // An id starting at 100001. Each comp. function must have its own
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ IntegerParam ], [ FloatParam ], ...
+                   insizes=[1], outsizes=[1], ...  // vector sizes for each in/out port.  e.g. for two ports of size 1 use [1,1]
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  ); // datatype for each port e.g. [ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT] for two ports
+
+  // connect the inputs of the comp. fn.
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(InputSignal) );  // for more signals use: list(sig1, sig2, ...)
+
+  // connect the outputs of the comp. fn. e.g. the measurements of the hardware
+  [sim,oututSignal] = libdyn_new_oport_hint(sim, blk, 0);   // 1th port // for more ports duplicate this line
+//  [sim,oututSignal2] = libdyn_new_oport_hint(sim, blk, 1);  // 2th port (not defined in this example)
 endfunction
 
 
@@ -60,13 +71,16 @@ endfunction
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
       
-  [sim, actuator] = ld_const(sim, defaultevents, 10);
+//  [sim, actuator] = ld_const(sim, defaultevents, 10);
+  // play a pre-defined random signal of length 10000
+  [sim, actuator] = ld_play_simple(sim, defaultevents, rand(10000,1)-0.5 ); 
 
-  [sim,measure] = sensor_actor_block(sim, defaultevents, in=actuator);  
+  // the hardware interface as defined above
+  [sim,measure] = sensor_actor_block(sim, defaultevents, InputSignal=actuator);  
 
   // save result to file
-  [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", measure);
-  
+  [sim] = ld_savefile(sim, defaultevents, fname="result.dat", source=measure, vlen=1)
+
   // output of schematic (dummy)
   outlist = list(measure); 
 endfunction
@@ -114,8 +128,8 @@ unix_g("./build.sh");
 
 
 // load results
-A = fscanfMat('result.dat');
-
-scf(1);clf;
-plot(A(:,1), 'k');
+//A = fscanfMat('result.dat');
+//
+//scf(1);clf;
+//plot(A(:,1), 'k');
 
