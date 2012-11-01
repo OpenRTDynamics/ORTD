@@ -122,6 +122,15 @@ whereby the files are stored on your Beaglebone. By this you would not copy the
 irpar-files by hand everytime. You also need an installation of ORTD on your host
 for development using Scilab (see above).
 
+An example for accessing the BB hardware, is available in examples/beaglebone. 
+To run it, do on the BB:
+
+$ sh build.sh
+$ sudo sh run.sh
+
+The LED should now blink randomly.
+
+
 
 INCLUDING YOUR HARDWARE VIA PLUGINS OR MODULES
 ----------------------------------------------
