@@ -98,7 +98,9 @@ to have a correct update.
 INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
 --------------------------------------------------------------------------------
 
-1) Install Ubuntu 12.04
+1) Install Ubuntu 12.04 (The Ångström-Linux should also work, 
+                         but I guess there no package for Scilab, 
+                         which is only optional)
 2) sudo apt-get update
 3) sudo apt-get install subversion g++ make
 3b) sudo apt-get install scilab  # optional
@@ -107,6 +109,12 @@ INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
 6) cd trunk
 7) make clean; make; make install    # Compiles ORTD from source
 
+Internet access is required for this procedure. Alternatively you can downlaod the
+the current svn-folder from
+
+  http://openrtdynamics.svn.sourceforge.net/viewvc/openrtdynamics/trunk/?view=tar
+
+and transfer it to the BB. Unpacking and proceding with step 6) shall do the same.
 
 In order to develop schematics ,you can prepare them on your PC using Scilab and the 
 installed Toolbox and upload the *.[i,r]par files to your Beaglebone, where they get 
