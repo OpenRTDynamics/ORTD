@@ -10,6 +10,9 @@ int compu_func_BB_sensor_actor(int flag, struct dynlib_block_t *block)
     int *ipar = libdyn_get_ipar_ptr(block);
     double *rpar = libdyn_get_rpar_ptr(block);
 
+    // extract parameter
+    int GPIO_PORT_NUM = ipar[0];
+    
     int Nout = 1;
     int Nin = 1;
 
