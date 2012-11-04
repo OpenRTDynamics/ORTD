@@ -599,12 +599,12 @@ function sim = libdyn_connect_outport(sim, src, dst_out_port)
 // sblk.objecttype
 // src.highlevelotype
         if sblk.objecttype == 1 then  // if src is a simulation input
-          printf("connect an input to an output\n");
+          //printf("connect an input to an output\n");
           sim = libdyn_connect_inToou(sim, src_port=sport, dst_port=dst_out_port);
         end
 
         if sblk.objecttype == 0 then  // if src is a block within the simulation
-          printf("connect a block to an output\n");
+          //printf("connect a block to an output\n");
           sim = libdyn_connect_extern_ou(sim, sblk, sport, dst_out_port);
         end
 endfunction
