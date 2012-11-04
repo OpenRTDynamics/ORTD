@@ -261,6 +261,7 @@ function [sim,blk] = libdyn_new_oport_hint(sim, object, port);
   
   // ---- special vars of this object class -----
   blk.highleveloid = object.oid;
+  blk.highlevelotype = object.objecttype;
   blk.outport = port;
 
   blk.magic = 678234;
@@ -283,20 +284,40 @@ function [dblk, dport] = libdyn_extrakt_fbdummy(sim, fbdummy)
   // extract feedback destination
   dblk = tmp.dblk;
   dport = tmp.dport;
+
+  if (dblk == -1) then
+    printf("Error: You created created a feedback variable, but it is not connected to a anything.\n");
+    error(".");
+  end
+
   
 //  printf("extrakt feedback dblk.oid=%d fbdummy.oid=%d\n", dblk.oid, oid);
 endfunction
 
-// Write information to a feedback dummy reference. The information contains the block
+// Write information pn where to connect a feedback dummy reference. The information contains the block
 // plus port number of the destination of the feedback loop
 function [sim] = libdyn_fill_feedback(sim, fbdummy, dblk, dport)
   libdyn_check_object(sim,fbdummy);
   
   oid = fbdummy.oid;
-  
+
+  // get object data  
   tmp = sim.objectlist(oid);
-  tmp.dblk = dblk;
-  tmp.dport = dport;
+
+  // modify data
+  if (tmp.dblk == -1) then 
+    tmp.dblk = dblk;
+    tmp.dport = dport;
+  else
+    printf("This feeback variable is already used. (You can only use it once)\n");
+    printf("This is actually a stupid a limitation that will be fixed in the\n");
+    printf("furture. As a workaround, apply the feedback variable to a gain of one\n");
+    printf("and use the output of the gain-block for multiple connections.\n");
+    printf("Sorry for this ;-)\n");
+    error(".");
+  end
+
+  // write back
   sim.objectlist(oid) = tmp;
 endfunction
 
@@ -312,6 +333,10 @@ function [sim,fbdummy] = libdyn_new_feedback(sim);
   fbdummy.objecttype = 8; // Which object type is this? 8 - Special feedback dummy referer
   
   fbdummy.magic = 678234;
+
+  // later: a list of connections to some blocks or whatever
+  fbdummy.dblk = -1; // -1 means uninitialised
+  fbdummy.dport = -1; // -1 means uninitialised
 
   // ---- special vars of this object class -----
   
@@ -351,6 +376,7 @@ function [blk, port] = libdyn_deref_porthint(sim, obj)
       // sim weggelassen wurde
       try
         blk = sim.objectlist(highoid); // Ersetze das Quell-Object
+        
       catch
         printf("The signal identifier highleveloid (Object ID of a block) = %d is not known to the internal list\n", highoid);
         printf("Propably you forgot the >sim< in [sim,obj] = ...\n");
@@ -470,7 +496,7 @@ function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
     // this recalls libdyn_connect_extern_ou ( this function )
     sim = libdyn_connect_outport(sim, src, dst_port);
 
-  else
+  else // FIXME include if blk.objecttype == ??
      // A normal block
       
     if src.magic ~= 678234 then
@@ -497,9 +523,45 @@ function sim = libdyn_connect_extern_ou(sim, src, src_port, dst_port)
   
     
     src_id = src.oid;
-  
+   
+    //
+    // matches 
+    // if (cl[i].src_type == 0 && cl[i].dst_type == 1) { // connect block to external out
+    // in libdyn.c: irpar_get_libdynconnlist
+    //
     sim.cllist($+1) = [0, src_id, src_id, src_port,   1, 0, 0, dst_port];
   end
+endfunction
+
+function sim = libdyn_connect_inToou(sim, src_port, dst_port)
+ 
+   
+    // test port sizes and types
+    
+    
+    // check port sizes
+
+
+     if sim.insizes(src_port+1) ~= sim.outsizes(dst_port+1) then
+         printf("Error connecting port sizes %d --> %d\n", sim.insizes(src_port+1) ,  sim.outsizes(dst_port+1) );
+         printf("Incorrect port sizes for direktly connecting the simulation inputs to the outputs.");
+         error("");
+      end
+
+  
+  
+    
+    src_id = src.oid;
+   
+    //
+    // matches 
+    // if (cl[i].src_type == 1 && cl[i].dst_type == 1) { // connect ex in to ex out: not possible at the moment
+    // in libdyn.c: irpar_get_libdynconnlist
+    //
+    sim.cllist($+1) = [1, 0, 0, src_port,   1, 0, 0, dst_port];
+
+
+//   end
 endfunction
 
 // 
@@ -530,8 +592,21 @@ endfunction
 function sim = libdyn_connect_outport(sim, src, dst_out_port)
       libdyn_check_object(sim,src);
 
-      [sblk, sport] = libdyn_deref_porthint(sim, src);
-      sim = libdyn_connect_extern_ou(sim, sblk, sport, dst_out_port);
+        // connect a block to an output
+        [sblk, sport] = libdyn_deref_porthint(sim, src);
+
+ 
+// sblk.objecttype
+// src.highlevelotype
+        if sblk.objecttype == 1 then  // if src is a simulation input
+          printf("connect an input to an output\n");
+          sim = libdyn_connect_inToou(sim, src_port=sport, dst_port=dst_out_port);
+        end
+
+        if sblk.objecttype == 0 then  // if src is a block within the simulation
+          printf("connect a block to an output\n");
+          sim = libdyn_connect_extern_ou(sim, sblk, sport, dst_out_port);
+        end
 endfunction
 
 //
