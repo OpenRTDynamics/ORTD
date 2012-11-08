@@ -25,9 +25,12 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
 // outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
 // fn_list - list( ) of scilab functions defining sub-schematics
 // dfeed - the block containing all sub-schematics is configured with dfeed
-// asynchron_simsteps - if > 0 asynchron_simsteps steps will be simulated in a thread
+// asynchron_simsteps - if == 1 one simulation steps will be simulated in a thread
 //                     when finished the result becomes available to the blocks outports
-//                     if == 0 the nested simulation runns synchronous to the upper level simulation.
+//                      if == 2 the simulation will be simulated in a thread and can be synchronised
+//                      by the subsimulation itselft through synchronisation blocks (e.g. ld_synctimer)
+//                     if == 0 the nested simulation runns synchronous to the upper level simulation. 
+//                     (i.e. no thread is started)
 // 
 // OUTPUTS:
 // 
