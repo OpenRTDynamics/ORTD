@@ -30,6 +30,14 @@ else
 endif # ifeq ($(main_makefile_invoked),yes)
 
 
+
+With_gsl_and_blas := $(shell cat CONFIG_WITH_blas_AND_gsl)
+ifeq ($(With_gsl_and_blas),yes)
+	CFLAGS += -DGSL_INCLUDED -DBLAS_INCLUDED  
+endif
+
+
+
 all: lib
 	echo "Module MATRIX done"
 

@@ -3,7 +3,7 @@
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
 
-#define GSL_INCLUDED 0
+//#define GSL_INCLUDED 0
 
 #if GSL_INCLUDED == 1
 #include <gsl/gsl_multifit.h>
