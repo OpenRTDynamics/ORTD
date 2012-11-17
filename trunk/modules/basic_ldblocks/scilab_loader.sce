@@ -1406,6 +1406,54 @@ function [sim, out] = ld_detect_step_event2(sim, ev, in, eps) // PARSEDOCU_BLOCK
     
 endfunction
 
+function [sim, reached] = ld_reference_reached(sim, ev, r, y, N, eps) // PARSEDOCU_BLOCK
+    //
+    // %PURPOSE: check wheter a reference value is reached 
+    //
+    // r * - Reference Signal (shall be constant)
+    // y * - Signal to compare to the reference
+    // N - After the condition of reaching the reference is true (and stays true)
+    //     N time steps will be wait until setting reached to one. 
+    // eps - the half tolerance band width
+    //
+
+  [sim, e] = ld_add(sim, ev, list(r,y), list(1,-1) );
+  //[sim, i1] = ld_ztf(sim, ev, e, 1/(3+1) * (1 + z^(-1) + z^(-2) + z^(-3) ) );
+
+  i1 = e;
+
+  [sim, i3] = ld_abs(sim, ev, i1);
+  [sim, i4] = ld_compare_01(sim, ev, in=i3,  thr=eps);
+  [sim, i5] = ld_not(sim, ev, in=i4);
+  
+  [sim, resetto] = ld_const(sim, ev, 0);
+  [sim, count] = ld_counter(sim, ev, count=i5, reset=i4, resetto, initial=0);
+
+  [sim, reached] = ld_compare_01(sim, ev, in=count,  thr=N);
+endfunction
+
+function [sim, reached] = ld_greaterEpsForNSteps(sim, ev, in, thr, N) // PARSEDOCU_BLOCK
+    //
+    // %PURPOSE: return true, when input is greater a constant for more than N sampling steps
+    //
+    // in * - input signal
+    // thr - threshold constant
+    // N - integer
+    //
+    // If in is greater than thr for more than N time steps, reached = 1;
+    // Otherwise reached is set to 0.
+    
+  [sim, i4] = ld_compare_01(sim, ev, in,  thr);
+  [sim, i5] = ld_not(sim, ev, in=i4);
+  
+  [sim, resetto] = ld_const(sim, ev, 0);
+  [sim, count] = ld_counter(sim, ev, count=i4, reset=i5, resetto, initial=0);
+
+  [sim, reached] = ld_compare_01(sim, ev, in=count,  thr=N);
+    
+endfunction
+
+
 
 function [sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname) // PARSEDOCU_BLOCK
 //
