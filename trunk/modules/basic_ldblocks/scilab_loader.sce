@@ -1958,6 +1958,19 @@ endfunction
 //   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
 // endfunction
 
+
+
+//
+// Some terminal color codes for usage with ld_printf
+//
+
+ORTD.termcode.red = ascii(27) + '[31m';
+ORTD.termcode.green = ascii(27) + '[32m';
+ORTD.termcode.yellow = ascii(27) + '[33m';
+ORTD.termcode.blue = ascii(27) + '[34m';
+ORTD.termcode.reset = ascii(27) + '[0m';
+
+
 function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Print data to stdout (the console)
@@ -1967,6 +1980,14 @@ function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 // str is a string that is printed followed by the signal vector in
 // of size insize
 //
+// Hint: Apply colored printf's by using the predefined terminal color codes:
+// 
+// str = ORTD.termcode.red + "some colored text..." + ORTD.termcode.reset
+// 
+// instead of red there currently is: green, yellow, blue.
+// 
+// 
+// 
 
 
   btype = 170;
