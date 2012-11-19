@@ -289,10 +289,14 @@ int log_ringbuffer_read(struct ringbuffer_t *rb, void *data, int nonblocking)
 // Sink infrastructure that uses the ringbuffer defined above
 //
 
+#include "realtime.h"
 
 void *log_sink_thread(void *data)
 {
   struct sink_t *sink = data;
+  
+  // change thread's priority to a normal one
+  ortd_rt_ChangePriority(0, 0); 
   
   //printf("Sink thread started\n");
   int ret = (*sink->callback_func)(NULL, sink->callback_userdat, 1);
