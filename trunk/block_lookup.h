@@ -49,6 +49,11 @@ struct lindyn_comp_func_list_head_t {
 
 
 struct lindyn_comp_func_list_head_t * libdyn_new_compfnlist();
+
+struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_find_comp_fn(struct lindyn_comp_func_list_head_t *list, void *comp_fn);
+void libdyn_compfnlist_Show_comp_fn(struct lindyn_comp_func_list_head_t *list, void *comp_fn);
+struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_List(struct lindyn_comp_func_list_head_t *list);
+
 int libdyn_compfnlist_add(struct lindyn_comp_func_list_head_t *list, int blockid, int comp_fn_type, void *comp_fn);
 
 // find computational function pointer based on provided block identification number

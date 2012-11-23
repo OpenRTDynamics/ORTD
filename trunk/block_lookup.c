@@ -83,6 +83,74 @@ struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_find_blockid(struct lindy
   return NULL; // nothing found
 }
 
+// find block id based on the computational function pointer 
+struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_find_comp_fn(struct lindyn_comp_func_list_head_t *list, void *comp_fn)
+{
+  if (list == NULL)
+    return NULL;
+  
+  if (list->list_head == NULL)
+    return NULL;
+  
+  struct lindyn_comp_func_list_ele_t * current = list->list_head;
+  
+  do {   
+    if (current->comp_fn == comp_fn) {
+      return current; // found!
+    }
+    
+    current = current->next;
+
+
+  } while (current != NULL);
+  
+  return NULL; // nothing found
+}
+
+void libdyn_compfnlist_Show_comp_fn(struct lindyn_comp_func_list_head_t *list, void *comp_fn) 
+{
+  struct lindyn_comp_func_list_ele_t * entr = libdyn_compfnlist_find_comp_fn(list, comp_fn);
+  
+  if (entr != NULL) {
+    printf("Block with comp_fn ptr %p has the blockid %d\n", entr->comp_fn, entr->blockid); 
+  }
+  
+}
+
+// find computational function pointer based on provided block identification number
+struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_List(struct lindyn_comp_func_list_head_t *list)
+{
+  if (list == NULL)
+    return NULL;
+  
+  if (list->list_head == NULL)
+    return NULL;
+  
+  printf("                         \n");
+  printf("List of registered blocks\n");
+  printf("                         \n");
+  printf("-------------------------\n");
+  printf("-BlockId--|-Comp. fn ptr-\n");
+  printf("----------|--------------\n");
+  
+  struct lindyn_comp_func_list_ele_t * current = list->list_head;
+  
+  do {   
+//     if (current->blockid == blockid) {
+//       return current; // found!
+//     }
+    printf("%d | %p", current->blockid, current->comp_fn);
+    
+    current = current->next;
+
+
+  } while (current != NULL);
+
+  printf("----------|--------------\n");
+
+  return NULL; // nothing found
+}
+
 void libdyn_del_compfnlist(struct lindyn_comp_func_list_head_t *list)
 {
   if (list->list_head == NULL) {
