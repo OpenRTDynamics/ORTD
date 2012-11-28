@@ -112,7 +112,7 @@ void libdyn_compfnlist_Show_comp_fn(struct lindyn_comp_func_list_head_t *list, v
   struct lindyn_comp_func_list_ele_t * entr = libdyn_compfnlist_find_comp_fn(list, comp_fn);
   
   if (entr != NULL) {
-    printf("Block with comp_fn ptr %p has the blockid %d\n", entr->comp_fn, entr->blockid); 
+    fprintf(stderr, "Block with comp_fn ptr %p has the blockid %d\n", entr->comp_fn, entr->blockid); 
   }
   
 }
@@ -126,12 +126,12 @@ struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_List(struct lindyn_comp_f
   if (list->list_head == NULL)
     return NULL;
   
-  printf("                         \n");
-  printf("List of registered blocks\n");
-  printf("                         \n");
-  printf("-------------------------\n");
-  printf("-BlockId--|-Comp. fn ptr-\n");
-  printf("----------|--------------\n");
+  fprintf(stderr, "                         \n");
+  fprintf(stderr, "List of registered blocks\n");
+  fprintf(stderr, "                         \n");
+  fprintf(stderr, "-------------------------\n");
+  fprintf(stderr, "-BlockId--|-Comp. fn ptr-\n");
+  fprintf(stderr, "----------|--------------\n");
   
   struct lindyn_comp_func_list_ele_t * current = list->list_head;
   
@@ -139,14 +139,14 @@ struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_List(struct lindyn_comp_f
 //     if (current->blockid == blockid) {
 //       return current; // found!
 //     }
-    printf("%d | %p", current->blockid, current->comp_fn);
+    fprintf(stderr, "%d | %p", current->blockid, current->comp_fn);
     
     current = current->next;
 
 
   } while (current != NULL);
 
-  printf("----------|--------------\n");
+  fprintf(stderr, "----------|--------------\n");
 
   return NULL; // nothing found
 }
