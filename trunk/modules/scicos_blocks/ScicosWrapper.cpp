@@ -13,7 +13,7 @@
 
 
 #ifdef SCICOS_WRAPPER_INCLUDESCICOSFN
-extern "C" { // C-functions that are used by Scicos-Blocks
+extern "C" { // C-functions that are used by Scicos-Blocks. They are barely re-implemented here :-)
 
 // /*----------------------------------------  Lapack messag function */
 // void C2F(xerbla)(SRNAME,INFO,L)
@@ -68,6 +68,9 @@ void sciprint (char *fmt)
   return;
 }
 
+void end_scicos_sim() {
+  fprintf(stderr, "void end_scicos_sim() is not implemented\n");
+};
 
 }
 #endif
