@@ -506,9 +506,9 @@ int libdyn_config_block_output(struct dynlib_block_t *block, int out, int len, i
     block->outlist[out].datasize = len * libdyn_config_get_datatype_len(datatype); //sizeof(double); // FIXME SOLVED Hier auf Datentyp eingehen
  
     if (dinput_dependence == 1 && block->Nin == 0) {
-       fprintf(stderr, "ASSERTION FAILD: libdyn_config_block_output; TRIED TO HAVE DFEED WITH NO INPUT in comp func ptr %p\n", block->comp_func);
+       fprintf(stderr, "NOTE: libdyn_config_block_output; Configured a direct feedthrough but there is no input -- in comp func ptr %p\n", block->comp_func);
        libdyn_compfnlist_Show_comp_fn(block->sim->private_comp_func_list, block->comp_func);       libdyn_compfnlist_Show_comp_fn(block->sim->global_comp_func_list, block->comp_func);
-       return -1;
+       // return -1;
     }
     block->outlist[out].dinput_dependence = dinput_dependence; // FIXME check if there is an input
     if (dinput_dependence == 1)
