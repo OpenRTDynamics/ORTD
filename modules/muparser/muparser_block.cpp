@@ -219,7 +219,7 @@ int compu_func_muparser(int flag, struct dynlib_block_t *block)
         for (i = 0; i < Nin; ++i)
             libdyn_config_block_input(block, i, vlen, DATATYPE_FLOAT);
 
-        for (i = 0; i < Nin; ++i)
+        for (i = 0; i < Nout; ++i)
             libdyn_config_block_output(block, i, vlen, DATATYPE_FLOAT, 1);
 
 
