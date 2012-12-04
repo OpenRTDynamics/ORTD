@@ -20,7 +20,7 @@ function [sim] = ld_ringbuf(sim, events, ident_str, datatype, len, visibility)  
 
   UNUSED = 0;
 
-  btype = 15300 + 0   ;	
+  btype = 15400 + 0   ;	
   ipar = [0, datatype, len, UNUSED, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
   
   rpar = [ ];
@@ -57,7 +57,7 @@ function [sim] = ld_write_ringbuf(sim, events, data, ident_str, datatype, Elemen
 
   ident_str = ident_str + '.ringbuf';
 
-  btype = 15300 + 1   ;	
+  btype = 15400 + 1   ;	
   ipar = [0, datatype, ElementsToWrite, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
   rpar = [];
 
@@ -85,7 +85,7 @@ function [sim, data, NumRead] = ld_read_ringbuf(sim, events, ident_str, datatype
 
   ident_str = ident_str + '.ringbuf';
 
-  btype = 15300 + 2;
+  btype = 15400 + 2;
   ipar = [0, datatype, ElementsToRead, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
   rpar = [];
 
