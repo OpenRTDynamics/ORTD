@@ -1,0 +1,4 @@
+Example for how to run two different threads:
+One main thread with a sampling freq of ~300Hz and
+another one tiggered every 300/25 = 12 samples.
+Therefore the sec. thread has a sampling freq. of ~25Hz
