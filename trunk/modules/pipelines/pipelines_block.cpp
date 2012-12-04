@@ -48,7 +48,7 @@ int libdyn_module_pipelines_siminit(struct dynlib_simulation_t *sim, int bid_ofs
 
     // Register my blocks to the given simulation
 
-    int blockid = 15300;  // CHANGE HERE: choose a unique id for each block
+    int blockid = 15400;  // CHANGE HERE: choose a unique id for each block
 //     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_pipeline);
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RingBuffer_block);
