@@ -89,10 +89,9 @@ public:
 //         else
 //             memset(data, 0, memsize);
 
-        // initialise mutex, if desired
-        if (UnusedParam) {
-            pthread_mutex_init(&data_mutex, NULL);
-        }
+        // initialise mutex
+        pthread_mutex_init(&data_mutex, NULL);
+        
 
     }
 
@@ -100,10 +99,14 @@ public:
         return data;
     }
     void lock_data() {
+        fprintf(stderr, "Try lock...\n");
         pthread_mutex_lock(&data_mutex);
+        fprintf(stderr, "...locked\n");
     }
     void unlock_data() {
+        fprintf(stderr, "Try unlock...\n");
         pthread_mutex_unlock(&data_mutex);
+	fprintf(stderr, "...unlocked\n");
     }
     void set_wholedata(void *src) { // UNUSED
         lock_data();
