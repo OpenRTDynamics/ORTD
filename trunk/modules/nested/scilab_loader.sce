@@ -145,7 +145,7 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
   end
 
   // connect all inputs
-  printf("ld_simnest: connection of inputs\n");
+//    printf("ld_simnest: connecting inputs\n");
   try
     [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
   catch
@@ -153,12 +153,19 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
   end
  
   // connect all outputs
+//    printf("ld_simnest: connecting outputs\n");
   Noutp = length(outsizes);
 
   outlist = list();
-  for i = 0:(Noutp-1)
-    [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
-    outlist(i+1) = out;
+  
+  if Noutp ~= 0 then
+    for i = 0:(Noutp-1)
+      [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
+      outlist(i+1) = out;
+    end
+  else
+    null;
+//      printf("ld_simnest: No outputs to connect\n");
   end
 
   if (asynchron_simsteps > 0) then
@@ -307,11 +314,16 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
   Noutp = length(outsizes);
 
   outlist = list();
-  for i = 0:(Noutp-1)
-    [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
-    outlist(i+1) = out;
+  if Noutp ~= 0 then
+    for i = 0:(Noutp-1)
+      [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
+      outlist(i+1) = out;
+    end
+  else
+    null;
+//      printf("ld_simnest: No outputs to connect\n");
   end
-
+  
   if (asynchron_simsteps > 0) then
     [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp);   // the last port
   else
