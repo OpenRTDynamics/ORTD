@@ -315,7 +315,7 @@ v0.99g (4.11.2011)
   - Added documentation parser
   - Some new blocks for vector manipulation
 
-v0.99h ( ... )
+v0.99h ( not release by now )
   - A new and nice grapical installer
   - Bugs: in vector manipulation blocks, ld_muparser_subst (still experimental) 
   - Added new slides in documentation folder
@@ -334,8 +334,10 @@ v0.99h ( ... )
   - run external processes and terminate them by the end of the simulation (module ext_process)
   - Global shared object class
   - Scilab help documentation
-  - Again fixed to online replaceable schematics. Now it runns smooth.
+  - Again a fixed to online replaceable schematics. Now it runns smooth.
   - A nicer interface for Scilab, which looks very much like the Scicos Generic Block
     or a Matlab S-function.
   
-  
+By date as there will only be the svn-version
+
+  - 9.12.12: Pipeline-module added comming with a ringbuffer implementation for communication between threads  
