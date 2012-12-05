@@ -315,6 +315,7 @@ struct dynlib_block_t *libdyn_new_block__(struct dynlib_simulation_t *sim, void 
 
       
       block->irpar_config_id = -1;
+      block->btype = -1;
 
       // call comp function and get config
       // All in- and outports should be configured
@@ -659,7 +660,7 @@ int libdyn_block_connect(struct dynlib_block_t *blockfrom, int outNr, struct dyn
   return 1;
 
 err_nonavailin:
-  fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
+  fprintf(stderr, "\nERROR CONNECTING BLOCK irparid = %d, btype = %d TO irparid = %d, btype = %d: error code=%d!\n", blockfrom->irpar_config_id, blockfrom->btype, blockto->irpar_config_id, blockto->btype, test);
   fprintf(stderr, "  Ports to connect: inport = %d, outport = %d\n", inNr, outNr);
   fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
   fprintf(stderr, "  Tryed to connect to an non available input\n");
@@ -668,7 +669,7 @@ err_nonavailin:
   return test;
 
 err_nonavailout:
-  fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
+  fprintf(stderr, "\nERROR CONNECTING BLOCK irparid = %d, btype = %d TO irparid = %d, btype = %d: error code=%d!\n", blockfrom->irpar_config_id, blockfrom->btype, blockto->irpar_config_id, blockto->btype, test);
   fprintf(stderr, "  Ports to connect: inport = %d, outport = %d\n", inNr, outNr);
   fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
   fprintf(stderr, "  Tryed to connect to an non available output\n");
@@ -677,7 +678,7 @@ err_nonavailout:
   return test;
 
 err:
-  fprintf(stderr, "ERROR CONNECTING BLOCK irparid = %d TO %d error code=%d!\n", blockfrom->irpar_config_id, blockto->irpar_config_id, test);
+  fprintf(stderr, "\nERROR CONNECTING BLOCK irparid = %d, btype = %d TO irparid = %d, btype = %d: error code=%d!\n", blockfrom->irpar_config_id, blockfrom->btype, blockto->irpar_config_id, blockto->btype, test);
   fprintf(stderr, "  The following missmatching interface was specified:\n\n");
   fprintf(stderr, "  Ports to connect: inport = %d, outport = %d\n", inNr, outNr);
   fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
@@ -2201,6 +2202,7 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
   }
   
   block->irpar_config_id = id;
+  block->btype = btype;
   
   /*
    *  Register events

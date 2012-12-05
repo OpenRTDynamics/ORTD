@@ -149,7 +149,7 @@ int log_ringbuffer_write(struct ringbuffer_t *rb, void *data, int numElementsToW
     mydebug(0) printf("writer: writing byte ofs=%d, \n", ofs);
 
     // copy one element
-    void * element_ptr = data + i*rb->element_size; // calc position of element
+    void * element_ptr = data + i*rb->element_size; // calc position of src element
     memcpy( (void *) &rb->buf[ofs], element_ptr, rb->element_size);
   
     // increase write counter; take care of the end of the buffer

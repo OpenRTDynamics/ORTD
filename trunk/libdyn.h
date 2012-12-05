@@ -338,6 +338,7 @@ struct dynlib_block_t {
   
   // 
   int irpar_config_id;
+  int btype;
 };
 
 
