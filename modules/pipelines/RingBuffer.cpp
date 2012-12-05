@@ -99,14 +99,14 @@ public:
         return data;
     }
     void lock_data() {
-//         fprintf(stderr, "Try lock...\n");
+//          fprintf(stderr, "Try lock...\n");
         pthread_mutex_lock(&data_mutex);
-//         fprintf(stderr, "...locked\n");
+//          fprintf(stderr, "...locked\n");
     }
     void unlock_data() {
-//         fprintf(stderr, "Try unlock...\n");
+//          fprintf(stderr, "Try unlock...\n");
         pthread_mutex_unlock(&data_mutex);
-// 	fprintf(stderr, "...unlocked\n");
+//  	fprintf(stderr, "...unlocked\n");
     }
     void set_wholedata(void *src) { // UNUSED
         lock_data();
@@ -114,13 +114,15 @@ public:
         unlock_data();
     }
     bool insertElements(int numElementsToWrite, void *src) {
+//         fprintf(stderr, "insertElements\n");
         lock_data();
         {
             bool overflow_check = ElementsPending == NumElements;
             int freeSlots = NumElements - ElementsPending;
 
             if (freeSlots < numElementsToWrite) {
-                fprintf(stderr, "ringbuffer overflow\n");
+	        unlock_data();
+                fprintf(stderr, "ringbuffer overflow\n");		
                 return false; // Buf full
             }
 
@@ -152,10 +154,12 @@ public:
         return true;
     }
     bool GetElementCopy(void *dst) {
+//       fprintf(stderr, "GetElementCopy\n");
         lock_data();
         {
 
             if (ElementsPending < 1) {
+	        unlock_data();
                 fprintf(stderr, "Buffer Empty\n");
                 return false;
             }
