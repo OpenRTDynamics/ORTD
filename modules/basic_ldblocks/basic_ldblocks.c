@@ -1559,7 +1559,7 @@ int ortd_compu_func_ld_initimpuls(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CONFIGURE:  // configure
         //printf("New flipflop Block\n");
         libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
-        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 0);
 
         return 0;
         break;
@@ -2174,44 +2174,42 @@ int ortd_compu_func_vectordelay(int flag, struct dynlib_block_t *block)
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-      freopen( "/home/max/outfile.txt", "a", stdout );
+//       freopen( "/home/max/outfile.txt", "a", stdout );
       out = (double *) libdyn_get_output_ptr(block,0);
       
-//       stat_buf = stat_buf_begin;
-      printf("stat_buf_ptr = %p\n", stat_buf);
+//       printf("stat_buf_ptr = %p\n", stat_buf);
       
       for(i = 0; i < veclen; i++){
-	printf("i = %d\n", i);
-	printf("stat_buf = %f\n", stat_buf[i]);
-// 	*out = *stat_buf;
+// 	printf("i = %d\n", i);
+// 	printf("stat_buf = %f\n", stat_buf[i]);
 	out[i] = stat_buf[i];
-	printf("out = %f\n", out[i]);
+// 	printf("out = %f\n", out[i]);
 // 	stat_buf++;
 // 	out++;
       }
-      freopen( "CON", "a", stdout );
+//       freopen( "CON", "a", stdout );
 
       return 0;
       break;
     }
     case COMPF_FLAG_UPDATESTATES:
     {
-      freopen( "/home/max/inpfile.txt", "a", stdout );
+//       freopen( "/home/max/inpfile.txt", "a", stdout );
       inp = (double *) libdyn_get_input_ptr(block,0);
       
 //       stat_buf = stat_buf_begin;
-      printf("stat_buf_ptr = %p\n", stat_buf);
+//       printf("stat_buf_ptr = %p\n", stat_buf);
       
       for(i = 0; i < veclen; i++){
-	printf("i = %d\n", i);
-	printf("inp = %f\n", inp[i]);
+// 	printf("i = %d\n", i);
+// 	printf("inp = %f\n", inp[i]);
 // 	*stat_buf = *inp;
 	stat_buf[i] = inp[i];
-	printf("stat_buf = %f\n", stat_buf[i]);
+// 	printf("stat_buf = %f\n", stat_buf[i]);
 //  	stat_buf++;
 //  	inp++;
       }
-      freopen( "CON", "a", stdout );
+//       freopen( "CON", "a", stdout );
       
       return 0;
       break;
@@ -2786,7 +2784,7 @@ int ortd_compu_func_vectorglue(int flag, struct dynlib_block_t *block)
 	    out[k] = 0.0;
 	  }
 	  glue_error:
-	    printf("Inconsistent call of vectorglue block.\n");
+	    fprintf(stderr, "Inconsistent call of vectorglue block.\n");
 	    return -1;
     }
     return 0;
@@ -2816,7 +2814,7 @@ int ortd_compu_func_vectorglue(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm vectorglue block\n");
+        printf("I'm a vectorglue block\n");
         return 0;
         break;
 
