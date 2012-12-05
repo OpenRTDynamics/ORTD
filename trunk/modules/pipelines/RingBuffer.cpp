@@ -99,14 +99,14 @@ public:
         return data;
     }
     void lock_data() {
-        fprintf(stderr, "Try lock...\n");
+//         fprintf(stderr, "Try lock...\n");
         pthread_mutex_lock(&data_mutex);
-        fprintf(stderr, "...locked\n");
+//         fprintf(stderr, "...locked\n");
     }
     void unlock_data() {
-        fprintf(stderr, "Try unlock...\n");
+//         fprintf(stderr, "Try unlock...\n");
         pthread_mutex_unlock(&data_mutex);
-	fprintf(stderr, "...unlocked\n");
+// 	fprintf(stderr, "...unlocked\n");
     }
     void set_wholedata(void *src) { // UNUSED
         lock_data();
