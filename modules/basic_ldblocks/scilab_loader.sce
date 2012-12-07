@@ -1257,6 +1257,35 @@ function [sim, y] = ld_limited_integrator3(sim, ev, u, min__, max__, Ta) // PARS
     [sim] = libdyn_close_loop(sim, y_, z_fb);    
 endfunction
 
+function [sim, y] = ld_limited_integrator4(sim, ev, u, min__, max__, Ta) // PARSEDOCU_BLOCK
+// %PURPOSE: Implements a time discrete integrator with saturation of the output between min__ and max__
+// compared to ld_limited_integrator there is no delay: Ta z / (z-1)
+//
+// u * - input
+// y * - output
+// min__ * - variable saturation minimum
+// 
+// y(k+1) = sat( y(k) + Ta*u , min__, max__ )
+
+
+    [sim, u__] = ld_gain(sim, ev, u, Ta);
+    
+    [sim,z_fb] = libdyn_new_feedback(sim);
+    
+	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+	[sim, y_sat] = ld_sat(sim, ev, sum_, 0, max__);
+	
+	[sim, y_missing] = ld_add(sim, ev, list(min__, y_sat), [1,-1]);
+	[sim, is_missing] = ld_compare_01(sim, ev, in=y_missing,  thr=0);
+	[sim, y_add] = ld_mult(sim, ev, inp_list=list(y_missing, is_missing), muldiv1_list=[0, 0]);
+	[sim, y] = ld_add(sim, ev, list(y_sat, y_add), [1,1]);
+
+	[sim, y_] = ld_ztf(sim, ev, y, 1/z);
+    
+    [sim] = libdyn_close_loop(sim, y_, z_fb);    
+
+endfunction
+
 function [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__) // PARSEDOCU_BLOCK
 // %PURPOSE: linear controller with anti reset windup implemented by bounding the integral state:
 // e = r-y
