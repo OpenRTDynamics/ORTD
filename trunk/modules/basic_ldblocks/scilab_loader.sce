@@ -957,6 +957,25 @@ function [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARS
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_vector_add(sim, events, in1, in2, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: add two vectors elementwise
+// 
+//  in1 *+(vecsize) - vector signal1
+//  in2 *+(vecsize) - vector signal2
+//    
+  btype = 60001 + 66;	
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, vecsize], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in1, in2 ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 function [sim, out] = ld_vector_sum(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 // %PURPOSE: sum over "in"
 //

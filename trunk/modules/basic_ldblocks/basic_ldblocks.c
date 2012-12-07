@@ -2885,6 +2885,70 @@ int ortd_compu_func_vectoraddscalar(int flag, struct dynlib_block_t *block)
     }
 }
 
+int ortd_compu_func_vectoradd(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in1;
+    double *in2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in1 = (double *) libdyn_get_input_ptr(block,0);
+	in2 = (double *) libdyn_get_input_ptr(block,1);
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+        int i;
+        for (i=0; i < size; ++i) {
+            out[i] = ( in1[ i ] + in2[ i ]  );
+        }
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("size cannot be smaller than 1\n");
+            printf("size = %d\n", size);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectoradd block\n");
+        return 0;
+        break;
+
+    }
+}
+
 int ortd_compu_func_vectorsum(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
@@ -3533,7 +3597,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 63, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectormute);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 64, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorglue);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 65, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordelay);
-    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 66, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectoradd);
 
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_interface2);
