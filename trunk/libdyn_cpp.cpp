@@ -976,6 +976,7 @@ bool libdyn_nested2::slotindexOK(int nSim)
 
 void libdyn_nested2::set_master(libdyn_master* master)
 {
+  
     this->ld_master = master;
 }
 
@@ -1629,11 +1630,13 @@ void libdyn::destruct()
 
 libdyn_master::libdyn_master()
 {
+    magic = 0x89abcde2;
+  
     this->realtime_environment = RTENV_UNDECIDED;
 
     global_comp_func_list = libdyn_new_compfnlist();
-    fprintf(stderr, "Created new libdyn master\n");
-
+    fprintf(stderr, "Created new libdyn master; ptr=%p\n", this);
+    
 #ifdef REMOTE
     // Initial subsystems (not available)
     dtree = NULL;
@@ -1648,10 +1651,12 @@ libdyn_master::libdyn_master()
 // remote_control_tcpport - if 0 the no remote control will be set-up
 libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 {
+    magic = 0x89abcde2;
+  
     this->realtime_environment = realtime_env;
 
     global_comp_func_list = libdyn_new_compfnlist();
-    fprintf(stderr, "Created new libdyn master; tcpport = %d \n", remote_control_tcpport);
+    fprintf(stderr, "Created new libdyn master; ptr=%p; tcpport = %d \n", this, remote_control_tcpport);
 
 
 #ifdef REMOTE
@@ -1663,9 +1668,19 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 
 
     if (remote_control_tcpport != 0) {
-        init_communication(remote_control_tcpport);   // FIXME: Handle return value
+        if (init_communication(remote_control_tcpport) <= 0) {   // FIXME: Handle return value
+          fprintf(stderr, "WARNING: Running without the communication_server\n");
+	}
     }
 #endif
+}
+
+void libdyn_master::check_memory()
+{
+  if (magic != 0x89abcde2) {
+    fprintf(stderr, "ASSERTION failed: libdyn_master::check_memory: bad magic for object ptr=%p. Propably a memory corruption.\n", this);
+    exit(-1);
+  }
 }
 
 

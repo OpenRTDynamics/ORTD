@@ -107,6 +107,8 @@ class libdyn_master {
 	  
     // Die Verzeichnisstruktur aus communication_server hier herein bauen
     
+    unsigned int magic;
+    
   public:
     // return communication_server variable
     rt_server_threads_manager *get_communication_server();
@@ -114,6 +116,8 @@ class libdyn_master {
     
     libdyn_master(int realtime_env, int remote_control_tcpport);
     libdyn_master();
+    
+    void check_memory(); // For error detection purposes
     
     // gemeinsam genutzte systeme initialisieren
 	  #ifdef REMOTE
