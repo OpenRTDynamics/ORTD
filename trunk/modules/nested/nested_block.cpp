@@ -578,6 +578,7 @@ int compu_func_nested_class::init()
         return -1;
     }
 
+    master->check_memory();
     simnest->set_master(master);
 
     // init the simulation exchange helper if required
@@ -588,7 +589,10 @@ int compu_func_nested_class::init()
             fprintf(stderr, "libdyn nested: Register <%s> for online exchange\n", nested_sim_name);
             exchange_helper = new nested_onlineexchange(nested_sim_name, simnest);
         } else {
-            fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master\n");
+            fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master and a directory\n");
+//             fprintf(stderr, "master = %p, master->dtree=%p\n", master, master->dtree); // FIXME REMOVE DEBUG
+	    master->check_memory();
+	    
 	   simnest->destruct(); // all simulations are destructed
           delete simnest;
 	
