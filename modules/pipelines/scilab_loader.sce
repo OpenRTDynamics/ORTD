@@ -90,7 +90,7 @@ function [sim, data, NumRead] = ld_read_ringbuf(sim, events, ident_str, datatype
   rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
-                   insizes=[], outsizes=[ElementsToRead, 1], ...
+                   insizes=[ ], outsizes=[ElementsToRead, 1], ...
                    intypes=[ ], outtypes=[datatype, ORTD.DATATYPE_FLOAT ]  );
  
  // ensure the block is included in the simulation even without any I/O ports
@@ -98,5 +98,6 @@ function [sim, data, NumRead] = ld_read_ringbuf(sim, events, ident_str, datatype
  
    [sim,data] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
    [sim,NumRead] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port 
+   
 endfunction
 
