@@ -79,6 +79,8 @@ int siminit(struct global_t *global_p)
     // set-up a new libdyn master with an optional tcpserver on a specified port
     global_p->master = new libdyn_master(RTENV_UNDECIDED, global_p->args.master_tcpport);
 
+    fprintf(stderr, "Created new master ptr=%p\n", global_p->master); // FIXME: Remove / DEBUG
+    
     // Define sizes of in- and outports
     int insizes[] = {1,1};
     int outsizes[] = {1,1};
