@@ -335,6 +335,16 @@ function [sim, out] = ld_shift_register(sim, events, in, len) // FIXME TODO
 endfunction
 
 
+
+
+
+
+// Lookup table: Inputs between lowerin and upperin will be mapped linear to the indices of table
+//               The corresponsing element of table will be the output
+function [sim,bid] = libdyn_new_blk_lkup(sim, events, lowerin, upperin, table)
+  btype = 120;
+  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [length(table)], [ lowerin, upperin, table(:)' ]);
+endfunction
 function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpolation) // PARSEDOCU_BLOCK
 // %PURPOSE: Lookup table - block
 //
@@ -1606,8 +1616,6 @@ function [sim,bid] = libdyn_new_compare(sim, events, thr, optional_cmp_mode342)
   btype = 140;
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [optional_cmp_mode342], [thr]);
 endfunction
-
-
 function [sim,y] = ld_compare(sim, events, in,  thr) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: compare block. 
@@ -1623,7 +1631,6 @@ function [sim,y] = ld_compare(sim, events, in,  thr) // PARSEDOCU_BLOCK
     [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0));
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
 endfunction
-
 function [sim,y] = ld_compare_01(sim, events, in,  thr) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: compare block. 
@@ -1669,7 +1676,7 @@ function [sim,bid] = libdyn_new_blk_sum_pn(sim)
   sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; oid], []);
 endfunction
 
-
+// FIXME: komische Funktion (noch gebraucht?)
 function [sim,bid] = libdyn_new_blk_gen(sim, events, symbol_name, ipar, rpar)
   btype = 5000;
   str = str2code(symbol_name);
@@ -1678,72 +1685,15 @@ function [sim,bid] = libdyn_new_blk_gen(sim, events, symbol_name, ipar, rpar)
 endfunction
 
 
-// FIXME no port size checking
-function [sim,bid] = libdyn_new_blk_sum(sim, events, c1, c2)
-  btype = 12;
-  
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [], [c1; c2]);
-  
-//  [sim,bid] = libdyn_new_blockid(sim);
-//  id = bid; // id for this parameter set
-//  
-//  sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; bid], [c1; c2]);
-endfunction
 
 
-// FIXME no port size checking
-function [sim,bid] = libdyn_new_blk_zTF(sim, events, H)
-  btype = 30;
-  bip = [ degree(H.num); degree(H.den) ];
-  brp = [ coeff(H.num)'; coeff(H.den)' ];
-
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [bip], [brp]);
-  
-//  [sim,bid] = libdyn_new_blockid(sim);
-//  id = bid; // id for this parameter set
-//  
-//  
-//  sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; bid; bip], [brp]);
-endfunction
-
-function [sim,bid] = libdyn_new_blk_const(sim, events, c1)
-  btype = 40;
-  [sim,bid] = libdyn_new_block(sim, events, btype, [], [c1], ...
-                   insizes=[], outsizes=[1], ...
-                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
-endfunction
-
-function [sim,bid] = libdyn_new_blk_gain(sim, events, c)
-  btype = 20;
-  [sim,bid] = libdyn_new_block(sim, events, btype, [], [c], ...
-                   insizes=[1], outsizes=[1], ...
-                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
-endfunction
 
 
-function [sim,bid] = libdyn_new_blk_sat(sim, events, lowerlimit, upperlimit)
-  btype = 50;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [], [lowerlimit, upperlimit]);
-endfunction
 
 
-//
-// A switching Block
-// inputs = [control_in, signal_in]
-// if control_in > 0 : signal_in is directed to output 1; output_2 is set to zero
-// if control_in < 0 : signal_in is directed to output 2; output_1 is set to zero
-//
-function [sim,bid] = libdyn_new_blk_switch(sim, events)
-  btype = 60;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [], []);
-endfunction
 
-// Multiplication 
-// d1, d2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
-function [sim,bid] = libdyn_new_blk_mul(sim, events, d1, d2)
-  btype = 70;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [d1, d2], []);
-endfunction
+
+
 
 // function generator
 // at the moment only sinus (shape = ?)
@@ -1760,29 +1710,6 @@ function [sim,bid] = libdyn_new_blk_s2p(sim, events, len)
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [len], []);
 endfunction
 
-//
-// Sample play block
-//
-// plays the sequence stored in r
-// each time event 0 occurs the next value of r is put out
-// sampling start either imediadedly (initial_play=1) or on event 1.
-// Event 2 stops sampling and set ouput to last values (mute_afterstop = 0 and hold_last_values == 1) 
-// or zero (mute_afterstop = 1)
-//
-function [sim,bid] = libdyn_new_blk_play(sim, events, r, initial_play, hold_last_value, mute_afterstop)
-  if (exists('initial_play') ~= 1) then
-    initial_play = 1;  
-  end
-  if (exists('hold_last_value') ~= 1) then
-    hold_last_value = 0;  
-  end
-  if (exists('mute_afterstop') ~= 1) then
-    mute_afterstop = 0;  
-  end
-  
-  btype = 100;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [length(r), initial_play, hold_last_value, mute_afterstop], [r]);
-endfunction
 
 
 //
@@ -1800,32 +1727,8 @@ function [sim,bid] = libdyn_new_blk_2to1evsw(sim, events, initial_state)
   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [initial_state], []);
 endfunction
 
-// Lookup table: Inputs between lowerin and upperin will be mapped linear to the indices of table
-//               The corresponsing element of table will be the output
-function [sim,bid] = libdyn_new_blk_lkup(sim, events, lowerin, upperin, table)
-  btype = 120;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [length(table)], [ lowerin, upperin, table(:)' ]);
-endfunction
 
 
-// Dump at max maxlen samples to file "filename"; start automatically if autostart == 1
-function [sim,bid] = libdyn_new_blk_filedump(sim, events, filename, vlen, maxlen, autostart)
-  btype = 130;
-  fname = ascii(filename);
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [maxlen, autostart, vlen, length(fname), fname(:)'], []);
-endfunction
-
-
-// // delay of delay_len samples block
-// function [sim,bid] = libdyn_new_delay(sim, events, delay_len)
-//   btype = 150;
-//   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [delay_len], []);
-// endfunction
-
-function [sim,bid] = libdyn_new_flipflop(sim, events, initial_state)
-  btype = 160;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [initial_state], []);
-endfunction
 
 
 
@@ -1841,6 +1744,12 @@ endfunction
 // fancy shortcuts, that *should* be used by the user
 //////////////////////////////////////////////////////////
 
+function [sim,bid] = libdyn_new_blk_const(sim, events, c1)
+  btype = 40;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [], [c1], ...
+                   insizes=[], outsizes=[1], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
+endfunction
 function [sim,c] = ld_const(sim, events, val) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: A constant val
@@ -1850,13 +1759,27 @@ function [sim,c] = ld_const(sim, events, val) // PARSEDOCU_BLOCK
     [sim,c] = libdyn_new_oport_hint(sim, c, 0);    
 endfunction
 
+
+
+// FIXME no port size checking
+function [sim,bid] = libdyn_new_blk_sum(sim, events, c1, c2)
+  btype = 12;
+  
+  [sim,bid] = libdyn_new_block(sim, events, btype, [], [c1; c2], ...
+                   insizes=[1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]);
+  
+//  [sim,bid] = libdyn_new_blockid(sim);
+//  id = bid; // id for this parameter set
+//  
+//  sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; bid], [c1; c2]);
+endfunction
 function [sim,sum_] = ld_sum(sim, events, inp_list, fak1, fak2) 
 // FIXME obsolete
     [sim,sum_] = libdyn_new_blk_sum(sim, events, fak1, fak2);
     [sim,sum_] = libdyn_conn_equation(sim, sum_, inp_list);  
     [sim,sum_] = libdyn_new_oport_hint(sim, sum_, 0);    
 endfunction
-
 function [sim,sum_] = ld_add(sim, events, inp_list, fak_list) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Add signals (linear combination)
@@ -1870,6 +1793,22 @@ function [sim,sum_] = ld_add(sim, events, inp_list, fak_list) // PARSEDOCU_BLOCK
 endfunction
 
 
+
+
+
+
+
+
+
+
+// Multiplication 
+// d1, d2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+function [sim,bid] = libdyn_new_blk_mul(sim, events, d1, d2)
+  btype = 70;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [d1, d2], [], ...
+                   insizes=[1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]);
+endfunction
 function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
 // %PURPOSE: Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
@@ -1878,7 +1817,6 @@ function [sim,mul_] = ld_mul(sim, events, inp_list, muldiv1, muldiv2)
     [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
 endfunction
-
 function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
 // %PURPOSE: Multiplication 
 // muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
@@ -1887,7 +1825,6 @@ function [sim,mul_] = ld_dot(sim, events, inp_list, muldiv1_list)
     [sim,mul_] = libdyn_conn_equation(sim, mul_, inp_list);  
     [sim,mul_] = libdyn_new_oport_hint(sim, mul_, 0);    
 endfunction
-
 function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Multiplication 
@@ -1900,6 +1837,20 @@ function [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list) // PARSEDOCU_
 endfunction
 
 
+
+
+
+
+
+
+
+
+function [sim,bid] = libdyn_new_blk_gain(sim, events, c)
+  btype = 20;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [], [c], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+endfunction
 function [sim,gain] = ld_gain(sim, events, inp_list, gain) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: A simple gain
@@ -1911,6 +1862,17 @@ function [sim,gain] = ld_gain(sim, events, inp_list, gain) // PARSEDOCU_BLOCK
   [sim,gain] = libdyn_conn_equation(sim, gain, list(inp,0));
   [sim,gain] = libdyn_new_oport_hint(sim, gain, 0);    
 endfunction
+
+
+
+
+
+
+
+
+
+
+
 
 function [sim,sign_] = ld_sign(sim, events, inp_list, thr) // PARSEDOCU_BLOCK
 //
@@ -1928,6 +1890,16 @@ function [sim,sign_] = ld_sign(sim, events, inp_list, thr) // PARSEDOCU_BLOCK
     [sim,sign_] = libdyn_new_oport_hint(sim, sign_, 0);
 endfunction
 
+
+
+
+
+
+
+
+
+
+
 function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
 // %PURPOSE: lookup table
 //
@@ -1941,6 +1913,15 @@ function [sim,lkup] = ld_lkup(sim, events, inp_list, lower_b, upper_b, table)
     [sim,lkup] = libdyn_conn_equation(sim, lkup, list(inp));
     [sim,lkup] = libdyn_new_oport_hint(sim, lkup, 0);
 endfunction
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
 function [sim,fngen] = ld_fngen(sim, events, inp_list, shape_)
 // %PURPOSE: function generator
@@ -1959,6 +1940,33 @@ endfunction
 //     [sim,delay] = libdyn_new_oport_hint(sim, delay, 0);    
 // endfunction
 
+
+
+
+
+
+
+
+
+
+
+
+// FIXME no port size checking
+function [sim,bid] = libdyn_new_blk_zTF(sim, events, H)
+  btype = 30;
+  bip = [ degree(H.num); degree(H.den) ];
+  brp = [ coeff(H.num)'; coeff(H.den)' ];
+
+  [sim,bid] = libdyn_new_block(sim, events, btype, [bip], [brp], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]);
+  
+//  [sim,bid] = libdyn_new_blockid(sim);
+//  id = bid; // id for this parameter set
+//  
+//  
+//  sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; bid; bip], [brp]);
+endfunction
 function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Time discrete transfer function
@@ -1972,6 +1980,21 @@ function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
     [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
+
+
+
+
+
+
+
+
+
+function [sim,bid] = libdyn_new_blk_sat(sim, events, lowerlimit, upperlimit)
+  btype = 50;
+  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [], [lowerlimit, upperlimit], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]);
+endfunction
 function [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Saturation between lowerlimit and upperlimit
@@ -1985,6 +2008,21 @@ function [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit) // PARS
     [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
+
+
+
+
+
+
+
+
+
+function [sim,bid] = libdyn_new_flipflop(sim, events, initial_state)
+  btype = 160;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [initial_state], [], ...
+                   insizes=[1,1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]);
+endfunction
 function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: A flip-flop (FIXME: more documentation needed)
@@ -2054,6 +2092,18 @@ endfunction
 
 
 
+//
+// A switching Block
+// inputs = [control_in, signal_in]
+// if control_in > 0 : signal_in is directed to output 1; output_2 is set to zero
+// if control_in < 0 : signal_in is directed to output 2; output_1 is set to zero
+//
+function [sim,bid] = libdyn_new_blk_switch(sim, events)
+  btype = 60;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [], [], ...
+                   insizes=[1,1], outsizes=[1,1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]);
+endfunction
 function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: A switching Block
@@ -2069,6 +2119,39 @@ function [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in) // PARSEDOCU_BLO
 endfunction
 
 
+
+
+
+
+
+
+
+
+//
+// Sample play block
+//
+// plays the sequence stored in r
+// each time event 0 occurs the next value of r is put out
+// sampling start either imediadedly (initial_play=1) or on event 1.
+// Event 2 stops sampling and set ouput to last values (mute_afterstop = 0 and hold_last_values == 1) 
+// or zero (mute_afterstop = 1)
+//
+function [sim,bid] = libdyn_new_blk_play(sim, events, r, initial_play, hold_last_value, mute_afterstop)
+  if (exists('initial_play') ~= 1) then
+    initial_play = 1;  
+  end
+  if (exists('hold_last_value') ~= 1) then
+    hold_last_value = 0;  
+  end
+  if (exists('mute_afterstop') ~= 1) then
+    mute_afterstop = 0;  
+  end
+  
+  btype = 100;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [length(r), initial_play, hold_last_value, mute_afterstop], [r], ...
+                   insizes=[], outsizes=[1], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]);
+endfunction
 function [sim,y] = ld_play_simple(sim, events, r) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Simple sample play block
@@ -2077,13 +2160,27 @@ function [sim,y] = ld_play_simple(sim, events, r) // PARSEDOCU_BLOCK
 // each time event 0 occurs the next value of r is put out
 //
 
-
   [sim,y] = libdyn_new_blk_play(sim, events, r, 1, 1, 0);
   [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
 endfunction
 
 
 
+
+
+
+
+
+
+
+// Dump at max maxlen samples to file "filename"; start automatically if autostart == 1
+function [sim,bid] = libdyn_new_blk_filedump(sim, events, filename, vlen, maxlen, autostart)
+  btype = 130;
+  fname = ascii(filename);
+  [sim,bid] = libdyn_new_block(sim, events, btype, [maxlen, autostart, vlen, length(fname), fname(:)'], [], ...
+                   insizes=[vlen], outsizes=[], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[]);
+endfunction
 function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source) //OBSOLET
 // %PURPOSE: Quick and easy dumping of signals to files in one line of code
 // obsolete version
@@ -2093,8 +2190,6 @@ function [sim,save_]=libdyn_dumptoiofile(sim, events, fname, source) //OBSOLET
   [sim,save_] = libdyn_new_blk_filedump(sim, events, fname, 1, 0, 1);
   [sim,save_] = libdyn_conn_equation(sim, save_, list(source, 0) );
 endfunction
-
-
 function [sim,save_]=ld_dumptoiofile(sim, events, fname, source) //OBSOLET
 //
 // Quick and easy dumping of signals to files
