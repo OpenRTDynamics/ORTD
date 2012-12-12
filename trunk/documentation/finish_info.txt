@@ -3,25 +3,22 @@
 ------- Build finished: Now you can do ... -------
 
 1) make install
-  To install the libraries on your system
+   To install the libraries on your system
 
 2) make install_toolbox
-  To install the scilab5 toolbox
+   To install the scilab5 toolbox
 
 
 .) Within documentation/List_of_Module_Blocks.txt you will find a list of 
-   blocks available through the modules
+   blocks available through the modules. They are also in the Scilab-Help.
 
-.) the command libdyn_generic_exec is used to execute schematics.
-   See libdyn_generic_exec --help for usage.
+.) The command libdyn_generic_exec is used to execute schematics.
+   See libdyn_generic_exec --help on how to use.
 
-.) the hart (hart.sf.net) module can be found within
-   hart/hart_ortd
-
-.) to run a demonstration:
+.) To run a demonstration:
    # cd examples
-   # sh sh_runoscillator
-   or
-   # sh sh_runoscillator_realtime
+   # sh oscillator.sh
+  and
+   # sh oscillator_realtime.sh
 
-.) have a look at INTRODUCTION and REAME files
+.) Have a look at the files INTRODUCTION and README
