@@ -154,9 +154,10 @@ TARGET CONFIGURATION (for usage in a hard realtime environment)
 
 The following targets can be choosen before compilation within target.conf:
 
-1) RTAI_COMPATIBLE (default, runns within RTAI; Plugins are disabled)
-2) LINUX (if you do not want to have compatibility for the RTAI-realtime OS)
-3) CYGWIN (soon)
+1) RTAI_COMPATIBLE (runns within RTAI; Plugins are disabled because shared libraries
+                    are not supported in RTAI)
+2) LINUX (Default)
+3) CYGWIN (maybe, to run ORTD-simulations on Windows)
 
 HART-Module INSTALLATION
 ------------------------
