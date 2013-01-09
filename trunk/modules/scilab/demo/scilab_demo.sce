@@ -94,8 +94,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 //  [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 6);
   
 
-// The nicer interface
-
+// The nicer interface. If BUILDIN_PATH is not found: Do a make clean ; make ; make install on openrtdynamics
   [sim, out] = ld_scilab2(sim, defaultevents, in=u1, comp_fn=sample_comp_fn, include_scilab_fns=list(), scilab_path="BUILDIN_PATH");
 
   // save result to file
