@@ -1136,6 +1136,25 @@ endfunction
 
 
 
+function [sim, out] = ld_vector_NaNtoVal(sim, events, in, Val, vecsize) // PARSEDOCU_BLOCK   
+// %PURPOSE: Find NaN and set to Val
+//
+// in *+(vecsize) - input
+// out *+(vecsize) - output
+//    
+  btype = 60001 + 67;	
+  ipar = [vecsize]; rpar = [Val];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
 // 
 // 
 // Special blocks
