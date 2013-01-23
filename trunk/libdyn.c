@@ -947,9 +947,6 @@ int libdyn_simulation_callinitflag(struct dynlib_simulation_t * sim, int initfla
   int counter;  
   int abort_at;
   
-  
-  
-  
   current = sim->allblocks_list_head;
   counter = 0;
   if (current != 0) {
@@ -960,7 +957,7 @@ int libdyn_simulation_callinitflag(struct dynlib_simulation_t * sim, int initfla
       
       int ret = (*block->comp_func)(initflag, block);
        if (ret == -1 && destructorflag != -1) { // check for errors if a destructorflag =! -1 is given
- 	 fprintf(stderr, "WARNING (for now): ERROR: libdyn_simulation_init: Computational function returned an error blockid=nn, block_irparid=%d\n", block->irpar_config_id);
+ 	 fprintf(stderr, "ERROR: libdyn_simulation_init: Computational function returned an error during initialisation. btype=%d, block_irparid=%d\n", block->btype, block->irpar_config_id);
          abort_at = counter;
 	 goto undo_everything;
        }
