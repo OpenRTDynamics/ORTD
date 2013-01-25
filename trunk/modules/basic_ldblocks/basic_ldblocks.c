@@ -3524,8 +3524,266 @@ int ortd_compu_func_NaNToVal(int flag, struct dynlib_block_t *block)
 }
 
 
+int ortd_compu_func_eventDemux(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int NrEvents = ipar[0];
+    int KeepOutputLevel = ipar[1];
+    int Nout = NrEvents;
+    int Nin = 1;
+
+    double *in;
 
 
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *out;
+	
+        int i;
+        for (i=0; i < NrEvents; ++i) {
+	  out = (double *) libdyn_get_output_ptr(block, i);
+	  
+	  int roundedinput = round(*in);
+	  if (roundedinput == i+1) {
+	    *out = 1;
+	    printf("event %d is true\n", i+1);
+	  } else {
+	    *out = 0;
+	    printf("event %d is false\n", i+1);
+	  }
+        }
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+	
+	int i;
+	for (i=0; i<NrEvents; ++i) {
+          libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT,1 ); // in, intype,
+	}
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a eventDemux block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int ortd_compu_func_TrigSwitch1toN(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int N = ipar[0];
+    int InitialState = ipar[1];
+    int Nout = 1;
+    int Nin = 1+N;
+
+    int *state = (void*) libdyn_get_work_ptr(block);
+    
+    double *Event;
+    double *SwitchInput;
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        Event = (double *) libdyn_get_input_ptr(block,0);
+	
+	if (*Event > 0.5) { // update state
+	  int E = round(*Event);
+	  if (E > N) {
+	    // error --> do not change the state
+	  } else {
+	    *state = E-1;
+	  }
+	}
+	
+	SwitchInput = (double *) libdyn_get_input_ptr(block, *state+1); // use input #state
+
+	double *out = (double *) libdyn_get_output_ptr(block,0);
+
+	// copy the input
+	*out = *SwitchInput;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+// 	if (InitialState <= N && InitialState >= 1) {	  
+          *state = InitialState-1;
+// 	} else {
+// 	  *state = 0; // invalid initialisation
+// 	}
+	*out = 0;
+//         *output = (state[0] > 0) ? onout : offout ;  // Added this 14.5.2012
+    }
+        return 0;
+        break;	
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // Event input
+	
+	int i;
+	for (i=0; i<N; ++i) {
+  	  libdyn_config_block_input(block, i+1, 1, DATATYPE_FLOAT);
+	}
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT,1 ); // in, intype,
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+{
+        int *state = malloc(sizeof(int));
+        libdyn_set_work_ptr(block, (void *) state);
+	
+	if (InitialState <= N && InitialState >= 1) {	  
+          *state = InitialState-1;
+	} else {
+	  fprintf(stderr, "ortd_compu_func_TrigSwitch1toN: WARNING: wrong initialisation for InitialState!\n");
+	  *state = 0; // invalid initialisation
+	  free(state);
+	  return -1;
+	}
+}
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+{
+          void *buffer = (void*) libdyn_get_work_ptr(block);
+        free(buffer);
+}
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a TrigSwitch1toN block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+/*
+
+int ortd_compu_func_hysteresis(int flag, struct dynlib_block_t *block)
+{
+// printf("comp_func flipflop: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 1;
+
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int initial_state = ipar[0];
+    double switch_on_level = rpar[0];
+    double switch_off_level = rpar[1];
+    double onout = rpar[2];
+    double offout = rpar[3];
+
+    int *state = (void*) libdyn_get_work_ptr(block);
+
+    double *in;
+    double *output;
+
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        in= (double *) libdyn_get_input_ptr(block,0);
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+        *output = (state[0] > 0) ? onout : offout ;
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        in = (double *) libdyn_get_input_ptr(block,0);
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+        if (state[0] < 0 && *in > switch_on_level) {
+// 	printf("sw on\n");
+            state[0] = 1;
+        }
+
+        if (state[0] > 0 && *in < switch_off_level) {
+// 	printf("sw off\n");
+            state[0] = -1;
+        }
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+        output = (double *) libdyn_get_output_ptr(block,0);
+
+        *state = initial_state;
+        *output = (state[0] > 0) ? onout : offout ;  // Added this 14.5.2012
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        //printf("New flipflop Block\n");
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        int *state = malloc(sizeof(int));
+        libdyn_set_work_ptr(block, (void *) state);
+        *state = initial_state;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        void *buffer = (void*) libdyn_get_work_ptr(block);
+        free(buffer);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a hysteresis block. initial_state = %d\n", initial_state);
+        return 0;
+        break;
+    }
+}*/
 
 
 
@@ -3659,7 +3917,12 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 65, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordelay);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 66, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectoradd);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 67, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_NaNToVal);
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 68, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_eventDemux);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 69, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_TrigSwitch1toN);
 
+    
+    
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_interface2);
     
