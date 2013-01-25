@@ -1154,6 +1154,90 @@ function [sim, out] = ld_vector_NaNtoVal(sim, events, in, Val, vecsize) // PARSE
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, outlist] = ld_LevelDemux(sim, events, in, NrEvents) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Demux the input level such that one output corresponding to the input level is set to one
+// 
+//  in * - vector signal
+//  outlist list() of * with NrEvents elements - list of 
+//
+//  outlsit(m) == 1, for n=m  AND outlist(m) == 0, for m != n
+// 
+//    
+
+  KeepOutputLevel = 0;
+
+  btype = 60001 + 68;
+  ipar = [NrEvents, KeepOutputLevel]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[1], outsizes=[ ones(NrEvents,1) ], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ones(NrEvents,1)*ORTD.DATATYPE_FLOAT] );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  outlist = list();
+  for i=1:NrEvents 
+    [sim,out] = libdyn_new_oport_hint(sim, blk, i-1);   // 0th port
+    outlist(i) = out;
+  end
+  
+endfunction
+
+
+function [sim, out] = ld_TrigSwitch1toN(sim, events, Event, SwitchInputList, InitialState) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Switch N inputs to one output signal based on event pulses
+// 
+//  Event * - vector signal
+//  SwitchInputList list() of * with N elements 
+//
+//  out * - is set to the input if SwitchInputList(state), whereby "state" is the current state that can be changed 
+//          giving inpulses to Event, whose intensity correspond to the state to switch to. Event <0.5 does not change
+//          the state.
+// 
+//    
+
+
+  
+  N = length(SwitchInputList);
+
+  btype = 60001 + 69;
+  ipar = [N, InitialState]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[1;ones(N,1)], outsizes=[ 1 ], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT; ones(N,1)*ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+
+  
+  
+  inlist = list(Event);
+  
+  for i=1:N
+    inlist(i+1) = SwitchInputList(i);
+  end
+  [sim,blk] = libdyn_conn_equation(sim, blk, inlist );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  
+endfunction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // 
 // 
