@@ -3551,10 +3551,10 @@ int ortd_compu_func_eventDemux(int flag, struct dynlib_block_t *block)
 	  int roundedinput = round(*in);
 	  if (roundedinput == i+1) {
 	    *out = 1;
-	    printf("event %d is true\n", i+1);
+// 	    printf("event %d is true\n", i+1);
 	  } else {
 	    *out = 0;
-	    printf("event %d is false\n", i+1);
+// 	    printf("event %d is false\n", i+1);
 	  }
         }
 
