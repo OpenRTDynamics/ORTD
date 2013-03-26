@@ -18,6 +18,7 @@
 */
 
 #include <malloc.h>
+#include <stdio.h>
 
 extern "C" {
 #include "libdyn.h"
