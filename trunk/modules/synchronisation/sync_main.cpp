@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <pthread.h>
-#include <sys/io.h>
+//#include <sys/io.h>
 
 
 extern "C" {
