@@ -36,7 +36,7 @@ extern "C" {
 #include <unistd.h>
 #include <sys/mman.h>
 #include <pthread.h>
-#include <sys/io.h>
+//#include <sys/io.h>
 
 }
 
@@ -465,7 +465,7 @@ out:
         signal(SIGINT,endme);
         signal(SIGKILL,endme);
 
-        iopl(3);
+     //   iopl(3);
 
         ap=pthread_create(&thrd,NULL,rt_task,global_p);
 
