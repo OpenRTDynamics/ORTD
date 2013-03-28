@@ -523,7 +523,7 @@ int compu_func_nested_class::init()
     if ( irpar_get_ivec(&param, ipar, rpar, 20) < 0 ) error = 1 ;
 
     if (error == 1) {
-        printf("nested: could not get parameter from irpar set\n");
+        fprintf(stderr, "nested: could not get parameter from irpar set\n");
         return -1;
     }
 
