@@ -157,7 +157,26 @@ The following targets can be choosen before compilation within target.conf:
 1) RTAI_COMPATIBLE (runns within RTAI; Plugins are disabled because shared libraries
                     are not supported in RTAI)
 2) LINUX (Default)
-3) CYGWIN (maybe, to run ORTD-simulations on Windows)
+3) CYGWIN (not functional up to now, to run ORTD-simulations on Windows)
+4) ANDROID_ARM (Android using Android NDK cross compile toolchain)
+
+ANDROID (ANDROID_ARM-target)
+----------------------------
+
+   Requires the executables from the NDK (http://developer.android.com/tools/sdk/ndk/index.html):
+
+     arm-linux-androideabi-gcc,    arm-linux-androideabi-c++,   arm-linux-androideabi-g++
+   
+   Therefore, let the NDK create a Toolchain for you and set the environment variables
+   (as described in docs/STANDALONE-TOOLCHAIN.HTML of the NDK's documentation folder) 
+
+     export PATH=<Path to AndroidArmToolchain>/bin/:$PATH
+     export CC=arm-linux-androideabi-gcc
+     export CXX=arm-linux-androideabi-g++ 
+
+   currently there is only the libdyn_generic_exec & libdyn_generic_exec_static available,
+   which can be run from e.g. an android terminal application.
+
 
 HART-Module INSTALLATION
 ------------------------

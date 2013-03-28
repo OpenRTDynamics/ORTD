@@ -249,8 +249,12 @@ void *rt_task(void *p)
 //         exit(-1);
     }
 
+#ifdef __ORTD_TARGET_ANDROID
+    fprintf(stderr, "WARNING: mlockall is not provided by Android\n"); // Android does not provide mlockall    
+#else
     mlockall(MCL_CURRENT | MCL_FUTURE);
-
+#endif
+    
     double Tsamp = global_p->args.baserate * 0.001; // NAME(MODEL,_get_tsamp)();
 
     interval.tv_sec =  0L;

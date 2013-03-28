@@ -26,13 +26,21 @@ extern "C" {
 
 }
 
-#include "ortd_serial_linux.h"
 #include <unistd.h>
+#include <stdio.h>
 //#include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <string.h>
 
 #include "signal.h"
+
+
+#ifdef __ORTD_TARGET_LINUX 
+// Only for Linux
+
+
+#include "ortd_serial_linux.h"
+
 
 class compu_func_serial_interface_class;
 
@@ -97,7 +105,7 @@ public:
     int thread_read_fn();
 
     // parser items
-    va_list varead;
+    //va_list varead;
     void *read_buffer;
     int bufferElements;
 
@@ -268,9 +276,6 @@ serial_asynchronus_bufferedIO::~serial_asynchronus_bufferedIO()
 
 
 
-extern "C" {
-    int libdyn_module_serial_interface_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
-}
 
 class compu_func_serial_interface_class {
 public:
@@ -477,7 +482,16 @@ int compu_func_serial_interface(int flag, struct dynlib_block_t *block)
     }
 }
 
+#endif
+
 //#include "block_lookup.h"
+
+
+
+extern "C" {
+    int libdyn_module_serial_interface_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
+}
+
 
 int libdyn_module_serial_interface_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
@@ -485,9 +499,14 @@ int libdyn_module_serial_interface_siminit(struct dynlib_simulation_t *sim, int 
     // Register my blocks to the given simulation
 
     int blockid = 16001;
+#ifdef __ORTD_TARGET_LINUX
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_serial_interface);
 
     printf("libdyn module serial_interface initialised\n");
+#else
+    fprintf(stderr, "libdyn module serial_interface not available for this target!\n");
+#endif
+    
 
 }
 

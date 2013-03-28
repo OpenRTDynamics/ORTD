@@ -3,23 +3,27 @@
 #endif
 
 
-#include "stdio.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#ifdef __ORTD_TARGET_LINUX
+
+#ifdef __ORTD_TARGET_LINUX || __ORTD_TARGET_ANDROID
 // normal linux with optional rt_preempt
-
-  #include <stdlib.h>
-  #include <stdio.h>
   #include <time.h>
   #include <sched.h>
   #include <sys/mman.h>
-  #include <string.h>
 
 #else 
 // RTAI, etc.
 
 #endif
 
+// #ifdef __ORTD_TARGET_ANDROID
+//   #include <time.h>
+//   #include <sched.h>
+//   #include <sys/mman.h>
+// #endif
 
 #include "realtime.h"
 
@@ -40,8 +44,8 @@ long int ortd_mu_time()
 
 
 
-#ifdef __ORTD_TARGET_LINUX
-// normal linux with optional rt_preempt
+#ifdef __ORTD_TARGET_LINUX || __ORTD_TARGET_ANDROID
+// normal linux with optional rt_preempt OR ANDROID
 
   #define MAX_SAFE_STACK (8*1024) /* The maximum stack size which is
 				    guaranteed safe to access without
@@ -76,11 +80,15 @@ long int ortd_mu_time()
         }
 
         /* Lock memory */
+#ifdef __ORTD_TARGET_ANDROID
+    fprintf(stderr, "WARNING: mlockall is not provided by Android\n"); // Android does not provide mlockall    
+#else
+         if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
+                 perror("mlockall failed");
+                 return(-2);
+         }
+#endif
 
-        if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
-                perror("mlockall failed");
-                return(-2);
-        }
 
         /* Pre-fault our stack */
 
