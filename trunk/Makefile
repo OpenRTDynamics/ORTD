@@ -103,7 +103,7 @@ endif
 ifeq ($(target),ANDROID_ARM) 
   targetmacro=__ORTD_TARGET_ANDROID
 
-  export CFLAGS += -g -O2 -D$(targetmacro)
+  export CFLAGS += -O2 -D$(targetmacro)
   export INCLUDE +=  -I$(ortd_root)
   export LDFLAGS += 
 
