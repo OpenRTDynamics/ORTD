@@ -361,3 +361,5 @@ v0.99h ( not release by now )
 By date as there will only be the svn-version
 
   - 9.12.12: Pipeline-module added comming with a ringbuffer implementation for communication between threads  
+  - 28.3.13: Android Target available
+
