@@ -22,6 +22,8 @@
 
 
 /*!
+ * 
+ *
 \class ortd_SerialPort
 \brief Serial interface class
 \version 1.0
@@ -32,6 +34,10 @@ licence GPL, which means that the code distributed here comes with no
 warranty. For more details read the hole licence in the file COPYING.
 
 */
+
+#ifdef __ORTD_TARGET_LINUX 
+// Only for Linux
+
 
 #include <stdio.h>
 #include <termios.h>
@@ -548,3 +554,4 @@ int ortd_SerialPort::serial_B_close()
 }
 
 
+#endif

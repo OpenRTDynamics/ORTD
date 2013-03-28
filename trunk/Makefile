@@ -1,4 +1,4 @@
-# Toolchain
+# Default Toolchain
 export CC = cc
 export CPP = c++
 
@@ -37,6 +37,7 @@ export ortd_root := $(shell pwd)
 # Configure target
 export target := $(shell cat target.conf)
 
+# Default which should get overwritten
 targetmacro=__HMM
 
 ifeq ($(target),LINUX)
@@ -46,7 +47,7 @@ ifeq ($(target),LINUX)
     export CFLAGS += -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
-
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
 ifeq ($(target),LINUX_x86_32)
@@ -56,6 +57,7 @@ ifeq ($(target),LINUX_x86_32)
     export CFLAGS += -m32 -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += -m32 
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
 ifeq ($(target),RTAI_COMPATIBLE_x86_32)
@@ -65,6 +67,7 @@ ifeq ($(target),RTAI_COMPATIBLE_x86_32)
     export CFLAGS += -m32 -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += -m32 
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
 
@@ -75,7 +78,7 @@ ifeq ($(target),LINUX_pentium)
     export CFLAGS += -m32 -march=pentium -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += -m32
-
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
 
@@ -85,7 +88,7 @@ ifeq ($(target),RTAI_COMPATIBLE)
     export CFLAGS += -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
-
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
 ifeq ($(target),CYGWIN) 
@@ -94,8 +97,25 @@ ifeq ($(target),CYGWIN)
   export CFLAGS += -g -O2 -D$(targetmacro)
   export INCLUDE +=  -I$(ortd_root)
   export LDFLAGS += 
+  export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
+ifeq ($(target),ANDROID_ARM) 
+  targetmacro=__ORTD_TARGET_ANDROID
+
+  export CFLAGS += -g -O2 -D$(targetmacro)
+  export INCLUDE +=  -I$(ortd_root)
+  export LDFLAGS += 
+
+  # -lpthread  & -lrt are not needed in Android
+  export LD_LIBRARIES += -lm -ldl
+
+  # use cross compile chain from Android NDK
+  export CC = arm-linux-androideabi-gcc
+  export CPP = arm-linux-androideabi-c++
+  export LD = arm-linux-androideabi-g++
+  export SH = sh
+endif
 
 
 #
@@ -119,19 +139,19 @@ all: libdyn_generic_exec_static libdyn_generic_exec lib
 #
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	echo "Static binary is disabled"
-	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec_static 
+	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/libdyn_generic_exec_static 
  
 libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
-	$(LD) $(LDFLAGS)  libdyn_generic_exec.o -L. -lortd `cat tmp/LDFALGS.list` -lm -lpthread -lrt -ldl -o bin/libdyn_generic_exec  -Wl,-R,'$$ORIGIN/:$$ORIGIN/lib'
+	$(LD) $(LDFLAGS)  libdyn_generic_exec.o -L. -lortd `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/libdyn_generic_exec  -Wl,-R,'$$ORIGIN/:$$ORIGIN/lib'
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
-	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd.so
+	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd.so
 	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
-	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o -lm -lpthread -lrt -ldl -o libortd_hart.so
+	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd_hart.so
 
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
 	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o

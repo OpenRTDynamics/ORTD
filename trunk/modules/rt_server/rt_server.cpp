@@ -31,7 +31,8 @@
 // #include <signal.h>
 
 #include <unistd.h>
-#include <bits/pthreadtypes.h>
+//#include <bits/pthreadtypes.h>
+#include <arpa/inet.h>
 #include <pthread.h>
 #include <string.h>
 #include "signal.h"
