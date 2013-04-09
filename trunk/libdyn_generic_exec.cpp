@@ -57,6 +57,8 @@ struct global_t {
 
         int dividers[256];
         int num_dividers;
+
+        bool mode;
     } args;
 
     libdyn * simbox;
@@ -72,6 +74,7 @@ struct global_t {
     int Nrpar;  // length of rpar list
 
     int stepc;
+
 };
 
 int siminit(struct global_t *global_p)
@@ -80,7 +83,7 @@ int siminit(struct global_t *global_p)
     global_p->master = new libdyn_master(RTENV_UNDECIDED, global_p->args.master_tcpport);
 
     fprintf(stderr, "Created new master ptr=%p\n", global_p->master); // FIXME: Remove / DEBUG
-    
+
     // Define sizes of in- and outports
     int insizes[] = {1,1};
     int outsizes[] = {1,1};
@@ -92,7 +95,7 @@ int siminit(struct global_t *global_p)
     // 2 inports
     // 2 outports
     global_p->simbox = new libdyn(2, insizes, 2, outsizes);
-    
+
     // assin a master to the simulation.
     // one master can be assigned to multiple simulations
     global_p->simbox->set_master(global_p->master);
@@ -119,14 +122,14 @@ int siminit(struct global_t *global_p)
     //
     // Set pointers to simulation input variables
     //
-    
+
     global_p->simbox->cfg_inptr(0, &global_p->inputs[0]); // Input 0
     global_p->simbox->cfg_inptr(1, &global_p->inputs[1]); // Input 1
 
     //
     // Set-up and compile schematic
     //
-    
+
     int schematic_id = global_p->args.schematic_id; // The id under which the schematic is encoded
     err = global_p->simbox->irpar_setup(global_p->ipar_cpy, global_p->rpar_cpy, schematic_id); // compilation of schematic
 
@@ -240,13 +243,18 @@ void *rt_task(void *p)
     struct global_t *global_p = (struct global_t *) p;
 
     struct timespec t, interval, curtime, T0;
-    struct sched_param param; 
+    struct sched_param param;
 
-    param.sched_priority = prio;
-    if (sched_setscheduler(0, SCHED_FIFO, &param)==-1) {
-        perror("sched_setscheduler failed");
-	printf("Running without RT-Preemption\n");
+    if (global_p->args.mode == 0) {
+
+        param.sched_priority = prio;
+        if (sched_setscheduler(0, SCHED_FIFO, &param)==-1) {
+            perror("sched_setscheduler failed");
+            fprintf(stderr, "Running without RT-Preemption\n");
 //         exit(-1);
+        }
+    } else {
+        fprintf(stderr, "Running without RT-Preemption\n");
     }
 
 #ifdef __ORTD_TARGET_ANDROID
@@ -313,17 +321,19 @@ void usage(void)
 {
     printf("Usage: libdyn_generic_exec [<options>]\n"
            " \n"
-           "  --baserate <rate/ms> A value of zero means as fast as possible\n"
-           "                       Root access is needed for baserates != 0 because\n"
-           "                       realtime preemption will be used.\n"
+           "  --baserate <rate/ms> A value of zero means as fast as possible (simulation mode)\n"
+           "                       For baserates != 0 real-time execution using\n"
+           "                       the given rate will be used.\n"
            "  -d <divider> new baserate divider\n"
            "  -s <name> name of schematic irpar files. .ipar and .rpar will be added to name\n"
            "  -i schematic id\n"
            "  -l <len> number of simulation steps. 0 means endless\n"
            "  -p / --master_tcpport <port> the portnumber of the remote control interface; default is 0,\n"
            "                               which means no remote control is enabled\n"
+	   "  -m / --rtmode <val>  Set the real-time mode to <val>. 0 (default) means get real-time priority whenever\n"
+	   "                       possible, 1 means to run with normal priority\n"
            " \n"
-           "Example: libdyn_generic_exec --baserate 0 -d 2 -d 10 -s schematic -i 1001 -l 1000\n"
+           "Example: libdyn_generic_exec --baserate 0 -s schematic -i 901 -l 1000\n"
            "         this will load schematic.ipar and schematic.rpar and simulate 1000 steps\n"
            "\n");
 
@@ -340,6 +350,7 @@ int main(int argc, char *argv[])
     global_p->args.schematic_id = 901;
     global_p->args.baserate = 0;
     global_p->args.master_tcpport = 0;
+    global_p->args.mode = 0;
     strcpy(global_p->args.schematic_fname_ipar, "generic.ipar");
     strcpy(global_p->args.schematic_fname_rpar, "generic.rpar");
 
@@ -358,12 +369,13 @@ int main(int argc, char *argv[])
                 { "divider", required_argument, 0, 'd' },
                 { "simlen", required_argument, 0, 'l' },
                 { "master_tcpport", required_argument, 0, 'p' },
+                { "rtmode", required_argument, 0, 'm' },
                 { "verbose", no_argument, NULL, 'v' },
                 { "help", no_argument, NULL, 'h' },
                 { NULL, no_argument, NULL, 0 }
             };
 
-            opt = getopt_long(argc, argv, "s:d:i:l:p:b:d:vh", long_options, &idx);
+            opt = getopt_long(argc, argv, "s:d:i:l:p:b:m:d:vh", long_options, &idx);
 
             if (opt == -1)
                 break;
@@ -433,6 +445,15 @@ int main(int argc, char *argv[])
                 printf("master_tcpport set to %d\n", global_p->args.master_tcpport);
                 break;
 
+            case 'm':
+                if (strnlen(optarg, 10) > 10) {
+                    goto out;
+                }
+                global_p->args.mode = strtoul(optarg, &endptr, 10);	        
+                printf("RT mode set to %d\n", global_p->args.mode);
+                
+		
+                break;
 
 
             case 'v':
