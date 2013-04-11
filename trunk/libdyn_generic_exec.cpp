@@ -38,7 +38,14 @@ extern "C" {
 #include <pthread.h>
 //#include <sys/io.h>
 
+#ifdef __ORTD_TARGET_ANDROID
+// Declaration is missing in time.h in android NDK for some targets levels
+extern int clock_settime(clockid_t, const struct timespec *);
+extern int clock_nanosleep(clockid_t, int, const struct timespec *, struct timespec *);
+#endif
+
 }
+
 
 
 

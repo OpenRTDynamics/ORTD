@@ -103,12 +103,13 @@ endif
 ifeq ($(target),ANDROID_ARM) 
   targetmacro=__ORTD_TARGET_ANDROID
 
-  export CFLAGS += -O2 -D$(targetmacro)
+#  export CFLAGS += -I/home/chr/bin/AndroidArmToolchain/sysroot/usr/include --sysroot=/home/chr/bin/AndroidArmToolchain/sysroot -O2 -D$(targetmacro) 
+  export CFLAGS += -O2 -D$(targetmacro) 
   export INCLUDE +=  -I$(ortd_root)
   export LDFLAGS += 
 
   # -lpthread  & -lrt are not needed in Android
-  export LD_LIBRARIES += -lm -ldl
+  export LD_LIBRARIES += -lm -ldl -llog -landroid 
 
   # use cross compile chain from Android NDK
   export CC = arm-linux-androideabi-gcc
