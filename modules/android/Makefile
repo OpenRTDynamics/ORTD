@@ -30,7 +30,7 @@ else
 endif # ifeq ($(main_makefile_invoked),yes)
 
 
-all: android_sensors_standalone lib 
+all: lib #android_sensors_standalone
 	@echo "Module android done"
 
 lib: android_block.o android_sensors.o
@@ -38,8 +38,8 @@ lib: android_block.o android_sensors.o
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 
-android_sensors_standalone:  android_sensors_standalone.cpp 
-	$(CPP) -I../.. -L. $(CFLAGS)  $(LD_LIBRARIES)  android_sensors_standalone.cpp  -o android_sensors_standalone
+#android_sensors_standalone:  android_sensors_standalone.cpp 
+#	$(CPP) -I../.. -L. $(CFLAGS)  $(LD_LIBRARIES)  android_sensors_standalone.cpp  -o android_sensors_standalone
 
 
 clean:
