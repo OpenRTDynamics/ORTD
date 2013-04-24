@@ -283,6 +283,9 @@ endfunction
     cosblk.timestamp = getdate();
     cosblk.blockname = blockname;
     
+    // print info
+    printf("I/O of Scicosblock:\n  insizes=%s,\n  outsizes=%s\n", sci2exp( cosblk.in(:)' ), sci2exp( cosblk.out(:)' ) );
+
     // check for cached cosblk
     [lhs,rhs]=argn(0) 
     if rhs >= 3 then
