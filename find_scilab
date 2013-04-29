@@ -28,17 +28,18 @@ then
     hostarch=`arch`
     if [ $hostarch = "x86_64" ]
     then
-      echo "Using 64 Bit scilab"
-      wget -c "http://www.scilab.org/download/5.4.0/scilab-5.4.0.bin.linux-x86_64.tar.gz"
-      tar xfvz "scilab-5.4.0.bin.linux-x86_64.tar.gz"
+      echo "Installing 64 Bit Scilab"
+      wget -c "http://www.scilab.org/download/5.4.1/scilab-5.4.1.bin.linux-x86_64.tar.gz"
+               
+      tar xfvz "scilab-5.4.1.bin.linux-x86_64.tar.gz"
     else
-      echo "Using 32 Bit scilab"
-      wget -c "http://www.scilab.org/download/5.4.0/scilab-5.4.0.bin.linux-i686.tar.gz"
-      tar xfvz "scilab-5.4.0.bin.linux-i686.tar.gz"
+      echo "Installing 32 Bit Scilab"
+      wget -c "http://www.scilab.org/download/5.4.1/scilab-5.4.1.bin.linux-i686.tar.gz"
+      tar xfvz "scilab-5.4.1.bin.linux-i686.tar.gz"
     fi
 
 
-    scilabdir=$scilabinstdir"/scilab-5.4.0/"
+    scilabdir=$scilabinstdir"/scilab-5.4.1/"
 
     zenity --info --text "You will find the Scilab executable in: $scilabdir""bin/scilab"
 
