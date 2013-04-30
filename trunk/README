@@ -159,6 +159,8 @@ The following targets can be choosen before compilation within target.conf:
 2) LINUX (Default)
 3) CYGWIN (not functional up to now, to run ORTD-simulations on Windows)
 4) ANDROID_ARM (Android using Android NDK cross compile toolchain)
+5) LINUX_x86_32 Generates a 32Bit-build of openrtdynamics on an x86_64 Linux operating system.
+                On Ubuntu installing "gcc-multilib", "ia32-libs" and "g++-multilib" is required.
 
 ANDROID (ANDROID_ARM-target)
 ----------------------------
