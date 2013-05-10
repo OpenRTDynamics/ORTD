@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009, 2010, 2011, 2012  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012, 2013  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
 
@@ -144,7 +144,13 @@ struct dynlib_simulation_t *libdyn_new_simulation()
     // syncronisation callbacks
     sim->sync_callback.userdat = NULL;
     sim->sync_callback.sync_func = NULL;
-    
+
+    sim->sync_callback.userdatConstructor = NULL;
+    sim->sync_callback.sync_funcConstructor = NULL;
+
+    sim->sync_callback.userdatDestructor = NULL;
+    sim->sync_callback.sync_funcDestructor = NULL;
+
     // events
     sim->events.Nevents = 0;
     sim->events.event_active = 0;
@@ -208,8 +214,23 @@ void libdyn_simulation_IOlist_add(struct dynlib_simulation_t *sim, int inout, st
 
 }
 
+int libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *simulation) // runns the user defined destruction callback 
+{
+  int ret;
+  // Call the callback for the simulations user defined destructor
+  if (simulation->sync_callback.sync_funcDestructor != NULL) {
+    printf("libdyn.c: running destructor of asynchronously running simulation\n");
+    ret = (*simulation->sync_callback.sync_funcDestructor)(simulation);
+  }  
+  
+  return ret;
+}
+
 void libdyn_del_simulation(struct dynlib_simulation_t *sim)
 {
+  //   printf("libdyn.c: libdyn_del_simulation\n");
+  
+  
   // Destroy all blocks, if exits
   struct dynlib_block_t *current = sim->allblocks_list_head;
 
@@ -1009,10 +1030,40 @@ undo_everything :
 
 libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ), void *userdat)
 {
+  if (simulation->sync_callback.sync_func != NULL)
+    return 0;
+  
   simulation->sync_callback.sync_func = sync_func;
   simulation->sync_callback.userdat = userdat;
   simulation->sync_callback.sync_callback_state = 0;
+  
+  return 1;
 }
+
+libdyn_simulation_setSyncCallbackConstructor(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ), void *userdat)
+{
+  // NOTE: only foreseen for future applications
+  if (simulation->sync_callback.sync_funcConstructor != NULL)
+    return 0;
+
+  simulation->sync_callback.sync_funcConstructor = sync_func;
+  simulation->sync_callback.userdatConstructor = userdat;
+  simulation->sync_callback.sync_callback_stateConstructor = 0;
+  
+  return 1;
+}
+
+libdyn_simulation_setSyncCallbackDestructor(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ), void *userdat)
+{
+  if (simulation->sync_callback.sync_funcDestructor != NULL)
+    return 0;
+
+  simulation->sync_callback.sync_funcDestructor = sync_func;
+  simulation->sync_callback.userdatDestructor = userdat;
+  
+  return 1;
+}
+
 
 //
 // Go one step further in simulation

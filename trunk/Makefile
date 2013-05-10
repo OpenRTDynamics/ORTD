@@ -54,7 +54,7 @@ ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
 
     # 32 Bit
-    export CFLAGS += -m32 -g -O2 -D$(targetmacro)
+    export CFLAGS += -m32 -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += -m32 
     export LD_LIBRARIES += -lm -lpthread -lrt -ldl

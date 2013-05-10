@@ -924,6 +924,40 @@ void libdyn_nested2::destruct()
 
 }
 
+int libdyn_nested2::CallSyncCallbackDestructor()
+{
+    //
+    //
+
+     if ( (sim_slots != NULL) ) {
+
+        // slots are used
+        // destruct all nested simulations
+        int i;
+
+        lock_slots();
+
+        for (i = 0; i < Nslots; i++) { // for each slot
+            if (sim_slots[i].sim != NULL) {
+                sim_slots[i].sim->CallSyncCallbackDestructor();
+            }
+        }
+
+        unlock_slots();
+
+    } else if (current_sim != NULL) {
+        // the is only one simulation to destruct
+        // Forward Callback
+        current_sim->CallSyncCallbackDestructor();
+
+    }
+
+    
+ 
+    // FIXME always returns 0
+    return 0;
+}
+
 
 void libdyn_nested2::allocate_slots(int n)
 {
@@ -1381,6 +1415,7 @@ void libdyn_nested2::reset_blocks(int slotId)
 }
 
 
+
 void libdyn_nested2::event_trigger_mask(int mask)
 {
     current_sim->event_trigger_mask(mask);
@@ -1399,6 +1434,11 @@ dynlib_simulation_t* libdyn::get_C_SimulationObject()
   return sim;
 }
 
+int libdyn::CallSyncCallbackDestructor()
+{
+  return libdyn_simulation_CallSyncCallbackDestructor(sim);
+}
+
 bool libdyn::IsSyncronised()
 {
   // check for a sync_callback function
@@ -1414,7 +1454,6 @@ int libdyn::RunSyncCallbackFn()
   
   return ret;
 }
-
 
 void libdyn::event_trigger_mask(int mask)
 {

@@ -364,4 +364,7 @@ By date as there will only be the svn-version
 
   - 9.12.12: Pipeline-module added comming with a ringbuffer implementation for communication between threads  
   - 28.3.13: Android Target available
+  - 10.5.13: Added ld_file_save_machine2 macro, that allows to automatically detect port sizes and types
+             It is also a nice example on using state machines
+  - 10.5.13: Improvement of the simulation synchronisation infrastructure
 
