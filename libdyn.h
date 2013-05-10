@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009, 2010, 2011, 2012  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012, 2013  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
 
@@ -19,13 +19,10 @@
 
 
 /*
- * libdyn.h - Library for simple realtime controller implementations
+ * libdyn.h - ORTD interpreter Library
  *
  *
- * Author: Christian Klauer 2009-2012
- *
- *
- *
+ * Author: Christian Klauer 2009-2013
  *
  */
 
@@ -37,8 +34,8 @@
 
 
 /*
-    Uncomment this will enable some additional checks, but slow down the performance a bit
-    Use, if you are using untested blocks
+    Uncommenting this will enable some additional checks, but slow down the performance a bit
+    Use, if you are developing blocks
 */
 //#define LD_USE_ONLINE_ASSERTIONS
 
@@ -248,6 +245,13 @@ struct dynlib_simulation_t {
     void *userdat; // users data
     int (*sync_func)( struct dynlib_simulation_t *sim );  // Callback function. the returned value is stored within sync_callback_state. 0 is usual, 1 means pause simulation
     int sync_callback_state;
+    
+    void *userdatConstructor; // users data
+    int (*sync_funcConstructor)( struct dynlib_simulation_t *sim );  // Callback function. 
+    int sync_callback_stateConstructor;
+    
+    void *userdatDestructor; // users data
+    int (*sync_funcDestructor)( struct dynlib_simulation_t *sim );  // Callback function. 
   } sync_callback;
   
   
@@ -386,8 +390,11 @@ int libdyn_block_connect_external(struct dynlib_block_t *blockto, int inNr, void
 int libdyn_simulation_checkinputs(struct dynlib_simulation_t * sim);
 int libdyn_simulation_init(struct dynlib_simulation_t * sim);
 
-// installa a callback function for synchronisation of the main loop
-void libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
+// installa a callback function for synchronisation of the main loop (used for the modules nested)
+int libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
+int libdyn_simulation_setSyncCallbackConstructor(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
+int libdyn_simulation_setSyncCallbackDestructor(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
+int libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *simulation); // runns the user defined destruction callback 
 
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
 void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);

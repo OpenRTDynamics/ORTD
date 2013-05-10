@@ -416,9 +416,9 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 //                 sim->simulation_step(1);
 
 
-		
-		
-		//             if (simulation->sync_callback.sync_func != NULL) {
+
+
+                //             if (simulation->sync_callback.sync_func != NULL) {
 //                 simulation->sync_callback.sync_callback_state = (*simulation->sync_callback.sync_func)(simulation->sync_callback.userdat);
 //                 if (simulation->sync_callback.sync_callback_state == 1) {
 //                     return 1;
@@ -570,11 +570,11 @@ int compu_func_nested_class::init()
     // If there is a libdyn master : use it
     master = (libdyn_master *) block->sim->master;
     if (master == NULL) {  // no master available
-       fprintf(stderr, "ERROR: libdyn: parameter block requires a libdyn master\n");
-       
-       simnest->destruct(); // all simulations are destructed
+        fprintf(stderr, "ERROR: libdyn: parameter block requires a libdyn master\n");
+
+        simnest->destruct(); // all simulations are destructed
         delete simnest;
-	
+
         return -1;
     }
 
@@ -591,12 +591,12 @@ int compu_func_nested_class::init()
         } else {
             fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master and a directory\n");
 //             fprintf(stderr, "master = %p, master->dtree=%p\n", master, master->dtree); // FIXME REMOVE DEBUG
-	    master->check_memory();
-	    
-	   simnest->destruct(); // all simulations are destructed
-          delete simnest;
-	
-          return -1;
+            master->check_memory();
+
+            simnest->destruct(); // all simulations are destructed
+            delete simnest;
+
+            return -1;
         }
 
     //
@@ -696,14 +696,14 @@ void compu_func_nested_class::io_sync(int update_states)
         if (*reset_inp > 0) {
 #ifdef DEBUG
             fprintf(stderr, "reset states\n");
-#endif	    
+#endif
             simnest->reset_blocks();
         }
 
         int nSim = *switch_inp;
-#ifdef DEBUG	
+#ifdef DEBUG
         fprintf(stderr, "switch sig=%f reset=%f sw=%d\n", *switch_inp, *reset_inp, nSim);
-#endif	
+#endif
         simnest->set_current_simulation(nSim);
 
     }
@@ -810,6 +810,13 @@ void compu_func_nested_class::reset()
 
 void compu_func_nested_class::destruct()
 {
+    printf("nested_block.cpp: destructing\n");
+
+    // libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *simulation)
+    
+    // notify user code running in the thread that it is over
+    simnest->CallSyncCallbackDestructor();
+    
     if (this->async_comp) {
         delete async_comp_mgr;
         pthread_mutex_destroy(&this->output_mutex);
@@ -820,6 +827,7 @@ void compu_func_nested_class::destruct()
     if (this->nested_sim_name != NULL)
         free(this->nested_sim_name);
 
+    
     simnest->destruct();   // HERE WAS A BUG solved at 2.7.12: both lines were flipped  and the exchange_helper was deleted before this!
     delete simnest;
 
@@ -948,17 +956,20 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
     return 0;
     break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
-    {
+    {      
+        printf("nested_block.cpp: fn: compu_func_nested: destructing\n");
+	
         compu_func_nested_class *worker = (compu_func_nested_class *) libdyn_get_work_ptr(block);
-
         worker->destruct();
         delete worker;
-
+	
+        printf("nested_block.cpp: fn: compu_func_nested: destructing -- ok\n");
     }
     return 0;
     break;
     case COMPF_FLAG_PRINTINFO:
         printf("I'm a nested block\n");
+	
         return 0;
         break;
 
@@ -1099,11 +1110,11 @@ int compu_func_statemachine_class::init()
     // If there is a libdyn master : use it
     master = (libdyn_master *) block->sim->master;
     if (master == NULL) {  // no master available
-       fprintf(stderr, "ERROR: libdyn: parameter block requires a libdyn master\n");
+        fprintf(stderr, "ERROR: libdyn: parameter block requires a libdyn master\n");
 
-       simnest->destruct(); // all simulations are destructed
+        simnest->destruct(); // all simulations are destructed
         delete simnest;
-	
+
         return -1;
     }
 
@@ -1166,7 +1177,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
             fprintf(stderr, "Switch to state %d\n", active, tmp);
             //printf( "Switch to state %d \n", active, tmp);
 #endif
-	    
+
             // switch to the new state
             simnest->reset_blocks();
             simnest->set_current_simulation(active);
@@ -1340,9 +1351,9 @@ int compu_func_statemachine(int flag, struct dynlib_block_t *block)
 int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 {
     // contained in a state of a state machine
-    // this block remembers values, that are still 
+    // this block remembers values, that are still
     // available after an reset of the state
-    
+
     int *ipar = libdyn_get_ipar_ptr(block);
     double *rpar = libdyn_get_rpar_ptr(block);
 
@@ -1386,10 +1397,10 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 
         unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
         memcpy(buffer, in, Nbytes);
-      
-#ifdef DEBUG	
+
+#ifdef DEBUG
         fprintf(stderr, "survivereset: Saved data\n");
-#endif	
+#endif
     }
     return 0;
     break;
@@ -1402,7 +1413,7 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
         unsigned int Nbytes = sizeof(double)*(len) + sizeof(unsigned int);
         memcpy(out, buffer, Nbytes);
 
-#ifdef DEBUG		
+#ifdef DEBUG
         fprintf(stderr, "survivereset: Restored data\n");
 #endif
     }
@@ -1441,10 +1452,10 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 // External block comp functions
 extern "C" {
     extern int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
-    
+
     // persistent_memory.cpp
     extern int persistent_memory_block(int flag, struct dynlib_block_t *block);
-    extern int write_persistent_memory_block(int flag, struct dynlib_block_t *block);    
+    extern int write_persistent_memory_block(int flag, struct dynlib_block_t *block);
     extern int read_persistent_memory_block(int flag, struct dynlib_block_t *block);
 };
 
@@ -1459,11 +1470,11 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_nested_exchange_fromfile);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_survivereset);
-    
+
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+4, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &persistent_memory_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+5, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &write_persistent_memory_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+6, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &read_persistent_memory_block);
-    
+
 
     fprintf(stderr, "libdyn module nested initialised\n");
 

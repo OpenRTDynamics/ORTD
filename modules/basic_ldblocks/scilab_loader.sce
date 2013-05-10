@@ -1,6 +1,161 @@
 
+// 
+// More basic functions that could also added to libdyn.sci
+// 
 
+function [sizes, types] = ld_getSizesAndTypes(sim, ev, SignalList)
+//
+// Tries to obtain the vector size and type of each signal given through the "SignalList"
+//
+
+    N = length(SignalList);
+    sizes = zeros(N,1);
+    types = zeros(N,1);
+
+    for i=1:length(SignalList)
+  //disp(i);
+  try
+      Signal = SignalList(i); // FIXME: This will only work for blocks, not system inputs, feed or other objects
+      portN = sim.objectlist(Signal.oid).outport;
+      sizes(i) = sim.objectlist(Signal.highleveloid).outsizes(portN+1);
+      types(i) = sim.objectlist(Signal.highleveloid).outtypes(portN+1);
+  catch
+    printf("ld_getSizes\n");   
+    error("ld_getSizesAndTypes: You have a source in SignalList, that doesn''t provide information about the vector size and datatype.");;
+  end
+    end
+endfunction
+
+
+// 
 // Interfacing functions are placed in this place
+// 
+
+function [sim] = ld_file_save_machine2(sim, ev, inlist, cntrl, FileNamesList) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Start and stop saving of multiple data vectors to multiple files
+// 
+//   inlist list() of *+ - Data to write
+//   cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped
+//   FileNamesList list() of strings - Filenames for saving
+// 
+// Note: This function tries to automatically detect the vector size for each entry of inlist.
+//       Howver, this does not work for all signal sources (blocks) at the moment.
+//       If come accross such a situation, you're invited to notify the authors of ORTD.
+// 
+// Note: The implementation of this function is a superblock using state machines
+//       and the ld_savefile block. If you're invited to take a look at its source for a nice
+//       example on using state machines.
+// 
+// 
+// Example:
+// 
+//       TriggerSave = ...
+// 
+//       SaveSignals=list();				FileNamesList=list();
+//       SaveSignals($+1) = Signal1; 			FileNamesList($+1) = "measurements/Signal1.dat";
+//       SaveSignals($+1) = Signal2; 			FileNamesList($+1) = "measurements/Signal2.dat";
+// 
+//       [sim] = ld_file_save_machine2(sim, ev, ...
+//                          inlist=SaveSignals, ...
+//                          cntrl=TriggerSave, FileNamesList          );
+// 
+
+    function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim, inlist, x_global, state, statename, userdata)
+      // This function is called multiple times -- once for each state.
+      // At runtime, these are three different nested simulations. Switching
+      // between them represents state changing, thus each simulation 
+      // represents a certain state.
+      
+//       printf("defining savemachine state %s (#%d) ... userdata(1)=%s\n", statename, state, userdata(1) );
+      
+      // define names for the first event in the simulation
+      ev = 0; events = ev;
+
+      DataLength = userdata(1);      NumPorts = userdata(2);    FileNames = userdata(3);
+      // 
+
+      switch = inlist(NumPorts+1);  [sim, switch] = ld_gain(sim, ev, switch, 1);
+
+
+      // demultiplex x_global
+      [sim, x_global] = ld_demux(sim, events, vecsize=1, invec=x_global);
+
+
+      // The signals "active_state" is used to indicate state switching: A value > 0 means the 
+      // the state enumed by "active_state" shall be activated in the next time step.
+      // A value less or equal to zero causes the statemachine to stay in its currently active
+      // state
+
+      select state
+	case 1 // state 1
+	  active_state = switch;
+//	  [sim] = ld_printf(sim, ev, in=dataToSave, str="Pauseing Save", insize=DataLen);
+
+	case 2 // state 2
+      for i=1:NumPorts  // for each port a write to file block
+        dataToSave = inlist(i);
+	    [sim] = ld_savefile(sim, ev, FileNames(i), source=dataToSave, vlen=DataLength(i) );
+	   // [sim] = ld_printf(sim, ev, in=dataToSave, str="Saveing port "+string(i)+" ", insize=DataLength(i) );
+      end
+
+	  active_state = switch;
+      end
+
+      // multiplex the new global states
+      [sim, x_global_kp1] = ld_mux(sim, ev, vecsize=1, inlist=x_global);
+      
+      // the user defined output signals of this nested simulation
+      outlist = list();
+  endfunction
+
+
+
+//  if length(insizes) ~= length(intypes) then
+//    error("ld_file_save_machine2: length(insizes) ~= length(intypes)");
+//  end
+//  if length(insizes) ~= length(inlist) then
+//    error("ld_file_save_machine2: length(insizes) ~= length(inlist)");
+//  end
+  if length(inlist) ~= length(FileNamesList) then
+    error("ld_file_save_machine2: length(insizes) ~= length(FileNamesList)");
+  end
+
+
+//  DataLength = insizes;
+  NumPorts = length(inlist);
+
+
+//   [sim] = ld_printf(sim, ev, cntrl, "cntrl", 1);
+
+  [sim, cntrl] = ld_detect_step_event(sim, ev, in=cntrl, eps=0.2);
+
+//   [sim] = ld_printf(sim, ev, cntrl, "Dcntrl", 1);
+
+  Cinlist = list();
+  for i=1:NumPorts
+    Cinlist(i) = inlist(i);
+  end
+  Cinlist(NumPorts+1) = cntrl;
+
+  // get the types and the sizes of the given signals
+  [sizes, types] = ld_getSizesAndTypes(sim, ev, SignalList=Cinlist);
+
+  DataLength = sizes;
+
+  // set-up two states represented by two nested simulations
+  [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=defaultevents, ...
+      inlist=Cinlist, ..
+      insizes=[sizes(:)' ], outsizes=[], ... 
+      intypes=[types(:)' ], outtypes=[], ...
+      nested_fn=state_mainfn, Nstates=2, state_names_list=list("pause", "save"), ...
+      inittial_state=1, x0_global=[1], userdata=list(DataLength, NumPorts, FileNamesList)  );
+
+
+endfunction
+
+
+
 
 
 function [sim] = ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOCK

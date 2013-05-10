@@ -196,6 +196,8 @@ int simperiodic(struct global_t *global_p)
 
 int simend(struct global_t *global_p)
 {
+  printf("libdyn_generic_exec: Destructing the simulations\n");
+  
     global_p->simbox->destruct();
     delete global_p->simbox;
 
@@ -317,7 +319,8 @@ void *rt_task(void *p)
 
 void endme(int n)
 {
-    end = 1;
+  printf("libdyn_generic_exec: Received signal to terminate\n");
+    end = 1;    
 }
 
 

@@ -355,6 +355,9 @@ class libdyn_nested2 { // TODO derive from libdyn_simple_if
     
     // before removal switch to another simulation
     int del_simulation(int slotID, int switchto_slotID);
+    
+    // for module nested
+    int CallSyncCallbackDestructor();
 
 //     bool reset_states_of_simulation(struct dynlib_simulation_t *sim);
 
@@ -433,7 +436,8 @@ private:
 public:
   struct dynlib_simulation_t * get_C_SimulationObject();
   
-  // For Synchronisation
+  // For Synchronisation    ,for module nested
+  int CallSyncCallbackDestructor();
   bool IsSyncronised();
   int RunSyncCallbackFn();
   
