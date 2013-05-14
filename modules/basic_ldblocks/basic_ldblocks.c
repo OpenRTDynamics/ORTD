@@ -24,6 +24,7 @@
 
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
+#include "irpar.h"
 
 
 

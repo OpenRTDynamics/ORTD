@@ -28,6 +28,55 @@ endfunction
 
 
 // 
+// More basic functions that could also added to libdyn.sci or so
+// 
+
+function [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed)
+// 
+// Create a I/O Configuration for the block that can be read out by the libdyn_AutoConfigureBlock() - C function
+// during block's configuration
+// 
+
+  if length(insizes) ~= length(intypes) then
+    error("length(insizes) ~= length(intypes)");
+  end
+  if length(outsizes) ~= length(outtypes) then
+    error("length(outsizes) ~= length(outtypes)");
+  end
+
+
+  param = [blocktype];
+
+  parlist = new_irparam_set();
+
+   parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
+   parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
+   parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
+   parlist = new_irparam_elemet_ivec(parlist, outtypes, 13); 
+   parlist = new_irparam_elemet_ivec(parlist, dfeed, 14); 
+   parlist = new_irparam_elemet_ivec(parlist, param, 15); 
+
+   parlist = new_irparam_elemet_ivec(parlist, Uipar, 20); 
+   parlist = new_irparam_elemet_rvec(parlist, Urpar, 21); 
+
+   blockparam = combine_irparam(parlist);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ blockparam.ipar  ], rpar=[ blockparam.rpar ], ...
+                  insizes, outsizes, ...
+                  intypes, outtypes );
+
+endfunction
+
+
+
+
+
+
+
+
+
+
+// 
 // Interfacing functions are placed in this place
 // 
 
