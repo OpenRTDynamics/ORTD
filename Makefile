@@ -44,7 +44,7 @@ ifeq ($(target),LINUX)
   targetmacro=__ORTD_TARGET_LINUX
 
   # Detect system type and set Fflags
-    export CFLAGS += -g -O2 -D$(targetmacro)
+    export CFLAGS += -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
     export LD_LIBRARIES += -lm -lpthread -lrt -ldl
