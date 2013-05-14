@@ -2719,6 +2719,106 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 }
 
 
+/*
+
+  For a higher level for the definition of blocks
+
+*/
+
+// // Create a I/O Configuration for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
+// int libdyn_AutoConfigureBlock(struct dynlib_block_t *block, int *ipar, double *rpar);
+// 
+// // Get the users irpar parameters (Uirpar) for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
+// int libdyn_AutoConfigureBlock_GetUirpar(struct dynlib_block_t *block, int **Uipar, double **Urpar);
+// 
+
+
+
+int libdyn_AutoConfigureBlock_GetUirpar(struct dynlib_block_t *block, int **Uipar, double **Urpar)
+{
+// 
+// Get the users irpar parameters (Uirpar) for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
+// 
+  
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+  	// get parameters
+    int error = 0; // FIXME Länge prüfen
+
+     struct irpar_ivec_t Uipar_;
+     struct irpar_rvec_t Urpar_;
+    
+    if ( irpar_get_ivec(&Uipar_, ipar, rpar, 20) < 0 ) error = -1 ;
+    if ( irpar_get_rvec(&Urpar_, ipar, rpar, 21) < 0 ) error = -1 ;
+    
+    *Uipar = Uipar_.v;
+    *Urpar = Urpar_.v;
+    
+    return error;
+}
+  
+int libdyn_AutoConfigureBlock(struct dynlib_block_t *block, int *ipar, double *rpar)
+{
+// 
+// Create a I/O Configuration for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
+// 
+  	// get parameters
+     struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, dfeed_irp, param;
+
+    int error = 0; // FIXME Länge prüfen
+    if ( irpar_get_ivec(&insizes_irp, ipar, rpar, 10) < 0 ) error = -1 ;
+    if ( irpar_get_ivec(&outsizes_irp, ipar, rpar, 11) < 0 ) error = -1 ;
+    if ( irpar_get_ivec(&intypes_irp, ipar, rpar, 12) < 0 ) error = -1 ;
+    if ( irpar_get_ivec(&outtypes_irp, ipar, rpar, 13) < 0 ) error = -1 ;
+    if ( irpar_get_ivec(&dfeed_irp, ipar, rpar, 14) < 0 ) error = -1 ;
+    if ( irpar_get_ivec(&param, ipar, rpar, 15) < 0 ) error = -1 ;
+
+     struct irpar_ivec_t Uipar;
+     struct irpar_rvec_t Urpar;
+    
+    if ( irpar_get_ivec(&Uipar, ipar, rpar, 20) < 0 ) error = -1 ;
+    if ( irpar_get_rvec(&Urpar, ipar, rpar, 21) < 0 ) error = -1 ;
+
+
+
+	 // The number of in- and output ports
+        int Nin = insizes_irp.n;
+        int Nout = outsizes_irp.n; //ipar[1];
+    int i;
+
+    int blocktype = param.v[0];
+    
+//     printf("blocktype = %d\n", blocktype);
+	
+	libdyn_config_block(block, blocktype, Nout, Nin, (void *) 0, 0);
+
+	// configure each in and output port i
+        for (i = 0; i < Nin; ++i) {
+// 	    printf("%d - type %d - \n", insizes_irp.v[i], intypes_irp.v[i] );
+            libdyn_config_block_input(block, i, insizes_irp.v[i], intypes_irp.v[i]);
+	}
+
+        for (i = 0; i < Nout; ++i) {
+// 	    printf("%d - type %d - df=%d \n", outsizes_irp.v[i], outtypes_irp.v[i], dfeed_irp.v[i] );
+            libdyn_config_block_output(block, i, insizes_irp.v[i], outtypes_irp.v[i], dfeed_irp.v[i] );
+	}
+//         for (i = 0; i < Nin; ++i)
+//             libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT, 1);
+  return error;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

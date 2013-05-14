@@ -1,4 +1,24 @@
-thispath = get_absolute_file_path('template.sce');
+// 
+//     Copyright (C) 2010, 2011, 2012, 2013  Christian Klauer
+// 
+//     This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
+// 
+//     OpenRTDynamics is free software: you can redistribute it and/or modify
+//     it under the terms of the GNU Lesser General Public License as published by
+//     the Free Software Foundation, either version 3 of the License, or
+//     (at your option) any later version.
+// 
+//     OpenRTDynamics is distributed in the hope that it will be useful,
+//     but WITHOUT ANY WARRANTY; without even the implied warranty of
+//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//     GNU Lesser General Public License for more details.
+// 
+//     You should have received a copy of the GNU Lesser General Public License
+//     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+SchematicName = 'template';
+thispath = get_absolute_file_path(SchematicName+'.sce');
 cd(thispath);
 
 z = poly(0,'z');
@@ -57,7 +77,7 @@ parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 par = combine_irparam(parlist);
 
 // save vectors to a file
-save_irparam(par, 'controller.ipar', 'controller.rpar');
+save_irparam(par, SchematicName+'.ipar', SchematicName+'.rpar');
 
 // clear
 par.ipar = [];
@@ -67,7 +87,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages=unix_g(ORTD.ortd_executable+ ' -s controller -i 901 -l 100');
+messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 100');
 
 //
 //// load results

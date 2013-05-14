@@ -594,6 +594,24 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   libdyn_irpar_setup((ipar), (rpar), boxid, &(varname).sim, &(varname).iocfg);
   
   
+  
+  
+  
+/*
+
+  For a higher level for the definition of blocks
+
+*/
+
+// Create a I/O Configuration for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
+int libdyn_AutoConfigureBlock(struct dynlib_block_t *block, int *ipar, double *rpar);
+
+// Get the users irpar parameters (Uirpar) for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
+int libdyn_AutoConfigureBlock_GetUirpar(struct dynlib_block_t *block, int **Uipar, double **Urpar);
+
+
+  
+  
 /*
  * Events stuff FIXME not really used
  */
