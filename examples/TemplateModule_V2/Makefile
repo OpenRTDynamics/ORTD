@@ -31,26 +31,17 @@ endif # ifeq ($(main_makefile_invoked),yes)
 
 
 all: lib
-	@echo "Module edf done"
+	@echo "Module Template done"
 
-lib: edflib.o edf_blocks.o
-	ar rvs module.a edflib.o edf_blocks.o  
+lib: Template_blocks.o
+	ar rvs module.a Template_blocks.o  
 
 
 clean:
 	rm -f *.o module.a module_Linux.a
 
 
-## EITHER THIS
+Template_blocks.o: Template_blocks.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c Template_blocks.cpp
 
-#edf.o: edf.c
-#	$(CC) $(CFLAGS) $(INCLUDE) -c edf.c 
-
-## OR THIS
-
-edf_blocks.o: edf_blocks.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c edf_blocks.cpp
-
-edflib.o: edflib.c
-	$(CC) $(CFLAGS) $(INCLUDE) -c edflib.c 
 
