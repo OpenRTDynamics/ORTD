@@ -1,11 +1,92 @@
 
-OpenRTDynamics v0.99h -- Real Time Dynamics Toolbox - A framework
-                         for implementation of real-time controllers
-                         or signal processing algorithms.
+OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
+                            for implementing real-time controllers
+                            and signal processing algorithms.
 
-                         (openrtdynamics.sf.net)
+                            (openrtdynamics.sf.net)
 
 
+The Real Time Dynamics Toolbox is a noval approach to the implementation
+of block- / signal-based schematics, commonly used in control engineering 
+and signal processing, for real time usage (like Real-Time Workshop® or 
+Scicos Code Generation). It is suitable for implementing time discrete 
+signal processing algorithms, like one would do in Scicos or Simulink, 
+within Scilab scripts (Matlab like) by using functions provided by an 
+included Scilab Toolbox in order to set-up a description of the schematic. 
+This way, well structured code can be achieved, whereby i.e. the filter 
+design could be included nearby the implementation for better review. 
+Additionally, functional and object orientated design schemes can be
+realised. The latter feature enables the possibility to implement reusable 
+parametrised sub-schematics that may also change in its structure based on 
+parametrisation.
+
+The generation of the description for the schematic (which would be 
+equivalent to code generation in Scicos/Simulink) does not involve source 
+code generation / compilation steps and therefore does not rely on  
+C-compilers for the target system that had to be installed on the 
+development computer. Scilab along with the installed toolbox is sufficient 
+for development.
+
+Further, along with the remote control interface and the ability to 
+implement state machines, to run different simulations in threads (e.g. 
+to distribute calculations accross multiple CPUs) and to include Scilab-Code 
+as computational functions (S-function like), ORTD is also ideally suited 
+for laboratory automation. The ability to replace sub-schematics with new 
+implementations and parameters during runtime removes the effort of 
+restarting the main real-time program. Simulations running in threads can 
+also be synchronised to sensor updates or other events. 
+        
+ORTD can be easily integrated into other simulation frameworks e.g. 
+Scicos or used within other software by including a shared library.
+
+
+The latestest versions include highly advanced features like
+
+* Online replacement of sub-controllers; Yes, can can exchange wires and blocks during the controller is running (modules/nested)
+* State machines (modules/nested)
+* Simulations running in threads (modules/nested)
+* Mathematical formula parsing (modules/muparser)
+* Vector handling blocks (modules/basic_ldblocks)
+* Calling Scilab from the simulation (modules/scilab)
+* Remote control interface (modules/rt_server)
+* Starting external processes (modules/ext_process)
+* Timer for simulations running in threads (pending) (modules/synchronisation)
+* Scicos to ORTD block wrapper (modules/scicos_blocks)
+
+        
+        
+CONTENTS OF THIS README
+-----------------------
+
+- OS DEPENDENCY
+- LICENSE
+- REQUIREMENTS
+- INSTALLATION (GRAPHICAL INSTALLATION)
+- COMPILATION / INSTALLATION (normal PC x86/amd64)
+- UPDATING THE SUBVERSION VERSION
+- INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
+- INCLUDING YOUR HARDWARE VIA PLUGINS OR MODULES
+- TARGET CONFIGURATION (for usage in a hard real-time environment)
+- ANDROID (ANDROID_ARM-target)
+- CALLING SCILAB FROM ORTD SIMULATIONS
+- HART-Module INSTALLATION
+- TOOLS
+- LIST OF PROVIDED BLOCKS
+- MODULES
+- DEVELOPING MODULES & BLOCKS
+- ADDITIONAL THINGS
+- EXAMPLES
+- TODO
+- BUGS
+- CONTACT
+- CHANGELOG
+
+
+
+
+
+
+                         
 OS DEPENDENCY
 -------------
 
@@ -148,9 +229,10 @@ module in the modules/ folder. Use the template module for this as a starting po
 For an example on plugins, please have a look at examples/plugin_example. For using
 plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
 
+See also section -- DEVELOPING MODULES & BLOCKS --.
 
-TARGET CONFIGURATION (for usage in a hard realtime environment)
----------------------------------------------------------------
+TARGET CONFIGURATION (for usage in a hard real-time environment)
+----------------------------------------------------------------
 
 The following targets can be choosen before compilation within target.conf:
 
@@ -161,7 +243,10 @@ The following targets can be choosen before compilation within target.conf:
 4) ANDROID_ARM (Android using Android NDK cross compile toolchain)
 5) LINUX_x86_32 Generates a 32Bit-build of openrtdynamics on an x86_64 Linux operating system.
                 On Ubuntu installing "gcc-multilib", "ia32-libs" and "g++-multilib" is required.
-
+         
+       
+                
+                
 ANDROID (ANDROID_ARM-target)
 ----------------------------
 
@@ -179,6 +264,22 @@ ANDROID (ANDROID_ARM-target)
    currently there is only the libdyn_generic_exec & libdyn_generic_exec_static available,
    which can be run from e.g. an android terminal application.
 
+CALLING SCILAB FROM ORTD SIMULATIONS
+------------------------------------
+
+By the module "scilab" (modules/scilab) blocks can be implemented
+using the scilab language (example available in (modules/scilab/demo).
+For this, Scilab is started as a separate process and interfaced by
+standard input / output streams.
+
+A builtin path for the scilab executable is choosen during compilation
+of the library (i.e. make) as follows:
+
+1) The scilab exe. from the scilab installation that comes along the graphical
+   installation of ORTD is used (configured in the file scilabdir.conf).
+
+2) If there is a command "scilab" in the system this one is used if 1)
+   was not successful.
 
 HART-Module INSTALLATION
 ------------------------
@@ -219,16 +320,26 @@ following:
 - nested: includind and switching of ORTD-Simulations within ORTD-Simulations (Experimental)
 - basic_ldblocks: Basic Blocks (hysteresis, modulo counter, (de)multiplexer, 2to1 switch ...)
 - template: A module template for creating your own blocks
+- ...
 
-Additional Stuff
-----------------
+
+DEVELOPING MODULES & BLOCKS
+---------------------------
+
+There is a template in examples/TemplateModule_V2.
+An older version is found in modules/template".
+For very basic block functionality you can also refer to modules/basic_ldblocks
+
+
+ADDITIONAL THINGS
+-----------------
 
 Within additional/joystick, there is a seperate Python-Script to read out a connected
 joystick and feed the data directly to ORTD-schematics via the rt_server infrastructure.
 It can be used for an example to easily integrate other input devices. Only one simple 
 Python-Script is needed for that.
 
-Examples
+EXAMPLES
 --------
 
 Examples can be found within the "examples" subdirectory.
@@ -367,4 +478,8 @@ By date as there will only be the svn-version
   - 10.5.13: Added ld_file_save_machine2 macro, that allows to automatically detect port sizes and types
              It is also a nice example on using state machines
   - 10.5.13: Improvement of the simulation synchronisation infrastructure
+  - 14.5.13: Improved the definition of blocks and created a new template for a ORTD-module
+             in examples/TemplateModule_V2.
+  - 14.5.13: Added write support for EDF+ (European Data Format) - files
+             
 
