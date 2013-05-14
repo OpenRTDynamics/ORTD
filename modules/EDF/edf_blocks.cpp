@@ -190,11 +190,14 @@ int compu_func_EDF_class::init()
 
 
     }
+    
+    return 0;
 
 error_EDF:
     fprintf(stderr, "Error while initialising EDF\n");
     // close EDF
     edfclose_file(EDFhdl);
+    return -1;
 
 error:
     fprintf(stderr, "Error before initialising EDF\n");
