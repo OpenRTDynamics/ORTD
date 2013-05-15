@@ -187,12 +187,12 @@ int compu_func_EDF_class::init()
         for(i=0; i<chns; i++)  {
             buffers[i] = (double*) malloc( sizeof(double)*bufferSize );
         }
-
-
     }
     
     return 0;
 
+    
+    
 error_EDF:
     fprintf(stderr, "Error while initialising EDF\n");
     // close EDF

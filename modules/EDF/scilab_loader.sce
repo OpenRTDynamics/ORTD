@@ -1,5 +1,5 @@
 
-function [sim] = ld_EDFWrite(sim, events, fname, smp_freq, inlist, innames, PhyMax, PhyMin, DigMin, DigMax) // PARSEDOCU_BLOCK
+function [sim] = ld_EDFWrite(sim, events, fname, smp_freq, inlist, innames, PhyMin, PhyMax, DigMin, DigMax) // PARSEDOCU_BLOCK
 // Write data to EDF+ - Files
 //
 // inlist - list() of signals of size 1
