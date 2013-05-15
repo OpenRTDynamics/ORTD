@@ -52,5 +52,5 @@ edf_blocks.o: edf_blocks.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c edf_blocks.cpp
 
 edflib.o: edflib.c
-	$(CC) $(CFLAGS) $(INCLUDE) -c edflib.c 
+	$(CC) $(CFLAGS) $(INCLUDE) -D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE -c edflib.c 
 

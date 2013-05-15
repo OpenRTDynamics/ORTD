@@ -43,9 +43,11 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim, u1] = ld_play_simple(sim, ev, r=linspace(0,1,100) );
   [sim, u2] = ld_play_simple(sim, ev, r=sin( linspace(0,%pi*6,100) ) );
 
+  edfDigMin = -32768; edfDigMax = 32767;
+
   [sim] = ld_EDFWrite(sim, ev, fname='Test.edf', smp_freq=100, list(u1,u2), list('signal1', 'signal2'), ...
                                          PhyMin=[-1.2,-1.2], PhyMax=[1.2,1.2], ...
-                                         DigMin=[-8388608,-8388608], DigMax=[8388607,8388607] );
+                                         DigMin=[edfDigMin,edfDigMin], DigMax=[edfDigMax,edfDigMax] );
 
   //  calculate us = - u1 + 2*u2
   [sim,us] = ld_add(sim, ev, list(u1, u2), [-1, 2] );
