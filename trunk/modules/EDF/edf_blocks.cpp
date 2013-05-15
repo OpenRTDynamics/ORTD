@@ -91,7 +91,9 @@ int compu_func_EDF_class::init()
     irpar_getstr(&fname, fname_.v, 0, fname_.n);
     printf("fname = %s\n", fname);
 
-    EDFhdl = edfopen_file_writeonly(fname, EDFLIB_FILETYPE_BDFPLUS, chns);
+//     EDFhdl = edfopen_file_writeonly(fname, EDFLIB_FILETYPE_BDFPLUS, chns);
+    EDFhdl = edfopen_file_writeonly(fname, EDFLIB_FILETYPE_EDFPLUS, chns);    
+    
     free(fname);
     if(EDFhdl<0)    {
         fprintf(stderr, "error: edfopen_file_writeonly()\n");
@@ -203,7 +205,7 @@ error:
     fprintf(stderr, "Error before initialising EDF\n");
 
     // Return -1 to indicate an error, so the simulation will be destructed
-    return error;
+    return -1;
 }
 
 
