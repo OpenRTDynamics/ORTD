@@ -21,13 +21,26 @@ SchematicName = 'demo';
 thispath = get_absolute_file_path(SchematicName+'.sce');
 cd(thispath);
 
+// 
+// If you like to automatically compile the computational 
+// function into an ortd-plugin uncomment the line below:
+// Then you can just run this scilab-script to make the
+//  changes to the C-portions visible.
+// 
+
+CompilerMessages=unix_g('cd .. ; make plugin'); disp(CompilerMessages); // compile plugin ortd_plugin.so
+
+
+
+
+
 z = poly(0,'z');
 
 // 
-// 
+// Load the interfacing function "ld_TemplateWrite"
 // 
 
-
+exec('../scilab_loader.sce');
 
 
 //
@@ -44,13 +57,14 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim, u1] = ld_play_simple(sim, ev, r=linspace(0,1,100) );
   [sim, u2] = ld_play_simple(sim, ev, r=sin( linspace(0,%pi*6,100) ) );
 
-  [sim, out] = ld_EDFWrite(sim, ev, str='Test', in1=u1, in2=u2);
+  // Here the computational function is included into this schematic
+  [sim, out] = ld_TemplateWrite(sim, ev, str='Test', in1=u1, in2=u2);
 
-  //  calculate us = - u1 + 2*u2
-  [sim,us] = ld_add(sim, ev, list(u1, u2), [-1, 2] );
+  // print data
+  [sim] = ld_printf(sim, ev, out, "output = ", 1);
   
   // save the signal us
-  [sim] = ld_savefile(sim, ev, fname="result.dat", source=us, vlen=1);
+  [sim] = ld_savefile(sim, ev, fname="result.dat", source=out, vlen=1);
   
   // output of schematic
   [sim, out] = ld_const(sim, ev, 0);
@@ -94,13 +108,15 @@ par.rpar = [];
 
 
 
-// optionally execute
-messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 100');
+// optionally execute 
+// Hereby, ORTD.ortd_executable must be the filename of the "libdyn_generic_exec_scilab"-executable
+messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 100'); // simulate 100 samples
 
-//
-//// load results
-//A = fscanfMat('result.dat');
-//
-//scf(1);clf;
-//plot(A(:,1), 'k');
+
+// load results
+A = fscanfMat('result.dat');
+
+// and show them
+scf(1);clf;
+plot(A(:,1), 'k');
 
