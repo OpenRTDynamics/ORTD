@@ -1,3 +1,7 @@
+# Change this to the folder where you installed ORTD
+# if you plan to use this as a module, just put "../..".
+ORTDFOLDER=../..
+
 
 ifeq ($(main_makefile_invoked),yes)
 
@@ -8,22 +12,18 @@ else
 	CPP = c++
 	LD = ld
 
-	#CFLAGS = -I../.. -O2 
-
-
-
 	# detect system type
 	host-type := $(shell arch)
 
 	ifeq ($(host-type),x86_64)
 	# 64 Bit
-	CFLAGS = -fPIC -O2 -g -I../..
-	INCLUDE = -I../..
+	CFLAGS = -fPIC -O2 -g -I$(ORTDFOLDER)
+	INCLUDE = -I$(ORTDFOLDER)
 	LDFLAGS = -shared
 	else
 	# 32 Bit
-	CFLAGS = -O2 -I../.. -g
-	INCLUDE = -I../..
+	CFLAGS = -O2 -I$(ORTDFOLDER) -g
+	INCLUDE = -I$(ORTDFOLDER)
 	LDFLAGS = -shared 
 	endif
 

@@ -17,7 +17,8 @@ using
   make install
   make scilabhelp .
 
-To produce a plugin run
+To produce a plugin, edit the Makefile and put the path to
+your ORTD installation in it. Then run
 
   make plugin
 
