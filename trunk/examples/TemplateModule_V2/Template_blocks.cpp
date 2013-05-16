@@ -41,7 +41,7 @@ public:
 private:
    struct dynlib_block_t *block;
    
-//    irpar *param;
+   double z0; // a state
 
 };
 
@@ -60,11 +60,14 @@ int compu_func_Template_class::init()
     // Get the irpar parameters Uipar, Urpar
     libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
 
-    
-    // extract structured parameters
+    //
+    // extract some structured sample parameters
+    //
     int error = 0; 
 
+    //
     // get a string (not so nice by now)
+    //
     struct irpar_ivec_t str_;
     char *str;
     if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;    
@@ -74,7 +77,10 @@ int compu_func_Template_class::init()
     
     free(str); // do not forget to free the memory allocated by irpar_getstr
     
+    
+    //     
     // get a vector of integers (double vectors are similar, replace ivec with rvec)
+    //    
     struct irpar_ivec_t vec;   
     if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) error = -1 ;            
     printf("vec[0] = %d\n", vec.v[0]);
@@ -89,26 +95,29 @@ int compu_func_Template_class::init()
 
 void compu_func_Template_class::io(int update_states)
 {
-    if (update_states==0) { // calculate outputs
-//         double *in = (double *) libdyn_get_input_ptr(block,0); // the first input port
+  double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+  double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+  double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
 
-// Write to the first output port      
-//         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
-// 	*output = 1;
+  if (update_states == 1) { // update states
+    z0 = *in1 * 2;
+  } else 
+    if (update_states==0) { // calculate outputs            
+      *output = z0;
     }
 }
 
 void compu_func_Template_class::destruct()
 {
-    // free your memory, ...
+    // free your allocated memory, ...
 }
 
 
 // This is the main C-Callback function, which forwards requests to the C++-Class above
 int compu_func_TemplateWrite(int flag, struct dynlib_block_t *block)
 {
-
-     printf("comp_func Template: flag==%d\n", flag);
+   // uncomment this if you want to know when this block is called by the simulator
+   // printf("comp_func Template: flag==%d\n", flag);
 
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);

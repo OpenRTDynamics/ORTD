@@ -1,0 +1,29 @@
+This is a template that can be either used for an ORTD-module
+or to compile computational functions into an ORTD-plugin
+that can be loaded during simulation startup.
+
+The important files are:
+
+  scilab_loader.sce: Interfacing function for Scilab 
+  Template_blocks.cpp: The computational functions written in C/C++
+  demo/demo.sce: An example on how to use the block
+
+To use it as a module copy or link this folder to the modules/
+directory of the framework and recompile the framework
+using 
+
+  make clean
+  make
+  make install
+  make scilabhelp .
+
+To produce a plugin run
+
+  make plugin
+
+within this folder. The result will the the shared library
+ortd_plugin.so, which must then be placed into the directory
+from where you are going to run you simulation from via
+the "libdyn_generic_exec"-command.
+
+
