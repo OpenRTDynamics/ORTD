@@ -18,7 +18,7 @@
 */
 
 //// Compile only on Android /////
-  #ifdef __ORTD_TARGET_ANDROID
+#ifdef __ORTD_TARGET_ANDROID
 //////////////////////////////////
 
 
@@ -64,6 +64,18 @@ extern "C" {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 class compu_func_SyncAndroidSensors_class {
 public:
     compu_func_SyncAndroidSensors_class(struct dynlib_block_t *block);
@@ -91,7 +103,7 @@ private:
     ALooper* looper;
     ASensorRef accelerometerSensor;
     ASensorEventQueue* queue;
-    
+
     double ax, ay, az;
 };
 
@@ -109,10 +121,10 @@ int compu_func_SyncAndroidSensors_class::init()
 
 
 
-    
-    
-    
-    
+
+
+
+
     // register the callback function to the simulator that shall trigger the simulation while running in a loop
     libdyn_simulation_setSyncCallback(block->sim, &compu_func_SyncAndroidSensors_class::sync_callback , this);
 
@@ -139,26 +151,26 @@ int compu_func_SyncAndroidSensors_class::real_sync_callback( struct dynlib_simul
 
 
     int SAMP_PER_SEC = ipar[0];
-    
+
     // set-up sensors
     sensorManager = ASensorManager_getInstance();
     looper = ALooper_forThread();
     if(looper == NULL)
-        looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);  
+        looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 
     accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    printf("accelerometerSensor: %s, vendor: %s\n", ASensor_getName(accelerometerSensor), ASensor_getVendor(accelerometerSensor));
+    fprintf(stderr, "accelerometerSensor: %s, vendor: %s\n", ASensor_getName(accelerometerSensor), ASensor_getVendor(accelerometerSensor));
 
     queue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID, NULL, NULL);
 
     ASensorEventQueue_enableSensor(queue, accelerometerSensor);
     ASensorEventQueue_setEventRate(queue, accelerometerSensor, (1000L/SAMP_PER_SEC)*1000);
 
-    
-    
+
+
 //   printf("waiting for data\n");
 
-int ident;//identifier
+    int ident;//identifier
     int events;
     do { // Main loop is now here
 
@@ -173,9 +185,9 @@ int ident;//identifier
                 while (ASensorEventQueue_getEvents(queue, &event, 1) > 0) {
 //                     printf("accelerometer X = %f y = %f z=%f \n", event.acceleration.x, event.acceleration.y, event.acceleration.z);
 
-		    ax = event.acceleration.x;
-		    ay = event.acceleration.y;
-		    az = event.acceleration.z;
+                    ax = event.acceleration.x;
+                    ay = event.acceleration.y;
+                    az = event.acceleration.z;
 
                     // run the simulation
                     // run one simulation step
@@ -197,18 +209,18 @@ int ident;//identifier
         // return 1;
         // to stop execution of the simulation
         double *input = (double*) libdyn_get_input_ptr(block, 0);
-	
-	if (*input > 0.5) {
 
-	  // destroy
-	  ASensorEventQueue_disableSensor(queue, accelerometerSensor);
-	  ASensorManager_destroyEventQueue(sensorManager, queue);
-	  // FIXME do not know how to destroy a looper. Is it necessarry?
-	  
-	  
-	  return 1; // abort loop, if input is 1
-	  
-	}
+        if (*input > 0.5) {
+
+            // destroy
+            ASensorEventQueue_disableSensor(queue, accelerometerSensor);
+            ASensorManager_destroyEventQueue(sensorManager, queue);
+            // FIXME do not know how to destroy a looper. Is it necessarry?
+
+
+            return 1; // abort loop, if input is 1
+
+        }
 
 
     } while (true);
@@ -225,8 +237,8 @@ void compu_func_SyncAndroidSensors_class::io(int update_states)
         double *output = (double*) libdyn_get_output_ptr(block, 0);
 
         output[0] = ax;
-	output[1] = ay;
-	output[2] = az;
+        output[1] = ay;
+        output[2] = az;
     }
 }
 
@@ -240,81 +252,81 @@ void compu_func_SyncAndroidSensors_class::destruct()
 extern "C" {
 
 // This is the main C-Callback function, which forwards requests to the C++-Class above
-int compu_func_AndroidSensor(int flag, struct dynlib_block_t *block)
-{
+    int compu_func_AndroidSensor(int flag, struct dynlib_block_t *block)
+    {
 
 //     printf("comp_func template: flag==%d\n", flag);
 
-    double *in;
-    double *rpar = libdyn_get_rpar_ptr(block);
-    int *ipar = libdyn_get_ipar_ptr(block);
+        double *in;
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
 
-    int Nin = 1;
-    int Nout = 1;
-
-
-    switch (flag) {
-    case COMPF_FLAG_CALCOUTPUTS:
-    {
-        in = (double *) libdyn_get_input_ptr(block,0);
-        compu_func_SyncAndroidSensors_class *worker = (compu_func_SyncAndroidSensors_class *) libdyn_get_work_ptr(block);
-
-        worker->io(0);
-
-    }
-    return 0;
-    break;
-    case COMPF_FLAG_UPDATESTATES:
-    {
-        in = (double *) libdyn_get_input_ptr(block,0);
-        compu_func_SyncAndroidSensors_class *worker = (compu_func_SyncAndroidSensors_class *) libdyn_get_work_ptr(block);
-
-        worker->io(1);
-
-    }
-    return 0;
-    break;
-    case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
-    {
-        int i;
-        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        int Nin = 1;
+        int Nout = 1;
 
 
-        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
-        libdyn_config_block_output(block, 0, 10, DATATYPE_FLOAT, 0);
+        switch (flag) {
+        case COMPF_FLAG_CALCOUTPUTS:
+        {
+            in = (double *) libdyn_get_input_ptr(block,0);
+            compu_func_SyncAndroidSensors_class *worker = (compu_func_SyncAndroidSensors_class *) libdyn_get_work_ptr(block);
 
+            worker->io(0);
 
-    }
-    return 0;
-    break;
-    case COMPF_FLAG_INIT:  // init
-    {
-        compu_func_SyncAndroidSensors_class *worker = new compu_func_SyncAndroidSensors_class(block);
-        libdyn_set_work_ptr(block, (void*) worker);
-
-        int ret = worker->init();
-        if (ret < 0)
-            return -1;
-    }
-    return 0;
-    break;
-    case COMPF_FLAG_DESTUCTOR: // destroy instance
-    {
-        compu_func_SyncAndroidSensors_class *worker = (compu_func_SyncAndroidSensors_class *) libdyn_get_work_ptr(block);
-
-        worker->destruct();
-        delete worker;
-
-    }
-    return 0;
-    break;
-    case COMPF_FLAG_PRINTINFO:
-        printf("I'm a SyncAndroidSensors block\n");
+        }
         return 0;
         break;
+        case COMPF_FLAG_UPDATESTATES:
+        {
+            in = (double *) libdyn_get_input_ptr(block,0);
+            compu_func_SyncAndroidSensors_class *worker = (compu_func_SyncAndroidSensors_class *) libdyn_get_work_ptr(block);
 
+            worker->io(1);
+
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
+        {
+            int i;
+            libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+
+            libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+            libdyn_config_block_output(block, 0, 10, DATATYPE_FLOAT, 0);
+
+
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_INIT:  // init
+        {
+            compu_func_SyncAndroidSensors_class *worker = new compu_func_SyncAndroidSensors_class(block);
+            libdyn_set_work_ptr(block, (void*) worker);
+
+            int ret = worker->init();
+            if (ret < 0)
+                return -1;
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_DESTUCTOR: // destroy instance
+        {
+            compu_func_SyncAndroidSensors_class *worker = (compu_func_SyncAndroidSensors_class *) libdyn_get_work_ptr(block);
+
+            worker->destruct();
+            delete worker;
+
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_PRINTINFO:
+            printf("I'm a SyncAndroidSensors block\n");
+            return 0;
+            break;
+
+        }
     }
-}
 
 } // extern C
 
@@ -326,5 +338,5 @@ int compu_func_AndroidSensor(int flag, struct dynlib_block_t *block)
 
 
 //// Compile only on Android /////
-  #endif
+#endif
 //////////////////////////////////
