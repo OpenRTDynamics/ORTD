@@ -30,7 +30,7 @@ else
 endif # ifeq ($(main_makefile_invoked),yes)
 
 
-all: lib android_audio_standalone #android_sensors_standalone
+all: lib #android_audio_standalone #android_sensors_standalone
 	@echo "Module android done"
 
 lib: android_block.o android_sensors.o 
@@ -41,8 +41,8 @@ lib: android_block.o android_sensors.o
 #android_sensors_standalone:  android_sensors_standalone.cpp 
 #	$(CPP) -I../.. -L. $(CFLAGS)  $(LD_LIBRARIES)  android_sensors_standalone.cpp  -o android_sensors_standalone
 
-android_audio_standalone:  opensl_example.c opensl_io.c
-	$(CPP) -I../.. -L. $(CFLAGS)  $(LD_LIBRARIES) -fpermissive opensl_example.c opensl_io.c -o android_audio_standalone
+#android_audio_standalone:  opensl_example.c opensl_io.c
+#	$(CPP) -I../.. -L. $(CFLAGS)  $(LD_LIBRARIES) -fpermissive opensl_example.c opensl_io.c -o android_audio_standalone
 
 
 clean:
@@ -51,8 +51,8 @@ clean:
 
 
 
-opensl_io.o:	opensl_io.c
-	$(CPP) $(CFLAGS) $(INCLUDE) -c opensl_io.c
+#opensl_io.o:	opensl_io.c
+#	$(CPP) $(CFLAGS) $(INCLUDE) -c opensl_io.c
 
 android_block.o: android_block.cpp
 	$(CPP) $(CFLAGS) $(INCLUDE) -c android_block.cpp
