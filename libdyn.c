@@ -2762,6 +2762,8 @@ int libdyn_AutoConfigureBlock(struct dynlib_block_t *block, int *ipar, double *r
 // 
 // Create a I/O Configuration for the block that was created by the libdyn_CreateBlockAutoConfig - Scilab function
 // 
+
+// fprintf(stderr, "libdyn_AutoConfigureBlock: fetching parameters\n");
   	// get parameters
      struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, dfeed_irp, param;
 
@@ -2779,8 +2781,13 @@ int libdyn_AutoConfigureBlock(struct dynlib_block_t *block, int *ipar, double *r
     if ( irpar_get_ivec(&Uipar, ipar, rpar, 20) < 0 ) error = -1 ;
     if ( irpar_get_rvec(&Urpar, ipar, rpar, 21) < 0 ) error = -1 ;
 
+// abort if parameters could not be loaded
+    if (error < 0) {
+      fprintf(stderr, "libdyn_AutoConfigureBlock: Could not fetch parameters\n");
+      return error;
+    }
 
-
+    
 	 // The number of in- and output ports
         int Nin = insizes_irp.n;
         int Nout = outsizes_irp.n; //ipar[1];
@@ -2800,10 +2807,13 @@ int libdyn_AutoConfigureBlock(struct dynlib_block_t *block, int *ipar, double *r
 
         for (i = 0; i < Nout; ++i) {
 // 	    printf("%d - type %d - df=%d \n", outsizes_irp.v[i], outtypes_irp.v[i], dfeed_irp.v[i] );
-            libdyn_config_block_output(block, i, insizes_irp.v[i], outtypes_irp.v[i], dfeed_irp.v[i] );
+            libdyn_config_block_output(block, i, outsizes_irp.v[i], outtypes_irp.v[i], dfeed_irp.v[i] );
 	}
 //         for (i = 0; i < Nin; ++i)
 //             libdyn_config_block_output(block, i, 1, DATATYPE_FLOAT, 1);
+
+// fprintf(stderr, "libdyn_AutoConfigureBlock: block initialised\n");
+
   return error;
 }
 
