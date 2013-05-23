@@ -131,6 +131,11 @@ public:
         fprintf(stderr, "I'm a Template block\n");
     }
 
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
 
     // The Computational function that is called by the simulator
     // and that distributes the execution to the various functions
@@ -146,8 +151,172 @@ public:
 
 
 
+
+
+
+
+class SynchronisingTemplateBlock {
+public:
+    SynchronisingTemplateBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~SynchronisingTemplateBlock()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+    double z0; // a state
+    bool ExitLoop;
+    double SensorValue;
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+
+        // set the initial states
+        resetStates();
+
+        // register the callback function to the simulator that shall trigger the simulation while running in a loop
+        libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
+        libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
+	
+	ExitLoop = false;
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+        double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+
+    }
+
+
+    inline void calcOutputs()
+    {
+        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+        double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+
+	// Put out the sensor value
+	*output = SensorValue;
+        //   printf("output calc\n");
+
+    }
+
+
+    inline void resetStates()
+    {
+        z0 = 0; // return to the blocks initial state
+    }
+
+
+    
+    int SyncCallback( struct dynlib_simulation_t * sim )
+    {
+        /*
+         *		***	MAIN FUNCTION	***
+         *
+         * This function is called before any of the output or state-update flags
+         * are called.
+         * If 0 is returned, the simulation will continue to run
+         * If 1 is returned, the simulation will pause and has to be re-triggered externally.
+         * e.g. by the trigger_computation input of the async nested_block.
+        */
+
+        printf("Threaded simulation started execution\n");
+
+//     // wait until the callback function  real_syncDestructor_callback is called
+//     pthread_mutex_lock(&ExitMutex);
+//
+
+	// This is the main loop of the new simulation
+        while (!ExitLoop) {
+            sleep(1); // wait for dummy sensor
+	    SensorValue = 1.234;
+
+            // run one step of the ortd simulator
+            libdyn_event_trigger_mask(sim, 1);
+            libdyn_simulation_step(sim, 0);
+            libdyn_simulation_step(sim, 1);
+        }
+
+
+        return 1; // 1 - this shall not be executed again, directly after returning from this function!
+    }
+
+    int SyncDestructorCallback( struct dynlib_simulation_t * sim )
+    {
+        printf("The Block containing simulation is about to be destructed\n");
+
+	// Trigger termination of the the main loop
+	ExitLoop = true;
+//     pthread_mutex_unlock(&ExitMutex);
+
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a Template block\n");
+    }
+    
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<SynchronisingTemplateBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+    static int syncCallback_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdat;
+        SynchronisingTemplateBlock *p = (SynchronisingTemplateBlock *) obj;
+        return p->SyncCallback(sim);
+    }
+    static int syncCallbackDestructor_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdatDestructor;
+        SynchronisingTemplateBlock *p = (SynchronisingTemplateBlock *) obj;
+        return p->SyncDestructorCallback(sim);
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
+
+
+
+
 //
 // Export to C so the libdyn simulator finds this function
+// fn = "TemplateModule_V2" is the folder name of the module
+// and the C- function called by the simulator for requesting
+// blocks is then "libdyn_module_<fn>_siminit".
+// If you're compiling to a module, make sure to also adapt the file
+// pluginLoader.cpp
 //
 extern "C" {
 
@@ -159,7 +328,7 @@ extern "C" {
         // All comp. functions for all blocks are added to a list
         //
 
-        int blockid = 999911111;  // CHANGE HERE: choose a unique id for each block
+        int blockid = 999911111;  // CHANGE HERE: choose a unique id for each block FIXME: Need a list of free id's
 
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &TemplateBlock::CompFn);
 //     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_Template2_class::CompFn); // another block
