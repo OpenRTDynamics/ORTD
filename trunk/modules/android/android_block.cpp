@@ -218,7 +218,11 @@ public:
         fprintf(stderr, "I'm a AndroidSensors block\n");
     }
 
-
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+    
     // The Computational function that is called by the simulator
     // and that distributes the execution to the various functions
     // in this C++ - Class, including: init(), io(), resetStates() and the destructor
