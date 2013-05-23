@@ -579,13 +579,39 @@ inline int LibdynCompFnTempate(int flag, struct dynlib_block_t *block) {
         }
         return 0;
         break;
-        case COMPF_FLAG_RESETSTATES:
+	
+        case COMPF_FLAG_PREPARERESET:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->PrepareReset();
+        }
+        return 0;
+        break;
+
+	case COMPF_FLAG_RESETSTATES:
         {
             T *worker = (T *) libdyn_get_work_ptr(block);
             worker->resetStates();
         }
         return 0;
         break;
+
+        case COMPF_FLAG_HIGHERLEVELRESET:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->HigherLevelResetStates();
+        }
+        return 0;
+        break;
+	
+        case COMPF_FLAG_POSTINIT:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->PostInit();
+        }
+        return 0;
+        break;
+	
         case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this within COMPF_FLAG_INIT instead!
         {
             return libdyn_AutoConfigureBlock(block, ipar, rpar);
