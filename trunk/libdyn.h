@@ -100,9 +100,10 @@
 #define COMPF_FLAG_NOTHING 1000  // computational functon should do nothing
 #define COMPF_FLAG_PRINTINFO 100
 
-
+// 
 // Macros for accessing block data structures // FIXME: hier nullpointerabfrage
-
+// 
+// 
 #ifdef LD_USE_ONLINE_ASSERTIONS 
   #define libdyn_get_output_ptr(block, out) ( ((block)->Nout <= out) ? 0 : (block)->outlist[(out)].data  )
   #define libdyn_get_input_ptr(block, in) (  ((block)->Nin <= in) ? 0 : (block)->inlist[(in)].data )
@@ -121,8 +122,11 @@
 #define libdyn_get_Noutports(block) ((block)->Nout)
 #define libdyn_get_inportsize(block, i) ((block)->inlist[(i)].len)
 #define libdyn_get_outportsize(block, i) ((block)->outlist[(i)].len)
+#define libdyn_get_inportdatatype(block, i) ((block)->inlist[(i)].datatype)
+#define libdyn_get_outportdatatype(block, i) ((block)->outlist[(i)].datatype)
 
 
+// FIXME This has never been used -> Remove this
 #define libdyn_get_extraparam(block) ((block)->extraparam)
 #define libdyn_set_extraparam(block, par) ((block)->extraparam = (par))
 

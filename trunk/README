@@ -481,5 +481,6 @@ By date as there will only be the svn-version
   - 14.5.13: Improved the definition of blocks and created a new template for a ORTD-module
              in examples/TemplateModule_V2.
   - 14.5.13: Added write support for EDF+ (European Data Format) - files
+  - 28.5.13: Easier implementation of objects that can be shared between blocks
              
 

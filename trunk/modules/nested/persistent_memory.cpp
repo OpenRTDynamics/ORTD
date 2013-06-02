@@ -142,11 +142,11 @@ public:
     }
     void destruct() {
         free(directory_entry_fname);
-        if (pmem->isUnused()) {
+        if (!pmem->isUsed()) {
             delete pmem;
         } else {
 #ifdef DEBUG
-            fprintf(stderr, "persistent_memory_block_class: object is still in use and will therefore remain in memory\n");
+            fprintf(stderr, "ASSERTION FAILED: persistent_memory_block_class: object is still in use and will therefore remain in memory\n");
 #endif
         }
     }

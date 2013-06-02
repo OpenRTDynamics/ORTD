@@ -1,4 +1,6 @@
 #include <pthread.h>
+#include <malloc.h>
+
 
 #include <libdyn_cpp.h>
 #include "directory.h"
@@ -13,8 +15,8 @@ void * get_ortd_global_shared_object(char *identName, libdyn_master* master)
   directory_tree *dtree = master->dtree;
   if (dtree == NULL) {
     fprintf(stderr, "stderr: ortd_global_shared_object: needs a root directory_tree\n");
-    // FIXME: throuw exception
-     
+    
+    throw 1;
   }
   
   
@@ -32,7 +34,8 @@ void * get_ortd_global_shared_object(char *identName, libdyn_master* master)
 
 
 
-ortd_global_shared_object::ortd_global_shared_object(const char* identName, libdyn_master *master)  // FIXME: Add type of file like ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY
+// ortd_global_shared_object::ortd_global_shared_object(const char* identName, libdyn_master *master)  // FIXME: Add type of file like ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY
+void ortd_global_shared_object::constructor(const char* identName, libdyn_master* master)
 {
 //   this->identName = identName; // FIXME MAKE A COPY INSTEAD!
   this->identName_ = identName;
@@ -46,7 +49,7 @@ ortd_global_shared_object::ortd_global_shared_object(const char* identName, libd
   
   if (this->ldmaster == NULL) {
     fprintf(stderr, "stderr: ortd_global_shared_object: needs a libdyn master\n");
-    // FIXME: throuw exception
+    throw 1;
     
     return;
   }
@@ -54,7 +57,7 @@ ortd_global_shared_object::ortd_global_shared_object(const char* identName, libd
   directory_tree *dtree = ldmaster->dtree;
   if (dtree == NULL) {
     fprintf(stderr, "stderr: ortd_global_shared_object: needs a root directory_tree\n");
-    // FIXME: throuw exception
+    throw 2;
      
   }
   
@@ -63,10 +66,9 @@ ortd_global_shared_object::ortd_global_shared_object(const char* identName, libd
   
   if (dtree->add_entry((char*) identName_.c_str(), ORTD_DIRECTORY_ENTRYTYPE_SHAREDOBJECT, 0x0, this) == false) { // remove ORTD_DIRECTORY_ENTRYTYPE_PERSISTENTMEMORY
      fprintf(stderr, "stderr: ortd_global_shared_object: cound not allocate the filename %s\n", identName);
-      // FIXME: throuw exception
+      throw 3;
   }
   
-  // alloc memory for the buffer
 
   pthread_mutex_init(&counter_mutex, NULL);
 }
@@ -74,8 +76,8 @@ ortd_global_shared_object::ortd_global_shared_object(const char* identName, libd
 
 ortd_global_shared_object::~ortd_global_shared_object()
 {
-  if (!isUnused()) {
-    fprintf(stderr, "ortd: ortd_global_shared_object: ASSERTION FAILD: Detructing an instance that i still in use!\n");
+  if (isUsed()) {
+    fprintf(stderr, "ortd: ortd_global_shared_object: ASSERTION FAILD: Trying to destruct an instance that is still in use! Programm Exit\n");
     exit(0);
     //assert();
   }
