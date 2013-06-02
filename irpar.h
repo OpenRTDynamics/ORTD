@@ -17,6 +17,9 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef _IRPAR_H
+#define _IRPAR_H 1
+
 
 
 /**
@@ -213,3 +216,4 @@ int irpar_load_from_afile(int **ipar, double **rpar, int *ilen, int *rlen, char 
 
 
 
+#endif

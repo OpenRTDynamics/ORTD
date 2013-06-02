@@ -90,7 +90,14 @@ public:
         if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) error = -1 ;
         printf("vec[0] = %d\n", vec.v[0]);
 
-
+        //
+        // get some informations on the first input port
+ 	//
+	int N = libdyn_get_inportsize(block, 0);  // the size of the input vector
+	int datatype = libdyn_get_inportdatatype(block, 0); // the datatype
+	int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+	int NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
+	
         // set the initial states
         resetStates();
 
@@ -306,8 +313,8 @@ public:
 
 
 
-
-
+// include more blocks
+#include "Template_SharedObjects.cpp"
 
 
 //
@@ -331,9 +338,15 @@ extern "C" {
         int blockid = 999911111;  // CHANGE HERE: choose a unique id for each block FIXME: Need a list of free id's
 
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &TemplateBlock::CompFn);
-//     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_Template2_class::CompFn); // another block
-
-        printf("module Template initialised\n");
+        libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &SynchronisingTemplateBlock::CompFn);
+	
+	
+	// Blocks from Template_SharedObjects.cpp. Uncomment if not needed
+	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+10, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &SharedObjBlock<Template_SharedObject>::CompFn);
+	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+11, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &Template_AccessShObjBlock::CompFn);
+	
+	
+        printf("module Template is initialised\n");
 
     }
 
