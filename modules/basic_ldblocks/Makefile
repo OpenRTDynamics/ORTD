@@ -32,8 +32,8 @@ endif # ifeq ($(main_makefile_invoked),yes)
 all: lib
 	echo "Module basic_ldblocks done"
 
-lib: basic_ldblocks.o
-	ar rvs module.a basic_ldblocks.o   # Will always be included
+lib: basic_ldblocks.o basicCppBlocks.o
+	ar rvs module.a basic_ldblocks.o basicCppBlocks.o   # Will always be included
 	#ar rvs module_Linux.a special_linux_code.o   # Only include for "Linux" Target
 
 
@@ -42,7 +42,11 @@ clean:
 
 
 basic_ldblocks.o: basic_ldblocks.c
-	$(CC) $(CFLAGS) $(INCLUDE) -c basic_ldblocks.c 
+	$(CC) $(CFLAGS) $(INCLUDE) -c basic_ldblocks.c
+
+basicCppBlocks.o: basicCppBlocks.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c basicCppBlocks.cpp
+
 
 
 

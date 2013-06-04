@@ -1538,6 +1538,53 @@ endfunction
 
 
 
+// 
+// 
+// 
+// 
+// Blocks that use the new Cpp Interfac
+// 
+// 
+// 
+// 
+
+function [sim, out] = ld_RTCrossCorr(sim, events, u, shapeSig, len) // PARSEDOCU_BLOCK
+// 
+// Online Cross Correlation
+//
+// u * - input signal
+// shapeSig * - input shape
+// out * - output signal
+// len - length of input shape
+// 
+// 
+// Note: The implementation is not optimal. Only the raw sum formula ist evaluated.
+// 
+
+// introduce some parameters that are refered to by id's
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ ];
+  Urpar = [ ];
+  btype = 60001 + 300;
+
+  insizes=[len,1]; // Input port sizes
+  outsizes=[1]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]; // datatype for each input port
+  outtypes=[ORTD.DATATYPE_FLOAT]; // datatype for each output port
+
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // connect the inputs
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(shapeSig, u) ); // connect in1 to port 0 and in2 to port 1
+
+  // connect the ouputs
+ [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -1551,6 +1598,7 @@ endfunction
 // 
 // 
 // Special blocks
+// 
 // 
 
 
