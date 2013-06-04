@@ -22,6 +22,8 @@
 #include <string.h>
 #include <math.h>
 
+// extern "C" {
+
 #include "libdyn.h"
 #include "libdyn_scicos_macros.h"
 #include "irpar.h"
@@ -3849,11 +3851,14 @@ int compu_func_interface2(int flag, struct dynlib_block_t *block)
 }
 
 
+// } // extern "C" 
 
 
-//#include "block_lookup.h"
+int libdyn_module_basic_ldblocks_siminit_Cpp(struct dynlib_simulation_t *sim, int bid_ofs);
+
 
 int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
+// extern "C" int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
     // printf("libdyn module siminit function called\n");
 
@@ -3863,35 +3868,35 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 
     fprintf(stderr, "Adding basic ld_blocks module\n");
 
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_switch2to1);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_demux);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_mux);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 3, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_hysteresis);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 4, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_modcounter);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 5, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_jumper);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 6, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_memory);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 7, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_abs);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 8, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_extract_element);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constvec);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_counter);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_switch2to1);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_demux);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_mux);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 3, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_hysteresis);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 4, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_modcounter);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 5, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_jumper);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 6, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_memory);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 7, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_abs);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 8, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_extract_element);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 9, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_constvec);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 10, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_counter);
     // MISSING HERE: ld_shift register
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 12, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_lookuptable);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 13, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_not);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 14, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_or);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 15, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_iszero);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 16, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_limitedcounter);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 17, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_memorydel);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 18, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 19, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_cond_overwrite);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 12, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_lookuptable);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 13, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_not);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 14, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_ld_or);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 15, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_ld_iszero);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 16, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_limitedcounter);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 17, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &ortd_compu_func_memorydel);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 18, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_steps);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 19, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_cond_overwrite);
     // MISSING HERE
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 21, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_and);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 22, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_ld_initimpuls);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 23, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_printfstderr);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 24, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_delay);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 25, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_steps2);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 26, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_ld_getsign);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 27, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_insert_element);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 28, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_FlagProbe);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 21, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_and);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 22, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_initimpuls);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 23, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_printfstderr);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 24, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_delay);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 25, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_steps2);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 26, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_getsign);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 27, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_insert_element);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 28, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_FlagProbe);
     
     
     
@@ -3900,32 +3905,40 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 //     shift_register
 
 
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 50, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordiff);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 51, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorfindthr);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 52, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorabs);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 53, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorgain);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 54, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorextract);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 55, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorfindminmax);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 56, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectoraddscalar);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 57, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorsum);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 58, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vector_muladd);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 59, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorabssum);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 60, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorsqsum);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 61, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorextractandsum);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 62, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_simplecovar);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 63, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectormute);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 64, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectorglue);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 65, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectordelay);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 66, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_vectoradd);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 67, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_NaNToVal);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 50, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectordiff);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 51, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectorfindthr);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 52, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectorabs);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 53, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectorgain);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 54, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorextract);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 55, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorfindminmax);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 56, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectoraddscalar);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 57, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorsum);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 58, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vector_muladd);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 59, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectorabssum);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 60, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectorsqsum);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 61, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorextractandsum);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 62, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_simplecovar);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 63, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectormute);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 64, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectorglue);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 65, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectordelay);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 66, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectoradd);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 67, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_NaNToVal);
     
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 68, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_eventDemux);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 69, LIBDYN_COMPFN_TYPE_LIBDYN, &ortd_compu_func_TrigSwitch1toN);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 68, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_eventDemux);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 69, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_TrigSwitch1toN);
 
     
     
     
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_interface2);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);
+    
+    
+    
+    
+    // Blocks in the new C++ Template style
+    libdyn_module_basic_ldblocks_siminit_Cpp(sim,0);
+    
+    
     
 }
 
