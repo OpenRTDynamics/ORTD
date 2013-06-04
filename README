@@ -482,5 +482,7 @@ By date as there will only be the svn-version
              in examples/TemplateModule_V2.
   - 14.5.13: Added write support for EDF+ (European Data Format) - files
   - 28.5.13: Easier implementation of objects that can be shared between blocks
+  -  3.6.13: A new module for UDP-Communication
+
              
 

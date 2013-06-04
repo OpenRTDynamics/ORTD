@@ -314,6 +314,7 @@ install: all
 	sudo ldconfig
 	sudo cp bin/libdyn_generic_exec /usr/local/bin
 	sudo cp bin/libdyn_generic_exec_scilab /usr/local/bin
+	sudo chmod +x /usr/local/bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_static_scilab
 
