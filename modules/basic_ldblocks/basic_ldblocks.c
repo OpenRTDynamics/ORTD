@@ -2786,8 +2786,12 @@ int ortd_compu_func_vectorglue(int flag, struct dynlib_block_t *block)
 	  for(k = (cpylen1 + cpylen2 + 1); k < outlen; k++){
 	    out[k] = 0.0;
 	  }
+	  //  fprintf(stderr, "Good call of vectorglue block.\n");
+	  
+	  return 0;
+	  
 	  glue_error:
-	    fprintf(stderr, "Inconsistent call of vectorglue block.\n");
+	   // fprintf(stderr, "Inconsistent call of vectorglue block.\n");
 	    return -1;
     }
     return 0;
