@@ -144,7 +144,7 @@ bin/ortd_static: libdyn_generic_exec_static
 	cp bin/libdyn_generic_exec_static bin/ortd_static
 
 bin/ortd: libdyn_generic_exec
-	cp bin/libdyn_generic_exec_static bin/ortd
+	cp bin/libdyn_generic_exec bin/ortd
 
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	echo "Static binary is disabled"
