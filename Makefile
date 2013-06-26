@@ -45,6 +45,7 @@ ifeq ($(target),LINUX)
 
   # Detect system type and set Fflags
     export CFLAGS += -O2 -D$(targetmacro)
+    export CFLAGS += -g 
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
     export LD_LIBRARIES += -lm -lpthread -lrt -ldl
@@ -131,13 +132,20 @@ export main_makefile_invoked := yes
 
 
 
-all: libdyn_generic_exec_static libdyn_generic_exec lib
+all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib
 	#echo "------- Build finished: Now you can do > make install <  -------"
 	cat documentation/finish_info.txt
 
 #
 # FIXME: lib: wird nicht geupdated, wenn etwas in den Modulen geändert wird
 #
+
+bin/ortd_static: libdyn_generic_exec_static
+	cp bin/libdyn_generic_exec_static bin/ortd_static
+
+bin/ortd: libdyn_generic_exec
+	cp bin/libdyn_generic_exec_static bin/ortd
+
 libdyn_generic_exec_static: lib libdyn_generic_exec.o
 	echo "Static binary is disabled"
 	$(LD) $(LDFLAGS) libdyn_generic_exec.o libortd.a `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/libdyn_generic_exec_static 
@@ -314,6 +322,8 @@ install: all
 	sudo ldconfig
 	sudo cp bin/libdyn_generic_exec /usr/local/bin
 	sudo cp bin/libdyn_generic_exec_scilab /usr/local/bin
+	sudo cp bin/ortd /usr/local/bin
+	sudo cp bin/ortd_static /usr/local/bin
 	sudo chmod +x /usr/local/bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_static_scilab
