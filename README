@@ -5,6 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
+Version of this document: 26.6.2013
 
 The Real Time Dynamics Toolbox is a noval approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -139,7 +140,7 @@ If you used the grapical installer this might not be neccessary.
 
 Run "make" followed by "make install" on 32/64 Linux platforms
 
-this will compile libortd.so and libdyn_generic_exec, which is a generic 
+this will compile libortd.so and ortd, which is a generic 
 schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
 
 
@@ -181,19 +182,19 @@ INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
 
 1) Install Ubuntu 12.04 (The Ångström-Linux should also work, 
                          but I guess there no package for Scilab, 
-                         which is only optional)
+                         which is optional though)
 2) sudo apt-get update
 3) sudo apt-get install subversion g++ make
 3b) sudo apt-get install scilab  # optional
 4) cd
-5) svn co https://openrtdynamics.svn.sf.net/svnroot/openrtdynamics/trunk   # get latest version from subversion
-6) cd trunk
+5) svn checkout svn://svn.code.sf.net/p/openrtdynamics/code/trunk OpenRTDynamics   # get latest version from subversion
+6) cd OpenRTDynamics
 7) make clean; make; make install    # Compiles ORTD from source
 
 Internet access is required for this procedure. Alternatively you can downlaod the
 the current svn-folder from
 
-  http://openrtdynamics.svn.sourceforge.net/viewvc/openrtdynamics/trunk/?view=tar
+  http://sourceforge.net/p/openrtdynamics/code/HEAD/tree/trunk/ (Download snapshot)
 
 and transfer it to the BB. Unpacking and proceding with step 6) shall do the same.
 
@@ -258,11 +259,71 @@ ANDROID (ANDROID_ARM-target)
    (as described in docs/STANDALONE-TOOLCHAIN.HTML of the NDK's documentation folder) 
 
      export PATH=<Path to AndroidArmToolchain>/bin/:$PATH
-     export CC=arm-linux-androideabi-gcc
-     export CXX=arm-linux-androideabi-g++ 
 
-   currently there is only the libdyn_generic_exec & libdyn_generic_exec_static available,
+   currently there is only the ortd & ortd_static available,
    which can be run from e.g. an android terminal application.
+
+   NOTE: at the moment, before compiling through "make" you need to remove the EDF-module
+         as it does not compile for android:   rm -rf modules/EDF
+
+
+   PRECOMPILED BINARIES
+   --------------------
+
+   A recently updated compiled version is available from:
+
+     http://openrtdynamics.sf.net/download/Android/current/OpenRTDynamics_android.tgz
+ 
+   Only the static executable can be obtained from:
+
+    http://openrtdynamics.sf.net/download/Android/current/ortd_static.gz
+
+   You can run the binary using an android terminal emulator like e.g.
+   terminalIDE if you copy the executable "ortd_static" to a folder "bin"
+   in the home directory. Also create the links
+
+     ln -s ortd_static ortd
+     ln -s ortd_static libdyn_generic_exec
+
+
+   Using with TerminalIDE
+   ----------------------
+
+   NOTE: The following is a work in progress and does not work
+         for now, because hostnames are not resolved.
+
+   When you use the Terminal-App "terminalIDE" you can copy and paste the
+   following lines to install the pre-compiled framework:
+
+
+## Just install the executable
+cd
+mkdir bin
+cd bin
+rm -f ortd_static ortd 
+rm -f libdyn_generic_exec_static 
+rm -f libdyn_generic_exec
+
+wget http://openrtdynamics.sf.net/download/Android/current/ortd_static.gz
+gzip -d ortd_static.gz
+chmod +x ortd_static
+
+ln -s ortd_static ortd
+ln -s ortd_static libdyn_generic_exec
+ln -s ortd_static libdyn_generic_exec_static
+
+
+## Install the whole compiled framework including the examples
+cd
+wget http://openrtdynamics.sf.net/download/Android/current/OpenRTDynamics_android.tgz
+tar xfvz OpenRTDynamics_android.tgz
+rm OpenRTDynamics_android.tgz
+
+#
+# OR simpler
+#
+wget http://openrtdynamics.sf.net/getitAndroid.sh -O - | bash
+
 
 CALLING SCILAB FROM ORTD SIMULATIONS
 ------------------------------------
@@ -294,12 +355,16 @@ WARNING: Do not make a copy -- otherwise some header files are not found
 TOOLS
 -----
 
-- libdyn_generic_exec
+- ortd: (the new name of libdyn_generic_exec)
     executes schematics in realtime (rt_preempt) OR as fast as possible
     Schematics are getting some dummy in and outputs, but should not be
     used.
 
-    type "libdyn_generic_exec --help" for help
+    type "ortd --help" for help
+
+- ortd_static: The statically linked version of the executable
+               (can be used without installing libraries into 
+                the system, runns nearly everywhere)
 
 LIST OF PROVIDED BLOCKS
 -----------------------
@@ -395,6 +460,8 @@ BUGS
   Needs a better implementation of buffered io.
 - If an ld_stream block is not connected with another block
   the initialisation of the parameter is not done (but its actually not needed in this case)
+
+- module udp_communication: If the host name is not known a segfault may be triggered
 
 - Otherwise it works quite stable (Used for many controller implementations in medical
   control at TU-Berlin)
