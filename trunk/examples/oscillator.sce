@@ -1,7 +1,7 @@
 //
-//    Copyright (C) 2010, 2011  Christian Klauer
+//    Copyright (C) 2010, 2011, 2012, 2013  Christian Klauer
 //
-//    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+//    This file is part of OpenRTDynamics, the Real Time Dynamics Framework
 //
 //    OpenRTDynamics is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@
 // An oscillator example for using the Scilab interface to libdyn
 // NOTE: The "ld_toolbox" is needed to run
 //
-// Execute within scilab. The shell command "libdyn_generic_exec -s oscillator -i 901 -l 1000"
+// Execute within scilab. The shell command "ortd -s oscillator -i 901 -l 1000"
 // will be executed to simulate this example. It will write output data to *dat files.
 // Finally, the results are plotted
 //
@@ -35,6 +35,10 @@
 thispath = get_absolute_file_path('oscillator.sce');
 cd(thispath);
 
+
+SchematicName = 'oscillator'; // must be the filename without .sce
+thispath = get_absolute_file_path(SchematicName+'.sce');
+cd(thispath);
 
 z = poly(0,'z');
 
@@ -49,12 +53,12 @@ function [sim, x,v] = oscillator(sim, u)
     [sim,x_feedback] = libdyn_new_feedback(sim);
 
         // use this as a normal signal
-        [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
-        [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
-        [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
+        [sim,a] = ld_add(sim, ev, list(u, x_feedback), [1, -1]);
+        [sim,v] = ld_ztf(sim, ev, a, 1/(z-1) * T_a ); // Integrator approximation
+        [sim,x] = ld_ztf(sim, ev, v, 1/(z-1) * T_a ); // Integrator approximation  
     
         // feedback gain
-        [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+        [sim,x_gain] = ld_gain(sim, ev, x, 0.6);
     
     // close loop x_gain = x_feedback
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
@@ -67,22 +71,22 @@ function [sim, x,v] = damped_oscillator(sim, u)
         [sim,v_feedback] = libdyn_new_feedback(sim);
 
             // use this as a normal signal
-            [sim,a] = ld_add(sim, defaultevents, list(u, x_feedback), [1, -1]);
-            [sim,a] = ld_add(sim, defaultevents, list(a, v_feedback), [1, -1]);
+            [sim,a] = ld_add(sim, ev, list(u, x_feedback), [1, -1]);
+            [sim,a] = ld_add(sim, ev, list(a, v_feedback), [1, -1]);
     
-            [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
+            [sim,v] = ld_ztf(sim, ev, a, 1/(z-1) * T_a ); // Integrator approximation
     
             // feedback gain
-            [sim,v_gain] = ld_gain(sim, defaultevents, v, 0.1);
+            [sim,v_gain] = ld_gain(sim, ev, v, 0.1);
     
             // close loop v_gain = v_feedback
         [sim] = libdyn_close_loop(sim, v_gain, v_feedback);
     
     
-        [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
+        [sim,x] = ld_ztf(sim, ev, v, 1/(z-1) * T_a ); // Integrator approximation  
     
         // feedback gain
-        [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
+        [sim,x_gain] = ld_gain(sim, ev, x, 0.6);
     
     // close loop x_gain = x_feedback
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
@@ -91,7 +95,7 @@ endfunction
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
-  [sim,u] = ld_const(sim, defaultevents, 1);
+  [sim,u] = ld_const(sim, ev, 1);
   
   // example of conditional schmeatic generation
   damped = 1; // please choose 1 or 0
@@ -102,10 +106,15 @@ function [sim, outlist] = schematic_fn(sim, inlist)
     [sim, x,y] = oscillator(sim, u);  
   end
   
-  [sim] = ld_printf(sim, defaultevents, x, "x = ", 1);
+  // print the current value of x
+  [sim] = ld_printf(sim, ev, x, "x = ", 1);
+
+  // print a barchart
+  [sim, x__] = ld_gain(sim, ev, x, 15);
+  [sim] = ld_printfbar(sim, ev, in=x__, str="x ");
   
   // save result to file
-  [sim, save0] = ld_dumptoiofile(sim, defaultevents, "result.dat", x);
+  [sim, save0] = ld_dumptoiofile(sim, ev, "result.dat", x);
   
   // output of schematic
   outlist = list(x);
@@ -118,8 +127,8 @@ endfunction
 // Set-up
 //
 
-// defile events
-defaultevents = [0]; // main event
+// default events
+ev = [0]; // main event
 
 // set-up schematic by calling the user defined function "schematic_fn"
 insizes = [1,1]; outsizes=[1];
@@ -149,8 +158,8 @@ par.rpar = [];
 
 
 
-// optionally execute
-messages = unix_g(ORTD.ortd_executable+' -s oscillator -i 901 -l 1000');
+// run the executable for 1000 simulation steps
+messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 1000');
 
 
 // load results

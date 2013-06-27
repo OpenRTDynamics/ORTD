@@ -17,7 +17,7 @@
 //     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-SchematicName = 'template';
+SchematicName = 'template'; // must be the filename without .sce
 thispath = get_absolute_file_path(SchematicName+'.sce');
 cd(thispath);
 
