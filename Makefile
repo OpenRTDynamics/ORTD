@@ -45,6 +45,17 @@ ifeq ($(target),LINUX)
 
   # Detect system type and set Fflags
     export CFLAGS += -O2 -D$(targetmacro)
+    export CFLAGS += 
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += 
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
+endif
+
+ifeq ($(target),LINUX_DEBUG)
+  targetmacro=__ORTD_TARGET_LINUX
+
+  # Detect system type and set Fflags
+    export CFLAGS += -O2 -D$(targetmacro) -DDEBUG
     export CFLAGS += -g 
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
@@ -108,6 +119,24 @@ ifeq ($(target),ANDROID_ARM)
   export CFLAGS += -O2 -D$(targetmacro) 
   export INCLUDE +=  -I$(ortd_root)
   export LDFLAGS += 
+
+  # -lpthread  & -lrt are not needed in Android
+  export LD_LIBRARIES += -lm -ldl -llog -landroid 
+
+  # use cross compile chain from Android NDK
+  export CC = arm-linux-androideabi-gcc
+  export CPP = arm-linux-androideabi-c++
+  export LD = arm-linux-androideabi-g++
+  export SH = sh
+endif
+
+ifeq ($(target),ANDROID_ARM_NEON) 
+  targetmacro=__ORTD_TARGET_ANDROID
+
+#  export CFLAGS += -I/home/chr/bin/AndroidArmToolchain/sysroot/usr/include --sysroot=/home/chr/bin/AndroidArmToolchain/sysroot -O2 -D$(targetmacro) 
+  export CFLAGS += -O2 -D$(targetmacro) -march=armv7-a -mfloat-abi=softfp -mfpu=neon
+  export INCLUDE +=  -I$(ortd_root)
+  export LDFLAGS += -Wl,--fix-cortex-a8
 
   # -lpthread  & -lrt are not needed in Android
   export LD_LIBRARIES += -lm -ldl -llog -landroid 
