@@ -1,3 +1,10 @@
+// 
+// Terminal Codes
+// 
+
+ORTD.termcode.clearscreen = ascii(27) + '[2J';
+
+
 
 // 
 // More basic functions that could also added to libdyn.sci
@@ -931,6 +938,28 @@ function [sim] = ld_printfstderr(sim, events, in, str, insize) // PARSEDOCU_BLOC
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
 endfunction
+
+function [sim] = ld_printfbar(sim, events, in, str) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Print a bar (the console)
+//
+// in *+(1) - vectorial input signal
+//
+// str is a string that is printed followed by a bar whose length depends on in
+//
+  //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
+  btype = 60001 + 29;
+  str = ascii(str);
+  insize = 1;
+//   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ insize, length(str), str(:)' ], rpar=[ ], ...
+                   insizes=[ insize ], outsizes=[], ...
+                   intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+endfunction
+
 
 function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
 // %PURPOSE: delay - block

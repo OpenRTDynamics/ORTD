@@ -182,6 +182,148 @@ public:
 
 
 
+class RTShapeCompareBlock {
+public:
+    RTShapeCompareBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~RTShapeCompareBlock()
+    {
+        free(RingBuf);
+    }
+
+    //
+    // define states or other variables
+    //
+
+    double *RingBuf;
+    int BufferCounter;
+    int NBytes, N;
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+        int error = 0;
+
+
+//         //
+//         // get a vector of integers (double vectors are similar, replace ivec with rvec)
+//         //
+//         struct irpar_ivec_t vec;
+//         if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) {return -1; }
+//
+
+        //
+        // get some informations on the first input port
+        //
+        N = libdyn_get_inportsize(block, 0);  // the size of the input vector
+        int datatype = libdyn_get_inportdatatype(block, 0); // the datatype
+        int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+        NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
+
+// 	if ( libdyn_get_inportsize(block, 0) != libdyn_get_inportsize(block, 1) )
+// 	  return -1;
+
+        // Allocate Ringbuf
+        RingBuf = (double*) malloc(NBytes);
+
+        // set the initial states
+        resetStates();
+
+// 	printf("N=%d\n", N);
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return error;
+    }
+
+
+    inline void updateStates()
+    {
+    }
+
+
+    inline void calcOutputs()
+    {
+        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+        double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+
+        // fill in buffer
+        RingBuf[BufferCounter] = *in2;
+
+// 	printf("------- BufferCounter %d\n", BufferCounter);
+        //
+        double sum=0;
+        int i;
+        int input_i = N-1; // index of the input element to use
+
+        // go from BufferCounter back to the begin
+        for (i=BufferCounter; i>=0; --i, --input_i) {
+            sum += in1[input_i] * RingBuf[i]; // calc
+// 	  printf("sum += in1[%d] * RingBuf[%d]\n", input_i, i);
+        }
+
+        // go from the end of BufferCounter back until input_i is zero
+// 	printf("Remaining elements %d+1\n", input_i);
+        for (i=N-1; input_i >= 0 ; --i, --input_i) {
+            sum += in1[input_i] * RingBuf[i]; // calc
+// 	  printf("sum += in1[%d] * RingBuf[%d]\n", input_i, i);
+        }
+
+        // fill in output val
+        *output = sum;
+
+        // increase buffer counter
+        BufferCounter++;
+        if (BufferCounter >= N) {
+            BufferCounter = 0;
+// 	  printf("Reset BufferCounter\n");
+        }
+
+    }
+
+
+    inline void resetStates()
+    {
+        memset(RingBuf, 0, NBytes);
+        BufferCounter = 0;
+    }
+
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a RTShapeCompareBlock block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<RTShapeCompareBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
 
 
 
@@ -345,6 +487,9 @@ extern "C" {
 
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid+300, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RTCrossCorrBlock::CompFn);
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+301, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ReadAsciiFileBlock::CompFn);
+	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+302, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RTShapeCompareBlock::CompFn);
+	
+	
 
 	
     }
