@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 26.6.2013
+Version of this document: 1.7.2013
 
 The Real Time Dynamics Toolbox is a noval approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -64,6 +64,7 @@ CONTENTS OF THIS README
 - REQUIREMENTS
 - INSTALLATION (GRAPHICAL INSTALLATION)
 - COMPILATION / INSTALLATION (normal PC x86/amd64)
+- IMPORTANT MAKE-TARGETS
 - UPDATING THE SUBVERSION VERSION
 - INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
 - INCLUDING YOUR HARDWARE VIA PLUGINS OR MODULES
@@ -132,7 +133,6 @@ and
 into your Terminal on Linux. You should also install scilab if you're
 asked.
 
-
 COMPILATION / INSTALLATION (normal PC x86/amd64)
 ------------------------------------------------
 
@@ -165,6 +165,21 @@ Cleaning up is done via
   make clean
 
 This should be executed when compiling and updated version from subversion.
+
+
+IMPORTANT MAKE-TARGETS
+----------------------
+
+make config          # Configure the framework, e.g. check for libraries
+make                 # Compile
+make install         # Install to /usr/local/[lib,bin]
+make demo            # run a demo
+
+make scilabhelp      # Update the help of the Scilab Toolbox
+make install_toolbox # Run the installer for the Scilab Toolbox
+make clean           # Clean up, always use this after updating the framework e.g. via svn
+make cleanBuildFiles # remove all files generated during the build process, but not the
+                       resulting binaries
 
 
 UPDATING THE SUBVERSION VERSION
@@ -238,11 +253,14 @@ TARGET CONFIGURATION (for usage in a hard real-time environment)
 The following targets can be choosen before compilation within target.conf:
 
 1) RTAI_COMPATIBLE (runns within RTAI; Plugins are disabled because shared libraries
-                    are not supported in RTAI)
-2) LINUX (Default)
+                    are not supported in RTAI, NOTE: This has not been tested for a long time)
+2) LINUX (Default, includes support for RT-Preemption if available)
+2a) LINUX_DEBUG   (Like LINUX but debuger information is included)
 3) CYGWIN (not functional up to now, to run ORTD-simulations on Windows)
-4) ANDROID_ARM (Android using Android NDK cross compile toolchain)
-5) LINUX_x86_32 Generates a 32Bit-build of openrtdynamics on an x86_64 Linux operating system.
+4) ANDROID_ARM (Android using Android NDK cross compile toolchain, see the android section in
+                this document)
+5) ANDROID_ARM_NEON (Like above but with NEON-support for newer arm devices)
+6) LINUX_x86_32 Generates a 32Bit-build of openrtdynamics on an x86_64 Linux operating system.
                 On Ubuntu installing "gcc-multilib", "ia32-libs" and "g++-multilib" is required.
          
        
@@ -260,8 +278,8 @@ ANDROID (ANDROID_ARM-target)
 
      export PATH=<Path to AndroidArmToolchain>/bin/:$PATH
 
-   currently there is only the ortd & ortd_static available,
-   which can be run from e.g. an android terminal application.
+   currently there is only the ortd & ortd_static executable available,
+   which can be run from e.g. an android terminal application. (No nice App for now)
 
    NOTE: at the moment, before compiling through "make" you need to remove the EDF-module
          as it does not compile for android:   rm -rf modules/EDF
@@ -270,7 +288,7 @@ ANDROID (ANDROID_ARM-target)
    PRECOMPILED BINARIES
    --------------------
 
-   A recently updated compiled version is available from:
+   A recently updated and compiled version is available from:
 
      http://openrtdynamics.sf.net/download/Android/current/OpenRTDynamics_android.tgz
  

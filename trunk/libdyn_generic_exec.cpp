@@ -303,7 +303,9 @@ void *rt_task(void *p)
 
         /* periodic task */
         //  NAME(MODEL,_isr)(T);
-        simperiodic(global_p);
+        if ( simperiodic(global_p) < 0) {
+	  end = 1;
+	}
 
         /* Check task end */
         if ((FinalTime >0) && (T >= FinalTime)) pthread_exit(0);

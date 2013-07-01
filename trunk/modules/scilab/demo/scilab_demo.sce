@@ -57,6 +57,9 @@ function [block]=sample_comp_fn( block, flag )
     case 1 // output
       printf("update outputs\n");
 //      outvec = [1:6]';
+
+//       in = block.inptr(1)(1:3);  // inputs
+
       outvec = calc_outputs();
 
       block.outptr(1) = outvec;

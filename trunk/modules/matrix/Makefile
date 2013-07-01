@@ -39,7 +39,7 @@ endif
 
 
 all: lib
-	echo "Module MATRIX done"
+	@echo "Module MATRIX done"
 
 lib: matrix.o
 	ar rvs module.a matrix.o   # Will always be included
@@ -48,6 +48,18 @@ lib: matrix.o
 
 clean:
 	rm -f *.o module.a module_Linux.a
+
+
+config:
+	@echo "Creating config: Checking for libblas and libgsl"
+
+	@bash config.sh $(CC) $(LD)
+
+clearconfig:
+	@echo "Clear matrix build configuration"
+	# Create default config
+	echo " " > LDFLAGS
+	echo "no" > CONFIG_WITH_blas_AND_gsl
 
 
 ## EITHER THIS

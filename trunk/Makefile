@@ -189,21 +189,25 @@ libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
 	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd.so
 	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
-	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd_hart.so
 
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
-	ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
+	# FIXME remove this
+	#$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd_hart.so
+	#ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
 
 scilabhelp:
 	(cd scilab; ./build_toolbox.sh)
 
-clean:
-	rm -f *.o *.so *.a libdyn_generic_exec libdyn_generic_exec_static Linux_Target/* all_Targets/* 
+cleanBuildFiles:
+	rm -f *.o Linux_Target/* all_Targets/* 
 	rm -f module_list module_list__.c module_list__.h
-	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done
-	#for d in $(MODULES); do (echo "cd to modules/$$d"; cd modules/$$d; pwd; cd $(ortd_root)  ); done
+	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done	
 
-superclean:
+clean: cleanBuildFiles
+	rm -f *.so *.a
+	rm -f bin/libdyn_generic_exec bin/libdyn_generic_exec_static bin/ortd bin/ortd_static
+
+superclean: clean
 	find . -name "*~" -print0 | xargs -0 rm
 
 #$(MODULES)clean:
@@ -231,8 +235,8 @@ clear_scilab_modules:
 
 	export CFLAGS="$(CFLAGS) $(cat tmp/MACROS.list)"
 
-	echo "Macros are: $(cat tmp/MACROS.list)"
-	echo "New CFLAGS are: "$(CFLAGS)
+	@echo "Macros are: $(cat tmp/MACROS.list)"
+	@echo "New CFLAGS are: "$(CFLAGS)
 
 
 	# Create header for module_list.c_
@@ -243,11 +247,11 @@ clear_scilab_modules:
 	echo "int libdyn_siminit_modules(struct dynlib_simulation_t *sim) {" >> module_list__.c
 
 
-	echo "cleaned up scilab modules"
+	@echo "cleaned up scilab modules"
 
 
 
-# all .o files of modules are collected within Linux_Target
+# all .o files of modules are collected
 .PHONY: $(MODULES) 
 $(MODULES): clear_scilab_modules
 	@echo
@@ -281,7 +285,7 @@ $(MODULES): clear_scilab_modules
 	echo $@ >> module_list
 
 	# Create Documentation
-	perl extract_documentation.pl $@ modules/$@/scilab_loader.sce >> tmp/block_list.txt
+	perl BuildScripts/extract_documentation.pl $@ modules/$@/scilab_loader.sce >> tmp/block_list.txt
 
 	# Create loader C-Code
 	echo "  libdyn_module_$@_siminit(sim, 0);" >> module_list__.c
@@ -305,6 +309,21 @@ blockid_offsets:
 	start_ofs=10000 ; \
 	count=1000 ; \
 	for d in $(MODULES); do (cd modules/$$d; echo gak $$count; count=$$[count+1000] ; echo gak $$count   ); done
+
+
+config:	config_modules
+	@echo "Configuration finished"
+
+# Call make config for every module
+config_modules:
+	( for d in $(MODULES); do (  make --directory=modules/$$d config   ); done ; exit 0 )
+
+clearconfig:	clearconfig_modules
+	@echo "Configuration cleared"
+
+# Call make config for every module
+clearconfig_modules:
+	( for d in $(MODULES); do (  make --directory=modules/$$d clearconfig   ); done ; exit 0 )
 
 module_list__.o: finish_module_list module_list__.c
 	$(CC) $(CFLAGS) -c module_list__.c
@@ -358,12 +377,13 @@ install: all
 	chmod +x bin/libdyn_generic_exec_static_scilab
 
 
-
+demo: #bin/ortd_static
+	( cd examples/demo;  ../../bin/ortd_static --baserate=20 --rtmode 1 -s oscillator -i 901 -l 300 )
 
 clean_scilabdir:
 	rm -f scilabdir.conf
 
-## install toolbox may require compile the toolbox again through make install, since scilabdir.conf is now available which is used by the scilab-module
+## install toolbox may require to compile the toolbox again through make install, since scilabdir.conf is now available which is used by the scilab-module
 install_toolbox: scilabdir.conf 
 	$(SH) install_toolbox
 
