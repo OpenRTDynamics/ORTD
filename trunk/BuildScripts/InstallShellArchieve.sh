@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/bash
 
 # this is beeing run from the main directory of ortd
 
