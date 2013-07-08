@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 1.7.2013
+Version of this document: 8.7.2013
 
 The Real Time Dynamics Toolbox is a noval approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -36,9 +36,18 @@ for laboratory automation. The ability to replace sub-schematics with new
 implementations and parameters during runtime removes the effort of 
 restarting the main real-time program. Simulations running in threads can 
 also be synchronised to sensor updates or other events. 
-        
-ORTD can be easily integrated into other simulation frameworks e.g. 
-Scicos or used within other software by including a shared library.
+
+Please Note: OpenRTDynamics does *not* depend on any part of Scicos/Xcos.
+             ORTD uses its own algorithms for running the simulations.
+             Only the Scilab Scripting language is required for describing
+             the schematics and only during development. During runtime, no
+             more than standard C/C++ libraries are required, therefore
+             ORTD is very uncomlicated to install and maintain, even on
+             other platforms.
+
+The ORTD runtime library can be easily integrated into other simulation 
+frameworks e.g. Scicos or used within other software by including a shared 
+library.
 
 
 The latestest versions include highly advanced features like
@@ -241,11 +250,14 @@ INCLUDING YOUR HARDWARE VIA PLUGINS OR MODULES
 ----------------------------------------------
 
 Hardware can be added via new blocks by the plugin interface or by adding your own 
-module in the modules/ folder. Use the template module for this as a starting point. 
-For an example on plugins, please have a look at examples/plugin_example. For using
-plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
+module in the modules/ folder or by plugins (shared libraries). 
 
-See also section -- DEVELOPING MODULES & BLOCKS --.
+See also section -- DEVELOPING MODULES & BLOCKS -- for an example.
+
+Old information:
+  For an example on plugins, please have a look at examples/plugin_example. For using
+  plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
+
 
 TARGET CONFIGURATION (for usage in a hard real-time environment)
 ----------------------------------------------------------------
@@ -304,8 +316,8 @@ ANDROID (ANDROID_ARM-target)
      ln -s ortd_static libdyn_generic_exec
 
 
-   Using with TerminalIDE
-   ----------------------
+   Using with App TerminalIDE
+   --------------------------
 
    NOTE: The following is a work in progress and does not work
          for now, because hostnames are not resolved.
@@ -360,8 +372,15 @@ of the library (i.e. make) as follows:
 2) If there is a command "scilab" in the system this one is used if 1)
    was not successful.
 
+3) No builtin path for the Scilab binary is included. However, the binary
+   can be specified in the block "ld_scilab*" that includes the Scilab code.
+
 HART-Module INSTALLATION
 ------------------------
+
+Please Note: The hart modules hasn't been tested for a long time
+             and only scilab 4.1.2 was supported. For new Scilab
+             versions the module has to be adapted a bit.
 
 Link hart/hart_ortd to the modules/ directory of your HART-Toolbox. 
 
@@ -404,6 +423,7 @@ following:
 - basic_ldblocks: Basic Blocks (hysteresis, modulo counter, (de)multiplexer, 2to1 switch ...)
 - template: A module template for creating your own blocks
 - ...
+- ... (Need to update this list)
 
 
 DEVELOPING MODULES & BLOCKS
@@ -413,6 +433,11 @@ There is a template in examples/TemplateModule_V2.
 An older version is found in modules/template".
 For very basic block functionality you can also refer to modules/basic_ldblocks
 
+IMPORTANT: Since there is no guarantee for a stable ABI (Application binary interface)
+           you should *re-compile* any ORTD-plugin after updating ORTD. The API
+           (defined by the ORTD-header files) however is going to stay compatible,
+           so you do not have to change you source code for each new version of ORTD,
+           which propably makes your life easier :-)
 
 ADDITIONAL THINGS
 -----------------
