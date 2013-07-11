@@ -365,8 +365,8 @@ libdyn_cpp.o: libdyn_cpp.cpp
 install: all
 	sudo cp libortd.so /usr/local/lib
 	sudo cp libortd.a /usr/local/lib
-	sudo cp libortd_hart.so /usr/local/lib
-	sudo cp libortd_hart.a /usr/local/lib
+#	sudo cp libortd_hart.so /usr/local/lib
+#	sudo cp libortd_hart.a /usr/local/lib
 	sudo ldconfig
 	sudo cp bin/libdyn_generic_exec /usr/local/bin
 	sudo cp bin/libdyn_generic_exec_scilab /usr/local/bin
