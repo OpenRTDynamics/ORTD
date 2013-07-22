@@ -91,23 +91,44 @@ int libdyn_config_get_datatype_len(int datatype)
   //
   int datatype_len = datatype >> 5;
 
+#ifdef DEBUG
+  fprintf(stderr, calculated datatype len %d\n", datatype_len);
+#endif  
+  
   switch (datatype) {
      case DATATYPE_FLOAT :
        return sizeof(double);
        break;
      case DATATYPE_SHORTFLOAT :
+#ifdef DEBUG
+       fprintf(stderr, "requ. for not implemented datatype\n");
+#endif  
        return sizeof(float);
        break;
      case DATATYPE_INT :
+#ifdef DEBUG
+       fprintf(stderr, "requ. for not implemented datatype\n");
+#endif  
        return sizeof(int);
        break;
      case DATATYPE_BOOLEAN : // FIXME: Hmmm
+#ifdef DEBUG
+       fprintf(stderr, "requ. for not implemented datatype\n");
+#endif  
        return sizeof(char);
        break;       
      case DATATYPE_EVENT : // FIXME: Hmmm
+#ifdef DEBUG
+       fprintf(stderr, "requ. for not implemented datatype\n");
+#endif  
        return sizeof(char);
        break;       
   }
+  
+#ifdef DEBUG
+  fprintf(stderr, "requ. for unknown datatype\n");
+#endif  
+  return datatype_len;
 }
 
 

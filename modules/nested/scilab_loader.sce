@@ -1,6 +1,132 @@
+function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata)
+  // ThreadPrioStruct.prio1=0, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = 0;
+  
+    // check for sizes
+  N1 = length(insizes);
+  N2 = length(outsizes);
+  N3 = length(intypes);
+  N4 = length(outtypes);
+  // ...
+  if (length(inlist) ~= N1) then
+    error("length inlist invalid or length of insizes invalid\n");
+  end
+
+  if N4 ~= N2 then
+    error("length of outsizes invalid\n");
+  end
+
+  if N1 ~= N3 then
+    error("length of intypes invalid\n");
+  end
+
+    Noutp = length(outsizes);
+  
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+  // Create parameters
 
 
-// Interfacing functions are placed in this place
+
+   parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
+   parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
+   parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
+   parlist = new_irparam_elemet_ivec(parlist, outtypes, 13); 
+
+  //    parlist = new_irparam_elemet_ivec(parlist, [0, 0], 20); 
+   parlist = new_irparam_elemet_ivec(parlist, ascii(name), 21); 
+   
+   //ThreadPrioStruct
+       printf("Adding optional thread priority information\n");     
+//        ThreadPrioStruct = varargin(1);
+       
+      // also add thread priority
+      try
+        ThreadPrio = [ThreadPrioStruct.prio1, ThreadPrioStruct.prio2, ThreadPrioStruct.cpu];
+      catch
+          errstr="The structure for the thread''s priority ThreadPrioStruct is not ok. " + ...
+                 "It must contain at least the fields ThreadPrioStruct.prio1, ThreadPrioStruct.prio2, ThreadPrioStruct.cpu";
+//          errstr="The structure for the threads priority ThreadPrioStruct is not ok.";
+          error(errstr);
+        null;
+      end
+      parlist = new_irparam_elemet_ivec(parlist, ThreadPrio, 22); 
+  
+   
+  // nested_fn -  the function to call for defining the schematic
+  Nsimulations = 1; // create only one simulation  
+  irpar_sim_idcounter = 900;
+
+  for i = 1:Nsimulations
+    // define schematic
+    [sim_container_irpar, nested_sim] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
+
+    // pack simulations into irpar container with id = 901
+    parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
+
+    // increase irpar_sim_idcounter so the next simulation gets another id
+    irpar_sim_idcounter = irpar_sim_idcounter + 1;
+  end
+
+
+  // combine parameters  
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];  Urpar = [ p.rpar ];
+  btype = 15001 + 10; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+//   insizes=[1,1]; // Input port sizes
+//   outsizes=[1]; // Output port sizes
+  insizes=[insizes(:)', 1];
+  intypes=[intypes(:)', ORTD.DATATYPE_FLOAT]; // the additional trigger input signal
+  outsizes=[outsizes(:)', 1];
+  outtypes=[outtypes(:)', ORTD.DATATYPE_FLOAT]; // the addotional comp finished output signal
+  
+  disp(outsizes);
+  
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+//   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]; // datatype for each input port
+//   outtypes=[ORTD.DATATYPE_FLOAT]; // datatype for each output port
+
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+//   // connect the inputs
+//  [sim,blk] = libdyn_conn_equation(sim, blk, list(in1, in2) ); // connect in1 to port 0 and in2 to port 1
+// 
+//   // connect the ouputs
+//  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  
+
+  // add switch and reset input signals
+  blocks_inlist = inlist;
+  blocks_inlist($+1) = TriggerSignal; // add the trigger signal
+
+
+  // connect all inputs
+  [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
+ 
+  // connect all outputs
+  outlist = list();
+  if Noutp ~= 0 then
+    for i = 0:(Noutp-1)
+      [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
+      outlist(i+1) = out;
+    end
+  else
+    null;
+//      printf("ld_simnest: No outputs to connect\n");
+  end
+
+  // connect the computation finished indication signal
+  [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp);   // the last port
+  
+  
+endfunction
+
 
 
 
@@ -176,7 +302,10 @@ function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insi
 
 endfunction
 
-function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata, simnest_name  )  // PARSEDOCU_BLOCK
+
+
+
+function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata, simnest_name)  // PARSEDOCU_BLOCK
 // 
 // %PURPOSE: create one (or multiple) nested libdyn simulation within a normal libdyn block
 //                It is possible to switch between them by an special input signal
@@ -256,7 +385,28 @@ function [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, i
    parlist = new_irparam_elemet_ivec(parlist, [Nsimulations, dfeed, asynchron_simsteps], 20); 
    parlist = new_irparam_elemet_ivec(parlist, ascii(simnest_name), 21); 
 
+//    
+   // FIXME: USE THIS FOR A NEW FN ld_async_simulation
+//    
 
+//    // varargin
+//    rhs=argn(2);
+//    if ( rhs > 15 ) then
+//    
+//      if asynchron_simsteps ~= 0 then     
+//        printf("Adding optional thread priority information\n");     
+//        ThreadPrioStruct = varargin(1);
+//        
+//       // also add thread priority
+//       try
+//         ThreadPrio = [ThreadPrioStruct.prio1, ThreadPrioStruct.prio2, ThreadPrioStruct.cpu];
+//       catch
+//         error("Structure for thread priority no ok. Must be ThreadPrioStruct.prio1, ThreadPrioStruct.prio2, ThreadPrioStruct.cpu");
+//       end
+//       parlist = new_irparam_elemet_ivec(parlist, ThreadPrio, 22); 
+//     end
+//     
+//   end
 
   // Go through all schematics
   // and set them up

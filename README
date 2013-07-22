@@ -87,6 +87,8 @@ CONTENTS OF THIS README
 - DEVELOPING MODULES & BLOCKS
 - ADDITIONAL THINGS
 - EXAMPLES
+- DATATYPES
+- IMPORTANT SOURCE FILES
 - TODO
 - BUGS
 - CONTACT
@@ -450,6 +452,8 @@ Python-Script is needed for that.
 EXAMPLES
 --------
 
+Type "make dmeo" in the main folder.
+
 Examples can be found within the "examples" subdirectory.
 
 For a ready to run example go into the examples directory via shell and type:
@@ -474,6 +478,41 @@ Therefore, for compiling you need to install the pa-headers at first:
 sudo apt-get install libpulse-dev
 
 Run it with ./pulsetest and type “q” or “w” or “ESC”.
+
+DATATYPES
+---------
+
+  - ORTD.DATATYPE_FLOAT (Scilab), DATATYPE_FLOAT (C) is "double"
+  - ORTD.DATATYPE_INT (Scilab), DATATYPE_INT (C) is "int"
+
+  - more to come ...
+
+Nevertheless the majority of the available blocks *only* support
+DATATYPE_FLOAT by now.
+
+IMPORTANT SOURCE FILES
+----------------------
+
+- irpar.[c,h]: A small and efficient implementation for storing
+               vectors of data, strings or other objects within
+               a vector of "double" and another containing "int"
+               values.
+
+- libdyn.[c,h]: The core simulator implementation, which reads the
+                list of block interconnections, sets up all blocks,
+                determines the order of execution and executes
+                simulation steps.
+
+- libdyn_cpp.[cpp,h]: C++ wrapper for libdyn.c
+
+- irpar.sci: Scilab interface for irpar.c for encoding data structures
+             that can be read by irpar.c
+
+- libdyn.sci: Scilab interface for creating and connecting blocks. The
+              resulting schematic is stored within irpar.c data structures.
+
+- libdyn_generic_exec.cpp: Source code for the command "ortd", which
+                           runns schematics.
 
 TODO
 ----
@@ -579,7 +618,7 @@ v0.99h ( not release by now )
   - Scilab help documentation
   - Again a fixed to online replaceable schematics. Now it runns smooth.
   - A nicer interface for Scilab, which looks very much like the Scicos Generic Block
-    or a Matlab S-function.
+    or a Matlab S-function. Please note that the state update flag will not be called.
   
 By date as there will only be the svn-version
 
@@ -593,6 +632,11 @@ By date as there will only be the svn-version
   - 14.5.13: Added write support for EDF+ (European Data Format) - files
   - 28.5.13: Easier implementation of objects that can be shared between blocks
   -  3.6.13: A new module for UDP-Communication
-
+  - 20.7.13: * Bug in synchronisation module fixed that prevented destroying simulations on
+             exit. Also the code was rewritten and looks now nicer. Now use
+             ld_ClockSync instead of ld_synctimer which was experimental and is now obsolete.
+  -          * Added ld_async_simulation for running simulations in thread. This replaces
+             the old scheme via ld_nested2.
+  -          * Cleaned up class libdyn_nested2 in libdyn_cpp.cpp
              
 

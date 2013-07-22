@@ -523,10 +523,11 @@ int compu_func_nested_class::init()
     if ( irpar_get_ivec(&param, ipar, rpar, 20) < 0 ) error = 1 ;
 
     if (error == 1) {
-        fprintf(stderr, "nested: could not get parameter from irpar set\n");
+        fprintf(stderr, "nested: could not get a parameter from irpar set\n");
         return -1;
     }
 
+    // Try to get the name of the simulation nest
     struct irpar_ivec_t nested_sim_name__;
     if ( irpar_get_ivec(&nested_sim_name__, ipar, rpar, 21) < 0 ) {
         // no name was provided
@@ -550,6 +551,28 @@ int compu_func_nested_class::init()
     dfeed = param.v[1];
     asynchron_simsteps = param.v[2];
 
+
+    // This block is not going to support priorities
+//     //
+//     if (asynchron_simsteps > 0) {
+//       // Try to get the priority of the tsak to be creaded
+//
+//       struct irpar_ivec_t Prio_irp;
+//      if ( (irpar_get_ivec(&Prio_irp, ipar, rpar, 22) < 0) ) {
+//        // no prio was attached
+//      } else {
+//        if (Prio_irp.n >= 3) {
+//          // ok got prio
+//          fprintf(stderr, "Task Prio1 would be %d\n", Prio_irp.v[0]);
+//          fprintf(stderr, "Task Prio2 would be %d\n", Prio_irp.v[1]);
+//          fprintf(stderr, "Task CPU would be %d\n", Prio_irp.v[2]);
+//
+// 	 // FIXME: actually set the tasks priority
+//        }
+//      }
+//     }
+
+
     /*
 
 
@@ -560,7 +583,8 @@ int compu_func_nested_class::init()
 
     bool use_buffered_input = false;  // in- and out port values are not buffered (default)
     if (asynchron_simsteps > 0) {
-        use_buffered_input == true;  // with async computation buffered inputs have to be used
+        // Propably a BUG 14.7.13: changed == to =
+        use_buffered_input = true;  // with async computation buffered inputs have to be used.
     }
 
     // create a new container for multiple simulations
@@ -813,10 +837,10 @@ void compu_func_nested_class::destruct()
     printf("nested_block.cpp: destructing\n");
 
     // libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *simulation)
-    
+
     // notify user code running in the thread that it is over
     simnest->CallSyncCallbackDestructor();
-    
+
     if (this->async_comp) {
         delete async_comp_mgr;
         pthread_mutex_destroy(&this->output_mutex);
@@ -827,7 +851,7 @@ void compu_func_nested_class::destruct()
     if (this->nested_sim_name != NULL)
         free(this->nested_sim_name);
 
-    
+
     simnest->destruct();   // HERE WAS A BUG solved at 2.7.12: both lines were flipped  and the exchange_helper was deleted before this!
     delete simnest;
 
@@ -956,20 +980,20 @@ int compu_func_nested(int flag, struct dynlib_block_t *block)
     return 0;
     break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
-    {      
+    {
         printf("nested_block.cpp: fn: compu_func_nested: destructing\n");
-	
+
         compu_func_nested_class *worker = (compu_func_nested_class *) libdyn_get_work_ptr(block);
         worker->destruct();
         delete worker;
-	
+
         printf("nested_block.cpp: fn: compu_func_nested: destructing -- ok\n");
     }
     return 0;
     break;
     case COMPF_FLAG_PRINTINFO:
         printf("I'm a nested block\n");
-	
+
         return 0;
         break;
 
@@ -1447,6 +1471,478 @@ int compu_func_survivereset(int flag, struct dynlib_block_t *block)
 }
 
 
+/*
+ *  Async computations, new version
+*/
+
+
+
+
+
+
+template <class callback_class> class ortd_asychronous_computation2 {
+private:
+
+    libdyn_nested2 * simnest;
+    libdyn *sim;
+
+    callback_class *cb;
+
+    background_computation< ortd_asychronous_computation2 > *computer_mgr;
+
+    int asynchron_simsteps;
+
+public:
+    // simnest: a ready to use set-up schematic
+    ortd_asychronous_computation2(callback_class *cb, libdyn_nested2 * simnest, int asynchron_simsteps);
+    ortd_asychronous_computation2(callback_class *cb, libdyn * simnest, int asynchron_simsteps); // not present
+
+    ~ortd_asychronous_computation2();
+
+    int computeNSteps(int N);
+    bool computation_finished();
+    void reset();
+    void join_computation();
+
+
+    int computer();
+};
+
+
+template <class callback_class> ortd_asychronous_computation2<callback_class>::ortd_asychronous_computation2(callback_class *cb, libdyn_nested2 * simnest, int asynchron_simsteps)
+{
+    this->cb = cb;
+    this->simnest = simnest;
+    this->sim = simnest->current_sim;
+    this->asynchron_simsteps = asynchron_simsteps;
+
+    computer_mgr = new background_computation< ortd_asychronous_computation2 > (this);
+
+}
+
+template <class callback_class> ortd_asychronous_computation2<callback_class>::~ortd_asychronous_computation2()
+{
+    delete computer_mgr;
+}
+
+
+template <class callback_class> int ortd_asychronous_computation2<callback_class>::computeNSteps(int N)
+{
+    // trigger computation
+
+    computer_mgr->start_computation();
+
+}
+
+template <class callback_class> bool ortd_asychronous_computation2<callback_class>::computation_finished()
+{
+    bool finished = computer_mgr->finishedAComputation();
+    return finished;
+}
+
+template <class callback_class> void ortd_asychronous_computation2<callback_class>::reset()
+{
+    computer_mgr->reset_ThereWasAComputaion();
+}
+
+
+template <class callback_class> int ortd_asychronous_computation2<callback_class>::computer()
+{
+    // Simulate in a thread
+
+    // Get the C-libdyn object
+    dynlib_simulation_t* C_sim = sim->get_C_SimulationObject();
+
+
+    if ( !sim->IsSyncronised() ) { // unsynchronised simulation --> only one execution step
+#ifdef DEBUG
+        fprintf(stderr, "async_nested: running computer in single mode\n");
+#endif
+        sim->simulation_step(0);
+        sim->simulation_step(1);
+
+        // call the callback to copy the results
+        cb->async_copy_output_callback();
+    } else {
+
+
+#ifdef DEBUG
+        fprintf(stderr, "async_nested: Starting the computation of a synchronised simuation\n");
+#endif
+
+
+        do { // the simulation synchronises itselft to something
+
+
+            /*
+            * Wait for synhronisation callback function
+            */
+
+            int SyncCallbackRetState = sim->RunSyncCallbackFn();
+            if ( SyncCallbackRetState == 1 ) {
+                // abort
+#ifdef DEBUG
+                fprintf(stderr, "async_nested: leaving\n");
+#endif
+                break;
+            }
+
+
+#ifdef DEBUG
+            fprintf(stderr, "async_nested: another run\n");
+#endif
+
+
+        } while (1);
+    }
+
+
+    // call the callback to copy the results
+    cb->async_copy_output_callback();
+
+    sim->reset_blocks();
+
+#ifdef DEBUG
+    fprintf(stderr, "async_nested: finished\n");
+#endif
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class async_simulationBlock {
+public:
+    async_simulationBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~async_simulationBlock()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+
+    void lock_output()   {
+        pthread_mutex_lock(&this->output_mutex);
+    }
+    void unlock_output() {
+        pthread_mutex_unlock(&this->output_mutex);
+    }
+    pthread_mutex_t output_mutex;
+
+    // Used when asyn computation is desired
+    ortd_asychronous_computation2<async_simulationBlock> * async_comp_mgr;
+
+    libdyn_nested2 * simnest;
+    libdyn_master * master;
+    nested_onlineexchange *exchange_helper; // ifdef REMOTE
+    irpar *param;
+    char *nested_sim_name;
+
+    int Nin;
+    int Nout;
+    int *insizes, *outsizes;
+    int *intypes, *outtypes;
+
+    int Nsimulations, dfeed;
+
+    int error;
+
+
+
+
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        fprintf(stderr, "Creating an async simulation V2\n");
+      
+      
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+
+        // set the initial states
+        resetStates();
+
+
+        /*
+         *
+         *
+         *
+        */
+
+
+
+        struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, param;
+
+
+        int error = 0; // FIXME Länge prüfen
+        if ( irpar_get_ivec(&insizes_irp, Uipar, Urpar, 10) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&outsizes_irp, Uipar, Urpar, 11) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&intypes_irp, Uipar, Urpar, 12) < 0 ) error = 1 ;
+        if ( irpar_get_ivec(&outtypes_irp, Uipar, Urpar, 13) < 0 ) error = 1 ;
+//     if ( irpar_get_ivec(&param, Uipar, Urpar, 20) < 0 ) error = 1 ;
+
+        if (error == 1) {
+            fprintf(stderr, "async_simulationBlock: could not get a parameter from irpar set\n");
+            return -1;
+        }
+
+        // Try to get the name of the simulation nest
+        struct irpar_ivec_t nested_sim_name__;
+        if ( irpar_get_ivec(&nested_sim_name__, Uipar, Urpar, 21) < 0 ) {
+            // no name was provided
+            nested_sim_name = NULL;
+        } else {
+            irpar_getstr(&nested_sim_name, nested_sim_name__.v, 0, nested_sim_name__.n );
+        }
+
+        this->insizes = insizes_irp.v;
+        this->outsizes = outsizes_irp.v;
+        this->intypes = intypes_irp.v;
+        this->outtypes = outtypes_irp.v;
+
+        Nin = insizes_irp.n;
+        Nout = outsizes_irp.n;
+
+        // Try to get the priority of the tsak to be creaded
+        struct irpar_ivec_t Prio_irp;
+        if ( (irpar_get_ivec(&Prio_irp, Uipar, Urpar, 22) < 0) ) {
+            // no prio was attached
+        } else {
+            if (Prio_irp.n >= 3) {
+                // ok got prio
+                fprintf(stderr, "Task Prio1 would be %d\n", Prio_irp.v[0]);
+                fprintf(stderr, "Task Prio2 would be %d\n", Prio_irp.v[1]);
+                fprintf(stderr, "Task CPU would be %d\n", Prio_irp.v[2]);
+
+                // FIXME: actually set the tasks priority
+            }
+        }
+
+
+        /*
+
+
+
+          */
+
+
+
+        bool use_buffered_input = true;  // in- and out port values are buffered
+
+        // create a new container for multiple simulations
+        simnest = new libdyn_nested2(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+        simnest->allocate_slots(1);
+
+        // If there is a libdyn master : use it
+        master = (libdyn_master *) block->sim->master;
+        if (master == NULL) {  // no master available
+            fprintf(stderr, "ERROR: libdyn: async requires a libdyn master\n");
+
+            simnest->destruct(); // all simulations are destructed
+            delete simnest;
+
+            return -1;
+        }
+
+        master->check_memory();
+        simnest->set_master(master);
+
+        // init the simulation exchange helper if required
+        exchange_helper = NULL;
+
+        if (nested_sim_name != NULL)
+            if (master != NULL && master->dtree != NULL) {
+                fprintf(stderr, "libdyn nested: Register <%s> for online exchange\n", nested_sim_name);
+                exchange_helper = new nested_onlineexchange(nested_sim_name, simnest);
+            } else {
+                fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master and a directory\n");
+//             fprintf(stderr, "master = %p, master->dtree=%p\n", master, master->dtree); // FIXME REMOVE DEBUG
+                master->check_memory();
+
+                simnest->destruct(); // all simulations are destructed
+                delete simnest;
+
+                return -1;
+            }
+
+        //
+        // set pointers to the input ports of this block
+        //
+        int i;
+        for (i = 0; i < Nin; ++i) {
+            double *in_p = (double*) libdyn_get_input_ptr(block, i);
+            simnest->cfg_inptr(i, (void*) in_p);
+        }
+
+
+        // load all schematics
+        int Nsimulations=1, simCreateCount;
+
+        for (simCreateCount = 0; simCreateCount < Nsimulations; ++simCreateCount) {
+            int shematic_id = 900 + simCreateCount;
+
+            fprintf(stderr, "async_simulationBlock: loading shematic id %d\n", shematic_id);
+            if (simnest->add_simulation(-1, Uipar, Urpar, shematic_id) < 0) {
+                goto destruct_simulations;  // An error
+            }
+
+//         printf("added schematic\n");
+        }
+
+
+        //
+        // start async computation manager if desired
+        //
+
+        // Initialise async computation manager
+
+
+        this->async_comp_mgr = new ortd_asychronous_computation2<async_simulationBlock>(this, simnest, 0);
+
+        pthread_mutex_init(&this->output_mutex, NULL);
+
+//     printf("nested was set-up\n");
+
+        return 0;
+
+destruct_simulations:
+        fprintf(stderr, "nested: Destructing all simulations\n");
+
+        simnest->destruct(); // all simulations are destructed
+        delete simnest;
+
+        return -1;
+    }
+
+
+    void async_copy_output_callback()
+    {
+        // async copy of outputs
+        int i;
+
+        lock_output();
+
+        Nout;
+        for (i=0; i< Nout ; ++i) {
+            void *out_p = (void*) libdyn_get_output_ptr(block, i);
+
+            simnest->copy_outport_vec(i, out_p);
+//                    printf("nested outp %f\n", ((double*)out_p)[0]);
+        }
+
+        unlock_output();
+    }
+
+    inline void updateStates()
+    {
+        double *comptrigger_inp = (double*) libdyn_get_input_ptr(block, Nin);
+//          printf("starting comp = %f\n", *comptrigger_inp);
+
+        if (*comptrigger_inp > 0.5) {
+#ifdef DEBUG
+            fprintf(stderr, "Trigger computation\n");
+#endif
+            this->async_comp_mgr->computeNSteps(1);
+        }
+
+    }
+
+
+    inline void calcOutputs()
+    {
+        //
+        // set comp_finieshed output to 1 if result is available
+        //
+        
+//         fprintf(stderr, "outputs\n");
+
+        double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
+
+        // If the background computation is finished the the output to 1
+        // nonblocking check for a result
+        if (this->async_comp_mgr->computation_finished()) {
+//  	  fprintf(stderr, ".1\n");
+            *comp_finished = 1;
+        } else {
+// 	  fprintf(stderr, ".0 %d\n", Nout);
+            *comp_finished = 0;
+        }
+        
+   
+    }
+
+
+
+    inline void resetStates()
+    {
+    }
+
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a Template block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<async_simulationBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
+
+
+
+
+
+
 
 
 // External block comp functions
@@ -1474,6 +1970,9 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+4, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &persistent_memory_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+5, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &write_persistent_memory_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+6, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &read_persistent_memory_block);
+
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+10, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &async_simulationBlock::CompFn);
+
 
 
     fprintf(stderr, "libdyn module nested initialised\n");

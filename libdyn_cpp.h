@@ -26,7 +26,10 @@
 
 extern "C" {
 #include "libdyn.h"
+#include "irpar.h"
 }
+
+#include <malloc.h>
 
 #define REMOTE
 
@@ -65,6 +68,11 @@ class libdyn_nested2;
 
 #define BUILD_COMMUNICATION_SEVER
 
+
+/*
+ *   Move these irpar classes to something like irpar_cpp.h
+ */
+
 class irpar {
 private:
     char fname_ipar[256];
@@ -91,6 +99,73 @@ public:
     double *rpar;
 
 };
+
+class irpar_ivec {
+public:
+  
+  irpar_ivec(int *ipar, double *rpar, int id) {
+        struct irpar_ivec_t vec;
+        if ( irpar_get_ivec(&vec, ipar, rpar, id) < 0 ) throw 1;
+//         printf("vec[0] = %d\n", vec.v[0]);
+	v = vec.v;
+  }
+  
+  int n;
+  int *v;
+};
+
+class irpar_rvec {
+public:
+  
+  irpar_rvec(int *ipar, double *rpar, int id) {
+        struct irpar_rvec_t vec;
+        if ( irpar_get_rvec(&vec, ipar, rpar, id) < 0 ) throw 1;
+//         printf("vec[0] = %d\n", vec.v[0]);
+	v = vec.v;
+  }
+  
+  int n;
+  double *v;
+};
+
+class irpar_string {
+public:
+  
+  irpar_string(int *ipar, double *rpar, int id) {
+
+        struct irpar_ivec_t str_;
+        char *str;
+        if ( irpar_get_ivec(&str_, ipar, rpar, id) < 0 ) throw 1;
+        irpar_getstr(&str, str_.v, 0, str_.n);
+
+        printf("str = %s\n", str);
+
+	s = new std::string(str);
+	
+        free(str); // do not forget to free the memory allocated by irpar_getstr
+  }
+  ~irpar_string() {
+     delete s; 
+  }
+  
+  std::string *s;
+  
+};
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
 
 class libdyn_master {
 private:

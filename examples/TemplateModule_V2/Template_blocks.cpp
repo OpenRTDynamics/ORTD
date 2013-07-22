@@ -73,6 +73,7 @@ public:
         //
         // get a string (not so nice by now)
         //
+	
         struct irpar_ivec_t str_;
         char *str;
         if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;
@@ -82,14 +83,33 @@ public:
 
         free(str); // do not forget to free the memory allocated by irpar_getstr
 
+	
+	// cpp version (nicer)
+	irpar_string s(Uipar, Urpar, 12);
+	printf("cppstr = %s\n", s.s->c_str());
 
+	
+	
         //
         // get a vector of integers (double vectors are similar, replace ivec with rvec)
         //
+	
         struct irpar_ivec_t vec;
         if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) error = -1 ;
         printf("vec[0] = %d\n", vec.v[0]);
 
+	
+	// c++ version (nicer)
+	try {
+	  irpar_ivec veccpp(Uipar, Urpar, 11); // then use:  veccpp.n; veccpp.v;
+	  printf("veccpp[0] = %d\n", veccpp.v[0]);
+	} catch(int e) {
+	  // parameter not found
+	}
+	
+	
+	
+	
         //
         // get some informations on the first input port
  	//
