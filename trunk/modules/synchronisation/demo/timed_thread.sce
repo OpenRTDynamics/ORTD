@@ -66,7 +66,7 @@ function [sim, outlist] = run_thread_fn(sim, inlist)
   [sim,Tpause] = ld_play_simple(sim, events, r=[ exp( linspace( -4, -0.5, 40) ), -1  ]);
 
   // Set the time interval between the simulation steps
-  [sim, out] = ld_synctimer(sim, events, in=Tpause);
+  [sim, out] = ld_ClockSync(sim, events, in=Tpause);
   [sim] = ld_printf(sim, events, Tpause, "Time interval [s]", 1);
 
 
@@ -97,6 +97,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 //        [sim, startcalc] = ld_initimpuls(sim, events); // triggers your computation only once
         [sim, startcalc] = ld_const(sim, events, 1); // triggers your computation during each time step
 
+        // not used by now. There will be a new fn called ld_async_simulation
+        ThreadPrioStruct.prio1=0, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = 0;
+
         // a nested simulation that runns asynchronously (in a thread) to the main simulation
         [sim, outlist, computation_finished] = ld_simnest(sim, events, ...
                               inlist=list(input), ...
@@ -104,7 +107,10 @@ function [sim, outlist] = schematic_fn(sim, inlist)
                               intypes=[1], outtypes=[1], ...
                               fn_list=list(run_thread_fn), ...
                               dfeed=1, asynchron_simsteps=2, ...
-                              switch_signal=zero, reset_trigger_signal=startcalc         );
+                              switch_signal=zero, reset_trigger_signal=startcalc ...
+                            );
+
+
 
          output1 = outlist(1);
          // computation_finished is one, when finished else zero

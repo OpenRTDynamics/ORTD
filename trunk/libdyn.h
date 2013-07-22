@@ -519,7 +519,8 @@ struct dynlib_filter_t *libdyn_new_tf_filter_irpar(int *ipar, double *rpar, int 
 struct libdyn_io_config_t {
   int inports, outports; // Nr in and out ports
   int *insizes, *outsizes; // Size of each port
-  // FIXME: Add intypes and outtypes, but this will require to recompile user software
+  int *intypes, *outtypes;// FIXME: Add intypes and outtypes, but this will require to recompile user software NOTE: added on 14.7.13
+  
   double **inptr;
   double **outptr;
   

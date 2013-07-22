@@ -20,6 +20,12 @@
 
 // Wrapper around libdyn.c 's simulation setup code
 
+/*
+    TODO: long term:  remove libdyn_nested
+
+*/
+
+
 #include "libdyn_cpp.h"
 
 extern "C" {
@@ -148,14 +154,23 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
 
     int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
     int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
+    int *intypes_ = (int*) malloc(sizeof(int) * iocfg.inports);
+    int *outtypes_ = (int*) malloc(sizeof(int) * iocfg.outports);
 
-    for (i = 0; i < iocfg.inports; ++i)
+    for (i = 0; i < iocfg.inports; ++i) {
         insizes[i] = insizes_[i];
-    for (i = 0; i < iocfg.outports; ++i)
+	intypes_[i] = intypes[i]; // DATATYPE_FLOAT; // default datatype
+    }
+    for (i = 0; i < iocfg.outports; ++i) {
         outsizes[i] = outsizes_[i];
+	outtypes_[i] = outtypes[i]; // DATATYPE_FLOAT;// default datatype
+    }
 
     iocfg.insizes = insizes;
     iocfg.outsizes = outsizes;
+    iocfg.intypes = intypes_;
+    iocfg.outtypes = outtypes_;
+    
 
 
     // List of Pointers to in vectors
@@ -750,18 +765,44 @@ bool libdyn_nested2::internal_init(int Nin, const int* insizes_, const int* inty
     iocfg.inports = Nin;
     iocfg.outports = Nout;
 
+//     int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
+//     int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
+// 
+//     for (i = 0; i < iocfg.inports; ++i)
+//         insizes[i] = insizes_[i];
+//     for (i = 0; i < iocfg.outports; ++i)
+//         outsizes[i] = outsizes_[i];
+// 
+//     iocfg.insizes = insizes;
+//     iocfg.outsizes = outsizes;
+// 
+
+    
+    
+    
     int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
     int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
+    int *intypes_ = (int*) malloc(sizeof(int) * iocfg.inports);
+    int *outtypes_ = (int*) malloc(sizeof(int) * iocfg.outports);
 
-    for (i = 0; i < iocfg.inports; ++i)
+    for (i = 0; i < iocfg.inports; ++i) {
         insizes[i] = insizes_[i];
-    for (i = 0; i < iocfg.outports; ++i)
+	intypes_[i] = intypes[i]; // DATATYPE_FLOAT; // default datatype
+    }
+    for (i = 0; i < iocfg.outports; ++i) {
         outsizes[i] = outsizes_[i];
+	outtypes_[i] = outtypes[i]; // DATATYPE_FLOAT;// default datatype
+    }
 
     iocfg.insizes = insizes;
     iocfg.outsizes = outsizes;
-
-
+    iocfg.intypes = intypes_;
+    iocfg.outtypes = outtypes_;    
+    
+    
+    
+    
+    
     // List of Pointers to in vectors
     iocfg.inptr = (double **) malloc(sizeof(double *) * iocfg.inports);
 
@@ -800,9 +841,14 @@ void libdyn_nested2::set_buffer_inptrs()
     iocfg.inptr[i] = (double *) ptr; //sim->cfg_inptr(i, (double *) ptr);
 
     for (i = 1; i < iocfg.inports; ++i) {
-        int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i-1]); // FIXME
+      
+//         int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i-1]); // FIXME
+
+printf("libdyn_nested2::set_buffer_inptrs\n");
+
+        int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[i-1] );
         int vlen = iocfg.insizes[i-1];
-        ptr += element_len*vlen;
+        ptr += TypeBytes*vlen;
 
         //  sim->cfg_inptr(i, (double*) ptr);
         iocfg.inptr[i] = (double *) ptr;
@@ -1293,23 +1339,6 @@ bool libdyn_nested2::set_current_simulation(int nSim)
 
     unlock_slots();
 
-    /*
-        if ( (sim_slots != NULL) ) {
-            if (slotindexOK(nSim)) {
-                if (this->sim_slots[nSim] != NULL) {
-
-
-
-    //       printf("switching simulation to %d  cs = %p\n", nSim, current_sim);
-
-                    return true;
-                }
-            }
-        } else {
-            fprintf(stderr, "libdyn_nested: slots are not configured\n");
-        }
-
-        return false;*/
 }
 
 
@@ -1319,9 +1348,15 @@ void libdyn_nested2::copy_outport_vec(int nPort, void* dest)
     // copy the output port nPort of the current simulation to dest
     void *src = current_sim->get_vec_out(nPort);
     int len = this->iocfg.outsizes[nPort];
-    int datasize = sizeof(double); // FIXME
+//     int datasize = sizeof(double); // FIXME
 
-    memcpy(dest, src, len*datasize);
+    int outtype = iocfg.outtypes[nPort];
+//     len = libdyn_config_get_datatype_len(outtype);  // FIXME: uncomment
+    
+//     printf("libdyn_nested2::copy_outport_vec\n");
+    int TypeBytes = libdyn_config_get_datatype_len( iocfg.outtypes[nPort] );
+    
+    memcpy(dest, src, len*TypeBytes);
 }
 
 // makes only sense of use_buffered_input == true
@@ -1332,11 +1367,16 @@ void libdyn_nested2::copy_inport_vec(int nPort, void* src)
         return;
     }
 
-    int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); // FIXME
+    int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); %FIXME: Remove
     int vlen = iocfg.insizes[nPort];
+    int intype = iocfg.intypes[nPort];
+//     element_len = libdyn_config_get_datatype_len(intype);  // FIXME:uncomment
+    
+    printf("libdyn_nested2::copy_inport_vec\n");
+    int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[nPort] );
 
-
-    memcpy((void*) iocfg.inptr[nPort], src, element_len * vlen);
+    
+    memcpy((void*) iocfg.inptr[nPort], src, TypeBytes * vlen);
 }
 
 

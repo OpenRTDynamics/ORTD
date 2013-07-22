@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # this is beeing run from the main directory of ortd
 
@@ -14,13 +14,15 @@ TARGET=`cat target.conf`
 echo Target is $TARGET
 
 
-if [ "$TARGET" == "LINUX" ]; then
+if [ "$TARGET" = "LINUX" ]
+then
   echo "Generic Linux target"
+  echo "Doing nothing"
 
 
 fi
 
-if [ "$TARGET" == "ANDROID_ARM" ]; then
+if [ "$TARGET" = "ANDROID_ARM" ]; then
 #if [ "$TARGET" == "LINUX" ]; then
   echo "Generic Linux target"
 

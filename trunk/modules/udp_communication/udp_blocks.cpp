@@ -96,7 +96,11 @@ public:
         servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
         servaddr.sin_port=htons(port);
 
-
+        if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr))==-1) {
+	   fprintf (stderr, "could not bind to socket\n");
+	   close(sockfd);
+           throw 1;
+	}
 
 
     }
@@ -109,6 +113,21 @@ public:
 //         printf("send packet of %d bytes using socket %d:\n", N, sockfd);
         sendto(sockfd,buf,N,0,(struct sockaddr *)&broadcastAddr,sizeof(broadcastAddr));
     }
+    
+    int receive(void *buf, int buflen) {
+          struct sockaddr_in si_from;
+          socklen_t slen = sizeof(si_from);
+          if (recvfrom(sockfd, buf, buflen, 0, (struct sockaddr *) &si_from, &slen)==-1) {
+	    return -1;
+	  }
+           
+          printf("Received packet from %s:%d\nData: %s\n\n", 
+          inet_ntoa(si_from.sin_addr), ntohs(si_from.sin_port), buf); 
+	  
+	  return 0;
+    }
+    
+    
 
 
 
@@ -154,7 +173,12 @@ public:
 
         printf("destination hostname = %s, port = %d\n", hostname, udpport);
 
-	socket = new udpsocket(hostname, udpport);
+	try {
+	  socket = new udpsocket(hostname, udpport);
+	} catch (int e) {
+	  free(hostname);
+	  return -1;
+	}
 
         free(hostname); // do not forget to free the memory allocated by irpar_getstr
 
@@ -297,9 +321,175 @@ public:
 
 
 
+/*
+ * UDP-Receiver
+*/
+
+class UDPReceiverBlock {
+public:
+    UDPReceiverBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~UDPReceiverBlock()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+    bool ExitLoop;
+    int NCopyBytes;
+    UDPSocket_SharedObject *IShObj; // instance of the shared object
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+	
+	fprintf(stderr, "UDP-Read init\n");
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
 
 
+        // register the callback function to the simulator that shall trigger the simulation while running in a loop
+        libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
+        libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
+	
+	ExitLoop = false;
 
+
+        // Get the UDP-Socket
+        IShObj = NULL;
+        if ( ortd_GetSharedObj<UDPSocket_SharedObject>(block, &IShObj) < 0 ) {
+            return -1;
+        }
+// 		printf("****************** UDP-Read 1\n");
+//         fprintf(stderr, "Trying to get UDP Socket: %s \n", IShObj);
+
+
+        // set the initial states
+        resetStates();
+
+        // calc how many bytes shall be copied
+        int N = libdyn_get_outportsize(block, 0);
+        int datatype = libdyn_get_outportdatatype(block, 0);
+        int TypeBytes = libdyn_config_get_datatype_len(datatype);
+        NCopyBytes = N * TypeBytes;
+
+// 	printf("****************** UDP-Read init fin\n");
+	
+	
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+//         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+
+    }
+
+
+    inline void calcOutputs()
+    {
+//         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+
+	// Put out the sensor value
+     //   printf("output calc\n");
+
+    }
+
+
+    inline void resetStates()
+    {
+    }
+
+
+    
+    int SyncCallback( struct dynlib_simulation_t * sim )
+    {
+        /*
+         *		***	MAIN FUNCTION	***
+         *
+         * This function is called before any of the output or state-update flags
+         * are called.
+         * If 0 is returned, the simulation will continue to run
+         * If 1 is returned, the simulation will pause and has to be re-triggered externally.
+         * e.g. by the trigger_computation input of the async nested_block.
+        */
+
+        printf("Threaded simulation started execution\n");
+
+//     // wait until the callback function  real_syncDestructor_callback is called
+//     pthread_mutex_lock(&ExitMutex);
+//
+
+	double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+	
+	// This is the main loop of the new simulation
+        while (!ExitLoop) {
+          printf("wait for UDP Data to receive\n");
+//             sleep(1); // wait for dummy sensor
+	    IShObj->socket->receive( output, NCopyBytes );
+
+            // run one step of the ortd simulator
+            libdyn_event_trigger_mask(sim, 1);
+            libdyn_simulation_step(sim, 0);
+            libdyn_simulation_step(sim, 1);
+        }
+
+
+        return 1; // 1 - this shall not be executed again, directly after returning from this function!
+    }
+
+    int SyncDestructorCallback( struct dynlib_simulation_t * sim )
+    {
+        printf("The Block containing simulation is about to be destructed\n");
+
+	// Trigger termination of the the main loop
+	ExitLoop = true;
+//     pthread_mutex_unlock(&ExitMutex);
+
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a Template block\n");
+    }
+    
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<UDPReceiverBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+    static int syncCallback_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdat;
+        UDPReceiverBlock *p = (UDPReceiverBlock *) obj;
+        return p->SyncCallback(sim);
+    }
+    static int syncCallbackDestructor_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdatDestructor;
+        UDPReceiverBlock *p = (UDPReceiverBlock *) obj;
+        return p->SyncDestructorCallback(sim);
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
 
 
 
@@ -318,7 +508,7 @@ extern "C" int libdyn_module_udp_communication_siminit(struct dynlib_simulation_
     // Blocks from Template_SharedObjects.cpp. Uncomment if not needed
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &SharedObjBlock<UDPSocket_SharedObject>::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &UDPSocket_Send_Block::CompFn);
-
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &UDPReceiverBlock::CompFn);
 
     printf("libdyn module udp-communication initialised\n");
 

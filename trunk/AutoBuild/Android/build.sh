@@ -22,6 +22,11 @@ folder=OpenRTDynamics_android
 rm -rf $folder
 
 svn checkout svn://svn.code.sf.net/p/openrtdynamics/code/trunk $folder
+
+# update remove this!
+#cp ../../BuildScripts/InstallShellArchieve.sh $folder/BuildScripts
+
+
 cd $folder
 
 make clean
@@ -56,8 +61,10 @@ tar -c $folder | gzip -v9 > $folder.tgz
 cat $folder/bin/ortd_static | gzip -v9 > ortd_static.gz
 
 # create a selft installable shell archieve
-chmod +x trunk/BuildScripts/InstallShellArchieve.sh
-sh $folder/thirdparty/makeself-2.1.5/makeself.sh $folder ORTDInstall.sh OpenRTDynamics ./BuildScripts/InstallShellArchieve.sh
+chmod +x $folder/BuildScripts/InstallShellArchieve.sh
+#sh $folder/thirdparty/makeself-2.1.5/makeself.sh --notemp $folder ORTDInstall_android.sh "OpenRTDynamics Android" ./BuildScripts/InstallShellArchieve.sh
+sh $folder/thirdparty/makeself-2.1.5/makeself.sh          $folder ORTDInstall_android.sh "OpenRTDynamics Android" ./BuildScripts/InstallShellArchieve.sh
+#sh $folder/thirdparty/makeself-2.1.5/makeself.sh $folder ORTDInstall_android.sh "OpenRTDynamics Android" ./BuildScripts/InstallShellArchieve.sh
 
 
 
@@ -65,7 +72,7 @@ sh $folder/thirdparty/makeself-2.1.5/makeself.sh $folder ORTDInstall.sh OpenRTDy
 scp ortd_static.gz              christianausb@frs.sourceforge.net:/home/project-web/openrtdynamics/htdocs/download/Android/current
 scp $folder.tgz  christianausb@frs.sourceforge.net:/home/project-web/openrtdynamics/htdocs/download/Android/current
 
-rm -rf $folder
+#rm -rf $folder
 
 exit
 

@@ -46,7 +46,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   ev = 0;
 
   // Open an UDP-Port
-  [sim] = ld_UDPSocket_shObj(sim, ev, ObjectIdentifyer="aSocket", Visibility=0, hostname="lambda", UDPPort=10000);
+  [sim] = ld_UDPSocket_shObj(sim, ev, ObjectIdentifyer="aSocket", Visibility=0, hostname="127.0.0.1", UDPPort=10000);
 
   // generate two signals   
   [sim, u1] = ld_play_simple(sim, ev, r=linspace(0,1,100) );

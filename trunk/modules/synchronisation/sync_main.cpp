@@ -17,6 +17,8 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// #define DEBUG
+
 #include <malloc.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -47,6 +49,7 @@ extern int clock_nanosleep(clockid_t, int, const struct timespec *, struct times
 }
 
 
+#include "libdyn_cpp.h"
 
 
 
@@ -407,7 +410,202 @@ int compu_func_synctimer(int flag, struct dynlib_block_t *block)
     }
 }
 
+/*
+     New version as of 20.7.2013. Take this also as an example
+*/
 
+
+class ClockSyncBlock {
+public:
+    ClockSyncBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~ClockSyncBlock()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+    bool ExitLoop;
+
+    void initclock();
+    void wait(double Tsamp);
+
+    struct timespec t, interval, curtime, T0;
+    double T;
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+
+        // set the initial states
+        resetStates();
+
+        // register the callback function to the simulator that shall trigger the simulation while running in a loop
+        libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
+        libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
+	
+	ExitLoop = false;
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+    }
+
+
+    inline void calcOutputs()
+    {
+        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+    }
+
+
+    inline void resetStates()
+    {
+    }
+
+    
+    int SyncCallback( struct dynlib_simulation_t * sim )
+    {
+        /*
+         *		***	MAIN FUNCTION	***
+         *
+         * This function is called before any of the output or state-update flags
+         * are called.
+         * If 0 is returned, the simulation will continue to run
+         * If 1 is returned, the simulation will pause and has to be re-triggered externally.
+         * e.g. by the trigger_computation input of the async nested_block.
+        */
+
+#ifdef DEBUG
+        printf("ClockSyncBlock: Threaded simulation started execution\n");
+#endif
+
+//     // wait until the callback function  real_syncDestructor_callback is called
+//     pthread_mutex_lock(&ExitMutex);
+//
+      // time for execution t and the interval
+      struct timespec t, interval;
+      
+      // measure the current time
+      clock_gettime(CLOCK_MONOTONIC,&t);
+
+	
+      
+	// This is the main loop of the new simulation
+        while (!ExitLoop) {
+
+            // run one step of the ortd simulator
+            libdyn_event_trigger_mask(sim, 1);
+            libdyn_simulation_step(sim, 0);
+            libdyn_simulation_step(sim, 1);
+
+	  
+            // The simulation tells how long to wait
+            double *T_pause = (double*) libdyn_get_input_ptr(block, 0);
+
+#ifdef DEBUG
+            fprintf(stderr, "STEP\n");
+#endif
+
+            if (*T_pause < 0) {
+#ifdef DEBUG
+                fprintf(stderr, "simulation is idle now\n");
+#endif
+                return 1; // return 1 exits the loop calling this callback
+            }
+
+#ifdef DEBUG
+            fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
+#endif
+
+	    // calc time to wait
+	        interval.tv_sec =  0L;
+           interval.tv_nsec = (long)1e9* (*T_pause);
+           tsnorm(&interval);
+	   
+        // calculate time for the next execution
+        t.tv_sec+=interval.tv_sec;
+        t.tv_nsec+=interval.tv_nsec;
+        tsnorm(&t);
+	   
+	   // wait 
+           clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+	    
+	}
+
+
+        return 1; // 1 - this shall not be executed again, directly after returning from this function!
+    }
+
+    int SyncDestructorCallback( struct dynlib_simulation_t * sim )
+    {
+#ifdef DEBUG
+        printf("ClockSyncBlock: The Block containing simulation is about to be destructed\n");
+#endif
+
+	// Trigger termination of the the main loop
+	ExitLoop = true;
+//     pthread_mutex_unlock(&ExitMutex);
+
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ClockSyncBlock block\n");
+    }
+    
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<ClockSyncBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+    static int syncCallback_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdat;
+        ClockSyncBlock *p = (ClockSyncBlock *) obj;
+        return p->SyncCallback(sim);
+    }
+    static int syncCallbackDestructor_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdatDestructor;
+        ClockSyncBlock *p = (ClockSyncBlock *) obj;
+        return p->SyncDestructorCallback(sim);
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
+
+/*
+
+*/
 
 
 int ortd_compu_func_clock(int flag, struct dynlib_block_t *block)
@@ -504,8 +702,9 @@ int libdyn_module_synchronisation_siminit(struct dynlib_simulation_t *sim, int b
     int blockid = 15100;  // CHANGE HERE: choose a unique id for each block
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_synctimer);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ortd_compu_func_clock);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ClockSyncBlock::CompFn);
 
-
+    
 
     printf("libdyn module sync initialised\n");
 
