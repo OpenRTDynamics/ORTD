@@ -13,17 +13,7 @@ export SH = sh
 #export CFLAGS += -DDEBUG
 
 
-# detect host type
-export host-type := $(shell arch)
-ifeq ($(host-type),x86_64)
-    # 64 Bit
-    export CFLAGS += -fPIC
-endif
 
-ifeq ($(host-type),armv7l)
-    # 64 Bit
-    export CFLAGS += -fPIC
-endif
 
 
 # create list of modules
@@ -31,8 +21,6 @@ MODULES := $(shell ls modules)
 
 # get the current dir and assume it is the one of ortd
 export ortd_root := $(shell pwd)
-
-
 
 # Configure target
 export target := $(shell cat target.conf)
@@ -42,6 +30,18 @@ targetmacro=__HMM
 
 ifeq ($(target),LINUX)
   targetmacro=__ORTD_TARGET_LINUX
+
+  # detect host type
+	export host-type := $(shell arch)
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+	ifeq ($(host-type),armv7l)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
 
   # Detect system type and set Fflags
     export CFLAGS += -O2 -D$(targetmacro)
@@ -53,6 +53,18 @@ endif
 
 ifeq ($(target),LINUX_DEBUG)
   targetmacro=__ORTD_TARGET_LINUX
+
+  # detect host type
+	export host-type := $(shell arch)
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+	ifeq ($(host-type),armv7l)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
 
   # Detect system type and set Fflags
     export CFLAGS += -O2 -D$(targetmacro) -DDEBUG
@@ -97,6 +109,19 @@ endif
 ifeq ($(target),RTAI_COMPATIBLE) 
   targetmacro=__ORTD_TARGET_RTAI
 
+  # detect host type
+	export host-type := $(shell arch)
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+	ifeq ($(host-type),armv7l)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+
     export CFLAGS += -g -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 
@@ -116,7 +141,8 @@ ifeq ($(target),ANDROID_ARM)
   targetmacro=__ORTD_TARGET_ANDROID
 
 #  export CFLAGS += -I/home/chr/bin/AndroidArmToolchain/sysroot/usr/include --sysroot=/home/chr/bin/AndroidArmToolchain/sysroot -O2 -D$(targetmacro) 
-  export CFLAGS += -O2 -D$(targetmacro) 
+  
+  export CFLAGS += -fPIC -O2 -D$(targetmacro) 
   export INCLUDE +=  -I$(ortd_root)
   export LDFLAGS += 
 
@@ -134,7 +160,7 @@ ifeq ($(target),ANDROID_ARM_NEON)
   targetmacro=__ORTD_TARGET_ANDROID
 
 #  export CFLAGS += -I/home/chr/bin/AndroidArmToolchain/sysroot/usr/include --sysroot=/home/chr/bin/AndroidArmToolchain/sysroot -O2 -D$(targetmacro) 
-  export CFLAGS += -O2 -D$(targetmacro) -march=armv7-a -mfloat-abi=softfp -mfpu=neon
+  export CFLAGS += -fPIC  -O2 -D$(targetmacro) -march=armv7-a -mfloat-abi=softfp -mfpu=neon
   export INCLUDE +=  -I$(ortd_root)
   export LDFLAGS += -Wl,--fix-cortex-a8
 
@@ -150,7 +176,7 @@ endif
 
 
 #
-# This tells the sub makefiles that the variables 
+# This tells the sub-makefiles that the variables 
 #from this makefile are available
 #
 

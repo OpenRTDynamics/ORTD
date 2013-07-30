@@ -5,7 +5,7 @@
 echo "This is the installer for ORTD"
 ls -l 
 
-export SOURCE_DIR=`pwd`
+SOURCE_DIR=`pwd`
 
 # detect target type
 
@@ -17,7 +17,36 @@ echo Target is $TARGET
 if [ "$TARGET" = "LINUX" ]
 then
   echo "Generic Linux target"
-  echo "Doing nothing"
+  echo "Compiling from source ..."
+  echo 
+  sleep 1
+#  echo "Doing nothing"
+
+  (  
+    cd "$SOURCE_DIR/"
+    make clean
+    make config
+    make
+    make demo
+  ) || (
+    echo "There was an error..."
+    echo "Make sure you have the commands gcc, g++, make, perl, bash"
+    echo "On Ubuntu: sudo apt-get install g++ make build-essential"
+    exit -1
+  )
+
+  # compilation was ok
+  (
+    echo "Compilation was successfull"
+    echo "Results were placed into $SOURCE_DIR"
+    echo "Run "
+    echo
+    echo "  make install"
+    echo
+    echo "from this folder to install the binaries into the system"
+    echo
+  )
+
 
 
 fi
