@@ -5,17 +5,17 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 8.7.2013
+Version of this document: 23.7.2013
 
-The Real Time Dynamics Toolbox is a noval approach to the implementation
+The Real Time Dynamics Toolbox is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
-and signal processing, for real time usage (like Real-Time Workshop® or 
+and signal processing, for real-time usage (like Real-Time Workshop® or 
 Scicos Code Generation). It is suitable for implementing time discrete 
 signal processing algorithms, like one would do in Scicos or Simulink, 
 within Scilab scripts (Matlab like) by using functions provided by an 
 included Scilab Toolbox in order to set-up a description of the schematic. 
 This way, well structured code can be achieved, whereby i.e. the filter 
-design could be included nearby the implementation for better review. 
+design could be included nearby the implementation for a better overview. 
 Additionally, functional and object orientated design schemes can be
 realised. The latter feature enables the possibility to implement reusable 
 parametrised sub-schematics that may also change in its structure based on 
@@ -30,38 +30,56 @@ for development.
 
 Further, along with the remote control interface and the ability to 
 implement state machines, to run different simulations in threads (e.g. 
-to distribute calculations accross multiple CPUs) and to include Scilab-Code 
+to distribute calculations across multiple CPUs) and to include Scilab-Code 
 as computational functions (S-function like), ORTD is also ideally suited 
 for laboratory automation. The ability to replace sub-schematics with new 
 implementations and parameters during runtime removes the effort of 
 restarting the main real-time program. Simulations running in threads can 
-also be synchronised to sensor updates or other events. 
+also be synchronised to sensor updates or other events e.g. variable timers. 
 
 Please Note: OpenRTDynamics does *not* depend on any part of Scicos/Xcos.
              ORTD uses its own algorithms for running the simulations.
              Only the Scilab Scripting language is required for describing
              the schematics and only during development. During runtime, no
              more than standard C/C++ libraries are required, therefore
-             ORTD is very uncomlicated to install and maintain, even on
-             other platforms.
+             ORTD is very uncomplicated to install and maintain, even on
+             other platforms. Difficult and cryptic instructions for 
+             the installation of this toolbox (as found in some open source 
+             projects) were intentionally avoided.
+             
 
 The ORTD runtime library can be easily integrated into other simulation 
 frameworks e.g. Scicos or used within other software by including a shared 
 library.
 
 
-The latestest versions include highly advanced features like
+--- The features that make this framework powerful ---
 
-* Online replacement of sub-controllers; Yes, can can exchange wires and blocks during the controller is running (modules/nested)
-* State machines (modules/nested)
-* Simulations running in threads (modules/nested)
+* Nesting simulations (sub-controllers) into each other up to unlimited depth,
+  using state machines (each state is represented by a simulation that is
+  reset when the state is left), or asynchronously running (threaded) sub-
+  simulations. Sub-simulations are included by special blocks that
+  implement a framework for state machines or threads and take functions 
+  describing the sub-simulations as their arguments along with their I/O 
+  ports. (modules/nested)
+
+* Ability to synchronise threaded sub-simulations to external event sources,
+  e.g. timers (modules/synchronisation), incoming network packages or 
+  sensor readings...
+
+* Online replacement of sub-controllers; Yes, can can exchange wires and blocks
+  during the controller is running (modules/nested)
+
+* Communication with Scilab from the simulations (modules/scilab),
+  e.g. for running calibration scripts on previously recorded data
+
+--- Other nice features ---
+
 * Mathematical formula parsing (modules/muparser)
-* Vector handling blocks (modules/basic_ldblocks)
-* Calling Scilab from the simulation (modules/scilab)
 * Remote control interface (modules/rt_server)
 * Starting external processes (modules/ext_process)
-* Timer for simulations running in threads (pending) (modules/synchronisation)
-* Scicos to ORTD block wrapper (modules/scicos_blocks)
+* Ability to call time-discrete Xcos-Blocks by a wrapper (modules/scicos_blocks)
+* ...
 
         
         
@@ -103,11 +121,20 @@ CONTENTS OF THIS README
 OS DEPENDENCY
 -------------
 
-- Linux. Maybe other UNIX-like.
-- Also compiles on the armv7l / Linux platform (Beaglebone, maybe others)
-- Just requires libpthreads besides the standard C++ - libraries
-- Shouldn't be a problem to port to other OS
-  or even embedded systems
+- Runs on Linux. 
+- Also compiles & runs on the armv7l / Linux platform (Beaglebone, Rasperry PI and 
+                                                                        many others)
+- And probably other UNIX-like OS but never tried.
+
+On Linux one of the rare APIs that stayed (almost) compatible for more than several
+year are the ones of libc, pthreads, and the standard C++ - libraries :-) and :-( .
+Since OpenRTDynamics is supposed to also stay functional in the long term future, this
+framework is *only* depending these very fundamental libraries.
+However, the functionally can be enhanced by additional libraries that are 
+automatically detected and used.
+
+Because of these small dependencies, it should not be a big issue to port
+this framework to other (real time) OSs.
 
 LICENSE
 -------
@@ -119,7 +146,7 @@ REQUIREMENTS
 
 On the development host:
  * Linux (Ubuntu tested)
- * Scilab 5.3. or above. It will be automatically installed via the grapical installer.
+ * Scilab 5.3. or above. It will be automatically installed via the graphical installer.
 
 On the executing / real time host (can also be the development host):
  * Linux (Ubuntu tested, possibly with rt_preemption enabled)
@@ -133,7 +160,7 @@ INSTALLATION (GRAPHICAL INSTALLATION)
 -------------------------------------
 
 The newest version is found in subversion and can be installed by a graphical 
-userinterface via pasting
+user interface via pasting
 
   sudo apt-get install g++ make subversion
 
@@ -141,13 +168,14 @@ and
 
   wget openrtdynamics.sf.net/getit.sh -O - | bash
 
-into your Terminal on Linux. You should also install scilab if you're
-asked.
+into your Terminal on Linux. You should also install Scilab if you're
+asked to do so as the ORTD toolbox for Scilab will be automatically
+installed.
 
 COMPILATION / INSTALLATION (normal PC x86/amd64)
 ------------------------------------------------
 
-If you used the grapical installer this might not be neccessary.
+If you used the graphical installer this might not be necessary.
 
 Run "make" followed by "make install" on 32/64 Linux platforms
 
@@ -169,7 +197,7 @@ Use
 
   make scilabhelp
 
-to generate help files to the scilab help.
+to generate help files to the Scilab help.
 
 Cleaning up is done via
 
@@ -217,25 +245,25 @@ INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
 6) cd OpenRTDynamics
 7) make clean; make; make install    # Compiles ORTD from source
 
-Internet access is required for this procedure. Alternatively you can downlaod the
+Internet access is required for this procedure. Alternatively you can download the
 the current svn-folder from
 
   http://sourceforge.net/p/openrtdynamics/code/HEAD/tree/trunk/ (Download snapshot)
 
-and transfer it to the BB. Unpacking and proceding with step 6) shall do the same.
+and transfer it to the BB. Unpacking and proceeding with step 6) shall do the same.
 
 In order to develop schematics ,you can prepare them on your PC using Scilab and the 
 installed Toolbox and upload the *.[i,r]par files to your Beaglebone, where they get 
-executed. For this it is suggested to use some file transfer protocoll like SFTP to 
+executed. For this it is suggested to use some file transfer protocol like SFTP to 
 upload files. You can install the ssh-server on your Beaglebone using
 
 $ sudo apt-get install openssh-server .
 
 Then you can connect via Gnome "Connect to server" or whatever you like. For directly 
 storing your whole project on the Beaglebone Filesystem you can also investigate 
-the "~/.gvfs" folder and use it to edit / execute scilab files directly on your PC, 
+the "~/.gvfs" folder and use it to edit / execute Scilab files directly on your PC, 
 whereby the files are stored on your Beaglebone. By this you would not copy the 
-irpar-files by hand everytime. You also need an installation of ORTD on your host
+irpar-files by hand every time. You also need an installation of ORTD on your host
 for development using Scilab (see above).
 
 An example for accessing the BB hardware, is available in examples/beaglebone. 
@@ -266,10 +294,10 @@ TARGET CONFIGURATION (for usage in a hard real-time environment)
 
 The following targets can be choosen before compilation within target.conf:
 
-1) RTAI_COMPATIBLE (runns within RTAI; Plugins are disabled because shared libraries
+1) RTAI_COMPATIBLE (runs within RTAI; Plugins are disabled because shared libraries
                     are not supported in RTAI, NOTE: This has not been tested for a long time)
 2) LINUX (Default, includes support for RT-Preemption if available)
-2a) LINUX_DEBUG   (Like LINUX but debuger information is included)
+2a) LINUX_DEBUG   (Like LINUX but debugger information is included)
 3) CYGWIN (not functional up to now, to run ORTD-simulations on Windows)
 4) ANDROID_ARM (Android using Android NDK cross compile toolchain, see the android section in
                 this document)
@@ -287,7 +315,7 @@ ANDROID (ANDROID_ARM-target)
 
      arm-linux-androideabi-gcc,    arm-linux-androideabi-c++,   arm-linux-androideabi-g++
    
-   Therefore, let the NDK create a Toolchain for you and set the environment variables
+   Therefore, let the NDK create a toolchain for you and set the environment variables
    (as described in docs/STANDALONE-TOOLCHAIN.HTML of the NDK's documentation folder) 
 
      export PATH=<Path to AndroidArmToolchain>/bin/:$PATH
@@ -360,28 +388,28 @@ wget http://openrtdynamics.sf.net/getitAndroid.sh -O - | bash
 CALLING SCILAB FROM ORTD SIMULATIONS
 ------------------------------------
 
-By the module "scilab" (modules/scilab) blocks can be implemented
+With help of the module "scilab" (modules/scilab) blocks can be implemented
 using the scilab language (example available in (modules/scilab/demo).
 For this, Scilab is started as a separate process and interfaced by
 standard input / output streams.
 
-A builtin path for the scilab executable is choosen during compilation
+A built-in path for the Scilab executable is chosen during compilation
 of the library (i.e. make) as follows:
 
-1) The scilab exe. from the scilab installation that comes along the graphical
+1) The scilab executable from the Scilab installation that comes along the graphical
    installation of ORTD is used (configured in the file scilabdir.conf).
 
 2) If there is a command "scilab" in the system this one is used if 1)
    was not successful.
 
-3) No builtin path for the Scilab binary is included. However, the binary
+3) No built-in path for the Scilab binary is included. However, the binary
    can be specified in the block "ld_scilab*" that includes the Scilab code.
 
 HART-Module INSTALLATION
 ------------------------
 
 Please Note: The hart modules hasn't been tested for a long time
-             and only scilab 4.1.2 was supported. For new Scilab
+             and only Scilab 4.1.2 was supported. For newer Scilab
              versions the module has to be adapted a bit.
 
 Link hart/hart_ortd to the modules/ directory of your HART-Toolbox. 
@@ -395,7 +423,7 @@ TOOLS
 -----
 
 - ortd: (the new name of libdyn_generic_exec)
-    executes schematics in realtime (rt_preempt) OR as fast as possible
+    executes schematics in real-time (rt_preempt) OR as fast as possible
     Schematics are getting some dummy in and outputs, but should not be
     used.
 
@@ -403,7 +431,7 @@ TOOLS
 
 - ortd_static: The statically linked version of the executable
                (can be used without installing libraries into 
-                the system, runns nearly everywhere)
+                the system, runs nearly everywhere)
 
 LIST OF PROVIDED BLOCKS
 -----------------------
@@ -439,12 +467,12 @@ IMPORTANT: Since there is no guarantee for a stable ABI (Application binary inte
            you should *re-compile* any ORTD-plugin after updating ORTD. The API
            (defined by the ORTD-header files) however is going to stay compatible,
            so you do not have to change you source code for each new version of ORTD,
-           which propably makes your life easier :-)
+           which probably makes your life easier :-)
 
 ADDITIONAL THINGS
 -----------------
 
-Within additional/joystick, there is a seperate Python-Script to read out a connected
+Within additional/joystick, there is a separate Python-Script to read out a connected
 joystick and feed the data directly to ORTD-schematics via the rt_server infrastructure.
 It can be used for an example to easily integrate other input devices. Only one simple 
 Python-Script is needed for that.
@@ -452,9 +480,11 @@ Python-Script is needed for that.
 EXAMPLES
 --------
 
-Type "make dmeo" in the main folder.
+Type "make demo" in the main folder.
 
 Examples can be found within the "examples" subdirectory.
+
+FIXME: Update this
 
 For a ready to run example go into the examples directory via shell and type:
 
@@ -512,7 +542,7 @@ IMPORTANT SOURCE FILES
               resulting schematic is stored within irpar.c data structures.
 
 - libdyn_generic_exec.cpp: Source code for the command "ortd", which
-                           runns schematics.
+                           runs schematics.
 
 TODO
 ----
@@ -520,15 +550,15 @@ TODO
 - Makefile (done)
 - Better Documentation (the provided one is out of date):
 
-- Wrapper block for backgroud computations for state updates
-- nestet schematics (done)
-- exchangable schematics (done)
+- Wrapper block for background computations for state updates
+- nested schematics (done)
+- exchangeable schematics (done)
 - tcp server for remote control, parameter uploading ... (experimental)
 - block interpreting math formula (done; with help of muParser)
 - wrapper for scicos blocks and inclusion of hart toolbox
 - a dynamical linker that loads *so files as it might be described
   within the schematics
-- A matix module (multiplication, inversion ...)
+- A matrix module (multiplication, inversion ...)
 - A Kalman Filter build with basic blocks
 - ....
 
@@ -543,9 +573,9 @@ BUGS
 - If an ld_stream block is not connected with another block
   the initialisation of the parameter is not done (but its actually not needed in this case)
 
-- module udp_communication: If the host name is not known a segfault may be triggered
+- module udp_communication: If the host name is not known a segfault may be triggered (fixed)
 
-- Otherwise it works quite stable (Used for many controller implementations in medical
+- It works stable (Used for many controller implementations in medical
   control at TU-Berlin)
 
 CONTACT
@@ -589,16 +619,16 @@ v0.99f
 
 v0.99g (4.11.2011)
   - Improved rt_server module
-  - Implented port size checking during schematic generation within Scilab
+  - Implemented port size checking during schematic generation within Scilab
   - Fixed bugs in nested and basic_blocks module
-  - libdyn_generic_exec: Now runns also without RT-Preempt (no root access needed);
+  - libdyn_generic_exec: Now runs also without RT-Preempt (no root access needed);
     there is now a static version libdyn_generic_exec_static
   - starting with scilab5/Xcos hart module
   - Added documentation parser
   - Some new blocks for vector manipulation
 
 v0.99h ( not release by now )
-  - A new and nice grapical installer
+  - A new and nice graphical installer
   - Bugs: in vector manipulation blocks, ld_muparser_subst (still experimental) 
   - Added new slides in documentation folder
   - Slightly changed the rt_server protocoll
@@ -622,7 +652,7 @@ v0.99h ( not release by now )
   
 By date as there will only be the svn-version
 
-  - 9.12.12: Pipeline-module added comming with a ringbuffer implementation for communication between threads  
+  - 9.12.12: Pipeline-module added coming with a ring-buffer implementation for communication between threads  
   - 28.3.13: Android Target available
   - 10.5.13: Added ld_file_save_machine2 macro, that allows to automatically detect port sizes and types
              It is also a nice example on using state machines
