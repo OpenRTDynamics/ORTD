@@ -2643,7 +2643,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   mydebug(7) fprintf(stderr, "getting parameters\n");
   // Get irpar container/box
   struct irpar_header_element_t ret;
-  err = irpar_get_element_by_id(&ret, ipar, rpar, boxid);
+  err = irpar_get_element_by_id(&ret, ipar, rpar, boxid); // open the simulation container "boxid"
   if (err == 0) {
     fprintf(stderr, "Error getting irpar box id %d\n", boxid);
     return -1;
@@ -2662,33 +2662,47 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 
   
 #ifdef __ORTD_PLUGINS_ENABLED
-  fprintf(stderr, "Plugins are enabled\n");
+  fprintf(stderr, "System provides shared libraries --> Plugins are enabled.\n");
   
   // Load modules, if available
   struct irpar_rvec_t *enc_libpath;
   err = irpar_get_rvec(&enc_libpath, ret.ipar_ptr, ret.rpar_ptr, 20);
   if (err == -1) {
 //     fprintf(stderr, "No Plugin shall be loaded\n");
-  } else ;
+  } 
+	  
   {
     char *plugin_fname = "./ortd_plugin.so";
 /*    int len = enc_libpath->n;
     
     irpar_getstr(&plugin_fname, enc_libpath->v, 0, len);*/
-    
-    fprintf(stderr, "Loading plugin: %s\n", plugin_fname);
-
+#ifdef DEBUG     
+    fprintf(stderr, "Trying to load: %s\n", plugin_fname);
+#endif
     ortd_load_plugin(*sim, plugin_fname);
     
+    
+    
+    int i;
+    char plugin_fname2[100];
+    
+    for (i=0; i<10; ++i) {
+      sprintf(plugin_fname2, "./ortd_plugin%d.so", i);
+#ifdef DEBUG      
+      fprintf(stderr, "Trying to load: %s\n", plugin_fname2);
+#endif     
+      ortd_load_plugin(*sim, plugin_fname2);
+    }
     
 //     free(plugin_fname);
   }
 #else
-  fprintf(stderr, "Plugins are disabled in RTAI-compatible mode\n");
+  fprintf(stderr, "Plugins are disabled e.g. in RTAI-compatible mode\n");
 #endif
 
   //
-  // Read all blocks and connect them
+  // Read all blocks from the simulation container and connect them
+  // accorfing to the tables provieded by the container
   // 
   
   err = irpar_get_libdynconnlist(*sim, ret.ipar_ptr, ret.rpar_ptr, 100, iocfg);
@@ -2706,7 +2720,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 
   err = libdyn_simulation_checkinputs(*sim);
   if (err < -0) {
-    fprintf(stderr, "Error checking input ports of all blocks\n");
+    fprintf(stderr, "Error checking input ports of all blocks. Some port unconnected?\n");
     
     goto error; 
   }
@@ -2723,11 +2737,13 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
     goto error; 
   }
  
-/*  //
+  //
   // Dump all Blocks
   //
  
-  libdyn_dump_all_blocks(*sim); */
+#ifdef DEBUG
+  libdyn_dump_all_blocks(*sim);
+#endif
   
   return 0;
 
