@@ -71,20 +71,20 @@ public:
         int error = 0;
 
         //
-        // get a string (not so nice by now)
+        // get a string
         //
 	
-        struct irpar_ivec_t str_;
-        char *str;
-        if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;
-        irpar_getstr(&str, str_.v, 0, str_.n);
-
-        printf("str = %s\n", str);
-
-        free(str); // do not forget to free the memory allocated by irpar_getstr
+//         struct irpar_ivec_t str_;
+//         char *str;
+//         if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;
+//         irpar_getstr(&str, str_.v, 0, str_.n);
+// 
+//         printf("str = %s\n", str);
+// 
+//         free(str); // do not forget to free the memory allocated by irpar_getstr
 
 	
-	// cpp version (nicer)
+	// cpp version (nicer), an exception is thrown in case something goes wrong
 	irpar_string s(Uipar, Urpar, 12);
 	printf("cppstr = %s\n", s.s->c_str());
 
@@ -94,17 +94,19 @@ public:
         // get a vector of integers (double vectors are similar, replace ivec with rvec)
         //
 	
-        struct irpar_ivec_t vec;
-        if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) error = -1 ;
-        printf("vec[0] = %d\n", vec.v[0]);
+//         struct irpar_ivec_t vec;
+//         if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) error = -1 ;
+//         printf("vec[0] = %d\n", vec.v[0]);
 
 	
-	// c++ version (nicer)
+	// c++ version (nicer), an exception is thrown in case something goes wrong
 	try {
 	  irpar_ivec veccpp(Uipar, Urpar, 11); // then use:  veccpp.n; veccpp.v;
-	  printf("veccpp[0] = %d\n", veccpp.v[0]);
+	  printf("veccpp[0] = %d\n", veccpp.v[0]); // print the first element 
+	                                           // of the vector that is of size veccpp.n
 	} catch(int e) {
 	  // parameter not found
+	  error = -1;
 	}
 	
 	
@@ -113,7 +115,7 @@ public:
         //
         // get some informations on the first input port
  	//
-	int N = libdyn_get_inportsize(block, 0);  // the size of the input vector
+	int N = libdyn_get_inportsize(block, 0);  // the size of the first (=0) input vector
 	int datatype = libdyn_get_inportdatatype(block, 0); // the datatype
 	int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
 	int NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
