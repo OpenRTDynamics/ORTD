@@ -50,9 +50,23 @@
 ORTD.DATATYPE_UNCONFIGURED = 0;
 ORTD.DATATYPE_FLOAT = (1 + (8 * 2^5));
 ORTD.DATATYPE_SHORTFLOAT = 4;
-ORTD.DATATYPE_INT = 2;
+ORTD.DATATYPE_INT32 = 2;
 ORTD.DATATYPE_BOOLEAN = 3;
 ORTD.DATATYPE_EVENT = 5;
+ORTD.DATATYPE_BINARY = 6;
+
+// #define DATATYPE_UNCONFIGURED 0
+// #define DATATYPE_FLOAT (1 | (sizeof(double) << 5))
+// #define DATATYPE_SHORTFLOAT 4
+// #define DATATYPE_INT32 2
+// #define DATATYPE_BOOLEAN 3
+// #define DATATYPE_EVENT 5
+// #define DATATYPE_BINARY 6
+// #define DATATYPE_UINT32 7
+// #define DATATYPE_INT16 8
+// #define DATATYPE_UINT16 9
+// #define DATATYPE_INT8 10
+// #define DATATYPE_UINT8 11
 
 
 
@@ -61,6 +75,36 @@ ORTD.DATATYPE_EVENT = 5;
 // to this obj can check, wheter it belongs to the simulation passed
 global libdyn_simu_id_counter;
 libdyn_simu_id_counter = 1000 + ceil(rand()*10000);
+
+// 
+// get datatype size
+// 
+// counterpart to the C-function int libdyn_config_get_datatype_len(int datatype)
+// in libdyn.c
+// 
+function NBytes=libdyn_datatype_len(datatype)
+  NBytes = 0;
+
+  select datatype
+    case ORTD.DATATYPE_FLOAT
+      NBytes = 8;
+
+    case ORTD.DATATYPE_SHORTFLOAT
+      NBytes = 4;
+
+    case ORTD.DATATYPE_INT32
+      NBytes = 4;
+
+    case ORTD.DATATYPE_BINARY
+      NBytes = 1;
+  end
+
+  if NBytes == 0 then
+    error("Unknown datatype");
+  end
+
+endfunction
+
 
 // new schematic
 function sim = libdyn_new_simulation(insizes, outsizes)

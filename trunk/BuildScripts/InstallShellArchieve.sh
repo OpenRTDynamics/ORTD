@@ -25,6 +25,7 @@ then
   (  
     cd "$SOURCE_DIR/"
     make clean
+    make install_toolbox
     make config
     make
     make demo
@@ -39,11 +40,40 @@ then
   (
     echo "Compilation was successfull"
     echo "Results were placed into $SOURCE_DIR"
+    echo
+
+    if zenity --question --text "Shall I install the libraries into the system? Root access is required herefore."
+    then
+      echo
+      echo "----------------------------------------------------------------"
+      echo "Root access is required to install the binaries into your system"
+      echo "enter your sudo password"
+      echo "----------------------------------------------------------------"
+      echo
+      cd "$SOURCE_DIR"
+      sudo make install
+    fi
+
+    if zenity --question --text "Shall I install the libraries into your home directory within ~/bin ?"
+    then
+      cd "$SOURCE_DIR"
+      sudo make homeinstall
+    fi
+
+    echo
+    echo
+    echo "****************************************************"
+    echo
+    echo "Compilation was successfull"
+    echo "Results were placed into $SOURCE_DIR"
+    echo
     echo "Run "
     echo
-    echo "  make install"
+    echo "  make demo"
     echo
-    echo "from this folder to install the binaries into the system"
+    echo "from this folder to see a demo"
+    echo
+    echo "For more information have a look at the README file placing in this folder."
     echo
   )
 

@@ -45,27 +45,60 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // this is the default event
   ev = 0;
 
+  [sim,one] = ld_const(sim, ev, 1);
+
   // Open an UDP-Port
   [sim] = ld_UDPSocket_shObj(sim, ev, ObjectIdentifyer="aSocket", Visibility=0, hostname="127.0.0.1", UDPPort=10000);
 
-  // generate two signals   
-  [sim, u1] = ld_play_simple(sim, ev, r=linspace(0,1,100) );
-  [sim, u2] = ld_play_simple(sim, ev, r=sin( linspace(0,%pi*6,100) ) );
+  // generate a signal
+  [sim, Signal ] = ld_play_simple(sim, ev, r=5*sin( linspace(0,%pi*6*10,1000) ) );
 
-  out = u1;
+  // Packet counter, so the order of the network packages can be determined
+  [sim, Counter] = ld_modcounter(sim, ev, in=one, initial_count=0, mod=10000)
+  [sim, Counter_int32] = ld_ceilInt32(sim, ev, Counter);
+
+  // Source ID
+  [sim, SourceID] = ld_const(sim, ev, 4);
+  [sim, SourceID_int32] = ld_ceilInt32(sim, ev, SourceID);
+
+  // Sender ID
+  [sim, SenderID] = ld_const(sim, ev, 1295793); // random number
+  [sim, SenderID_int32] = ld_ceilInt32(sim, ev, SenderID);
+
 
   // print data
-  [sim] = ld_printf(sim, ev, out, "output = ", 1);
-  
-  // send
-  [sim, out] = ld_UDPSocket_Send(sim, ev, ObjectIdentifyer="aSocket", in=out, insize=1, intype=ORTD.DATATYPE_FLOAT);
+  [sim] = ld_printf(sim, ev, Signal, "Signal = ", 1);
 
-//   // save the signal us
-//   [sim] = ld_savefile(sim, ev, fname="result.dat", source=out, vlen=1);
-  
+  // make a binary structure
+  [sim, Data, NBytes] = ld_ConcateData(sim, ev, ...
+                         inlist=list(SenderID_int32, Counter_int32, SourceID_int32, Signal ), insizes=[1,1,1,1], ...
+                         intypes=[ ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_FLOAT ] );
+
+  printf("Size of the UDP-packets will be %d bytes.\n", NBytes);
+
+  // send to the network
+  [sim] = ld_UDPSocket_Send(sim, ev, ObjectIdentifyer="aSocket", ...
+                 in=Data, insize=NBytes, intype=ORTD.DATATYPE_BINARY);
+
+  // demo for disassembling this structure -- just to show how it works
+  [sim, DisAsm] = ld_DisassembleData(sim, ev, in=Data, ...
+                         outsizes=[1,1,1,1], ...
+                         outtypes=[ ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_FLOAT ] );
+
+  [sim, DisAsm(1)] = ld_Int32ToFloat(sim, ev, DisAsm(1) );
+  [sim, DisAsm(2)] = ld_Int32ToFloat(sim, ev, DisAsm(2) );
+  [sim, DisAsm(3)] = ld_Int32ToFloat(sim, ev, DisAsm(3) );
+
+  [sim] = ld_printf(sim, ev, DisAsm(1), "DisAsm(1) (SenderID)       = ", 1);
+  [sim] = ld_printf(sim, ev, DisAsm(2), "DisAsm(2) (Packet Counter) = ", 1);
+  [sim] = ld_printf(sim, ev, DisAsm(3), "DisAsm(3) (SourceID)       = ", 1);
+  [sim] = ld_printf(sim, ev, DisAsm(4), "DisAsm(4) (Signal)         = ", 1);
+
+
+
+
   // output of schematic
-  [sim, out] = ld_const(sim, ev, 0);
-  outlist = list(out); // Simulation output #1
+  outlist = list();
 endfunction
 
 
@@ -78,7 +111,7 @@ endfunction
 defaultevents = [0]; // main event
 
 // set-up schematic by calling the user defined function "schematic_fn"
-insizes = [1,1]; outsizes=[1];
+insizes = []; outsizes=[];
 [sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, insizes, outsizes);
 
 

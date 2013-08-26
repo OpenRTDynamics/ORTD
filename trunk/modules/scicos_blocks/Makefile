@@ -8,8 +8,8 @@
 #     .) If you want to use scicos blocks from real Scicos or Code Generation disable this
 #
 
-#export CONFIG = -DSCICOS_WRAPPER_INCLUDESCICOSFN
-export CONFIG = 
+export CONFIG = -DSCICOS_WRAPPER_INCLUDESCICOSFN
+#export CONFIG = 
 
 ifeq ($(main_makefile_invoked),yes)
 
