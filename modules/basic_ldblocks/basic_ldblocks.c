@@ -2222,6 +2222,204 @@ int compu_func_FlagProbe(int flag, struct dynlib_block_t *block)
   }
 }
 
+#include <stdint.h>
+
+int compu_func_ld_ceilInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+	
+        *out = ceil(*in);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ceilInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int compu_func_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+	
+        *out = *in;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT , 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a Int32ToFloat block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int compu_func_ld_floorInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+	
+        *out = floor(*in);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a floorInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int compu_func_ld_roundInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+	
+        *out = round(*in);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a roundInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3991,7 +4189,14 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 27, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_insert_element);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 28, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_FlagProbe);    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 29, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_printfbar);
+
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 30, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_ceilInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 31, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_Int32ToFloat);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 32, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_floorInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 33, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_roundInt32);
     
+
+
     
     
     

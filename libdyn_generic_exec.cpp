@@ -331,12 +331,12 @@ void endme(int n)
 
 void usage(void)
 {
-    printf("Usage: libdyn_generic_exec [<options>]\n"
+    printf("Usage: ortd [<options>]\n"
            " \n"
            "  --baserate <rate/ms> A value of zero means as fast as possible (simulation mode)\n"
            "                       For baserates != 0 real-time execution using\n"
            "                       the given rate will be used.\n"
-           "  -d <divider> new baserate divider\n"
+           "  -d <divider> new baserate divider THIS WILL BE REMOVED SOON\n"
            "  -s <name> name of schematic irpar files. .ipar and .rpar will be added to name\n"
            "  -i schematic id\n"
            "  -l <len> number of simulation steps. 0 means endless\n"
@@ -345,7 +345,7 @@ void usage(void)
 	   "  -m / --rtmode <val>  Set the real-time mode to <val>. 0 (default) means get real-time priority whenever\n"
 	   "                       possible, 1 means to run with normal priority\n"
            " \n"
-           "Example: libdyn_generic_exec --baserate 0 -s schematic -i 901 -l 1000\n"
+           "Example: ortd --baserate 0 -s schematic -i 901 -l 1000\n"
            "         this will load schematic.ipar and schematic.rpar and simulate 1000 steps\n"
            "\n");
 

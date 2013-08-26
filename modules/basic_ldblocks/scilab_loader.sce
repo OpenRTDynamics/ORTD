@@ -1073,8 +1073,69 @@ function [sim] = ld_FlagProbe(sim, events, in, str, insize) // PARSEDOCU_BLOCK
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
 endfunction
 
+function [sim,out] = ld_ceilInt32(sim, events, in) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: ceil(in)
+// 
+// return value is of type ORTD.DATATYPE_INT32
+// 
 
+  btype = 60001 + 30;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
 
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_Int32ToFloat(sim, events, in) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Convert int32 to double float
+// 
+// ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
+// 
+
+  btype = 60001 + 31;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_floorInt32(sim, events, in) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: ceil(in)
+// 
+// return value is of type ORTD.DATATYPE_INT32
+// 
+
+  btype = 60001 + 32;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_roundInt32(sim, events, in) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: ceil(in)
+// 
+// return value is of type ORTD.DATATYPE_INT32
+// 
+
+  btype = 60001 + 33;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 

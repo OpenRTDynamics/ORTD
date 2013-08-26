@@ -92,6 +92,7 @@ CONTENTS OF THIS README
 - INSTALLATION (GRAPHICAL INSTALLATION)
 - COMPILATION / INSTALLATION (normal PC x86/amd64)
 - IMPORTANT MAKE-TARGETS
+- BUILDING A SELF-EXTRACTING AND COMPILING PACKAGE
 - UPDATING THE SUBVERSION VERSION
 - INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
 - INCLUDING YOUR HARDWARE VIA PLUGINS OR MODULES
@@ -212,7 +213,13 @@ IMPORTANT MAKE-TARGETS
 make config          # Configure the framework, e.g. check for libraries
 make                 # Compile
 make install         # Install to /usr/local/[lib,bin]
+make homeinstall     # Install the ortd binary into the home directory ( ~/bin )
 make demo            # run a demo
+make package         # Create a self extracting and self compiling copy of the framework 
+                       contained within a shell archieve OpenRTDynamics_source.sh
+                       which can be transfered to target platforms e.g. ARM-targets
+                       like the Beaglebone, Rasperry Pi, ...
+                       The archieve requires a build system on the target system.
 
 make scilabhelp      # Update the help of the Scilab Toolbox
 make install_toolbox # Run the installer for the Scilab Toolbox
@@ -220,6 +227,22 @@ make clean           # Clean up, always use this after updating the framework e.
 make cleanBuildFiles # remove all files generated during the build process, but not the
                        resulting binaries
 
+BUILDING A SELF-EXTRACTING AND COMPILING PACKAGE
+------------------------------------------------
+
+To build a self extracting and self compiling archieve run:
+
+  # bash <ORTDFolder>/AutoBuild/LINUX_source/build.sh this <openrtdynamics-source> <OpenRTDynamics_source>
+
+from outside of the openrtdynamics-source directory or alternatively
+
+  # make package
+
+from within the source tree.
+
+This gives a file called <OpenRTDynamics_source>.sh which inclues a copy of the cleaned up folder 
+<openrtdynamics-source>. This can then be transfered to target systems, where the 
+sources are compiled automatically. Of course a build system is required on the target system.
 
 UPDATING THE SUBVERSION VERSION
 -------------------------------
@@ -513,12 +536,18 @@ DATATYPES
 ---------
 
   - ORTD.DATATYPE_FLOAT (Scilab), DATATYPE_FLOAT (C) is "double"
-  - ORTD.DATATYPE_INT (Scilab), DATATYPE_INT (C) is "int"
+  - ORTD.DATATYPE_INT32 (Scilab), DATATYPE_INT32 (C) is "int32_t"
+  - ORTD.DATATYPE_BINARY (Scilab), DATATYPE_BINARY (C) is "char" (8 Bit)
 
   - more to come ...
 
 Nevertheless the majority of the available blocks *only* support
 DATATYPE_FLOAT by now.
+
+For data conversion the following blocks are available up to now:
+
+Simple datatypes: ld_roundInt32, ld_ceilInt32, ld_floorInt32, ld_Int32ToFloat
+Structures: ld_DisassembleData, ld_ConcateData
 
 IMPORTANT SOURCE FILES
 ----------------------
@@ -662,11 +691,11 @@ By date as there will only be the svn-version
   - 14.5.13: Added write support for EDF+ (European Data Format) - files
   - 28.5.13: Easier implementation of objects that can be shared between blocks
   -  3.6.13: A new module for UDP-Communication
-  - 20.7.13: * Bug in synchronisation module fixed that prevented destroying simulations on
+  - 20.7.13: * Fixed a bug in synchronisation module that prevented destroying simulations on
              exit. Also the code was rewritten and looks now nicer. Now use
              ld_ClockSync instead of ld_synctimer which was experimental and is now obsolete.
   -          * Added ld_async_simulation for running simulations in thread. This replaces
              the old scheme via ld_nested2.
   -          * Cleaned up class libdyn_nested2 in libdyn_cpp.cpp
-             
+  - 17.8.13: More datatypes and blocks for datatype conversion; UDP send/receive blocks (EXPERIMENTAL).
 

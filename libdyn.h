@@ -60,12 +60,18 @@
 #define DATATYPE_UNCONFIGURED 0
 #define DATATYPE_FLOAT (1 | (sizeof(double) << 5))
 #define DATATYPE_SHORTFLOAT 4
-#define DATATYPE_INT 2
+#define DATATYPE_INT32 2
 #define DATATYPE_BOOLEAN 3
 #define DATATYPE_EVENT 5
+#define DATATYPE_BINARY 6
+#define DATATYPE_UINT32 7
+#define DATATYPE_INT16 8
+#define DATATYPE_UINT16 9
+#define DATATYPE_INT8 10
+#define DATATYPE_UINT8 11
 
 
-// Different types inputs UNUSED 
+// Different types inputs FIXME: THIS IS UNUSED 
 #define INTYPE_UNDEF -1
 #define INTYPE_DIRECT 1
 #define INTYPE_EXTERN 2
@@ -88,7 +94,7 @@
 #define COMPF_FLAG_CALCOUTPUTS 3
 #define COMPF_FLAG_DESTUCTOR 4
 #define COMPF_FLAG_NOTIFY 5 // ???
-#define COMPF_FLAG_SETEXTRAPAR 6
+#define COMPF_FLAG_SETEXTRAPAR 6  // unused
 #define COMPF_FLAG_INIT 7 // follows CONFIGURE
 #define COMPF_FLAG_RELOAD_IRPAR 8  // not and propably never used
 #define COMPF_FLAG_RESETSTATES 9 // NEW 25.6.11

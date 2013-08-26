@@ -137,6 +137,8 @@ int error = 0;
 //     cos.initStructure(compfn, sizeof(IPAR1), sizeof(RPAR1), IPAR1, RPAR1, Nin, Nout, Nz, z);
     cos.initStructure(compfn, sizeof(n_ipar2), sizeof(n_rpar2), ipar2, rpar2, Nin, Nout, Nz, z);
     
+//     printf("rpar ptr %p\n", (void*) cos.cosblock.rpar);
+    
     int i;
     for (i = 0; i < Nin; ++i) {
       cos.setInSize(i, insizes.v[i]);  // make insize depending on i for multiple ports
@@ -159,7 +161,10 @@ int error = 0;
 #endif;
     }
     
-
+//     printf("rpar ptr %p\n", (void*) cos.cosblock.rpar);
+// printf("block ptr %p\n", (void*) &cos.cosblock);
+//     printf("cos ptr %p\n", (void*) &cos);
+    
     cos.Cinit();
 
     // Return -1 to indicate an error, so the simulation will be destructed

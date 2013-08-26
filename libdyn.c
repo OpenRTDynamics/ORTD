@@ -45,6 +45,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "libdyn.h"
 #include "plugin_loader.h"
 
@@ -89,6 +90,9 @@ int libdyn_config_get_datatype_len(int datatype)
   //
   // datatype = [ datatype_len, 5 Bits for datatype encoding ];
   //
+  // counterpart of NBytes=libdyn_datatype_len(datatype)
+  // in libdyn.sci
+  // 
   int datatype_len = datatype >> 5;
 
 #ifdef DEBUG
@@ -99,30 +103,43 @@ int libdyn_config_get_datatype_len(int datatype)
      case DATATYPE_FLOAT :
        return sizeof(double);
        break;
+       
      case DATATYPE_SHORTFLOAT :
 #ifdef DEBUG
        fprintf(stderr, "requ. for not implemented datatype\n");
 #endif  
        return sizeof(float);
        break;
-     case DATATYPE_INT :
+       
+     case DATATYPE_INT32 :
 #ifdef DEBUG
        fprintf(stderr, "requ. for not implemented datatype\n");
 #endif  
-       return sizeof(int);
+       return sizeof(int32_t);
        break;
+       
+              
      case DATATYPE_BOOLEAN : // FIXME: Hmmm
 #ifdef DEBUG
        fprintf(stderr, "requ. for not implemented datatype\n");
 #endif  
        return sizeof(char);
        break;       
+       
      case DATATYPE_EVENT : // FIXME: Hmmm
 #ifdef DEBUG
        fprintf(stderr, "requ. for not implemented datatype\n");
 #endif  
        return sizeof(char);
        break;       
+       
+     case DATATYPE_BINARY :
+       return sizeof(char);
+       break;       
+       
+       
+       
+       
   }
   
 #ifdef DEBUG

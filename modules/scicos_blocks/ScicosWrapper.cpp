@@ -242,6 +242,11 @@ int ScicosWrapper::Cinit()
 #ifdef DEBUG
    printf("scicoswrap: init %p\n", compfn);
 #endif;
+   
+//    printf("rpar ptr %p\n", (void*) cosblock.rpar);
+//    printf("block ptr %p\n", (void*) &cosblock);
+//    printf("this ptr %p\n", (void*) this);
+   
   (*compfn)(&cosblock, 4);
 }
 

@@ -21,9 +21,11 @@ public:
   
   void freeStructure();
   
-private:
+
   
   scicos_block cosblock;
+  
+private:
   
   void *ozptr[5];
   

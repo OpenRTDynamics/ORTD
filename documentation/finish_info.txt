@@ -2,18 +2,21 @@
 
 ------- Build finished: Now you can do ... -------
 
-1) make install
-   To install the libraries on your system
+1) make install OR make homeinstall
+   To install the libraries on your system / home directory.
+   The latter doen't require root permissions.
 
 2) make install_toolbox
    To install the scilab5 toolbox
 
+3) make demo
+   To see an animation of a pendulum system
 
 .) Within documentation/List_of_Module_Blocks.txt you will find a list of 
    blocks available through the modules. They are also in the Scilab-Help.
 
-.) The command libdyn_generic_exec is used to execute schematics.
-   See libdyn_generic_exec --help on how to use.
+.) The command ortd is used to execute schematics.
+   See ortd --help on how to use.
 
 .) To run a demonstration:
    # cd examples

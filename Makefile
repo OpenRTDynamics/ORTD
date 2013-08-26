@@ -228,6 +228,7 @@ cleanBuildFiles:
 	rm -f *.o Linux_Target/* all_Targets/* 
 	rm -f module_list module_list__.c module_list__.h
 	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done	
+	rm -f OpenRTDynamics_source.sh
 
 clean: cleanBuildFiles
 	rm -f *.so *.a
@@ -402,6 +403,15 @@ install: all
 	chmod +x bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_static_scilab
 
+homeinstall: all
+	mkdir -p ~/bin
+	cp bin/ortd_static ~/bin/
+	ln -sf ~/bin/ortd_static ~/bin/ortd
+	@echo "Copied binary ortd to ~/bin"
+	
+package:
+	# Create a self extracting shell archieve OpenRTDynamics_source.sh
+	bash AutoBuild/LINUX_source/build.sh this . OpenRTDynamics_source
 
 demo: #bin/ortd_static
 	( cd examples/demo;  ../../bin/ortd_static --baserate=20 --rtmode 1 -s oscillator -i 901 -l 300 )
