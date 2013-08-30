@@ -296,7 +296,7 @@ void *log_sink_thread(void *data)
   struct sink_t *sink = data;
   
   // change thread's priority to a normal one
-  ortd_rt_ChangePriority(0, 0); 
+  ortd_rt_ChangePriority(ORTD_RT_NORMALTASK, 0); 
   
   //printf("Sink thread started\n");
   int ret = (*sink->callback_func)(NULL, sink->callback_userdat, 1);

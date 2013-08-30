@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2010, 2011, 2012  Christian Klauer
+    Copyright (C) 2010, 2011, 2012, 2013  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ extern "C" {
 #include "libdyn_scicos_macros.h"
 #include "irpar.h"
 #include "math.h"
+#include "realtime.h"
 }
 
 #include "libdyn_cpp.h"
@@ -1742,14 +1743,7 @@ public:
         if ( (irpar_get_ivec(&Prio_irp, Uipar, Urpar, 22) < 0) ) {
             // no prio was attached
         } else {
-            if (Prio_irp.n >= 3) {
-                // ok got prio
-                fprintf(stderr, "Task Prio1 would be %d\n", Prio_irp.v[0]);
-                fprintf(stderr, "Task Prio2 would be %d\n", Prio_irp.v[1]);
-                fprintf(stderr, "Task CPU would be %d\n", Prio_irp.v[2]);
-
-                // FIXME: actually set the tasks priority
-            }
+	  ortd_rt_SetThreadProperties(Prio_irp.v, Prio_irp.n);		
         }
 
 
