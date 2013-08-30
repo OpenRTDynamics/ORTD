@@ -40,7 +40,6 @@ function [sim] = ld_UDPSocket_shObj(sim, events, ObjectIdentifyer, Visibility, h
    parlist = new_irparam_set();
 
    parlist = new_irparam_elemet_ivec(parlist, UDPPort, 10); // id = 10
-//    parlist = new_irparam_elemet_ivec(parlist, vec, 11); // vector of integers (double vectors are similar, replace ivec with rvec)
    parlist = new_irparam_elemet_ivec(parlist, ascii(hostname), 11); // id = 11; A string parameter
 
    p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
@@ -144,6 +143,62 @@ function [sim, out] = ld_UDPSocket_Recv(sim, events, ObjectIdentifyer, outsize, 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim] = ld_UDPSocket_SendTo(sim, events, ObjectIdentifyer, hostname, UDPPort, in, insize, intype) // PARSEDOCU_BLOCK
+// 
+// UDP - Send block
+//
+// in *, ORTD.DATATYPE_BINARY - input
+// 
+// EXPERIMENTAL
+// 
+
+  // add a postfix that identifies the type of the shared object
+  ObjectIdentifyer = ObjectIdentifyer + ".UDPSocket_ShObj";
+
+
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+   parlist = new_irparam_elemet_ivec(parlist, insize, 10); // id = 10
+   parlist = new_irparam_elemet_ivec(parlist, intype, 11); // id = 11
+   
+   parlist = new_irparam_elemet_ivec(parlist, UDPPort, 12); // id = 10
+   parlist = new_irparam_elemet_ivec(parlist, ascii(hostname), 13); // id = 11; A string parameter
+   
+
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];
+  Urpar = [ p.rpar ];
+  btype = 39001 + 3; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+  insizes=[insize]; // Input port sizes
+  outsizes=[]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[intype]; // datatype for each input port
+  outtypes=[]; // datatype for each output port
+
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed, ObjectIdentifyer);
+  
+  // connect the inputs
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(in) ); // connect in1 to port 0 and in2 to port 1
+
+//   // connect the ouputs
+//  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
+
+
+
+
+
 
 
 function [sim, out, NBytes] = ld_ConcateData(sim, events, inlist, insizes, intypes) // PARSEDOCU_BLOCK
@@ -174,7 +229,7 @@ function [sim, out, NBytes] = ld_ConcateData(sim, events, inlist, insizes, intyp
   // count the number of bytes
   NBytes = 0;
   for i = 1:length(inlist)
-    NBytes = NBytes + libdyn_datatype_len( intypes(i) );
+    NBytes = NBytes + insizes(i) * libdyn_datatype_len( intypes(i) );
   end
 
 
@@ -229,7 +284,7 @@ function [sim, outlist] = ld_DisassembleData(sim, events, in, outsizes, outtypes
   // count the number of bytes
   NBytes = 0;
   for i = 1:length(outsizes)
-    NBytes = NBytes + libdyn_datatype_len( outtypes(i) );
+    NBytes = NBytes + outsizes(i)*libdyn_datatype_len( outtypes(i) );
   end
 
 

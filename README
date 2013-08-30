@@ -698,4 +698,5 @@ By date as there will only be the svn-version
              the old scheme via ld_nested2.
   -          * Cleaned up class libdyn_nested2 in libdyn_cpp.cpp
   - 17.8.13: More datatypes and blocks for datatype conversion; UDP send/receive blocks (EXPERIMENTAL).
+  - 28.8.13: The individual CPU and the priority to run a thread can be adjusted with ld_async_simulation.
 

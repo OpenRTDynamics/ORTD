@@ -77,11 +77,11 @@ public:
             throw -1;
         }
 
-        bzero(&broadcastAddr,sizeof(broadcastAddr));
+        bzero(&broadcastAddr,sizeof(broadcastAddr));  
         broadcastAddr.sin_family = AF_INET;
 //         broadcastAddr.sin_addr.s_addr=htonl(INADDR_ANY);
         broadcastAddr.sin_port=htons(port);
-        broadcastAddr.sin_addr = *(struct in_addr *) hostinfo->h_addr;
+        broadcastAddr.sin_addr = *(struct in_addr *) hostinfo->h_addr;  // FIXME: not a broadcastAddr
 
 
         // open socket
@@ -113,7 +113,12 @@ public:
 //         printf("send packet of %d bytes using socket %d:\n", N, sockfd);
         sendto(sockfd,buf,N,0,(struct sockaddr *)&broadcastAddr,sizeof(broadcastAddr));
     }
-    
+
+    void SendToPacket(struct sockaddr_in DestAddr, void *buf, int N) {
+//         printf("send packet of %d bytes using socket %d:\n", N, sockfd);
+        sendto(sockfd,buf,N,0,(struct sockaddr *)&DestAddr,sizeof(DestAddr));
+    }
+
     int receive(void *buf, int buflen) {
           struct sockaddr_in si_from;
           socklen_t slen = sizeof(si_from);
@@ -121,8 +126,7 @@ public:
 	    return -1;
 	  }
            
-          printf("Received packet from %s:%d\nData: %s\n\n", 
-          inet_ntoa(si_from.sin_addr), ntohs(si_from.sin_port), buf); 
+//           printf("Received packet from %s:%d\nData: %s\n\n",  inet_ntoa(si_from.sin_addr), ntohs(si_from.sin_port), buf); 
 	  
 	  return 0;
     }
@@ -193,6 +197,9 @@ public:
         socket->SendPacket(buf, N);
     }
 
+    void sendTo(struct sockaddr_in DestAddr, void *buf, uint N) {
+        socket->SendToPacket(DestAddr, buf, N);
+    }
 
     int *Uipar;
     double *Urpar;
@@ -222,7 +229,7 @@ public:
 class UDPSocket_Send_Block {
 public:
     UDPSocket_Send_Block(struct dynlib_block_t *block) {
-        this->block = block;    // no nothing more here. The real initialisation take place in init()
+        this->block = block;    //  nothing more here. The real initialisation take place in init()
     }
     ~UDPSocket_Send_Block()
     {
@@ -435,7 +442,7 @@ public:
 	
 	// This is the main loop of the new simulation
         while (!ExitLoop) {
-          printf("wait for UDP Data to receive\n");
+//           printf("wait for UDP Data to receive\n");
 //             sleep(1); // wait for dummy sensor
 	    IShObj->socket->receive( output, NCopyBytes );
 
@@ -490,6 +497,151 @@ public:
     // The data for this block managed by the simulator
     struct dynlib_block_t *block;
 };
+
+
+
+
+//
+// An example block for accessing the shared object
+//
+class UDPSocket_SendTo_Block {
+public:
+    UDPSocket_SendTo_Block(struct dynlib_block_t *block) {
+        this->block = block;    //  nothing more here. The real initialisation take place in init()
+    }
+    ~UDPSocket_SendTo_Block()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+    UDPSocket_SharedObject *IShObj; // instance of the shared object
+
+
+    uint NCopyBytes;
+    int port;
+    struct sockaddr_in DestAddr;
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        printf("Init of UDPSocket_SendTo_Block\n");
+
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+
+// 	fprintf(stderr, "Trying to get shared obj\n");
+        // Obtain the shared object
+        IShObj = NULL;
+        if ( ortd_GetSharedObj<UDPSocket_SharedObject>(block, &IShObj) < 0 ) {
+            return -1;
+        }
+//         fprintf(stderr, "Trying to get shared obj : %p -- ok\n", IShObj);
+
+
+        try {
+	  irpar_ivec veccpp(Uipar, Urpar, 12); // then use:  veccpp.n; veccpp.v;
+	  port = veccpp.v[0];
+	  printf("SendTo port = %d\n", port); // print the first element 
+	                                           // of the vector that is of size veccpp.n
+	} catch(int e) {
+	  // parameter not found
+	  port=0;
+	}
+
+	//
+	irpar_string s(Uipar, Urpar, 13);
+	const char *hostname  = s.s->c_str() ;
+	printf("SendTo hostname = %s\n", hostname);
+	
+	
+        // get IP
+        struct hostent *hostinfo;
+        hostinfo = gethostbyname (hostname);
+        if (hostinfo == NULL)
+        {
+            fprintf (stderr, "Unknown host %s.\n", hostname);	    
+            return -1;
+        }
+	
+        // Set-up destination
+        bzero(&DestAddr,sizeof(DestAddr));
+        DestAddr.sin_family = AF_INET;
+        DestAddr.sin_port=htons(port);
+        DestAddr.sin_addr = *(struct in_addr *) hostinfo->h_addr;
+
+	
+        // set the initial states
+        resetStates();
+
+        // calc how many bytes shall be copied
+        int N = libdyn_get_inportsize(block, 0);
+        int datatype = libdyn_get_inportdatatype(block, 0);
+        int TypeBytes = libdyn_config_get_datatype_len(datatype);
+        NCopyBytes = N * TypeBytes;
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+    }
+
+
+    inline void calcOutputs()
+    {
+        void *in1 = (void *) libdyn_get_input_ptr(block,0); // the first input port
+//         printf("Sending %d Bytes\n", NCopyBytes);
+
+        // call a function of the shared object
+        IShObj->sendTo(DestAddr, in1, NCopyBytes);
+	
+    }
+
+
+    inline void resetStates()
+    {
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a UDP SendTo block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<UDPSocket_SendTo_Block>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
 
 
 
@@ -744,7 +896,10 @@ extern "C" int libdyn_module_udp_communication_siminit(struct dynlib_simulation_
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &SharedObjBlock<UDPSocket_SharedObject>::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &UDPSocket_Send_Block::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &UDPReceiverBlock::CompFn);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &UDPSocket_SendTo_Block::CompFn);
 
+    
+    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+10, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ConcateDataBlock::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+11, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &DisassembleDataBlock::CompFn);
     

@@ -1,7 +1,7 @@
 /*
     Copyright (C) 2009, 2010, 2011, 2012, 2013  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
+    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -624,7 +624,7 @@ int libdyn_AutoConfigureBlock_GetUirpar(struct dynlib_block_t *block, int **Uipa
   
   
 /*
- * Events stuff FIXME not really used
+ * Events stuff FIXME not really used REMOVE THIS
  */
 
 struct libdyn_event_div_t {
