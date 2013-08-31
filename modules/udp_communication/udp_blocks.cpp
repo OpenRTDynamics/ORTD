@@ -77,6 +77,9 @@ public:
             throw -1;
         }
 
+        // FIXME: undecided what to to with the hostname
+        
+        
         bzero(&broadcastAddr,sizeof(broadcastAddr));  
         broadcastAddr.sin_family = AF_INET;
 //         broadcastAddr.sin_addr.s_addr=htonl(INADDR_ANY);
@@ -91,6 +94,7 @@ public:
         int ret=setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
 
 
+	if (port != -1) {
         bzero(&servaddr,sizeof(servaddr));
         servaddr.sin_family = AF_INET;
         servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
@@ -100,6 +104,9 @@ public:
 	   fprintf (stderr, "could not bind to socket\n");
 	   close(sockfd);
            throw 1;
+	}
+	} else {
+	  fprintf (stderr, "Not binding to an UDP-socket\n");
 	}
 
 
@@ -605,11 +612,16 @@ public:
     inline void calcOutputs()
     {
         void *in1 = (void *) libdyn_get_input_ptr(block,0); // the first input port
-//         printf("Sending %d Bytes\n", NCopyBytes);
+        uint32_t *Nb = (uint32_t *) libdyn_get_input_ptr(block,1); 
+	
+	if (*Nb <= NCopyBytes) {
+//          printf("Sending %d Bytes\n", *Nb);
 
         // call a function of the shared object
-        IShObj->sendTo(DestAddr, in1, NCopyBytes);
-	
+        IShObj->sendTo(DestAddr, in1, *Nb);
+	} else {
+	  fprintf(stderr, "UDPSendTo: ERROR: The Number of bytes to send is too big!\n");
+	}
     }
 
 

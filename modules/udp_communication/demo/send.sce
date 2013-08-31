@@ -48,7 +48,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim,one] = ld_const(sim, ev, 1);
 
   // Open an UDP-Port
-  [sim] = ld_UDPSocket_shObj(sim, ev, ObjectIdentifyer="aSocket", Visibility=0, hostname="127.0.0.1", UDPPort=10000);
+  [sim] = ld_UDPSocket_shObj(sim, ev, ObjectIdentifyer="aSocket", Visibility=0, hostname="127.0.0.1", UDPPort=-1);
 
   // generate a signal
   [sim, Signal ] = ld_play_simple(sim, ev, r=5*sin( linspace(0,%pi*6*10,1000) ) );
@@ -76,9 +76,15 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
   printf("Size of the UDP-packets will be %d bytes.\n", NBytes);
 
-  // send to the network
-  [sim] = ld_UDPSocket_Send(sim, ev, ObjectIdentifyer="aSocket", ...
-                 in=Data, insize=NBytes, intype=ORTD.DATATYPE_BINARY);
+//   // send broadcast to the network 
+//   [sim] = ld_UDPSocket_Send(sim, ev, ObjectIdentifyer="aSocket", ...
+//                  in=Data, insize=NBytes, intype=ORTD.DATATYPE_BINARY);
+
+  // 
+  [sim, NBytes__] = ld_constvecInt32(sim, ev, vec=NBytes); // the number of bytes that are actually send is dynamic, but must be smaller or equal to 
+  [sim] = ld_UDPSocket_SendTo(sim, ev, SendSize=NBytes__, ObjectIdentifyer="aSocket", ...
+                              hostname="127.0.0.1", UDPPort=10000, in=Data, ...
+                              insize=NBytes);
 
   // demo for disassembling this structure -- just to show how it works
   [sim, DisAsm] = ld_DisassembleData(sim, ev, in=Data, ...

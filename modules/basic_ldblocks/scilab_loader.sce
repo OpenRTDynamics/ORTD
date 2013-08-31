@@ -584,14 +584,14 @@ function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 // %PURPOSE: a constant vector
 // 
-// vec *+ - the vector
+// out *+ - the vector
 // 
   btype = 60001 + 9;	
   ipar = [length(vec); 0]; rpar = [vec];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
-                   insizes=[1], outsizes=[ length(vec) ], ...
-                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+                   insizes=[], outsizes=[ length(vec) ], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
  
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
@@ -1137,6 +1137,21 @@ function [sim,out] = ld_roundInt32(sim, events, in) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_constvecInt32(sim, events, vec) // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: a constant vector of ORTD.DATATYPE_INT32
+// 
+// out *+ - the vector of int32
+// 
+  btype = 60001 + 34;	
+  ipar = [length(vec); 0; vec]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[], outsizes=[ length(vec) ], ...
+                   intypes=[], outtypes=[ORTD.DATATYPE_INT32]  );
+ 
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 

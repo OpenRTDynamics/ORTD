@@ -704,10 +704,6 @@ int compu_func_constvec(int flag, struct dynlib_block_t *block)
 
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
-        out = (double *) libdyn_get_output_ptr(block,0);
-
-         memcpy((void*) out, (void*) vec, veclen*sizeof(double) );
-
         return 0;
         break;
     case COMPF_FLAG_UPDATESTATES:
@@ -722,6 +718,9 @@ int compu_func_constvec(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_INIT:  // init
+        out = (double *) libdyn_get_output_ptr(block,0);
+         memcpy((void*) out, (void*) vec, veclen*sizeof(double) );
+
         return 0;
         break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
@@ -2409,6 +2408,70 @@ int compu_func_ld_roundInt32(int flag, struct dynlib_block_t *block)
 
     }
 }
+
+int compu_func_constvecInt32(int flag, struct dynlib_block_t *block)
+{
+//   printf("comp_func const: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 0;
+
+    int32_t *out;
+
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int veclen = ipar[0];
+    int datatype = ipar[1];
+
+    int *vec = &ipar[2];
+    int i;
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+
+        // BLOCKTYPE_STATIC enabled makes sure that the output calculation is called only once, since there is no input to rely on
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_output(block, 0, veclen, DATATYPE_INT32, 0);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+        // initially copy the output
+        out = (int32_t *) libdyn_get_output_ptr(block,0);
+//          memcpy((void*) out, (void*) vec, veclen*sizeof(uint32_t) );
+	 for (i = 0; i<veclen; ++i) {
+	   out[i] = vec[i];
+	 }
+
+	 return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4194,6 +4257,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 31, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_Int32ToFloat);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 32, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_floorInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 33, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_roundInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 34, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_constvecInt32);
     
 
 
