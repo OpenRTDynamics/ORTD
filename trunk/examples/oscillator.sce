@@ -1,53 +1,35 @@
 //
-//    Copyright (C) 2010, 2011, 2012, 2013  Christian Klauer
+// An example for OpenRTDynamics (openrtdynamics.sf.net) implementing an oscillator.
+// 
+// This example shows the basics of ORTD: How blocks are connected using signal variables,
+// feedback loops and structures similar to superblocks, that are representated by Scilab
+// functions.
+// 
+// Because this script automatically runs the simulation and presents the results,
+// it also shows how a rapid development and testing process is enabled by the 
+// ORTD-framwork.
 //
-//    This file is part of OpenRTDynamics, the Real Time Dynamics Framework
-//
-//    OpenRTDynamics is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU Lesser General Public License as published by
-//    the Free Software Foundation, either version 3 of the License, or
-//    (at your option) any later version.
-//
-//    OpenRTDynamics is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU Lesser General Public License for more details.
-//
-//    You should have received a copy of the GNU Lesser General Public License
-//    along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
-//
-
-
-
-
-
-//
-// An oscillator example for using the Scilab interface to libdyn
-// NOTE: The "ld_toolbox" is needed to run
-//
-// Execute within scilab. The shell command "ortd -s oscillator -i 901 -l 1000"
-// will be executed to simulate this example. It will write output data to *dat files.
-// Finally, the results are plotted
+// Execute this within scilab. The shell command "ortd -s oscillator -i 901 -l 1000"
+// will be executed to run this example that will write output data to *dat files.
+// Finally, the results are plotted by this script.
 //
 //
 
-
-thispath = get_absolute_file_path('oscillator.sce');
-cd(thispath);
 
 
 SchematicName = 'oscillator'; // must be the filename without .sce
 thispath = get_absolute_file_path(SchematicName+'.sce');
 cd(thispath);
 
-z = poly(0,'z');
+z = poly(0,'z'); // for defining transfer functions in z-domain
 
-T_a = 0.1;
+T_a = 0.1; // sample time
 
 //
 // Set up simulation schematic
 //
 
+// Superblock: A simple oscillator without damping
 function [sim, x,v] = oscillator(sim, u)
     // create a feedback signal
     [sim,x_feedback] = libdyn_new_feedback(sim);
@@ -64,6 +46,7 @@ function [sim, x,v] = oscillator(sim, u)
     [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
 endfunction
 
+// Superblock: A more complex oscillator with damping
 function [sim, x,v] = damped_oscillator(sim, u)
     // create feedback signals
     [sim,x_feedback] = libdyn_new_feedback(sim);
@@ -113,7 +96,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim, x__] = ld_gain(sim, ev, x, 15);
   [sim] = ld_printfbar(sim, ev, in=x__, str="x ");
   
-  // save result to file
+  // save resulting samples to a file
   [sim, save0] = ld_dumptoiofile(sim, ev, "result.dat", x);
   
   // output of schematic
@@ -158,9 +141,10 @@ par.rpar = [];
 
 
 
-// run the executable for 1000 simulation steps
+// run the executable for 1000 simulation steps by calling an external program (the command "ortd")
+// The messages send to the standard output are stored in the variable "messages".
 messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 1000');
-
+// disp(messages);  // enable to see the output of the interpreter
 
 // load results
 A = fscanfMat('result.dat');
