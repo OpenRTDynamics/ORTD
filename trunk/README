@@ -5,28 +5,29 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 23.7.2013
+Version of this document: 2.9.2013
 
-The Real Time Dynamics Toolbox is a novel approach to the implementation
+The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
 and signal processing, for real-time usage (like Real-Time Workshop® or 
-Scicos Code Generation). It is suitable for implementing time discrete 
-signal processing algorithms, like one would do in Scicos or Simulink, 
-within Scilab scripts (Matlab like) by using functions provided by an 
-included Scilab Toolbox in order to set-up a description of the schematic. 
-This way, well structured code can be achieved, whereby i.e. the filter 
-design could be included nearby the implementation for a better overview. 
-Additionally, functional and object orientated design schemes can be
-realised. The latter feature enables the possibility to implement reusable 
-parametrised sub-schematics that may also change in its structure based on 
-parametrisation.
+Scicos Code Generation). This framework is suitable for time discrete signal 
+processing algorithms, using the same principles like in Scicos/Xcos or 
+Simulink. However, schematics are described by combining special Scilab 
+functions provided by the framework.
 
-The generation of the description for the schematic (which would be 
-equivalent to code generation in Scicos/Simulink) does not involve source 
-code generation / compilation steps and therefore does not rely on  
-C-compilers for the target system that had to be installed on the 
-development computer. Scilab along with the installed toolbox is sufficient 
-for development.
+In contrast to Xcos or Simulink, the framework does not require source 
+code generation / compilation steps to create rt-programs and therefore 
+does not rely on C-compilers for the target system that had to be installed 
+on the development computer. Instead an efficient to online-interprete 
+binary representation is assembled by the framework-provided Scilab functions
+and executed by the libortd real-time interpreter.
+
+Do to the description using Scilab, well structured code can be achieved, 
+whereby i.e. the filter design could be included nearby the implementation 
+for a better human-readability. Additionally, functional and object orientated 
+design schemes can be realised. The latter feature enables the possibility to 
+implement reusable parametrised sub-schematics that may also change in its 
+structure based on parameters.
 
 Further, along with the remote control interface and the ability to 
 implement state machines, to run different simulations in threads (e.g. 
@@ -108,6 +109,7 @@ CONTENTS OF THIS README
 - EXAMPLES
 - DATATYPES
 - IMPORTANT SOURCE FILES
+- REAL-TIME BENCHMARK
 - TODO
 - BUGS
 - CONTACT
@@ -125,17 +127,17 @@ OS DEPENDENCY
 - Runs on Linux. 
 - Also compiles & runs on the armv7l / Linux platform (Beaglebone, Rasperry PI and 
                                                                         many others)
-- And probably other UNIX-like OS but never tried.
+- And probably other UNIX-like OS but never tried
 
 On Linux one of the rare APIs that stayed (almost) compatible for more than several
-year are the ones of libc, pthreads, and the standard C++ - libraries :-) and :-( .
-Since OpenRTDynamics is supposed to also stay functional in the long term future, this
-framework is *only* depending these very fundamental libraries.
-However, the functionally can be enhanced by additional libraries that are 
-automatically detected and used.
+year are the ones of libc, pthreads, and the standard C++ - libraries :-) and :-(, as 
+there could be more constant APIs. Since OpenRTDynamics is supposed to also stay 
+functional in the long term future, this framework is *only* depending these very 
+fundamental libraries. However, the functionally can be enhanced by additional libraries 
+that are automatically detected and used.
 
-Because of these small dependencies, it should not be a big issue to port
-this framework to other (real time) OSs.
+Because of these relaxed dependencies, it should not be a big issue to port
+this framework to other (real-time) OSs.
 
 LICENSE
 -------
@@ -157,6 +159,11 @@ On the executing / real time host (can also be the development host):
 For compiling
  * Standard tools like: gcc, g++, make, perl
 
+ Optional libraries
+ * libgsl, libblas (If their corresponding development packages are installed, some
+   additional functionality is gained. They are automatically detected when running
+   make config)
+
 INSTALLATION (GRAPHICAL INSTALLATION)
 -------------------------------------
 
@@ -176,9 +183,11 @@ installed.
 COMPILATION / INSTALLATION (normal PC x86/amd64)
 ------------------------------------------------
 
-If you used the graphical installer this might not be necessary.
+The suggested way is to use the automatic installation routine as described on their
+website. However, if you intent to do the compilation / installation by hand you can go 
+on with the following procedure:
 
-Run "make" followed by "make install" on 32/64 Linux platforms
+Run "make config" and then "make" followed by "make install" on 32/64 Linux platforms
 
 this will compile libortd.so and ortd, which is a generic 
 schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
@@ -186,23 +195,23 @@ schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
 
 The command
 
-  make install_toolbox
+  $ make install_toolbox
 
 will ask you for your Scilab 5 installation directory (where the package from the
 Scilab Website was extracted) and installs the Scilab toolbox.
 
-Alternatively, link or copy the the "ld_toolbox" directory (not only its contents) 
+The manual way woulf be to link the "ld_toolbox" directory (not only its contents) 
 to your <scilab installation directory>/share/scilab/contrib .
 
 Use
 
-  make scilabhelp
+  $ make scilabhelp
 
-to generate help files to the Scilab help.
+to generate help files for the Scilab help. (Try e.g. "help ld_gain" in Scilab to test it)
 
 Cleaning up is done via
 
-  make clean
+  $ make clean
 
 This should be executed when compiling and updated version from subversion.
 
@@ -226,17 +235,18 @@ make install_toolbox # Run the installer for the Scilab Toolbox
 make clean           # Clean up, always use this after updating the framework e.g. via svn
 make cleanBuildFiles # remove all files generated during the build process, but not the
                        resulting binaries
+make clearconfig     # Delete the information gathered during make config.
 
 BUILDING A SELF-EXTRACTING AND COMPILING PACKAGE
 ------------------------------------------------
 
 To build a self extracting and self compiling archieve run:
 
-  # bash <ORTDFolder>/AutoBuild/LINUX_source/build.sh this <openrtdynamics-source> <OpenRTDynamics_source>
+  $ bash <ORTDFolder>/AutoBuild/LINUX_source/build.sh this <openrtdynamics-source> <OpenRTDynamics_source>
 
 from outside of the openrtdynamics-source directory or alternatively
 
-  # make package
+  $ make package
 
 from within the source tree.
 
@@ -511,13 +521,13 @@ FIXME: Update this
 
 For a ready to run example go into the examples directory via shell and type:
 
-# sh sh_runoscillator
+$ sh sh_runoscillator
 
 A second try could be to execute "simple_demo.sce" within scilab 5 or above. 
 It will create *.[i,r]par files containing the schematic.
 Ensure that you loaded the "ld_toolbox" at first. Then run the command 
 
-# libdyn_generic_exec -s simple_demo -i 901 -l 100
+$ libdyn_generic_exec -s simple_demo -i 901 -l 100
 
 within the "examples" directory. It will load the [i,r]par files, 
 compile the schematic and start execution. This example will create
@@ -573,21 +583,31 @@ IMPORTANT SOURCE FILES
 - libdyn_generic_exec.cpp: Source code for the command "ortd", which
                            runs schematics.
 
+REAL-TIME BENCHMARK
+-------------------
+
+A benchmark to evaluate the real-time capabilities is available in
+
+modules/synchronisation/demo/TestRealTime.sce
+
+You could also consider this as an example on how to start multiple 
+threads with different priorities and CPU assignments.
+
+
 TODO
 ----
 
-- Makefile (done)
-- Better Documentation (the provided one is out of date):
+- Better Documentation :-) (DONE but can always be improved, of course):
 
-- Wrapper block for background computations for state updates
-- nested schematics (done)
-- exchangeable schematics (done)
-- tcp server for remote control, parameter uploading ... (experimental)
-- block interpreting math formula (done; with help of muParser)
-- wrapper for scicos blocks and inclusion of hart toolbox
+- Wrapper block for background computations for state updates (DONE)
+- nested schematics (DONE)
+- exchangeable schematics (DONE)
+- tcp server for remote control, parameter uploading ... (DONE)
+- block interpreting math formula (DONE; with help of muParser)
+- wrapper for scicos blocks and inclusion of hart toolbox; DONE
 - a dynamical linker that loads *so files as it might be described
   within the schematics
-- A matrix module (multiplication, inversion ...)
+- A matrix module (multiplication, inversion ...); partially DONE
 - A Kalman Filter build with basic blocks
 - ....
 
@@ -597,12 +617,12 @@ BUGS
 - Transfer function blocks are limited by a order of max 20 for the given tf
   No error catching
 - Objects created by libdyn_new_feedback can by ONLY used once
-- The IO-Performance of the rt_server module is quite suboptimal.
+- The IO-Performance of the rt_server module is suboptimal.
   Needs a better implementation of buffered io.
 - If an ld_stream block is not connected with another block
   the initialisation of the parameter is not done (but its actually not needed in this case)
 
-- module udp_communication: If the host name is not known a segfault may be triggered (fixed)
+- module udp_communication: If the host name is not known a segfault may be triggered (FIXED)
 
 - It works stable (Used for many controller implementations in medical
   control at TU-Berlin)
@@ -650,7 +670,7 @@ v0.99g (4.11.2011)
   - Improved rt_server module
   - Implemented port size checking during schematic generation within Scilab
   - Fixed bugs in nested and basic_blocks module
-  - libdyn_generic_exec: Now runs also without RT-Preempt (no root access needed);
+  - libdyn_generic_exec: Now runs also without RT-Preemption (no root access needed);
     there is now a static version libdyn_generic_exec_static
   - starting with scilab5/Xcos hart module
   - Added documentation parser
@@ -675,7 +695,7 @@ v0.99h ( not release by now )
   - run external processes and terminate them by the end of the simulation (module ext_process)
   - Global shared object class
   - Scilab help documentation
-  - Again a fixed to online replaceable schematics. Now it runns smooth.
+  - Again a fixed to online replaceable schematics. Now it runs smooth.
   - A nicer interface for Scilab, which looks very much like the Scicos Generic Block
     or a Matlab S-function. Please note that the state update flag will not be called.
   
@@ -695,8 +715,10 @@ By date as there will only be the svn-version
              exit. Also the code was rewritten and looks now nicer. Now use
              ld_ClockSync instead of ld_synctimer which was experimental and is now obsolete.
   -          * Added ld_async_simulation for running simulations in thread. This replaces
-             the old scheme via ld_nested2.
+             the old scheme where ld_nested2 was used.
   -          * Cleaned up class libdyn_nested2 in libdyn_cpp.cpp
   - 17.8.13: More datatypes and blocks for datatype conversion; UDP send/receive blocks (EXPERIMENTAL).
   - 28.8.13: The individual CPU and the priority to run a thread can be adjusted with ld_async_simulation.
+  - 2.9.13:  Blocks that allow to notify (send events) to threads and corresponding blocks for receiving
+             these events.
 

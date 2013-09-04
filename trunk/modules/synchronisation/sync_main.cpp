@@ -41,8 +41,8 @@ extern "C" {
 
 #ifdef __ORTD_TARGET_ANDROID
 // Declaration is missing in time.h in android NDK for some targets levels
-extern int clock_settime(clockid_t, const struct timespec *);
-extern int clock_nanosleep(clockid_t, int, const struct timespec *, struct timespec *);
+    extern int clock_settime(clockid_t, const struct timespec *);
+    extern int clock_nanosleep(clockid_t, int, const struct timespec *, struct timespec *);
 #endif
 
 
@@ -50,6 +50,7 @@ extern int clock_nanosleep(clockid_t, int, const struct timespec *, struct times
 
 
 #include "libdyn_cpp.h"
+#include "global_shared_object.h"
 
 
 
@@ -212,14 +213,14 @@ int compu_func_synctimer_class::real_sync_callback( struct dynlib_simulation_t *
 
     if (true) { // Loop with absolute times
 
-      // time for execution t and the interval
-      struct timespec t, interval;
-      
-      // measure the current time
-      clock_gettime(CLOCK_MONOTONIC,&t);
+        // time for execution t and the interval
+        struct timespec t, interval;
 
-      
-      
+        // measure the current time
+        clock_gettime(CLOCK_MONOTONIC,&t);
+
+
+
         do { // Main loop is now here
 
             // run the simulation
@@ -249,26 +250,26 @@ int compu_func_synctimer_class::real_sync_callback( struct dynlib_simulation_t *
             fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
 #endif
 
-	    // calc time to wait
-	        interval.tv_sec =  0L;
-           interval.tv_nsec = (long)1e9* (*T_pause);
-           tsnorm(&interval);
+            // calc time to wait
+            interval.tv_sec =  0L;
+            interval.tv_nsec = (long)1e9* (*T_pause);
+            tsnorm(&interval);
 
-	    
+
 
 //            // Task time T
 //            clock_gettime(CLOCK_MONOTONIC,&curtime);
 //            T = calcdiff(curtime,T0);
 
-	   
-        // calculate time for the next execution
-        t.tv_sec+=interval.tv_sec;
-        t.tv_nsec+=interval.tv_nsec;
-        tsnorm(&t);
-	   
-	   // wait 
-           clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
-	    
+
+            // calculate time for the next execution
+            t.tv_sec+=interval.tv_sec;
+            t.tv_nsec+=interval.tv_nsec;
+            tsnorm(&t);
+
+            // wait
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+
 
             // Wait for the next simulation step
 //   wait(*T_pause);
@@ -455,8 +456,8 @@ public:
         // register the callback function to the simulator that shall trigger the simulation while running in a loop
         libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
         libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
-	
-	ExitLoop = false;
+
+        ExitLoop = false;
 
         // Return -1 to indicate an error, so the simulation will be destructed
         return 0;
@@ -481,7 +482,7 @@ public:
     {
     }
 
-    
+
     int SyncCallback( struct dynlib_simulation_t * sim )
     {
         /*
@@ -501,15 +502,15 @@ public:
 //     // wait until the callback function  real_syncDestructor_callback is called
 //     pthread_mutex_lock(&ExitMutex);
 //
-      // time for execution t and the interval
-      struct timespec t, interval;
-      
-      // measure the current time
-      clock_gettime(CLOCK_MONOTONIC,&t);
+        // time for execution t and the interval
+        struct timespec t, interval;
 
-	
-      
-	// This is the main loop of the new simulation
+        // measure the current time
+        clock_gettime(CLOCK_MONOTONIC,&t);
+
+
+
+        // This is the main loop of the new simulation
         while (!ExitLoop) {
 
             // run one step of the ortd simulator
@@ -517,7 +518,7 @@ public:
             libdyn_simulation_step(sim, 0);
             libdyn_simulation_step(sim, 1);
 
-	  
+
             // The simulation tells how long to wait
             double *T_pause = (double*) libdyn_get_input_ptr(block, 0);
 
@@ -536,20 +537,20 @@ public:
             fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
 #endif
 
-	    // calc time to wait
-	        interval.tv_sec =  0L;
-           interval.tv_nsec = (long)1e9* (*T_pause);
-           tsnorm(&interval);
-	   
-        // calculate time for the next execution
-        t.tv_sec+=interval.tv_sec;
-        t.tv_nsec+=interval.tv_nsec;
-        tsnorm(&t);
-	   
-	   // wait 
-           clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
-	    
-	}
+            // calc time to wait
+            interval.tv_sec =  0L;
+            interval.tv_nsec = (long)1e9* (*T_pause);
+            tsnorm(&interval);
+
+            // calculate time for the next execution
+            t.tv_sec+=interval.tv_sec;
+            t.tv_nsec+=interval.tv_nsec;
+            tsnorm(&t);
+
+            // wait
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+
+        }
 
 
         return 1; // 1 - this shall not be executed again, directly after returning from this function!
@@ -561,8 +562,8 @@ public:
         printf("ClockSyncBlock: The Block containing simulation is about to be destructed\n");
 #endif
 
-	// Trigger termination of the the main loop
-	ExitLoop = true;
+        // Trigger termination of the the main loop
+        ExitLoop = true;
 //     pthread_mutex_unlock(&ExitMutex);
 
     }
@@ -571,7 +572,7 @@ public:
     void printInfo() {
         fprintf(stderr, "I'm a ClockSyncBlock block\n");
     }
-    
+
     // uncommonly used flags
     void PrepareReset() {}
     void HigherLevelResetStates() {}
@@ -682,6 +683,319 @@ int ortd_compu_func_clock(int flag, struct dynlib_block_t *block)
 
 
 
+//
+// Blocks for thread notifications (condition variables)
+// A shared object
+//
+class ThreadNotify_SharedObject : public ortd_global_shared_object {
+public:
+    ThreadNotify_SharedObject(const char* identName, dynlib_block_t *block, int Visibility) : ortd_global_shared_object(identName, block->sim, Visibility) {
+        this->block = block;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+    }
+
+    ~ThreadNotify_SharedObject() {
+        pthread_mutex_destroy(&mutex);
+        pthread_cond_destroy(&condition);
+    }
+
+    int init() {
+        printf("Init of ThreadNotify_SharedObject\n");
+
+        pthread_mutex_init(&mutex, NULL);
+        pthread_cond_init(&condition, NULL);
+
+        return 0; // init was ok
+    }
+
+    int WaitForSignal() {
+        pthread_mutex_lock(&mutex);
+
+        while (signal == 0) {
+            pthread_cond_wait(&condition, &mutex);
+        }
+        int sig = signal;
+        signal = 0;
+
+        pthread_mutex_unlock(&mutex);
+
+        printf("Thread received a signal %d\n", sig);
+
+        return sig;
+    }
+
+    void notify(int32_t sig) {
+        printf("notify Thread\n");
+
+        pthread_mutex_lock(&mutex);
+        signal = sig;
+        pthread_mutex_unlock(&mutex);
+
+        pthread_cond_signal(&condition);
+    }
+
+    int *Uipar;
+    double *Urpar;
+    dynlib_block_t *block;
+
+
+    /*
+        Some data of the shared object
+    */
+private:
+
+    pthread_mutex_t mutex;
+    pthread_cond_t condition;
+    int32_t signal;
+
+
+};
+
+
+
+
+//
+// An example block for accessing the shared object
+//
+
+class RecvNotificationsBlock {
+public:
+    RecvNotificationsBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~RecvNotificationsBlock()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+    uint32_t signal;
+    bool ExitLoop;
+    ThreadNotify_SharedObject *IShObj; // instance of the shared object
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+
+        // register the callback function to the simulator that shall trigger the simulation while running in a loop
+        libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
+        libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
+
+        ExitLoop = false;
+
+
+        // Get the condition management class
+        IShObj = NULL;
+        if ( ortd_GetSharedObj<ThreadNotify_SharedObject>(block, &IShObj) < 0 ) {
+            return -1;
+        }
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+//         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+
+    }
+
+
+    inline void calcOutputs()
+    {
+        int32_t *output = (int32_t*) libdyn_get_output_ptr(block, 0); // the first output port
+
+        output[0] = signal;
+    }
+
+
+    inline void resetStates()
+    {
+    }
+
+
+
+    int SyncCallback( struct dynlib_simulation_t * sim )
+    {
+        /*
+         *		***	MAIN FUNCTION	***
+         *
+         * This function is called before any of the output or state-update flags
+         * are called.
+         * If 0 is returned, the simulation will continue to run
+         * If 1 is returned, the simulation will pause and has to be re-triggered externally.
+         * e.g. by the trigger_computation input of the async nested_block.
+        */
+
+        printf("Threaded simulation started execution\n");
+
+//     // wait until the callback function  real_syncDestructor_callback is called
+//     pthread_mutex_lock(&ExitMutex);
+//
+
+        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+
+        // This is the main loop of the new simulation
+        while (!ExitLoop) {
+//           printf("wait for UDP Data to receive\n");
+
+            signal = IShObj->WaitForSignal();
+
+            // run one step of the ortd simulator
+            libdyn_event_trigger_mask(sim, 1);
+            libdyn_simulation_step(sim, 0);
+            libdyn_simulation_step(sim, 1);
+        }
+
+
+        return 1; // 1 - this shall not be executed again, directly after returning from this function!
+    }
+
+    int SyncDestructorCallback( struct dynlib_simulation_t * sim )
+    {
+        printf("The Block containing simulation is about to be destructed\n");
+
+        // Trigger termination of the the main loop
+        ExitLoop = true;
+//     pthread_mutex_unlock(&ExitMutex);
+
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a RecvNotifications block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<RecvNotificationsBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+    static int syncCallback_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdat;
+        RecvNotificationsBlock *p = (RecvNotificationsBlock *) obj;
+        return p->SyncCallback(sim);
+    }
+    static int syncCallbackDestructor_(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdatDestructor;
+        RecvNotificationsBlock *p = (RecvNotificationsBlock *) obj;
+        return p->SyncDestructorCallback(sim);
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+class ThreadNotify_Block {
+public:
+    ThreadNotify_Block(struct dynlib_block_t *block) {
+        this->block = block;    //  nothing more here. The real initialisation take place in init()
+    }
+    ~ThreadNotify_Block()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // define states or other variables
+    //
+
+    ThreadNotify_SharedObject *IShObj; // instance of the shared object
+
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+
+        // Obtain the shared object
+        IShObj = NULL;
+        if ( ortd_GetSharedObj<ThreadNotify_SharedObject>(block, &IShObj) < 0 ) {
+            return -1;
+        }
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+    }
+
+
+    inline void calcOutputs()
+    {
+        int32_t *signal = (int32_t *) libdyn_get_input_ptr(block,0); //
+// 	out[0] = signal;
+        IShObj->notify(*signal);
+    }
+
+
+    inline void resetStates()
+    {
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ThreadNotify_Block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<ThreadNotify_Block>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
+
+
+
+
 
 
 
@@ -704,7 +1018,11 @@ int libdyn_module_synchronisation_siminit(struct dynlib_simulation_t *sim, int b
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ortd_compu_func_clock);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ClockSyncBlock::CompFn);
 
-    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RecvNotificationsBlock::CompFn);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+4, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ThreadNotify_Block::CompFn);
+
+
+
 
     printf("libdyn module sync initialised\n");
 
