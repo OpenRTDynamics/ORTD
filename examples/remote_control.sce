@@ -24,9 +24,9 @@
 //
 // An example (based on oscillator.sce) for using the remote control interface of ortd
 // This creates an schematic that provides an tunable parameter by
-// "ld_parameter". 
-// Running it in realtime will open a new tcp port by which the simulation
-// can be remotely adjusted.
+// the block ld_parameter. 
+// A tcp port is available by which this parameter can be adjusted.
+// Sending data out of the simulation is done using the ld_stream block.
 //
 // NOTE: The "ld_toolbox" is needed
 //
@@ -34,7 +34,7 @@
 // will start the realtime simulation and open an tcp-port 10000.
 //
 // Note: There are no security features at the moment!
-//       Everybode can connect to this port
+//       The port is open for any connection!
 //
 //
 // Then you can do for example:
@@ -73,26 +73,6 @@ T_a = 0.1;
 // Set up simulation schematic
 //
 
-function [sim, x,v] = oscillator(sim, u)
-    // create a feedback signal
-    [sim,x_feedback] = libdyn_new_feedback(sim);
-
-    // use this as a normal signal
-    [sim,a] = ld_sum(sim, defaultevents, list(u, x_feedback), 1, -1);
-    [sim,v] = ld_ztf(sim, defaultevents, a, 1/(z-1) * T_a ); // Integrator approximation
-    [sim,x] = ld_ztf(sim, defaultevents, v, 1/(z-1) * T_a ); // Integrator approximation  
-    
-    // feedback gain
-    [sim,x_gain] = ld_gain(sim, defaultevents, x, 0.6);
-    
-    // close loop x_gain = x_feedback
-    [sim] = libdyn_close_loop(sim, x_gain, x_feedback);
-
-//pause;
-    
-//    [sim] = ld_printf(sim, defaultevents, x_gain, "fb = ", 1);
-//    [sim] = ld_printf(sim, defaultevents, a, "a = ", 1);
-endfunction
 
 function [sim, x,v] = damped_oscillator(sim, u)
     // create a feedback signal
@@ -131,7 +111,9 @@ endfunction
 function [sim, outlist] = schematic_fn(sim, inlist)
    // [sim,u] = ld_const(sim, defaultevents, 1);
   
+   //    
    // The remotely controllable parameter; the initial value is 100
+   // 
    [sim,u] = ld_parameter(sim, defaultevents, "oscinput", [100]);
   
   // example of conditional schmeatic generation
@@ -140,10 +122,13 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   if (damped == 1) then
     [sim, x,y] = damped_oscillator(sim, u);
   else
-    [sim, x,y] = oscillator(sim, u);  
+//     [sim, x,y] = oscillator(sim, u);  
   end
   
 
+  //   
+  // Make data available for the network
+  //
   [sim, out] = ld_mux(sim, defaultevents, vecsize=5, inlist=list( x,y,x,y,x ) );
   [sim] = ld_stream(sim, defaultevents, out, "osc_output", 5);
   
