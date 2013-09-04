@@ -2458,6 +2458,172 @@ int compu_func_constvecInt32(int flag, struct dynlib_block_t *block)
     }
 }
 
+int compu_func_ld_sunInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in1 = (int32_t *) libdyn_get_input_ptr(block, 0);
+        int32_t *in2 = (int32_t *) libdyn_get_input_ptr(block, 1);
+
+	*out = *in1 + *in2;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a sunInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int compu_func_ld_getsignInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+
+        out[0] = (*in >= 0) ? 1 : -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a getsignInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int ortd_compu_func_OneStepDelInt32(int flag, struct dynlib_block_t *block)
+{
+// printf("comp_func flipflop: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 1;
+
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int32_t initial_state = ipar[0];
+
+    int32_t *state = (void*) libdyn_get_work_ptr(block);
+
+    int32_t *in;
+    int32_t *output;
+    
+
+    switch (flag) {
+      case COMPF_FLAG_CALCOUTPUTS:
+	  in= (int32_t *) libdyn_get_input_ptr(block,0);
+	  output = (int32_t *) libdyn_get_output_ptr(block,0);
+
+	  *output = state[0];
+
+	  return 0;
+	  break;
+      case COMPF_FLAG_UPDATESTATES:
+	  in = (int32_t *) libdyn_get_input_ptr(block,0);
+	  output = (int32_t *) libdyn_get_output_ptr(block,0);
+	  
+	  state[0] = *in;
+	  
+	  return 0;
+	  break;
+      case COMPF_FLAG_RESETSTATES:
+	  state[0] = initial_state;	  
+
+	  return 0;
+	  break;
+      case COMPF_FLAG_CONFIGURE:  // configure
+	  libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+	  libdyn_config_block_input(block, 0, 1, DATATYPE_INT32); // in, intype,
+	  libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+	  libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+
+	  return 0;
+	  break;
+      case COMPF_FLAG_INIT:  // init
+      {
+	  int32_t *state__ = malloc(sizeof(int32_t) );
+	  libdyn_set_work_ptr(block, (void *) state__);
+
+	  state__[0] = initial_state;
+      }
+      return 0;
+      break;
+      case COMPF_FLAG_DESTUCTOR: // destroy instance
+      {
+	  void *buffer = (void*) libdyn_get_work_ptr(block);
+	  free(buffer);
+      }
+      return 0;
+      break;
+      case COMPF_FLAG_PRINTINFO:
+	  printf("I'm a memory block.\n");
+	  return 0;
+	  break;
+    }
+}
+
+
+
 
 
 
