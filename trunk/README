@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 2.9.2013
+Version of this document: 6.9.2013
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -38,15 +38,15 @@ implementations and parameters during runtime removes the effort of
 restarting the main real-time program. Simulations running in threads can 
 also be synchronised to sensor updates or other events e.g. variable timers. 
 
-Please Note: OpenRTDynamics does *not* depend on any part of Scicos/Xcos.
-             ORTD uses its own algorithms for running the simulations.
+Please Note: OpenRTDynamics does not depend on any part of Scicos/Xcos.
+             ORTD uses algorithms for time-deterministic interpretation of 
+             simulations.
              Only the Scilab Scripting language is required for describing
              the schematics and only during development. During runtime, no
              more than standard C/C++ libraries are required, therefore
              ORTD is very uncomplicated to install and maintain, even on
-             other platforms. Difficult and cryptic instructions for 
-             the installation of this toolbox (as found in some open source 
-             projects) were intentionally avoided.
+             other platforms. The need for difficult and cryptic instructions 
+             for the installation of this framework was intentionally avoided.
              
 
 The ORTD runtime library can be easily integrated into other simulation 
@@ -79,13 +79,20 @@ library.
 * Mathematical formula parsing (modules/muparser)
 * Remote control interface (modules/rt_server)
 * Starting external processes (modules/ext_process)
-* Ability to call time-discrete Xcos-Blocks by a wrapper (modules/scicos_blocks)
+* Ability to call time-discrete Xcos-Blocks trough a wrapper (modules/scicos_blocks), 
+  e.g. those from the HART toolbox. If you're interested, please ask me how to do so,
+  as I didn't publish some code that would automate this by now.
+* Networking: raw UDP send- and receive functionality
 * ...
 
-        
+
+
+
         
 CONTENTS OF THIS README
 -----------------------
+
+PART  I  --  TECHNICAL INFORMATION
 
 - OS DEPENDENCY
 - LICENSE
@@ -110,6 +117,13 @@ CONTENTS OF THIS README
 - DATATYPES
 - IMPORTANT SOURCE FILES
 - REAL-TIME BENCHMARK
+
+PART  II  --  BACKGROUND INFORMATION
+
+- MOTIVATION FOR ANOTHER REAL-TIME FRAMEWORK
+
+APPENDIX  --  GOOD TO KNOW
+
 - TODO
 - BUGS
 - CONTACT
@@ -117,6 +131,10 @@ CONTENTS OF THIS README
 
 
 
+
+
+
+PART  I  --  TECHNICAL INFORMATION
 
 
 
@@ -592,6 +610,50 @@ modules/synchronisation/demo/TestRealTime.sce
 
 You could also consider this as an example on how to start multiple 
 threads with different priorities and CPU assignments.
+
+
+        
+
+PART  II  --  BACKGROUND INFORMATION
+
+
+
+
+MOTIVATION FOR ANOTHER REAL-TIME FRAMEWORK
+------------------------------------------
+
+Since I'm working in the field of biomedical control engineering, my expectations on 
+the reliability & flexibility of the software controlling something that is acting on 
+the human body are very high. 
+
+When doing experiments, in clinical environments only limited time is available. Faults 
+in the operation are critical up to some high extend and technical inadequacies like 
+instable software that requires several attempts to fully run can simply not be accepted.
+It shall be possible to re-calibrate and make individual adaptations to the implementation
+in the shortest time possible. Therefore, instead of code generation, this framework 
+uses an interpreter (the Scilab description is assembled faster than generating and 
+compiling C-Code). Additionally, new sub-implementations can be designed and loaded 
+on-line while e.g. the data acquisition devices stay up and running.
+
+Also I don't like complicated installation procedures where one has to edit files,
+adapt directory paths and install numerous other libraries from their sources by hand.
+ORTD compiles and installs itself automatically from its source files on the individual
+target system. If there is a library installed that could enable additional functionality 
+for ORTD, it is used. If not installed, ORTD doesn't complain.
+
+If you find a bug in the software or things that you just do not find so nice,
+it would be very cool if give me a short notice/comment by Email. Even complaints like 
+"I have to type so much commands when doing ..." are TOTALLY welcome. Every time the user 
+of this framework is subjected to an higher programing effort than theoretically necessary, 
+something could be improved! Thus let me know. ORTD is supposed be as smart and relaxed 
+as possible.
+
+
+
+
+APPENDIX  --  GOOD TO KNOW
+
+
 
 
 TODO

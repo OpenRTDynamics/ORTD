@@ -459,6 +459,8 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 
 
 class compu_func_nested_class {
+  // ld_simnest and ld_simnest2
+  
 public:
     compu_func_nested_class(struct dynlib_block_t *block);
     void destruct();
@@ -553,33 +555,6 @@ int compu_func_nested_class::init()
     asynchron_simsteps = param.v[2];
 
 
-    // This block is not going to support priorities
-//     //
-//     if (asynchron_simsteps > 0) {
-//       // Try to get the priority of the tsak to be creaded
-//
-//       struct irpar_ivec_t Prio_irp;
-//      if ( (irpar_get_ivec(&Prio_irp, ipar, rpar, 22) < 0) ) {
-//        // no prio was attached
-//      } else {
-//        if (Prio_irp.n >= 3) {
-//          // ok got prio
-//          fprintf(stderr, "Task Prio1 would be %d\n", Prio_irp.v[0]);
-//          fprintf(stderr, "Task Prio2 would be %d\n", Prio_irp.v[1]);
-//          fprintf(stderr, "Task CPU would be %d\n", Prio_irp.v[2]);
-//
-// 	 // FIXME: actually set the tasks priority
-//        }
-//      }
-//     }
-
-
-    /*
-
-
-
-      */
-
 
 
     bool use_buffered_input = false;  // in- and out port values are not buffered (default)
@@ -595,7 +570,7 @@ int compu_func_nested_class::init()
     // If there is a libdyn master : use it
     master = (libdyn_master *) block->sim->master;
     if (master == NULL) {  // no master available
-        fprintf(stderr, "ERROR: libdyn: parameter block requires a libdyn master\n");
+        fprintf(stderr, "ERROR: libdyn: ld_nested blocks require a libdyn master\n");
 
         simnest->destruct(); // all simulations are destructed
         delete simnest;
