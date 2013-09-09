@@ -45,6 +45,7 @@ echo "ANDROID_ARM" > target.conf
 
 # Compile
 #bash ../prepare.sh
+make config
 make
 make cleanBuildFiles
 cd ..

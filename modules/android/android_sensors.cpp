@@ -158,6 +158,7 @@ int compu_func_SyncAndroidSensors_class::real_sync_callback( struct dynlib_simul
     if(looper == NULL)
         looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 
+    // get Accelerometer
     accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
     fprintf(stderr, "accelerometerSensor: %s, vendor: %s\n", ASensor_getName(accelerometerSensor), ASensor_getVendor(accelerometerSensor));
 
@@ -166,7 +167,10 @@ int compu_func_SyncAndroidSensors_class::real_sync_callback( struct dynlib_simul
     ASensorEventQueue_enableSensor(queue, accelerometerSensor);
     ASensorEventQueue_setEventRate(queue, accelerometerSensor, (1000L/SAMP_PER_SEC)*1000);
 
+    
 
+    // Get gyroscope
+//     accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
 
 //   printf("waiting for data\n");
 

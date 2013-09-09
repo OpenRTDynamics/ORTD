@@ -58,7 +58,7 @@ class SynchronisingAndroidSensorsBlock {
 public:
     SynchronisingAndroidSensorsBlock(struct dynlib_block_t *block) {
         this->block = block;    // no nothing more here. The real initialisation take place in init()
-        
+
 //         printf("construct()\n");
     }
     ~SynchronisingAndroidSensorsBlock()
@@ -70,16 +70,17 @@ public:
     // define states or other variables
     //
 
-    int SAMP_PER_SEC;
+    int rateAcc, rateGyro, rateMagn, rateGPS;
+    int AccId, GyroId, MagnId;
     bool ExitLoop;
 
     ASensorManager* sensorManager;
     ALooper* looper;
-    ASensorRef accelerometerSensor;
+    ASensorRef accelerometerSensor, GyroSensor, MagnSensor;
     ASensorEventQueue* queue;
 
-    double ax, ay, az;
-    
+    ASensorEvent event;
+//     double ax, ay, az;
 
     //
     // initialise your block
@@ -87,7 +88,7 @@ public:
 
     int init() {
 //       printf("init()\n");
-      
+
         int *Uipar;
         double *Urpar;
 
@@ -95,8 +96,23 @@ public:
         libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
 
 
-	SAMP_PER_SEC = Uipar[0];
 
+
+        try {
+            irpar_ivec veccpp(Uipar, Urpar, 10); // then use:  veccpp.n; veccpp.v;
+// 	  printf("veccpp[0] = %d\n", veccpp.v[0]); // print the first element
+            // of the vector that is of size veccpp.n
+            rateAcc = veccpp.v[0];
+            rateGyro = veccpp.v[1];
+            rateMagn = veccpp.v[2];
+            rateGPS = veccpp.v[3];
+        } catch(int e) {
+            // parameter not found
+            return -1;
+        }
+
+
+        fprintf(stderr, "AndroidSensors: Config: %d %d %d %d\n", rateAcc, rateGyro, rateMagn, rateGPS);
 
         // set the initial states
         resetStates();
@@ -105,7 +121,24 @@ public:
         libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
         libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
 
+        //
         ExitLoop = false;
+
+        //
+        // Set initial output
+ 	//
+	int N = libdyn_get_outportsize(block, 0);  // the size of the first (=0) input vector
+// 	int datatype = libdyn_get_outportdatatype(block, 0); // the datatype
+// 	int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+// 	int NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
+
+	int i;
+	for (i=0; i<N; ++i) {
+	  double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+	  output[i] = 0; 
+	}
+	
+	
 
         // Return -1 to indicate an error, so the simulation will be destructed
         return 0;
@@ -114,29 +147,49 @@ public:
 
     inline void updateStates()
     {
-        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
-        double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
-        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+//         double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+//         double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+//         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
     }
 
 
     inline void calcOutputs()
     {
-        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
-        double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+//         double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
+//         double *in2 = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+        int32_t *SensorID = (int32_t *) libdyn_get_output_ptr(block, 1); // the first output port
+
+// 	*SensorID = Sid;
+
+
+        *SensorID = event.sensor;
+	
+// 	printf("Sensor %d\n", event.sensor);
 
         // Put out the sensor value
-        output[0] = ax;
-        output[1] = ay;
-        output[2] = az;
+        if (event.sensor == AccId) {
+            output[0] = event.acceleration.x;
+            output[1] = event.acceleration.y;
+            output[2] = event.acceleration.z;
+        } else if (event.sensor == GyroId) {
+            output[3] = event.vector.x;
+            output[4] = event.vector.y;
+            output[5] = event.vector.z;
+        } else if (event.sensor == MagnId) {
+            output[6] = event.magnetic.x;
+            output[7] = event.magnetic.y;
+            output[8] = event.magnetic.z;
+	}
+
+
         //   printf("output calc\n");
     }
 
 
     inline void resetStates()
     {
-        
+
     }
 
 
@@ -162,15 +215,63 @@ public:
         if(looper == NULL)
             looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
 
-        accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-        fprintf(stderr, "accelerometerSensor: %s, vendor: %s\n", ASensor_getName(accelerometerSensor), ASensor_getVendor(accelerometerSensor));
+
         queue = ASensorManager_createEventQueue(sensorManager, looper, LOOPER_ID, NULL, NULL);
 
-        ASensorEventQueue_enableSensor(queue, accelerometerSensor);
-        ASensorEventQueue_setEventRate(queue, accelerometerSensor, (1000L/SAMP_PER_SEC)*1000);
+	int SensorCounter = 0;
+	
+        // ACC
+        if (rateAcc > 0) {
+            accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
+            if (accelerometerSensor != NULL) {
+                fprintf(stderr, "accelerometerSensor: %s, vendor: %s\n", ASensor_getName(accelerometerSensor), ASensor_getVendor(accelerometerSensor));
 
-    int ident;//identifier
-    int events;
+                ASensorEventQueue_enableSensor(queue, accelerometerSensor);
+                ASensorEventQueue_setEventRate(queue, accelerometerSensor, (1000L/rateAcc)*1000);
+		
+		AccId = SensorCounter;
+		SensorCounter++;
+		
+            } else {
+                fprintf(stderr, "accelerometerSensor not found\n");
+            }
+        }
+
+        // Gyro
+        if (rateGyro > 0) {
+            GyroSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
+            if (GyroSensor != NULL) {
+                fprintf(stderr, "GyroSensor: %s, vendor: %s\n", ASensor_getName(GyroSensor), ASensor_getVendor(GyroSensor));
+
+                ASensorEventQueue_enableSensor(queue, GyroSensor);
+                ASensorEventQueue_setEventRate(queue, GyroSensor, (1000L/rateAcc)*1000);
+		
+		GyroId = SensorCounter;
+		SensorCounter++;
+            } else {
+                fprintf(stderr, "Gyro Sensor not found\n");
+            }
+        }
+
+        // Magn
+        if (rateMagn > 0) {
+            MagnSensor = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
+            if (MagnSensor != NULL) {
+                fprintf(stderr, "MagnSensor: %s, vendor: %s\n", ASensor_getName(MagnSensor), ASensor_getVendor(MagnSensor));
+
+                ASensorEventQueue_enableSensor(queue, MagnSensor);
+                ASensorEventQueue_setEventRate(queue, MagnSensor, (1000L/rateAcc)*1000);
+		
+		MagnId = SensorCounter;
+		SensorCounter++;
+            } else {
+                fprintf(stderr, "Magn Sensor not found\n");
+            }
+        }
+
+
+        int ident;//identifier
+        int events;
 
 
         // This is the main loop of the new simulation
@@ -181,23 +282,21 @@ public:
             while (  (ident=ALooper_pollAll(-1, NULL, &events, NULL) >= 0)  && !ExitLoop ) {
                 // If a sensor has data, process it now.
                 if (ident == LOOPER_ID) {
-                    ASensorEvent event;
+
                     while (ASensorEventQueue_getEvents(queue, &event, 1) > 0) {
 //                     printf("accelerometer X = %f y = %f z=%f \n", event.acceleration.x, event.acceleration.y, event.acceleration.z);
 
-                        ax = event.acceleration.x;
-                        ay = event.acceleration.y;
-                        az = event.acceleration.z;
+//                          ax = event.acceleration.x;
+//                          ay = event.acceleration.y;
+//                          az = event.acceleration.z;
 
                         // run one step of the ortd simulator
                         // Use C-functions to simulation one timestep
                         libdyn_event_trigger_mask(sim, 1);
                         libdyn_simulation_step(sim, 0);
                         libdyn_simulation_step(sim, 1);
-
                     }
                 }
-
 
             }
         }
@@ -222,7 +321,7 @@ public:
     void PrepareReset() {}
     void HigherLevelResetStates() {}
     void PostInit() {}
-    
+
     // The Computational function that is called by the simulator
     // and that distributes the execution to the various functions
     // in this C++ - Class, including: init(), io(), resetStates() and the destructor
@@ -265,23 +364,23 @@ extern "C" {
     int libdyn_module_android_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
 
 //// Compile only on Android /////
-  #ifdef __ORTD_TARGET_ANDROID
+#ifdef __ORTD_TARGET_ANDROID
 //////////////////////////////////
 
-    
+
     int compu_func_AndroidSensor(int flag, struct dynlib_block_t *block);
 
 //// Compile only on Android /////
-  #endif
+#endif
 //////////////////////////////////
-    
+
 }
 
 // CHANGE HERE: Adjust this function name to match the name of your module
 int libdyn_module_android_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
 //// Compile only on Android /////
-  #ifdef __ORTD_TARGET_ANDROID
+#ifdef __ORTD_TARGET_ANDROID
 //////////////////////////////////
 
     // Register my blocks to the given simulation
@@ -289,15 +388,15 @@ int libdyn_module_android_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     int blockid = 15500;  // CHANGE HERE: choose a unique id for each block
 //     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_AndroidSensor);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &SynchronisingAndroidSensorsBlock::CompFn  );
-        
-    
+
+
 //     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_AndroidAudio);
 
-    
+
     printf("libdyn module android initialised\n");
-    
+
 //// Compile only on Android /////
-  #endif
+#endif
 //////////////////////////////////
 
 
