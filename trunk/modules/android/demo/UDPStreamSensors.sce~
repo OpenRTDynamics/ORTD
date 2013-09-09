@@ -33,13 +33,17 @@
 //
 
 
-thispath = get_absolute_file_path('ReadSensors.sce');
+thispath = get_absolute_file_path('UDPStreamSensors.sce');
 cd(thispath);
+
+
+// send data to:
+DestHostname = "141.23.97.42";
+DestUDPPort = 10000;
 
 
 z = poly(0,'z');
 
-T_a = 0.1;
 
 //
 // Set up simulation schematic
@@ -54,7 +58,7 @@ exec('../scilab_loader.sce');
 function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
   // This will run in a thread
   defaultevents = 0;
-    
+  [sim,one] = ld_const(sim, ev, 1);    
 
   //
   // Define non-constant sample times
@@ -67,6 +71,38 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
 
   [sim, out, SensorID] = ld_AndroidSensors(sim, events, in=Stop, ConfigStruct); // This synchronises the simulation
   [sim] = ld_printf(sim, events, out, "Sensors: ", 10);
+
+  Signal = out;
+
+
+  // Open an UDP-Port
+  [sim] = ld_UDPSocket_shObj(sim, ev, ObjectIdentifyer="aSocket", Visibility=0, hostname="127.0.0.1", UDPPort=-1);
+
+  // Packet counter, so the order of the network packages can be determined
+  [sim, Counter] = ld_modcounter(sim, ev, in=one, initial_count=0, mod=10000)
+  [sim, Counter_int32] = ld_ceilInt32(sim, ev, Counter);
+
+  // Sender ID
+  [sim, SenderID] = ld_const(sim, ev, 1295793); // random number
+  [sim, SenderID_int32] = ld_ceilInt32(sim, ev, SenderID);
+
+  // make a binary structure
+  [sim, Data, NBytes] = ld_ConcateData(sim, ev, ...
+                         inlist=list(SenderID_int32,   Counter_int32,           SensorID,            Signal ), ...
+                         insizes=[1,                        1,                      1,                 10    ], ...
+                         intypes=[ ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_FLOAT ] );
+
+  printf("Size of the UDP-packets will be %d bytes.\n", NBytes);
+
+//   // send broadcast to the network 
+//   [sim] = ld_UDPSocket_Send(sim, ev, ObjectIdentifyer="aSocket", ...
+//                  in=Data, insize=NBytes, intype=ORTD.DATATYPE_BINARY);
+
+  // 
+  [sim, NBytes__] = ld_constvecInt32(sim, ev, vec=NBytes); // the number of bytes that are actually send is dynamic, but must be smaller or equal to 
+  [sim] = ld_UDPSocket_SendTo(sim, ev, SendSize=NBytes__, ObjectIdentifyer="aSocket", ...
+                              hostname=DestHostname, UDPPort=DestUDPPort, in=Data, ...
+                              insize=NBytes);
 
 
   // output of schematic
@@ -134,7 +170,7 @@ parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 par = combine_irparam(parlist);
 
 // save vectors to a file
-save_irparam(par, 'ReadSensors.ipar', 'ReadSensors.rpar');
+save_irparam(par, 'UDPStreamSensors.ipar', 'UDPStreamSensors.rpar');
 
 // clear
 par.ipar = [];

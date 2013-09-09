@@ -147,7 +147,7 @@ ifeq ($(target),ANDROID_ARM)
   export LDFLAGS += 
 
   # -lpthread  & -lrt are not needed in Android
-  export LD_LIBRARIES += -lm -ldl -llog -landroid 
+  export LD_LIBRARIES += -lm -ldl -llog -landroid -lOpenSLES
 
   # use cross compile chain from Android NDK
   export CC = arm-linux-androideabi-gcc
