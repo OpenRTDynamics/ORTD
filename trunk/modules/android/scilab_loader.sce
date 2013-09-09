@@ -29,6 +29,8 @@ function [sim, out] = ld_AndroidSensors(sim, events, in, rate) // PARSEDOCU_BLOC
 // out - vector of size 10 containing the sensor values
 // in - when in becomes one, the synchronisation loop is interrupted
 // 
+// EXPERIMENTAL
+// 
 
 
 
