@@ -163,25 +163,40 @@ public:
 // 	*SensorID = Sid;
 
 
-        *SensorID = event.sensor;
+//         *SensorID = event.sensor;
+        *SensorID = event.type;
 	
 // 	printf("Sensor %d\n", event.sensor);
 
+//         // Put out the sensor value
+//         if (event.sensor == AccId) {
+//             output[0] = event.acceleration.x;
+//             output[1] = event.acceleration.y;
+//             output[2] = event.acceleration.z;
+//         } else if (event.sensor == GyroId) {
+//             output[3] = event.vector.x;
+//             output[4] = event.vector.y;
+//             output[5] = event.vector.z;
+//         } else if (event.sensor == MagnId) {
+//             output[6] = event.magnetic.x;
+//             output[7] = event.magnetic.y;
+//             output[8] = event.magnetic.z;
+// 	}
+
         // Put out the sensor value
-        if (event.sensor == AccId) {
+        if (event.type == ASENSOR_TYPE_ACCELEROMETER) {
             output[0] = event.acceleration.x;
             output[1] = event.acceleration.y;
             output[2] = event.acceleration.z;
-        } else if (event.sensor == GyroId) {
+        } else if (event.type == ASENSOR_TYPE_GYROSCOPE) {
             output[3] = event.vector.x;
             output[4] = event.vector.y;
             output[5] = event.vector.z;
-        } else if (event.sensor == MagnId) {
+        } else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD) {
             output[6] = event.magnetic.x;
             output[7] = event.magnetic.y;
             output[8] = event.magnetic.z;
 	}
-
 
         //   printf("output calc\n");
     }
