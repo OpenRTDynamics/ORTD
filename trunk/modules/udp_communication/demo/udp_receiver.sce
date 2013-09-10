@@ -53,7 +53,6 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
 
   defaultevents = 0;
     
-  inputv = inlist(1);
 //  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
 
   //
@@ -89,10 +88,8 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
 
 
 
-  [sim, result] = ld_constvec(sim, defaultevents, 1:10);
-
   // output of schematic
-  outlist = list(result);
+  outlist = list();
 endfunction
 
 
@@ -109,9 +106,6 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   
   events = defaultevents;
 
-       // input should be a signal vector of size 10
-        [sim, input] = ld_constvec(sim, events, vec=1:10)
-
         [sim, zero] = ld_const(sim, events, 0);
 
 //        [sim, startcalc] = ld_initimpuls(sim, events); // triggers your computation only once
@@ -127,14 +121,13 @@ function [sim, outlist] = schematic_fn(sim, inlist)
         ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = -1;
 
         [sim, outlist, computation_finished] = ld_async_simulation(sim, events, ...
-                              inlist=list(input), ...
-                              insizes=[10], outsizes=[10], ...
-                              intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT], ...
+                              inlist=list(), ...
+                              insizes=[], outsizes=[], ...
+                              intypes=[], outtypes=[], ...
                               nested_fn = run_thread_fn, ...
                               TriggerSignal=startcalc, name="Thread1", ...
                               ThreadPrioStruct, userdata=list() );
 
-         output1 = outlist(1);
          // computation_finished is one, when finished else zero
 
        [sim] = ld_printf(sim, events, in=computation_finished, str="computation_finished", insize=1);

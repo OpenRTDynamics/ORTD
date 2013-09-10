@@ -687,6 +687,9 @@ int ortd_compu_func_clock(int flag, struct dynlib_block_t *block)
 // Blocks for thread notifications (condition variables)
 // A shared object
 //
+
+
+
 class ThreadNotify_SharedObject : public ortd_global_shared_object {
 public:
     ThreadNotify_SharedObject(const char* identName, dynlib_block_t *block, int Visibility) : ortd_global_shared_object(identName, block->sim, Visibility) {
@@ -702,7 +705,7 @@ public:
     }
 
     int init() {
-        printf("Init of ThreadNotify_SharedObject\n");
+//         printf("Init of ThreadNotify_SharedObject\n");
 
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&condition, NULL);
@@ -711,6 +714,8 @@ public:
     }
 
     int WaitForSignal() {
+//       printf("waiting for a notification\n");
+      
         pthread_mutex_lock(&mutex);
 
         while (signal == 0) {
@@ -721,13 +726,13 @@ public:
 
         pthread_mutex_unlock(&mutex);
 
-        printf("Thread received a signal %d\n", sig);
+//         printf("Thread received a signal %d\n", sig);
 
         return sig;
     }
 
     void notify(int32_t sig) {
-        printf("notify Thread\n");
+//          printf("notify Thread\n");
 
         pthread_mutex_lock(&mutex);
         signal = sig;
@@ -783,6 +788,8 @@ public:
     //
 
     int init() {
+//               printf("******** INIT simulation synchronised to notifications \n");
+	      
         int *Uipar;
         double *Urpar;
 
@@ -791,6 +798,7 @@ public:
 
 
         // register the callback function to the simulator that shall trigger the simulation while running in a loop
+// 	printf("Try to sync this simulation (%p) to %p\n", block->sim, &syncCallback_);
         libdyn_simulation_setSyncCallback(block->sim, &syncCallback_ , this);
         libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
 
@@ -803,6 +811,8 @@ public:
             return -1;
         }
 
+//         printf("******** simulation synchronised to notifications \n");
+        
         // Return -1 to indicate an error, so the simulation will be destructed
         return 0;
     }
@@ -841,7 +851,7 @@ public:
          * e.g. by the trigger_computation input of the async nested_block.
         */
 
-        printf("Threaded simulation started execution\n");
+         printf("Threaded simulation synchronised to notifications started execution\n");
 
 //     // wait until the callback function  real_syncDestructor_callback is called
 //     pthread_mutex_lock(&ExitMutex);
@@ -890,6 +900,7 @@ public:
     // and that distributes the execution to the various functions
     // in this C++ - Class, including: init(), io(), resetStates() and the destructor
     static int CompFn(int flag, struct dynlib_block_t *block) {
+//       printf("*** FLAG %d %p\n", flag, block);
         return LibdynCompFnTempate<RecvNotificationsBlock>( flag, block ); // this expands a template for a C-comp fn
     }
     static int syncCallback_(struct dynlib_simulation_t * sim) {
@@ -1018,8 +1029,9 @@ int libdyn_module_synchronisation_siminit(struct dynlib_simulation_t *sim, int b
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ortd_compu_func_clock);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ClockSyncBlock::CompFn);
 
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RecvNotificationsBlock::CompFn);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+4, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ThreadNotify_Block::CompFn);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+110, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &SharedObjBlock<ThreadNotify_SharedObject>::CompFn);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+111, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RecvNotificationsBlock::CompFn);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+112, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ThreadNotify_Block::CompFn);
 
 
 

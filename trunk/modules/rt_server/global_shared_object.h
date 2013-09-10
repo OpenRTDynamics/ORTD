@@ -94,7 +94,7 @@ public:
     SharedObjBlock(struct dynlib_block_t *block) {
         this->block = block;    // no nothing more here. The real initialisation take place in init()
         ObjectIdentifyer = NULL;
-	fprintf(stderr, "new shared obj block, using template SharedObjBlock\n");
+	fprintf(stderr, "New shared obj block, using template SharedObjBlock\n");
     }
     ~SharedObjBlock()
     {
@@ -272,7 +272,7 @@ template <class T> int ortd_GetSharedObj(dynlib_block_t *block, T **IShObj_ret)
 	}
 
         if (IShObj == NULL) {
-            fprintf(stderr, "ERROR: write_RingBuffer_block: memory <%s> could not be found\n", ObjectIdentifyer);
+            fprintf(stderr, "ERROR: ortd_GetSharedObj: Object <%s> could not be found\n", ObjectIdentifyer);
             free(ObjectIdentifyer);
 	    	    
             return -1;

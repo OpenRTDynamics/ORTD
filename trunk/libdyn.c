@@ -53,6 +53,7 @@
 
 #define mydebug(level) if ((level) > 10)
 
+// #define DEBUG2
 
 
 //#define mydebug(level) if ((level) >= 0)
@@ -96,7 +97,7 @@ int libdyn_config_get_datatype_len(int datatype)
   int datatype_len = datatype >> 5;
 
 #ifdef DEBUG
-  fprintf(stderr, calculated datatype len %d\n", datatype_len);
+  fprintf(stderr, "calculated datatype len %d\n", datatype_len);
 #endif  
   
   switch (datatype) {
@@ -1070,6 +1071,10 @@ libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*
 {
   if (simulation->sync_callback.sync_func != NULL)
     return 0;
+  
+#ifdef DEBUG2
+    printf("simulation %p will be synchronised to %p\n", simulation, sync_func);
+#endif
   
   simulation->sync_callback.sync_func = sync_func;
   simulation->sync_callback.userdat = userdat;

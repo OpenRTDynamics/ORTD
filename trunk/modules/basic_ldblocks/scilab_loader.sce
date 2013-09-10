@@ -1245,23 +1245,22 @@ function [sim,out] = ld_ModInt32(sim, ev, num, den) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_ModInt32(sim, ev, num, den) // PARSEDOCU_BLOCK
+function [sim,out] = ld_CompareEqInt32(sim, events, in, CompVal) // PARSEDOCU_BLOCK
 //
-// %PURPOSE: return num MODULO den
-// TODO
+// %PURPOSE: Compeare to CompVal
+// 
+// in*, float
+// out*, int32 - 0 if (in == CompVal); 1 if (in != CompVal);
 //
 
-  btype = 60001 + 41;
-  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
-                   insizes=[1,1], outsizes=[1], ...
-                   intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+  btype = 60001 + 42;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ CompVal ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(num, div) );
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
-
-
-
 
 
 

@@ -92,7 +92,7 @@ function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inl
   blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
 
   // Create the block
-  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, ev, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
   
 //   // connect the inputs
 //  [sim,blk] = libdyn_conn_equation(sim, blk, list(in1, in2) ); // connect in1 to port 0 and in2 to port 1
