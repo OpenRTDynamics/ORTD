@@ -43,7 +43,7 @@ extern "C" {
 
 
 // 
-// A shared object
+// A shared object. This is executed by including the block ld_Template_shObj
 // 
 class Template_SharedObject : public ortd_global_shared_object {
   public:
@@ -268,8 +268,8 @@ public:
 
 
 
-
 /*
+
 template <class ShObj> class SharedObjBlock {
 public:
     SharedObjBlock(struct dynlib_block_t *block) {

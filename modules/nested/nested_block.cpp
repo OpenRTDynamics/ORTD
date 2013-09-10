@@ -32,6 +32,7 @@ extern "C" {
 #include "nested_onlineexchange.h"
 
 
+// #define DEBUG
 
 
 extern "C" {
@@ -106,7 +107,9 @@ template <class compute_instance> void background_computation<compute_instance>:
 
         set_CompNotRunning(false);
 
-
+#ifdef DEBUG
+  fprintf(stderr, "Comp mgr thread rcved signal\n");
+#endif
 
         pthread_mutex_unlock(&mutex);
 
@@ -134,6 +137,11 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 template <class compute_instance> void background_computation<compute_instance>::signal_thread(int sig)
 {
+  
+#ifdef DEBUG
+  fprintf(stderr, "Comp mgr sending signal to thread\n");
+#endif
+  
     pthread_mutex_lock(&mutex);
     signal = sig;
     pthread_mutex_unlock(&mutex);
@@ -1532,7 +1540,7 @@ template <class callback_class> int ortd_asychronous_computation2<callback_class
 
     if ( !sim->IsSyncronised() ) { // unsynchronised simulation --> only one execution step
 #ifdef DEBUG
-        fprintf(stderr, "async_nested: running computer in single mode\n");
+        fprintf(stderr, "async_nested: This is an unsynchronised simulation --> running computer in single mode\n");
 #endif
         sim->simulation_step(0);
         sim->simulation_step(1);
@@ -1842,9 +1850,9 @@ destruct_simulations:
 //          printf("starting comp = %f\n", *comptrigger_inp);
 
         if (*comptrigger_inp > 0.5) {
-#ifdef DEBUG
+ #ifdef DEBUG
             fprintf(stderr, "Trigger computation\n");
-#endif
+ #endif
             this->async_comp_mgr->computeNSteps(1);
         }
 

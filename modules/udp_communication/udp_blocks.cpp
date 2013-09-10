@@ -439,7 +439,7 @@ public:
          * e.g. by the trigger_computation input of the async nested_block.
         */
 
-        printf("Threaded simulation started execution\n");
+        fprintf(stderr, "Threaded simulation synchronised to an UDP-receiver started execution\n");
 
 //     // wait until the callback function  real_syncDestructor_callback is called
 //     pthread_mutex_lock(&ExitMutex);

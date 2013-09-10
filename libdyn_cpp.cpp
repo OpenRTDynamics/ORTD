@@ -26,6 +26,10 @@
 */
 
 
+
+// #define DEBUG
+
+
 #include "libdyn_cpp.h"
 
 extern "C" {
@@ -1481,6 +1485,11 @@ int libdyn::CallSyncCallbackDestructor()
 
 bool libdyn::IsSyncronised()
 {
+  
+  #ifdef DEBUG
+    printf("simulation %p is synchronised to %p\n", sim, sim->sync_callback.sync_func);
+#endif
+  
   // check for a sync_callback function
   if ( sim->sync_callback.sync_func != NULL )
     return true;
