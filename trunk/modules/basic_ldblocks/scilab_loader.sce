@@ -1155,7 +1155,7 @@ endfunction
 
 
 
-function [sim,out] = ld_sumInt32(sim, ev, in1, in2) // PARSEDOCU_BLOCK
+function [sim,out] = ld_sumInt32(sim, events, in1, in2) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: return sum of the input signals
 // TODO
