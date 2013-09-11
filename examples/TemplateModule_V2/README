@@ -22,9 +22,10 @@ your ORTD installation in it. Then run
 
   make plugin
 
-within this folder. The result will the the shared library
+within this folder. The result will be a shared library
 ortd_plugin.so, which must then be placed into the directory
 from where you are going to run you simulation from via
-the "libdyn_generic_exec"-command.
+the "ortd"-command. The system searches for ortd_plugin.so
+and ortd_plugin[0-9].so and loads all of them.
 
 

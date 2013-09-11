@@ -2458,7 +2458,7 @@ int compu_func_constvecInt32(int flag, struct dynlib_block_t *block)
     }
 }
 
-int compu_func_ld_sunInt32(int flag, struct dynlib_block_t *block)
+int compu_func_ld_sumInt32(int flag, struct dynlib_block_t *block)
 {
     //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
     int *ipar = libdyn_get_ipar_ptr(block);
@@ -2499,7 +2499,7 @@ int compu_func_ld_sunInt32(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm a sunInt32 block\n");
+        printf("I'm a sumInt32 block\n");
         return 0;
         break;
 
@@ -4468,6 +4468,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 32, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_floorInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 33, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_roundInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 34, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_constvecInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 35, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_sumInt32);
     
     
 //     TO INSERT

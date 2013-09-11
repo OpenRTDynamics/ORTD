@@ -176,10 +176,10 @@ function [sim, signal ] = ld_RecvNotifications(sim, events, ObjectIdentifyer) //
   Urpar = [ p.rpar ];
   btype = 15100 + 111; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
 
-  insizes=[1]; // Input port sizes
+  insizes=[]; // Input port sizes
   outsizes=[1]; // Output port sizes
   dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
-  intypes=[ORTD.DATATYPE_INT32]; // datatype for each input port
+  intypes=[]; // datatype for each input port
   outtypes=[ORTD.DATATYPE_INT32]; // datatype for each output port
 
   blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)

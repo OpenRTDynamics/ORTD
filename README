@@ -678,13 +678,23 @@ BUGS
 
 - Transfer function blocks are limited by a order of max 20 for the given tf
   No error catching
-- Objects created by libdyn_new_feedback can by ONLY used once
+- Objects created by libdyn_new_feedback can ONLY be used once.
 - The IO-Performance of the rt_server module is suboptimal.
   Needs a better implementation of buffered io.
 - If an ld_stream block is not connected with another block
   the initialisation of the parameter is not done (but its actually not needed in this case)
 
 - module udp_communication: If the host name is not known a segfault may be triggered (FIXED)
+
+- All blocks that synchronise simulations
+  If a block without inputs has outputs and they are not connected the block will be optimised output.
+  However, if it is supposed to synchronise a simulation this not possible then. So please: Connect
+  the outputs otherwise there will be surprising results.
+
+- Check if ld_async_simulation waits for the termination of the nested simulation. Intoduce a sleep(10) 
+  and see what happening
+
+- Check what is happening if there is actually no block in a simulation.
 
 - It works stable (Used for many controller implementations in medical
   control at TU-Berlin)
@@ -782,5 +792,5 @@ By date as there will only be the svn-version
   - 17.8.13: More datatypes and blocks for datatype conversion; UDP send/receive blocks (EXPERIMENTAL).
   - 28.8.13: The individual CPU and the priority to run a thread can be adjusted with ld_async_simulation.
   - 2.9.13:  Blocks that allow to notify (send events) to threads and corresponding blocks for receiving
-             these events.
+             these events. Seems to work -- however an example is missing.
 
