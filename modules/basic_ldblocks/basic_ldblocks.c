@@ -4051,10 +4051,10 @@ int ortd_compu_func_NaNToVal(int flag, struct dynlib_block_t *block)
         double *out = (double *) libdyn_get_output_ptr(block, 0);
         int i;
 	
-	#define isNaN(a) ( (a) == (a) ? 0 : 1 )
+// 	#define isNaN(a) ( (a) == (a) ? 0 : 1 )
 	
         for (i=0; i < size; ++i) {
-	  if (isNaN(in[i])) {
+	  if (isnan(in[i])) {	    
             out[i] = Val;
 	  } else {
 	    out[i] = in[i];
