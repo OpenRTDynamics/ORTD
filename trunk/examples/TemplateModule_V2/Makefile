@@ -1,6 +1,6 @@
 # Change this to the folder where you installed ORTD
 # if you plan to use this as a module, just put "../..".
-ORTDFOLDER=../..
+ORTDFOLDER := $(shell ortd --GetIncludePath)
 
 
 ifeq ($(main_makefile_invoked),yes)

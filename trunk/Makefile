@@ -209,7 +209,7 @@ libdyn_generic_exec: lib libdyn_generic_exec.o
 #	$(CPP) -I.. -L. -O2 -lortd -lm libdyn_generic_exec.cpp -o libdyn_generic_exec
 	$(LD) $(LDFLAGS)  libdyn_generic_exec.o -L. -lortd `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/libdyn_generic_exec  -Wl,-R,'$$ORIGIN/:$$ORIGIN/lib'
  
-libdyn_generic_exec.o: libdyn_generic_exec.cpp lib
+libdyn_generic_exec.o: libdyn_generic_exec.cpp lib IncompiledVariables.h
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
@@ -338,7 +338,12 @@ blockid_offsets:
 	for d in $(MODULES); do (cd modules/$$d; echo gak $$count; count=$$[count+1000] ; echo gak $$count   ); done
 
 
-config:	config_modules
+IncompiledVariables.h:
+	# create in-compiled variables file
+	sh Write_IncompiledVariables.sh
+	
+
+config:	config_modules IncompiledVariables.h
 	@echo "Configuration finished"
 
 # Call make config for every module
@@ -346,6 +351,7 @@ config_modules:
 	( for d in $(MODULES); do (  make --directory=modules/$$d config   ); done ; exit 0 )
 
 clearconfig:	clearconfig_modules
+	rm IncompiledVariables.h
 	@echo "Configuration cleared"
 
 # Call make config for every module
@@ -380,7 +386,7 @@ realtime.o: realtime.c
 libilc.o: libilc.c
 	$(CC) $(CFLAGS) -c libilc.c
 
-libdyn_cpp.o: libdyn_cpp.cpp
+libdyn_cpp.o: libdyn_cpp.cpp IncompiledVariables.h
 	$(CC) $(CFLAGS) -c libdyn_cpp.cpp
 
 #

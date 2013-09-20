@@ -2,8 +2,11 @@
 
 # this is beeing run from the main directory of ortd
 
+echo "------------------------------"
 echo "This is the installer for ORTD"
-ls -l 
+echo "------------------------------"
+
+#ls -l 
 
 SOURCE_DIR=`pwd`
 
@@ -57,7 +60,7 @@ then
     if zenity --question --text "Shall I install the libraries into your home directory within ~/bin ?"
     then
       cd "$SOURCE_DIR"
-      sudo make homeinstall
+      make homeinstall
     fi
 
     echo
@@ -71,8 +74,10 @@ then
     echo
     echo "  make demo"
     echo
-    echo "from this folder to see a demo"
+    echo "from this folder to see a demo."
     echo
+    echo "Now, upen up Scilab and load the toolbox from the toolboxes-menu"
+    echo "As a next step, you could try to run several examples from the folder examples."
     echo "For more information have a look at the README file placing in this folder."
     echo
   )

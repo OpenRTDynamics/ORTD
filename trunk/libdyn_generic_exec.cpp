@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "libdyn_cpp.h"
-
+#include "IncompiledVariables.h"
 
 extern "C" {
 #include "irpar.h"
@@ -344,6 +344,7 @@ void usage(void)
            "                               which means no remote control is enabled\n"
 	   "  -m / --rtmode <val>  Set the real-time mode to <val>. 0 (default) means get real-time priority whenever\n"
 	   "                       possible, 1 means to run with normal priority\n"
+	   "  -g / --GetIncludePath Get the path for the include files of ORTD\n"
            " \n"
            "Example: ortd --baserate 0 -s schematic -i 901 -l 1000\n"
            "         this will load schematic.ipar and schematic.rpar and simulate 1000 steps\n"
@@ -384,10 +385,11 @@ int main(int argc, char *argv[])
                 { "rtmode", required_argument, 0, 'm' },
                 { "verbose", no_argument, NULL, 'v' },
                 { "help", no_argument, NULL, 'h' },
+                { "GetIncludePath", no_argument, NULL, 'g' },
                 { NULL, no_argument, NULL, 0 }
             };
 
-            opt = getopt_long(argc, argv, "s:d:i:l:p:b:m:d:vh", long_options, &idx);
+            opt = getopt_long(argc, argv, "s:d:i:l:p:b:m:d:vhg", long_options, &idx);
 
             if (opt == -1)
                 break;
@@ -476,7 +478,12 @@ int main(int argc, char *argv[])
                 usage();
                 break;
 
-            case '?':
+            case 'g':
+                printf("%s\n", ORTD_PATH);
+		exit(0);
+                break;
+
+	    case '?':
                 usage();
                 //ret = -EINVAL;
                 goto out;
