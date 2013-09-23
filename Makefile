@@ -25,8 +25,15 @@ export ortd_root := $(shell pwd)
 # Configure target
 export target := $(shell cat target.conf)
 
-# Default which should get overwritten
+# Default which should be overwritten
 targetmacro=__HMM
+
+# Name of the resulting ortd binary
+ORTD_INTERPRETERNAME=ortd
+
+# System configuration
+SYSTEM_LIBRARY_FOLDER=/usr/local/lib
+SYSTEM_BINARY_FOLDER=/usr/local/bin
 
 ifeq ($(target),LINUX)
   targetmacro=__ORTD_TARGET_LINUX
@@ -77,6 +84,9 @@ endif
 ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
 
+  SYSTEM_LIBRARY_FOLDER=/usr/lib32
+  ORTD_INTERPRETERNAME=ortd32
+
     # 32 Bit
     export CFLAGS += -m32 -O2 -D$(targetmacro)
     export INCLUDE +=  -I$(ortd_root)
@@ -97,6 +107,7 @@ endif
 
 ifeq ($(target),LINUX_pentium)
   targetmacro=__ORTD_TARGET_LINUX
+  ORTD_INTERPRETERNAME=ortd32
 
     # 32 Bit
     export CFLAGS += -m32 -march=pentium -O2 -D$(targetmacro)
@@ -149,7 +160,7 @@ ifeq ($(target),ANDROID_ARM)
   # -lpthread  & -lrt are not needed in Android
   export LD_LIBRARIES += -lm -ldl -llog -landroid -lOpenSLES
 
-  # use cross compile chain from Android NDK
+  # use cross compile tool-chain from Android NDK
   export CC = arm-linux-androideabi-gcc
   export CPP = arm-linux-androideabi-c++
   export LD = arm-linux-androideabi-g++
@@ -167,7 +178,7 @@ ifeq ($(target),ANDROID_ARM_NEON)
   # -lpthread  & -lrt are not needed in Android
   export LD_LIBRARIES += -lm -ldl -llog -landroid 
 
-  # use cross compile chain from Android NDK
+  # use cross compile tool-chain from Android NDK
   export CC = arm-linux-androideabi-gcc
   export CPP = arm-linux-androideabi-c++
   export LD = arm-linux-androideabi-g++
@@ -396,23 +407,21 @@ libdyn_cpp.o: libdyn_cpp.cpp IncompiledVariables.h
 .PHONY: install
 
 install: all
-	sudo cp libortd.so /usr/local/lib
-	sudo cp libortd.a /usr/local/lib
-#	sudo cp libortd_hart.so /usr/local/lib
-#	sudo cp libortd_hart.a /usr/local/lib
+	sudo cp libortd.so $(SYSTEM_LIBRARY_FOLDER)
+	sudo cp libortd.a $(SYSTEM_LIBRARY_FOLDER)
 	sudo ldconfig
-	sudo cp bin/libdyn_generic_exec /usr/local/bin
-	sudo cp bin/libdyn_generic_exec_scilab /usr/local/bin
-	sudo cp bin/ortd /usr/local/bin
-	sudo cp bin/ortd_static /usr/local/bin
-	sudo chmod +x /usr/local/bin/libdyn_generic_exec_scilab
+	sudo cp bin/libdyn_generic_exec $(SYSTEM_BINARY_FOLDER)
+	sudo cp bin/libdyn_generic_exec_scilab $(SYSTEM_BINARY_FOLDER)
+	sudo cp bin/ortd  $(SYSTEM_BINARY_FOLDER)/$(ORTD_INTERPRETERNAME)
+	sudo cp bin/ortd_static  $(SYSTEM_BINARY_FOLDER)/$(ORTD_INTERPRETERNAME)_static
+	sudo chmod +x  $(SYSTEM_BINARY_FOLDER)/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_static_scilab
 
 homeinstall: all
 	mkdir -p ~/bin
-	cp bin/ortd_static ~/bin/
-	ln -sf ~/bin/ortd_static ~/bin/ortd
+	cp bin/ortd_static ~/bin/$(ORTD_INTERPRETERNAME)_static
+	ln -sf ~/bin/$(ORTD_INTERPRETERNAME)_static ~/bin/$(ORTD_INTERPRETERNAME)
 	@echo "Copied binary ortd to ~/bin"
 	
 package:
