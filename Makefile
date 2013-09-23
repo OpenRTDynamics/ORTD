@@ -85,7 +85,7 @@ ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
 
   SYSTEM_LIBRARY_FOLDER=/usr/lib32
-  ORTD_INTERPRETERNAME=ortd32
+  ORTD_INTERPRETERNAME=ortd_x86_32
 
     # 32 Bit
     export CFLAGS += -m32 -O2 -D$(targetmacro)
