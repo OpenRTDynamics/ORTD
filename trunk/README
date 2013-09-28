@@ -113,6 +113,7 @@ PART  I  --  TECHNICAL INFORMATION
 - MODULES
 - DEVELOPING MODULES & BLOCKS
 - ADDITIONAL THINGS
+- PRINCIPLES FOR DEVELOPING SCHEMATICS
 - EXAMPLES
 - DATATYPES
 - IMPORTANT SOURCE FILES
@@ -527,6 +528,54 @@ Within additional/joystick, there is a separate Python-Script to read out a conn
 joystick and feed the data directly to ORTD-schematics via the rt_server infrastructure.
 It can be used for an example to easily integrate other input devices. Only one simple 
 Python-Script is needed for that.
+
+PRINCIPLES FOR DEVELOPING SCHEMATICS
+------------------------------------
+
+Each block is represented by a call to a scilab function that includes a block
+or a set of blocks into a simulation:
+
+  [sim, u] = ld_play_simple(sim, ev, r=[1,2,3,4,5,4,3,2,1] );
+  [sim, y] = ld_gain(sim, ev, u, 1.5);
+
+The description of the simulation is stored within the structure "sim". The variables
+"u" and "y" represent in- and output signals that are used to connect blocks. The prefix 
+"ld_" denotes "lib dynamic", which is the name of the interpreter. The parameter "ev" 
+is due to a design decision in the past that was then never used. It must be set to zero 
+(ev=0) at the moment. In a next major revision this is likely that there will be new 
+block interfaces where this will be removed. In this simple example, during each 
+simulation time step k, the current value u[k]=r[k] is multiplied by 1.5 yielding 
+y[k] = 1.5 * r[k].
+
+It is important to note, that not the scilab commands are executed during runtime. They
+are only used to describe the blocks and their connections. Functions with the ld_-prefix
+are typically defined in the scilab_loader.sce files.
+
+  --- Blocks that synchronise simulations ---
+
+There are some special blocks that trigger a simulation step of the simulation containing
+such a block. They are used to execute a simulation step when a certain event occurs, e.g.
+a network packet arrives or a certain amount of time has passed. Some of these blocks are:
+
+  * ld_ClockSync  // Sync to a timer
+  * ld_AndroidSensors   // When a measurement becomes available
+                           one simulation step is performed
+  * ld_UDPSocket_Recv  // One simulation when a network packet arrives
+  * ld_RecvNotifications  // Receives notifications triigered by other simulations
+                             running in other threads
+
+
+Such blocks must be placed into simulations that are running in threads started by 
+"ld_async_simulation".
+
+Examples are e.g. given in
+
+modules/synchronisation/demo/timed_thread_v2.sce
+modules/udp_communication/demo/udp_receiver.sce
+
+An template of the C++ - source code for such a block is given in 
+
+examples/TemplateModule_V2/Template_blocks.cpp, class SynchronisingTemplateBlock
 
 EXAMPLES
 --------
