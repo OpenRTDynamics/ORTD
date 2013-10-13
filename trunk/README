@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 6.9.2013
+Version of this document: 12.10.2013
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -125,6 +125,7 @@ PART  II  --  BACKGROUND INFORMATION
 
 APPENDIX  --  GOOD TO KNOW
 
+- CONTRIBUTIONS
 - TODO
 - BUGS
 - CONTACT
@@ -577,6 +578,45 @@ An template of the C++ - source code for such a block is given in
 
 examples/TemplateModule_V2/Template_blocks.cpp, class SynchronisingTemplateBlock
 
+
+
+  --- Threads ---
+
+Threads are initiated by
+
+        ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK; // or  ORTD.ORTD_RT_NORMALTASK
+        ThreadPrioStruct.prio2=0; // for ORTD.ORTD_RT_REALTIMETASK: 1-99 as described in   man sched_setscheduler
+        ThreadPrioStruct.cpu = 1; // -1 means dynamically assign CPU
+
+        [sim, startcalc] = ld_initimpuls(sim, 0); // triggers your computation only once
+
+        [sim, outlist, computation_finished] = ld_async_simulation(sim, 0, ...
+                              inlist=list(), ...
+                              insizes=[], outsizes=[], ...
+                              intypes=[], outtypes=[], ...
+                              nested_fn = Threadfn, ...
+                              TriggerSignal=startcalc, name="VisThread", ...
+                              ThreadPrioStruct, userdata=list() );
+
+hereby the time-scheduling parameters like the thread's priority or CPU affinity can be 
+configured. The ORTD-Superblock
+
+	function [sim, outlist, userdata] = Threadfn(sim, inlist, userdata)
+	  // This sub-simulation will run in a thread
+          // wait for event
+          [sim, signal ] = ld_RecvNotifications(sim, 0, ObjectIdentifyer="signal");
+          [sim, signal___] = ld_Int32ToFloat(sim, ev, signal ); // signal must be catched, otherwise ld_RecvNotifications will be optimised out
+
+	  [sim, R] = ld_read_global_memory(sim, ev, index=readI, ident_str="RotMat", datatype=ORTD.DATATYPE_FLOAT, ElementsToRead=9);
+          [sim] = ld_printf(sim, ev, R,   "R = ", 9);
+
+	  // output of schematic
+	  outlist = list();
+	endfunction
+
+will then run in thread and the simulation is synchronised using ld_RecvNotifications to the
+occurrences of events sent to this thread (c.f. section "Blocks that synchronise simulations").
+
 EXAMPLES
 --------
 
@@ -628,6 +668,16 @@ Structures: ld_DisassembleData, ld_ConcateData
 
 IMPORTANT SOURCE FILES
 ----------------------
+
+- modules/basic_ldblocks/[basic_ldblocks.c,basicCppBlocks.cpp]:
+               Most blocks for basic functionality. Could be also
+               be used as templates / examples for block computational
+               functions.
+
+- modules/basic_ldblocks/scilab_loader.sce
+               Interfacing functions for most blocks for basic 
+               functionality. Could be also be used as templates /
+               examples for block computational functions.
 
 - irpar.[c,h]: A small and efficient implementation for storing
                vectors of data, strings or other objects within
@@ -703,6 +753,12 @@ as possible.
 APPENDIX  --  GOOD TO KNOW
 
 
+CONTRIBUTIONS
+-------------
+
+Contributions to this framework are gracefully welcome! Thus if you introduced support
+for some kind of hardware e.g. GPIO-interfaces from embedded system or missing blocks
+for the basic functionality, do not hesitate.
 
 
 TODO
@@ -715,7 +771,7 @@ TODO
 - exchangeable schematics (DONE)
 - tcp server for remote control, parameter uploading ... (DONE)
 - block interpreting math formula (DONE; with help of muParser)
-- wrapper for scicos blocks and inclusion of hart toolbox; DONE
+- wrapper for Scicos blocks and inclusion of hart toolbox; DONE
 - a dynamical linker that loads *so files as it might be described
   within the schematics
 - A matrix module (multiplication, inversion ...); partially DONE
