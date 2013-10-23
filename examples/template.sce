@@ -44,9 +44,8 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // save the signal us
   [sim] = ld_savefile(sim, ev, fname="result.dat", source=us, vlen=1);
   
-  // output of schematic
-  [sim, out] = ld_const(sim, ev, 0);
-  outlist = list(out); // Simulation output #1
+
+  outlist = list(); // Simulation output (empty)
 endfunction
 
 
@@ -59,7 +58,7 @@ endfunction
 defaultevents = [0]; // main event
 
 // set-up schematic by calling the user defined function "schematic_fn"
-insizes = [1,1]; outsizes=[1];
+insizes = []; outsizes=[];
 [sim_container_irpar, sim]=libdyn_setup_schematic(schematic_fn, insizes, outsizes);
 
 
@@ -73,7 +72,7 @@ parlist = new_irparam_set();
 // pack simulations into irpar container with id = 901
 parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 
-// irparam set is complete convert to vectors
+// irparam set is complete convert
 par = combine_irparam(parlist);
 
 // save vectors to a file
