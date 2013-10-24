@@ -1,3 +1,14 @@
+// 
+// An example for implementing a procedure that can
+// to perform an experiment that controls a system 
+// such that a working point is reached. When reached
+// a system identification experiment is performed
+// by disturbing the actuation signal.
+// 
+// 
+// 
+// 
+
 thispath = get_absolute_file_path('main.sce');
 cd(thispath);
 
@@ -331,8 +342,8 @@ messages=unix_g(ORTD.ortd_executable+ ' -s controller -i 901 -l 100');
 
 //
 //// load results
-//A = fscanfMat('result.dat');
-//
-//scf(1);clf;
-//plot(A(:,1), 'k');
+A = fscanfMat('result.dat');
+
+scf(1);clf;
+plot(A(:,1), 'k');
 
