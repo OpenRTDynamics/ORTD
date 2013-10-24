@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 12.10.2013
+Version of this document: 24.10.2013
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -168,16 +168,16 @@ REQUIREMENTS
 ------------
 
 On the development host:
- * Linux (Ubuntu tested)
+ * Linux (Ubuntu is tested)
  * Scilab 5.3. or above. It will be automatically installed via the graphical installer.
 
-On the executing / real time host (can also be the development host):
- * Linux (Ubuntu tested, possibly with rt_preemption enabled)
- * Nothing more than standard libraries (libc, libpthreads, ...)
- * Optional: An installation of Scilab
+On the executing / real-time target (can also be the development host):
+ * Linux (Ubuntu is tested, rt_preemption is supported but not required)
+ * Nothing more than standard libraries (libc, libpthreads, C++ standard libs, ...)
+ * Optional: An installation of Scilab, libblas, libgsl
 
-For compiling
- * Standard tools like: gcc, g++, make, perl
+For compiling the framework
+ * Standard tools like: bash, gcc, g++, make, perl
 
  Optional libraries
  * libgsl, libblas (If their corresponding development packages are installed, some
