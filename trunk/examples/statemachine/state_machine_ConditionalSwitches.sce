@@ -22,10 +22,15 @@
 // using the nested module
 // After running this file, have a look into the variable "messages" to
 // observed what happened.
+// 
+// Here a conditional state switching is implemented using the 
+// "ld_cond_overwrite"-function.
+// 
+// This exmaple implementes a simple two-level threshold detector and counter
 //
 
 
-SchematicName = 'state_machine'; // must be the filename without .sce
+SchematicName = 'state_machine_ConditionalSwitches'; // must be the filename without .sce
 thispath = get_absolute_file_path(SchematicName+'.sce');
 cd(thispath);
 
@@ -67,17 +72,28 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
 
   select state
     case 1 // state 1
-      // wait 10 simulation steps and then switch to state 2
-      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,2]); // -1 means stay within this state. 2 means go to state # 2
-      [sim, x_global(1)] = ld_add_ofs(sim, events, x_global(1), 1); // increase counter 1 by 1
+
+     // compare the input "inlist(1)" to thresholds
+     [sim, reachedAtLeastLevel1] = ld_compare_01(sim, ev, in=inlist(1),  thr=1); // a lower level
+     [sim, reachedAtLeastLevel2] = ld_compare_01(sim, ev, in=inlist(1),  thr=2); // a higher level
+
+     // wait for the input signal to go bejond a threshold
+     [ sim, active_state ] = ld_const(sim, ev, 0);  // by default: no state switch       
+     [ sim, active_state ] = ld_cond_overwrite(sim, ev, in=active_state, condition=reachedAtLeastLevel1, setto=2); // go to state "2" if reached is true
+     [ sim, active_state ] = ld_cond_overwrite(sim, ev, in=active_state, condition=reachedAtLeastLevel2, setto=3); // go to state "3" if reached is true; This has priority over the first condition
+
     case 2 // state 2
-      // wait 10 simulation steps and then switch to state 3
-      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,3]);
-      [sim, x_global(2)] = ld_add_ofs(sim, events, x_global(2), 1); // increase counter 2 by 1
+      [sim] = ld_printf(sim, ev, x_global(1), "Threshold Level 1 reached", 1);
+
+      // wait 3 simulation steps and then switch to back to state 1
+      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[3], values=[-1,1]);
+      [sim, x_global(1)] = ld_add_ofs(sim, events, x_global(1), 1); // increase counter 2 by 1
     case 3 // state 3
-      // wait 10 simulation steps and then switch to state 1
-      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[10], values=[-1,1]);
-      [sim, x_global(3)] = ld_add_ofs(sim, events, x_global(3), 1); // increase counter 3 by 1
+      [sim] = ld_printf(sim, ev, x_global(2), "Threshold Level 2 reached", 1);
+
+      // wait 3 simulation steps and then switch to back to state 1
+      [sim, active_state] = ld_steps(sim, events, activation_simsteps=[3], values=[-1,1]);
+      [sim, x_global(2)] = ld_add_ofs(sim, events, x_global(2), 1); // increase counter 3 by 1
   end
 
   // multiplex the new global states
@@ -91,8 +107,10 @@ endfunction
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist) 
 
+  ev = 0;
+
   // some dummy input to the state machine
-  [sim,data1] = ld_const(sim, defaultevents, 1.234);   
+  [sim, data1 ] = ld_play_simple(sim, ev,  r=[ 0.1, 0.2, 1.2, 0, 0, 0, 0, 0, 2.2, 0, 0, 0, 0, 0, 0, 0, 1.4, 0 ] );
   [sim, data2] = ld_constvec(sim, defaultevents, vec=[12,13]);
 
   // set-up three states represented by three nested simulations
@@ -100,8 +118,8 @@ function [sim, outlist] = schematic_fn(sim, inlist)
       inlist=list(data1, data2), ..
       insizes=[1,2], outsizes=[1], ... 
       intypes=[ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT], ...
-      nested_fn=state_mainfn, Nstates=3, state_names_list=list("state1", "state2", "state3"), ...
-      inittial_state=3, x0_global=[1,0,2,0], userdata=list("some", "data")  );
+      nested_fn=state_mainfn, Nstates=3, state_names_list=list("comparing", "FirstThrHit", "SecondThrHit"), ...
+      inittial_state=1, x0_global=[0,0,0,0], userdata=list("some", "data")  );
 
   // signal telling the currently active simulation / state
   switch_state = active_state;
@@ -162,7 +180,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 100');
+messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 30');
 
 //
 //// load results
