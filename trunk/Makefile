@@ -139,6 +139,31 @@ ifeq ($(target),RTAI_COMPATIBLE)
     export LD_LIBRARIES += -lm -lpthread -lrt -ldl
 endif
 
+ifeq ($(target),XCOS_RTAI_COMPATIBLE) 
+  # for embedding ORTD into XCOS/SCICOS generated rtai code
+  targetmacro=__ORTD_TARGET_RTAI __ORTD_TARGET_XCOS
+
+  # detect host type
+	export host-type := $(shell arch)
+	ifeq ($(host-type),x86_64)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+	ifeq ($(host-type),armv7l)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+
+    export CFLAGS += -g -O2 -D$(targetmacro)
+    export INCLUDE +=  -I$(ortd_root)
+    export LDFLAGS += 
+    export LD_LIBRARIES += -lm -lpthread -lrt -ldl
+endif
+
+
+
 ifeq ($(target),CYGWIN) 
   targetmacro=__ORTD_TARGET_CYGWIN
 

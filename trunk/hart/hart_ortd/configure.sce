@@ -1,8 +1,8 @@
 mode(-1);
 lines(0);
 
-TOOLBOX_NAME = 'generic_libs_neu';
-TOOLBOX_TITLE = 'generic libs module for Hart Toolbox';
+TOOLBOX_NAME = 'OpenRTDynamics';
+TOOLBOX_TITLE = 'OpenRTDynamics for Hart Toolbox';
 // ====================================================================
 buildable='yes'; //change to no, if the module should not be build
 
@@ -16,4 +16,4 @@ files     = [ 'ilc.o', 'hart_libdyn.o', 'filewriter_hart.o'];
 // Add external shared librarys to ldflags
 // E.g.: ldflags = " -lspezial_lib"; 
 ldflags = " -lpthread -lortd "; 
-cflags = " -g ";
+cflags = "  ";
