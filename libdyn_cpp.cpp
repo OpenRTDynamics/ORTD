@@ -1376,7 +1376,7 @@ void libdyn_nested2::copy_inport_vec(int nPort, void* src)
     int intype = iocfg.intypes[nPort];
 //     element_len = libdyn_config_get_datatype_len(intype);  // FIXME:uncomment
     
-    printf("libdyn_nested2::copy_inport_vec\n");
+//     printf("libdyn_nested2::copy_inport_vec\n");
     int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[nPort] );
 
     
