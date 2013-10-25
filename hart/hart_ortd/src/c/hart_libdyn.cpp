@@ -60,7 +60,7 @@ extern "C" {
 
 
 struct hart_libdynDev {
-  libdyn_nested * simnest;
+  libdyn_nested2 * simnest;
   libdyn_master * master;
   irpar *param;
   
@@ -79,9 +79,11 @@ void hart_libdyn_bloc_calc_stuff(scicos_block *block, struct hart_libdynDev * co
 {
   int i,j;
 
+  // check if the init failed
   if (comdev->error < 0)
     return;
   
+  // copy the inputs to the scicos block to the ORTD simulation
   for (i=0; i< comdev->Nin ; ++i) {
     comdev->simnest->copy_inport_vec(i, in_p(i));
   }
@@ -96,6 +98,7 @@ void hart_libdyn_bloc_calc_stuff(scicos_block *block, struct hart_libdynDev * co
   } else {
     comdev->simnest->simulation_step(0);
     
+    // copy the outputs of the ORTD simulation to the outputs of the scicos block
     for (i=0; i< comdev->Nout ; ++i) {
       comdev->simnest->copy_outport_vec(i, out_p(i));
     }
@@ -157,17 +160,19 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
   for (i=0; i<Nin; ++i) {
 //     printf("insize[%d]=%d\n", i, GetInPortRows(block,i+1));
     insizes[i] = GetInPortRows(block,i+1);
-    intypes[i] = 0; // FIXME
+    intypes[i] = DATATYPE_FLOAT; // FIXME make this more flexible
   }
   for (i=0; i<Nout; ++i) {
 //     printf("outsize[%d]=%d\n", i, GetOutPortRows(block,i+1));
     outsizes[i] = GetOutPortRows(block,i+1);
-    outtypes[i] = 0; // FIXME
+    outtypes[i] = DATATYPE_FLOAT; // FIXME make this more flexible
   }
 
 
   bool use_buffered_input = true;  // in- and out port values are buffered
-  comdev->simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+  //comdev->simnest = new libdyn_nested(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+  comdev->simnest = new libdyn_nested2(Nin, insizes, intypes, Nout, outsizes, outtypes, use_buffered_input);
+  comdev->simnest->allocate_slots(1);
 
   // Load parameters from the files
 
@@ -189,6 +194,7 @@ int hart_libdyn_bloc_init(scicos_block *block,int flag)
     comdev->simnest->set_master(comdev->master);
   }
   
+  // Load the ORTD schematic
   printf("ORTD-Block: loading shematic id %d\n", shematic_id);
   if (comdev->simnest->add_simulation(comdev->param, shematic_id) < 0) {
     comdev->error = -2;

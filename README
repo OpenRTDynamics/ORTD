@@ -22,8 +22,8 @@ on the development computer. Instead an efficient to online-interprete
 binary representation is assembled by the framework-provided Scilab functions
 and executed by the libortd real-time interpreter.
 
-Do to the description using Scilab, well structured code can be achieved, 
-whereby i.e. the filter design could be included nearby the implementation 
+Due to the description using Scilab, well structured code can be achieved, 
+whereby i.e. a filter design could be placed nearby the implementation 
 for a better human-readability. Additionally, functional and object orientated 
 design schemes can be realised. The latter feature enables the possibility to 
 implement reusable parametrised sub-schematics that may also change in its 

@@ -12,6 +12,13 @@
 //#define SCICOS_WRAPPER_INCLUDESCICOSFN 1
 
 
+// When the target for ORTD is XCOS or SCICOS make sure this file does not introduce 
+// the basic Scicos functions as they are already defined by the scicos/xcos invironment.
+#ifdef __ORTD_TARGET_XCOS
+  #undef SCICOS_WRAPPER_INCLUDESCICOSFN
+#endif
+ 
+
 #ifdef SCICOS_WRAPPER_INCLUDESCICOSFN
 extern "C" { // C-functions that are used by Scicos-Blocks. They are barely re-implemented here :-)
 
