@@ -1540,11 +1540,22 @@ template <class callback_class> int ortd_asychronous_computation2<callback_class
 
     if ( !sim->IsSyncronised() ) { // unsynchronised simulation --> only one execution step
 #ifdef DEBUG
-        fprintf(stderr, "async_nested: This is an unsynchronised simulation --> running computer in single mode\n");
+        fprintf(stderr, "async_nested2: This is an unsynchronised simulation --> running computer in single mode\n");
 #endif
+	sim->event_trigger_mask(1);
         sim->simulation_step(0);
-        sim->simulation_step(1);
 
+#ifdef DEBUG
+        fprintf(stderr, "async_nested2: Call state-update flag\n");
+#endif
+
+	sim->simulation_step(1);
+
+#ifdef DEBUG
+        fprintf(stderr, "async_nested2: copying outputs\n");
+#endif
+	
+	
         // call the callback to copy the results
         cb->async_copy_output_callback();
     } else {

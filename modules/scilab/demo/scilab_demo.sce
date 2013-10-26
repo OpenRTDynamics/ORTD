@@ -44,39 +44,7 @@ z = poly(0,'z');
 
 // 
 
-function [block]=sample_comp_fn( block, flag )
-    function outvec=calc_outputs()
-      printf("...\n");
-      outvec=(1:6)';
-    endfunction
 
-  select flag
-    case 0 // update
-      printf("update states\n");
-
-    case 1 // output
-      printf("update outputs\n");
-//      outvec = [1:6]';
-
-//       in = block.inptr(1)(1:3);  // inputs
-
-      outvec = calc_outputs();
-
-      block.outptr(1) = outvec;
-
-    case 4 // init
-      printf("init\n");
-
-    case 5 // terminate
-      printf("terminate\n");
-
-    case 10 // configure
-      printf("configure\n");
-      block.invecsize = 5;
-      block.outvecsize = 6;
-
-  end
-endfunction
 
 
 // This is the main top level schematic
@@ -95,9 +63,47 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 //  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=6, "", ...
 //  "scilab_interf.outvec1 = [ scilab_interf.invec1 * 2; 9999 ] ", "", "/localhome/arne/openrtdynamics/trunk/scilab-5.3.3/bin/scilab"); // Adapt the path to the scilab5 executable to your needs
 //  [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 6);
+
+
+
+  function [block]=sample_comp_fn( block, flag )
+    // This scilab function is called during run-time
+    // NOTE: Please note that the variables defined outside this
+    //       function are typically nor available at run-time.
+    //       This also holds true for self defined Scilab functions!
+    
+    function outvec=calc_outputs()
+      printf("...\n");
+      outvec=(1:6)';
+    endfunction
+
+    select flag
+      case 1 // only the output flag is available
+	printf("update outputs\n");
+  //      outvec = [1:6]';
+
+  //       in = block.inptr(1)(1:3);  // inputs
+
+	outvec = calc_outputs();
+
+	block.outptr(1) = outvec;
+
+      case 4 // init
+	printf("init\n");
+
+      case 5 // terminate
+	printf("terminate\n");
+
+      case 10 // configure
+	printf("configure\n");
+	block.invecsize = 5;
+	block.outvecsize = 6;
+
+    end
+  endfunction
   
 
-// The nicer interface. If BUILDIN_PATH is not found: Do a make clean ; make ; make install on openrtdynamics
+// The nicer interface. If BUILDIN_PATH is not found: Do a make clean ; make config; make ; make install on openrtdynamics
   [sim, out] = ld_scilab2(sim, defaultevents, in=u1, comp_fn=sample_comp_fn, include_scilab_fns=list(), scilab_path="BUILDIN_PATH");
 
   // save result to file
