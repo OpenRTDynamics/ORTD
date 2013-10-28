@@ -37,7 +37,7 @@ function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inl
    parlist = new_irparam_elemet_ivec(parlist, ascii(name), 21); 
    
    //ThreadPrioStruct
-       printf("Adding optional thread priority information\n");     
+//        printf("Adding optional thread priority information\n");     
 //        ThreadPrioStruct = varargin(1);
        
       // also add thread priority
@@ -591,7 +591,7 @@ function [sim, outlist, userdata ] = LD_STATEMACHINE_MAIN(sim, inlist, userdata)
   
   //pause;
     
-  printf("Nested wrapper function: state=%s (#%d) Nin_userdata=%d Nout_userdata=%d, %d events are forwarded\n", statename, state, Nin_userdata, Nout_userdata, Nevents);
+  printf("ld_statemachine: state=%s (#%d) Nin_userdata=%d Nout_userdata=%d, %d events are forwarded\n", statename, state, Nin_userdata, Nout_userdata, Nevents);
     
   x_global = inlist(Nin_userdata+1); // the global states
   
@@ -600,7 +600,7 @@ function [sim, outlist, userdata ] = LD_STATEMACHINE_MAIN(sim, inlist, userdata)
 
 
   if length(outlist_inner) ~= Nout_userdata then
-      printf("Nested wrapper function: your provided function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+      printf("ld_statemachine: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
       error(".");
   end
 
@@ -669,6 +669,12 @@ function [sim, outlist, x_global, active_state, userdata] = ld_statemachine(sim,
 // active_state - signal describing the active state. If this is a singal containing -1 no state swicth occurs
 // x_global_kp1 - vectorial signal of the new global states 
 //
+// PLEASE NOTE: LIMITATIONS:
+// 
+// only ORTD.DATATYPE_FLOAT is supported!
+// 
+// A fixed "ld_statemachine2" is comming, makeing this implementation obsolete.
+// 
 
 
 

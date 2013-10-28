@@ -659,7 +659,9 @@ DATATYPES
   - more to come ...
 
 Nevertheless the majority of the available blocks *only* support
-DATATYPE_FLOAT by now.
+DATATYPE_FLOAT by now. Especially the ld_statemachine block
+does not support datatypes other than DATATYPE_FLOAT.
+A block ld_statemachine2 is about to come...
 
 For data conversion the following blocks are available up to now:
 
