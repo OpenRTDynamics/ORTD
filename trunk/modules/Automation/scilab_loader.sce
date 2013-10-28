@@ -63,7 +63,7 @@ function [sim, finished, outlist] = ld_AutoExperiment(sim, ev, inlist, insizes, 
 	
 	  // Create a thread for performing the computation in the background
 	  [sim, startcalc] = ld_initimpuls(sim, 0); // triggers the computation only once when entering this state
-	  [sim, outlist, computation_finished] = ld_async_simulation(sim, 0, ...
+	  [sim, outlist__, computation_finished] = ld_async_simulation(sim, 0, ...
 				inlist=list(), ...
 				insizes=[], outsizes=[1], ...
 				intypes=[], outtypes=[ORTD.DATATYPE_INT32], ...
@@ -73,7 +73,7 @@ function [sim, finished, outlist] = ld_AutoExperiment(sim, ev, inlist, insizes, 
 
 
           //
-          CalibrationOk = outlist(1);
+          CalibrationOk = outlist__(1);
           [sim,CalibrationOk_] = ld_Int32ToFloat(sim, 0, CalibrationOk);
 
 // 	  [sim] = ld_printf(sim, ev, in=computation_finished, str="computation_finished", insize=1);
