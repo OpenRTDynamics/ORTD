@@ -108,7 +108,7 @@ template <class compute_instance> void background_computation<compute_instance>:
         set_CompNotRunning(false);
 
 #ifdef DEBUG
-  fprintf(stderr, "Comp mgr thread rcved signal\n");
+        fprintf(stderr, "Comp mgr thread rcved signal\n");
 #endif
 
         pthread_mutex_unlock(&mutex);
@@ -137,11 +137,11 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 template <class compute_instance> void background_computation<compute_instance>::signal_thread(int sig)
 {
-  
+
 #ifdef DEBUG
-  fprintf(stderr, "Comp mgr sending signal to thread\n");
+    fprintf(stderr, "Comp mgr sending signal to thread\n");
 #endif
-  
+
     pthread_mutex_lock(&mutex);
     signal = sig;
     pthread_mutex_unlock(&mutex);
@@ -467,8 +467,8 @@ template <class callback_class> int ortd_asychronous_computation<callback_class>
 
 
 class compu_func_nested_class {
-  // ld_simnest and ld_simnest2
-  
+    // ld_simnest and ld_simnest2
+
 public:
     compu_func_nested_class(struct dynlib_block_t *block);
     void destruct();
@@ -1542,20 +1542,20 @@ template <class callback_class> int ortd_asychronous_computation2<callback_class
 #ifdef DEBUG
         fprintf(stderr, "async_nested2: This is an unsynchronised simulation --> running computer in single mode\n");
 #endif
-	sim->event_trigger_mask(1);
+        sim->event_trigger_mask(1);
         sim->simulation_step(0);
 
 #ifdef DEBUG
         fprintf(stderr, "async_nested2: Call state-update flag\n");
 #endif
 
-	sim->simulation_step(1);
+        sim->simulation_step(1);
 
 #ifdef DEBUG
         fprintf(stderr, "async_nested2: copying outputs\n");
 #endif
-	
-	
+
+
         // call the callback to copy the results
         cb->async_copy_output_callback();
     } else {
@@ -1633,6 +1633,31 @@ public:
     ~async_simulationBlock()
     {
         // free your allocated memory, ...
+        printf("async_simulationBlock: destructing\n");
+
+        // notify user code running in the thread that it is over
+        simnest->CallSyncCallbackDestructor();
+
+	// delete computation manager
+        delete async_comp_mgr;
+        pthread_mutex_destroy(&this->output_mutex);
+
+        // destruct the simulation
+        simnest->destruct();
+        delete simnest;
+
+        // do this AFTER simnest has been destroyed because its potentially deletes the managed irpar data
+        if (exchange_helper != NULL) {
+#ifdef DEBUG
+            fprintf(stderr, "compu_func_nested_class: delete exchange helper for %s\n", nested_sim_name);
+#endif
+            delete exchange_helper;
+        }
+
+      
+        // Free allocated data for the simulation name
+        if (this->nested_sim_name != NULL)
+            free(this->nested_sim_name);
     }
 
     //
@@ -1675,9 +1700,9 @@ public:
     //
 
     int init() {
-        fprintf(stderr, "Creating an async simulation V2\n");
-      
-      
+        fprintf(stderr, "async_simulationBlock: Creating an async simulation V2\n");
+
+
         int *Uipar;
         double *Urpar;
 
@@ -1732,12 +1757,12 @@ public:
         Nin = insizes_irp.n;
         Nout = outsizes_irp.n;
 
-        // Try to get the priority of the tsak to be creaded
+        // Try to get the priority of the task to be creaded
         struct irpar_ivec_t Prio_irp;
         if ( (irpar_get_ivec(&Prio_irp, Uipar, Urpar, 22) < 0) ) {
             // no prio was attached
         } else {
-	  ortd_rt_SetThreadProperties(Prio_irp.v, Prio_irp.n);		
+            ortd_rt_SetThreadProperties(Prio_irp.v, Prio_irp.n);
         }
 
 
@@ -1758,7 +1783,7 @@ public:
         // If there is a libdyn master : use it
         master = (libdyn_master *) block->sim->master;
         if (master == NULL) {  // no master available
-            fprintf(stderr, "ERROR: libdyn: async requires a libdyn master\n");
+            fprintf(stderr, "async_simulationBlock: ERROR: libdyn: async requires a libdyn master\n");
 
             simnest->destruct(); // all simulations are destructed
             delete simnest;
@@ -1774,11 +1799,11 @@ public:
 
         if (nested_sim_name != NULL)
             if (master != NULL && master->dtree != NULL) {
-                fprintf(stderr, "libdyn nested: Register <%s> for online exchange\n", nested_sim_name);
+                fprintf(stderr, "async_simulationBlock: Registering <%s> for online exchange\n", nested_sim_name);
                 exchange_helper = new nested_onlineexchange(nested_sim_name, simnest);
             } else {
-                fprintf(stderr, "WARNING: libdyn_nested: online exchanging of simulations requires a libdyn master and a directory\n");
-//             fprintf(stderr, "master = %p, master->dtree=%p\n", master, master->dtree); // FIXME REMOVE DEBUG
+                fprintf(stderr, "WARNING: async_simulationBlock: online exchanging of simulations requires a libdyn master and a directory\n");
+//             fprintf(stddestruct_simulationserr, "master = %p, master->dtree=%p\n", master, master->dtree); // FIXME REMOVE DEBUG
                 master->check_memory();
 
                 simnest->destruct(); // all simulations are destructed
@@ -1828,7 +1853,7 @@ public:
         return 0;
 
 destruct_simulations:
-        fprintf(stderr, "nested: Destructing all simulations\n");
+        fprintf(stderr, "async_simulationBlock: Destructing all simulations\n");
 
         simnest->destruct(); // all simulations are destructed
         delete simnest;
@@ -1861,9 +1886,9 @@ destruct_simulations:
 //          printf("starting comp = %f\n", *comptrigger_inp);
 
         if (*comptrigger_inp > 0.5) {
- #ifdef DEBUG
-            fprintf(stderr, "Trigger computation\n");
- #endif
+#ifdef DEBUG
+            fprintf(stderr, "async_simulationBlock: Trigger computation\n");
+#endif
             this->async_comp_mgr->computeNSteps(1);
         }
 
@@ -1875,7 +1900,7 @@ destruct_simulations:
         //
         // set comp_finieshed output to 1 if result is available
         //
-        
+
 //         fprintf(stderr, "outputs\n");
 
         double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout);
@@ -1889,8 +1914,8 @@ destruct_simulations:
 // 	  fprintf(stderr, ".0 %d\n", Nout);
             *comp_finished = 0;
         }
-        
-   
+
+
     }
 
 
@@ -1902,7 +1927,7 @@ destruct_simulations:
 
 
     void printInfo() {
-        fprintf(stderr, "I'm a Template block\n");
+        fprintf(stderr, "I'm a async_simulationBlock block\n");
     }
 
     // uncommonly used flags
