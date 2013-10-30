@@ -142,7 +142,7 @@ endif
 
 ifeq ($(target),XCOS_RTAI_COMPATIBLE) 
   # for embedding ORTD into XCOS/SCICOS generated rtai code
-  targetmacro=__ORTD_TARGET_RTAI __ORTD_TARGET_XCOS
+  targetmacro=__ORTD_TARGET_RTAI -D __ORTD_TARGET_XCOS
 
   # detect host type
 	export host-type := $(shell arch)
@@ -165,7 +165,7 @@ endif
 
 
 
-ifeq ($(target),CYGWIN) 
+ifeq ($(target),CYGWIN) # TODO 
   targetmacro=__ORTD_TARGET_CYGWIN
 
   export CFLAGS += -g -O2 -D$(targetmacro)
