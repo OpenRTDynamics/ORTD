@@ -224,7 +224,7 @@ export main_makefile_invoked := yes
 
 
 
-all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib
+all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib ScilabToolbox_sce
 	#echo "------- Build finished: Now you can do > make install <  -------"
 	cat documentation/finish_info.txt
 
@@ -258,6 +258,9 @@ lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_look
 	#$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd_hart.so
 	#ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
 
+ScilabToolbox_sce: $(MODULES) 
+	cat  scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce > scilab/ORTDToolbox.sce
+
 scilabhelp:
 	(cd scilab; ./build_toolbox.sh)
 
@@ -270,6 +273,7 @@ cleanBuildFiles:
 clean: cleanBuildFiles
 	rm -f *.so *.a
 	rm -f bin/libdyn_generic_exec bin/libdyn_generic_exec_static bin/ortd bin/ortd_static
+	rm -f scilab/ORTDToolbox.sce
 
 superclean: clean
 	find . -name "*~" -print0 | xargs -0 rm

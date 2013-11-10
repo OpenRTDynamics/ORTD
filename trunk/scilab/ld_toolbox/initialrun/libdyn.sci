@@ -69,6 +69,35 @@ ORTD.DATATYPE_BINARY = 6;
 // #define DATATYPE_UINT8 11
 
 
+//
+// Some terminal color codes for usage with ld_printf
+//
+
+ORTD.termcode.black = ascii(27) + '[30m';
+ORTD.termcode.red = ascii(27) + '[31m';
+ORTD.termcode.green = ascii(27) + '[32m';
+ORTD.termcode.yellow = ascii(27) + '[33m';
+ORTD.termcode.blue = ascii(27) + '[34m';
+ORTD.termcode.magenta = ascii(27) + '[35m';
+ORTD.termcode.cyan = ascii(27) + '[36m';
+ORTD.termcode.white = ascii(27) + '[37m';
+
+ORTD.termcode.redbold = ascii(27) + '[31;1m';
+ORTD.termcode.greenbold = ascii(27) + '[32;1m';
+ORTD.termcode.yellowbold = ascii(27) + '[33;1m';
+ORTD.termcode.bluebold = ascii(27) + '[34;1m';
+
+ORTD.termcode.reset = ascii(27) + '[0m';
+
+
+
+
+// Constants for describing thread types
+ORTD.ORTD_RT_REALTIMETASK = 1;
+ORTD.ORTD_RT_NORMALTASK = 2;
+
+
+
 
 // Globale variable which gives each simulation a unique and random id
 // this id is stored in every object passed to the user, so further calls
@@ -1069,7 +1098,7 @@ endfunction
 
 
 // 
-// Signal collector framework
+// Signal collector framework WORK ONGOING
 // 
 
 function [sim] = ld_collect_signal_init(sim)
