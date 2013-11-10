@@ -2771,14 +2771,14 @@ endfunction
 
 
 //
-// Some terminal color codes for usage with ld_printf
+// Some terminal color codes for usage with ld_printf  MOVED TO libdyn.sci as a workaround
 //
 
-ORTD.termcode.red = ascii(27) + '[31m';
-ORTD.termcode.green = ascii(27) + '[32m';
-ORTD.termcode.yellow = ascii(27) + '[33m';
-ORTD.termcode.blue = ascii(27) + '[34m';
-ORTD.termcode.reset = ascii(27) + '[0m';
+// ORTD.termcode.red = ascii(27) + '[31m';
+// ORTD.termcode.green = ascii(27) + '[32m';
+// ORTD.termcode.yellow = ascii(27) + '[33m';
+// ORTD.termcode.blue = ascii(27) + '[34m';
+// ORTD.termcode.reset = ascii(27) + '[0m';
 
 
 function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK

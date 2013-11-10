@@ -5,9 +5,10 @@
 
 // ADJUST HERE: Add your interfacing functions here
 
-
-ORTD.ORTD_RT_REALTIMETASK = 1;
-ORTD.ORTD_RT_NORMALTASK = 2;
+// Constants for describing thread types
+//   MOVED TO libdyn.sci as a workaround
+// ORTD.ORTD_RT_REALTIMETASK = 1;
+// ORTD.ORTD_RT_NORMALTASK = 2;
 
 
 

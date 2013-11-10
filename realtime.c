@@ -18,42 +18,86 @@
 */
 
 
+/*
+ *  Headers for the individual target systems
+ * 
+ *  Currently targets are:
+ *  __ORTD_TARGET_LINUX, __ORTD_TARGET_ANDROID, __ORTD_TARGET_RTAI
+ * 
+ *  The following functions must be defined for each target
+ *  
+ *  int ortd_rt_SetThreadProperties(int *par, int Npar)
+ *    Set the properties of the calling thread 
+ * 
+ *  int ortd_rt_ChangePriority(unsigned int flags, int priority)
+ *    The obsolete version of ortd_rt_SetThreadProperties
+ *    may be a dummy function.
+ * 
+ *  long int ortd_mu_time()
+ *    return the system time in microseconds
+ */
 
-
-
-
-#ifdef _TTY_POSIX_
-#include <time.h>
-#endif
-
-
-
-
+  
+  
 #ifdef __ORTD_TARGET_LINUX || __ORTD_TARGET_ANDROID
 // normal linux with optional rt_preempt
+  #define _GNU_SOURCE
+  
+  #include <sched.h>
 
-#define _GNU_SOURCE
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+  #include <time.h>
+  #include <sys/time.h>
 
-#include <time.h>
-#include <sched.h>
-#include <sys/mman.h>
-#include <pthread.h>
-#include <sched.h>
-#include <sys/sysinfo.h>
+  #include <pthread.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <errno.h>
+  #include <string.h>
 
-#else
-// RTAI, etc.
+  #include <sys/mman.h>
+  #include <pthread.h>
+  #include <sys/sysinfo.h>
+
+  
+#endif
+  
+#ifdef __ORTD_TARGET_RTAI
+// RTAI.
+  #define _GNU_SOURCE
+  
+  #include <sched.h>
+
+  #include <time.h>
+  #include <sys/time.h>
+
+  #include <pthread.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <errno.h>
+  #include <string.h>
+
+  #include <sys/mman.h>
+  #include <pthread.h>
+  #include <sys/sysinfo.h>
+
+  long int ortd_mu_time()
+  {
+
+      struct timeval mytime;
+      struct timezone myzone;
+
+      gettimeofday(&mytime, &myzone);
+      return (1000000*mytime.tv_sec+mytime.tv_usec);
+
+  } /* mu_time */
 
 #endif
 
+// Add other targets
+// as needed here
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+
+
 
 
 // #ifdef __ORTD_TARGET_ANDROID
@@ -65,19 +109,6 @@
 #include "realtime.h"
 
 
-#ifdef _TTY_POSIX_
-
-long int ortd_mu_time()
-{
-
-    struct timeval mytime;
-    struct timezone myzone;
-
-    gettimeofday(&mytime, &myzone);
-    return (1000000*mytime.tv_sec+mytime.tv_usec);
-
-} /* mu_time */
-#endif
 
 
 
@@ -86,133 +117,148 @@ long int ortd_mu_time()
 
 
 
-#define MAX_SAFE_STACK (8*1024) /* The maximum stack size which is
-guaranteed safe to access without
-faulting */
+  #define MAX_SAFE_STACK (8*1024) /* The maximum stack size which is
+  guaranteed safe to access without
+  faulting */
 
-#define NSEC_PER_SEC    (1000000000) /* The number of nsecs per sec. */
+  #define NSEC_PER_SEC    (1000000000) /* The number of nsecs per sec. */
+
+  long int ortd_mu_time()
+  {
+
+      struct timeval mytime;
+      struct timezone myzone;
+
+      gettimeofday(&mytime, &myzone);
+      return (1000000*mytime.tv_sec+mytime.tv_usec);
+
+  } /* mu_time */
+
+  int ortd_rt_SetThreadProperties(int *par, int Npar)
+  {
+      if (Npar >= 3) {
+	  // ok got prio
+	  fprintf(stderr, "Task Prio1 (flags) would be %d (1 means ORTD_RT_REALTIMETASK)\n", par[0]);
+	  fprintf(stderr, "Task Prio2 would be %d\n", par[1]);
+	  fprintf(stderr, "Task CPU would be %d\n", par[2]);
+
+	  // Set CPU
+	  ortd_rt_SetCore(par[2]);
+
+	  // set the tasks priority
+	  ortd_rt_ChangePriority(par[0], par[1]);
+
+	  ortd_rt_stack_prefault();
+      }
+
+  }
 
 
-int ortd_rt_SetThreadProperties(int *par, int Npar)
-{
-    if (Npar >= 3) {
-        // ok got prio
-        fprintf(stderr, "Task Prio1 (flags) would be %d (1 means ORTD_RT_REALTIMETASK)\n", par[0]);
-        fprintf(stderr, "Task Prio2 would be %d\n", par[1]);
-        fprintf(stderr, "Task CPU would be %d\n", par[2]);
-
-        // FIXME: actually set the tasks priority
-        ortd_rt_SetCore(par[2]);
-
-        ortd_rt_ChangePriority(par[0], par[1]);
-
-        ortd_rt_stack_prefault();
-    }
-
-}
-
-
-int ortd_rt_SetCore(int core_id) {
-
-    if (core_id < 0)
-      return;
   
-    int num_cores = get_nprocs();
-//    int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
-    if (core_id >= num_cores) {
-        fprintf(stderr, "WARNING: Cannot run on CPU%d because only %d CPU(s) are available!\n", core_id, num_cores);
+  int ortd_rt_SetCore(int core_id) {
 
-        return -1;
-    }
+      if (core_id < 0)
+	return;
+    
+      int num_cores = get_nprocs();
+  //    int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+      if (core_id >= num_cores) {
+	  fprintf(stderr, "WARNING: Cannot run on CPU%d because only %d CPU(s) are available!\n", core_id, num_cores);
 
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(core_id, &cpuset);
+	  return -1;
+      }
 
-    pthread_t current_thread = pthread_self();
-    int ret = pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
-      fprintf(stderr, "WARNING: Cannot run on CPU%d, call to pthread_setaffinity_np failed!\n", core_id);
-//         handle_error_en(ret, "pthread_setaffinity_np");
-    } else {
-        fprintf(stderr, "Running on CPU%d out of %d CPU(s)\n", core_id, num_cores);
-    }
+      cpu_set_t cpuset;
+      CPU_ZERO(&cpuset);
+      CPU_SET(core_id, &cpuset);
 
-    return ret;
-}
+      pthread_t current_thread = pthread_self();
+      int ret = pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+      if (ret != 0) {
+	fprintf(stderr, "WARNING: Cannot run on CPU%d, call to pthread_setaffinity_np failed!\n", core_id);
+  //         handle_error_en(ret, "pthread_setaffinity_np");
+      } else {
+	  fprintf(stderr, "Running on CPU%d out of %d CPU(s)\n", core_id, num_cores);
+      }
 
-void ortd_rt_stack_prefault(void) {
+      return ret;
+  }
 
-    unsigned char dummy[MAX_SAFE_STACK];
+  void ortd_rt_stack_prefault(void) {
 
-    memset(dummy, 0, MAX_SAFE_STACK);
-    return;
-}
+      unsigned char dummy[MAX_SAFE_STACK];
 
-
-int ortd_rt_ChangePriority(unsigned int flags, int priority)
-{
-
-    //  printf("********************************************\n");
-
-    if (flags & ORTD_RT_REALTIMETASK) {
-
-        /* Declare ourself as a real-time task */
-
-        struct sched_param param;
-
-        param.sched_priority = priority;
-        if(sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
-            perror("sched_setscheduler failed");
-            return(-1);
-        }
+      memset(dummy, 0, MAX_SAFE_STACK);
+      return;
+  }
 
 
-        /* Lock memory */
-#ifdef __ORTD_TARGET_ANDROID
-        fprintf(stderr, "WARNING: mlockall is not provided by Android\n"); // Android does not provide mlockall
-#else
-        if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
-            perror("mlockall failed");
-            return(-2);
-        }
+  int ortd_rt_ChangePriority(unsigned int flags, int priority)
+  {
+
+      //  printf("********************************************\n");
+
+      if (flags & ORTD_RT_REALTIMETASK) {
+
+	  /* Declare ourself as a real-time task */
+
+	  struct sched_param param;
+
+	  param.sched_priority = priority;
+	  if(sched_setscheduler(0, SCHED_FIFO, &param) == -1) {
+	      perror("sched_setscheduler failed");
+	      return(-1);
+	  }
+
+
+	  /* Lock memory */
+  #ifdef __ORTD_TARGET_ANDROID
+	  fprintf(stderr, "WARNING: mlockall is not provided by Android\n"); // Android does not provide mlockall
+  #else
+	  if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
+	      perror("mlockall failed");
+	      return(-2);
+	  }
+  #endif
+
+
+	  /* Pre-fault our stack */
+
+	  ortd_rt_stack_prefault();
+
+	  fprintf(stderr, "realtime.c: initialised a real-time thread\n");
+
+      } else {
+
+	  struct sched_param param;
+
+	  param.sched_priority = priority;
+	  if(sched_setscheduler(0, SCHED_OTHER, &param) == -1) {
+	      perror("sched_setscheduler failed");
+	      return -1;
+	  }
+
+	  fprintf(stderr, "realtime.c: initialised a non real-time thread\n");
+
+      }
+  }
+
 #endif
+ 
+ 
+#ifdef __ORTD_TARGET_RTAI
+// RTAI.
 
 
-        /* Pre-fault our stack */
+  // These are dummy entries by now
+  int ortd_rt_ChangePriority(unsigned int flags, int priority)
+  {
+      printf("realtime.c: ortd_rt_ChangePriority not implemented by now for this target\n");
+  }
 
-        ortd_rt_stack_prefault();
-
-        fprintf(stderr, "realtime.c: initialised a real-time thread\n");
-
-    } else {
-
-        struct sched_param param;
-
-        param.sched_priority = priority;
-        if(sched_setscheduler(0, SCHED_OTHER, &param) == -1) {
-            perror("sched_setscheduler failed");
-            return -1;
-        }
-
-        fprintf(stderr, "realtime.c: initialised a non real-time thread\n");
-
-    }
-
-
-}
-
-#else
-// RTAI, etc.
-
-int ortd_rt_ChangePriority(unsigned int flags, int priority)
-{
-    printf("realtime.c: ortd_rt_ChangePriority not implemented by now for this target\n");
-}
-
-int ortd_rt_SetThreadProperties(int *par, int Npar)
-{
-    printf("realtime.c: ortd_rt_SetThreadProperties not implemented by now for this target\n");
-}
+  int ortd_rt_SetThreadProperties(int *par, int Npar)
+  {
+      printf("realtime.c: ortd_rt_SetThreadProperties not implemented by now for this target\n");
+  }
 
 #endif

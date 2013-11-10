@@ -207,10 +207,11 @@ The suggested way is to use the automatic installation routine as described on t
 website. However, if you intent to do the compilation / installation by hand you can go 
 on with the following procedure:
 
-Run "make config" and then "make" followed by "make install" on 32/64 Linux platforms
+- Configure your target system through target.conf (not needed for normal installations).
+- Run "make config" and then "make" followed by "make install" on x32/x64/ARM-Linux platforms.
 
-this will compile libortd.so and ortd, which is a generic 
-schematic executor. Both are copied to /usr/local/[bin,lib] respectively.
+This will compile libortd.so and bin/ortd the generic 
+schematic interpreter. Both files are copied to /usr/local/[bin,lib] respectively.
 
 
 The command
@@ -281,7 +282,7 @@ Use
 
   svn up;  make clean; make; make install; make scilabhelp
 
-to have a correct update.
+to get a correct update.
 
 
 INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
@@ -342,10 +343,10 @@ Old information:
   plugins you need have the Target "Linux" enabled (see TARGET CONFIGURATION above).
 
 
-TARGET CONFIGURATION (for usage in a hard real-time environment)
-----------------------------------------------------------------
+TARGET CONFIGURATION (to adjust the target system for the interpreter)
+----------------------------------------------------------------------
 
-The following targets can be choosen before compilation within target.conf:
+The following targets can be choosen in target.conf:
 
 1) RTAI_COMPATIBLE (runs within RTAI; Plugins are disabled because shared libraries
                     are not supported in RTAI, NOTE: This has not been tested for a long time)
@@ -357,7 +358,7 @@ The following targets can be choosen before compilation within target.conf:
 5) ANDROID_ARM_NEON (Like above but with NEON-support for newer arm devices)
 6) LINUX_x86_32 Generates a 32Bit-build of openrtdynamics on an x86_64 Linux operating system.
                 On Ubuntu installing "gcc-multilib", "ia32-libs" and "g++-multilib" is required.
-         
+7) XCOS_RTAI_COMPATIBLE For including ORTD into Scicos/Xcos. Possibly including RTAI-Code generation.
        
                 
                 
@@ -463,7 +464,13 @@ HART-Module INSTALLATION
 
 Please Note: The hart modules hasn't been tested for a long time
              and only Scilab 4.1.2 was supported. For newer Scilab
-             versions the module has to be adapted a bit.
+             versions the module has to be adapted a bit. 
+             UPDATE: It is now working again -- still only for Scilab 4.1.2
+
+Compile & install the framework using the target "XCOS_RTAI_COMPATIBLE":
+
+  echo "XCOS_RTAI_COMPATIBLE" > target.conf
+  make clean; make; make install
 
 Link hart/hart_ortd to the modules/ directory of your HART-Toolbox. 
 
