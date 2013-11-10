@@ -118,6 +118,7 @@ PART  I  --  TECHNICAL INFORMATION
 - DATATYPES
 - IMPORTANT SOURCE FILES
 - REAL-TIME BENCHMARK
+- PORTING TO OTHER TARGETS
 
 PART  II  --  BACKGROUND INFORMATION
 
@@ -721,6 +722,16 @@ threads with different priorities and CPU assignments.
 
 
         
+PORTING TO OTHER TARGETS
+------------------------
+
+It is suggested to start at the file realtime.c in the main directory of the 
+framework. There are some comment that give the necessary information.
+If you plan to port ORTD, consider to contact the author for support.
+
+
+
+
 
 PART  II  --  BACKGROUND INFORMATION
 
