@@ -19,10 +19,18 @@
 
 
 /*
- *  Headers for the individual target systems
+ *  Steps to port ORTD to a new target:
  * 
- *  Currently targets are:
- *  __ORTD_TARGET_LINUX, __ORTD_TARGET_ANDROID, __ORTD_TARGET_RTAI
+ *  1) Edit the Makefile & and add a new section for your target
+ *  2) Configure your new target in target.conf
+ *  3) Add an #ifdef / #endif combination for your target in this
+ *     file to implement the neccessary platform specific functions.
+ *     (see below for a list)
+ * 
+ *
+ * 
+ *  Currently, possible targets are:
+ *  __ORTD_TARGET_LINUX, __ORTD_TARGET_ANDROID, __ORTD_TARGET_RTAI (only partial support)
  * 
  *  The following functions must be defined for each target
  *  
@@ -35,10 +43,45 @@
  * 
  *  long int ortd_mu_time()
  *    return the system time in microseconds
+ * 
+ * 
+ * Please note: ORTD relies on the pthread library for creating threads.
+ *              Of the target OS / RTOS doesn't support this library,
+ *              an emulation of a small subset of the pthread library
+ *              may help. I guess Xenomai has support for pthreads.
+ * 
+ *              In the long term however, all dependencies on the specific
+ *              operating systems will be in this file.
+ * 
+ * 
+ * Currently the following functions of libpthread are used:
+ * 
+ *                pthread_cancel
+ *                pthread_cond_destroy
+ *                pthread_cond_init
+ *                pthread_cond_signal
+ *                pthread_cond_wait
+ *                pthread_create
+ *                pthread_exit
+ *                pthread_join
+ *                pthread_kill
+ *                pthread_mutex_destroy
+ *                pthread_mutex_init
+ *                pthread_mutex_lock
+ *                pthread_mutex_trylock
+ *                pthread_mutex_unlock
+ *                pthread_self
+ *                pthread_setaffinity_np
+ *
+ * 
+ * 
  */
 
   
-  
+//  
+//  Headers for the individual target systems
+// 
+
 #ifdef __ORTD_TARGET_LINUX || __ORTD_TARGET_ANDROID
 // normal linux with optional rt_preempt
   #define _GNU_SOURCE
@@ -79,17 +122,6 @@
   #include <sys/mman.h>
   #include <pthread.h>
   #include <sys/sysinfo.h>
-
-  long int ortd_mu_time()
-  {
-
-      struct timeval mytime;
-      struct timezone myzone;
-
-      gettimeofday(&mytime, &myzone);
-      return (1000000*mytime.tv_sec+mytime.tv_usec);
-
-  } /* mu_time */
 
 #endif
 
@@ -260,5 +292,17 @@
   {
       printf("realtime.c: ortd_rt_SetThreadProperties not implemented by now for this target\n");
   }
+
+  long int ortd_mu_time()
+  {
+
+      struct timeval mytime;
+      struct timezone myzone;
+
+      gettimeofday(&mytime, &myzone);
+      return (1000000*mytime.tv_sec+mytime.tv_usec);
+
+  } /* mu_time */
+
 
 #endif
