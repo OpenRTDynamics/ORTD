@@ -918,4 +918,7 @@ By date as there will only be the svn-version
   - 28.8.13: The individual CPU and the priority to run a thread can be adjusted with ld_async_simulation.
   - 2.9.13:  Blocks that allow to notify (send events) to threads and corresponding blocks for receiving
              these events. Seems to work -- however an example is missing.
+  - 14.11.13:Added support for checking the blocks parameters. Some blocks will now give usefull error 
+             messages, if wrong parameter types are applied (e.g. if an ortd-signals is applied, while
+             a constant is expected.).
 
