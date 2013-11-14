@@ -7,6 +7,24 @@ ORTD.termcode.clearscreen = ascii(27) + '[2J';
 
 
 // 
+// ortd_checkpar types:
+// 
+//     'Signal' 
+//     'SignalList' 
+//     'SingleValue' 
+//     'Vector'
+//     'String'
+// 
+//  e.g.
+// 
+//   ortd_checkpar(sim, list('Signal', 'in', in) );
+//   ortd_checkpar(sim, list('SingleValue', 'gain', gain) );
+// 
+
+
+
+
+// 
 // More basic functions that could also added to libdyn.sci
 // 
 
@@ -328,6 +346,12 @@ function [sim] = ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOC
 // vlen - vector size of signal
 // 
 
+
+  ortd_checkpar(sim, list('Signal', 'source', source) );
+  ortd_checkpar(sim, list('SingleValue', 'vlen', vlen) );
+  ortd_checkpar(sim, list('String', 'fname', fname) );
+
+
   [inp] = libdyn_extrakt_obj( source ); // compatibility
 
   autostart = 1;
@@ -384,6 +408,12 @@ function [sim, outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLO
 // outlist(2)
 //  ....
 //    
+
+
+  ortd_checkpar(sim, list('Signal', 'invec', invec) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+
+
   btype = 60001 + 1;	
   ipar = [vecsize, 0]; rpar = [];
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -413,6 +443,11 @@ function [sim, out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 // combines inlist(1), inlist(2), ...    
 // to a vector signal "out" of size "vecsize", whereby each inlist(i) is of size 1
 //    
+
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+
+
   btype = 60001 + 2;	
   ipar = [vecsize; 0]; rpar = [];
 
@@ -838,10 +873,16 @@ function [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto) // PA
 // %PURPOSE: conditional overwrite of the input signal's value
 //
 // out * - output
+// in * - input to potentially overwrite
+// condition * - condition signal
 // 
 // out = in, if condition < 0.5
 // out = setto, otherwise
 // 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'setto', setto) );
+  ortd_checkpar(sim, list('Signal', 'condition', condition) );
 
 
   btype = 60001 + 19;
@@ -1018,6 +1059,9 @@ function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
 // either 1 or -1
 //
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+
+
   btype = 60001 + 26;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1], outsizes=[1], ...
@@ -1091,7 +1135,7 @@ endfunction
 
 function [sim,out] = ld_Int32ToFloat(sim, events, in) // PARSEDOCU_BLOCK
 //
-// %PURPOSE: Convert int32 to double float
+// %PURPOSE: Convert int32 to double
 // 
 // ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
 // 
@@ -1623,12 +1667,39 @@ endfunction
 
 function [sim, out] = ld_simplecovar(sim, events, in, shape, vecsize) // PARSEDOCU_BLOCK
 //    
-// %PURPOSE: stupid covariance function
+// %PURPOSE: Cross correlation between a vectorial signal and a given shape, use ld_vecXCorrelation instead
+// 
+// Note: Use ld_vecXCorrelation instead. This will be removed soon.
+//    
+
+// FIXME: remove this function
+
+  btype = 60001 + 62;
+  ipar = [vecsize, length(shape) ]; rpar = [ shape ];
+
+  if vecsize<length(shape) then
+    error("vecsize<length(shape) !");
+  end
+  
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize  ], outsizes=[ vecsize-length(shape)+1 ], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_vecXCorrelation(sim, events, in, shape, vecsize) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Cross correlation between a vectorial signal and a given shape
 // 
 //  in *+(vecsize) - vector signal
 //  shape - vector to compare the input with
 //  out *+(length(shape)) - output
 //
+// Calculates the cross correlation between "in" and "shape"
 //    
   btype = 60001 + 62;
   ipar = [vecsize, length(shape) ]; rpar = [ shape ];
@@ -1646,6 +1717,7 @@ function [sim, out] = ld_simplecovar(sim, events, in, shape, vecsize) // PARSEDO
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
+
 
 function [sim, out] = ld_vector_mute(sim, events, in, from, len, setto, vecsize) // PARSEDOCU_BLOCK
 // %PURPOSE: mute a vector from and to a spacified index
@@ -1673,10 +1745,11 @@ endfunction
 
 
 function [sim, out] = ld_vector_NaNtoVal(sim, events, in, Val, vecsize) // PARSEDOCU_BLOCK   
-// %PURPOSE: Find NaN and set to Val
+// %PURPOSE: Find all NaN in a vector and set them to Val
 //
 // in *+(vecsize) - input
 // out *+(vecsize) - output
+// Val - numeric parameter
 //    
   btype = 60001 + 67;	
   ipar = [vecsize]; rpar = [Val];
@@ -1692,12 +1765,13 @@ endfunction
 
 function [sim, outlist] = ld_LevelDemux(sim, events, in, NrEvents) // PARSEDOCU_BLOCK
 //    
-// %PURPOSE: Demux the input level such that one output corresponding to the input level is set to one
+// %PURPOSE: Demux the level of the input signal such that the output corresponding to the input level is set to one
 // 
 //  in * - vector signal
-//  outlist list() of * with NrEvents elements - list of 
+//  outlist - list() of * with NrEvents elements
 //
-//  outlsit(m) == 1, for n=m  AND outlist(m) == 0, for m != n
+//  n = round(in) 
+//  outlist(m) == 1, for n=m  AND outlist(m) == 0, for m != n
 // 
 //    
 
@@ -1785,7 +1859,7 @@ function [sim, out] = ld_RTCrossCorr(sim, events, u, shapeSig, len) // PARSEDOCU
 // len - length of input shape
 // 
 // 
-// Note: The implementation is not optimal. Only the raw sum formula ist evaluated.
+// Note: The implementation is not optimal. Only the raw sum formula is evaluated.
 // 
 
 // introduce some parameters that are refered to by id's
@@ -1816,9 +1890,19 @@ endfunction
 
 function [sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen) // PARSEDOCU_BLOCK
 // 
-// Read data from an ascii file
+// Read data from an ascii-file
 //
-// out *(veclen) - output
+// fname - file name (string)
+// veclen - Size of the vector to read during each time-step
+// out *(veclen) - Output signal as read from the file
+// 
+// The data contained in the file must be ascii data divided into rows and columns
+// as it may be read on Scilab using the command "fscanfMat".
+// The number of columns must be veclen. 
+// For each time-step the respectively next row of data is read from the file and
+// copied to the block's output vectorial signal "out"
+// 
+// The file must be available only at runtime.
 // 
 // 
 
@@ -1826,7 +1910,7 @@ function [sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen) // PARSEDOCU_
    // pack all parameters into a structure "parlist"
    parlist = new_irparam_set();
 
-   parlist = new_irparam_elemet_ivec(parlist, ascii(fname), 12); // id = 12; A string parameter
+//    parlist = new_irparam_elemet_ivec(parlist, ascii(fname), 12); // id = 12; A string parameter
 
    p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
 
@@ -1906,6 +1990,11 @@ function [sim,y] = ld_add_ofs(sim, events, u, ofs) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Add a constant "ofs" to the signal u; y = u + const(ofs)
 //
+
+  ortd_checkpar(sim, list('Signal', 'u', u) );
+  ortd_checkpar(sim, list('SingleValue', 'ofs', ofs) );
+
+
   [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
   
   [sim,y] = ld_sum(sim, events, list(u,0, ofs_const,0), 1,1);
@@ -2511,15 +2600,14 @@ function [sim,sum_] = ld_add(sim, events, inp_list, fak_list) // PARSEDOCU_BLOCK
 // sum_ = in1 * c1 + in2 * c2
 //
 
+  ortd_checkpar(sim, list('SignalList', 'inp_list', inp_list) );
+  ortd_checkpar(sim, list('Vector', 'fak_list', fak_list) );
+
+
     [sim,sum_] = libdyn_new_blk_sum(sim, events, fak_list(1), fak_list(2));
     [sim,sum_] = libdyn_conn_equation(sim, sum_, inp_list);  
     [sim,sum_] = libdyn_new_oport_hint(sim, sum_, 0);    
 endfunction
-
-
-
-
-
 
 
 
@@ -2569,27 +2657,48 @@ endfunction
 
 
 
-function [sim,bid] = libdyn_new_blk_gain(sim, events, c)
-  btype = 20;
-  [sim,bid] = libdyn_new_block(sim, events, btype, [], [c], ...
-                   insizes=[1], outsizes=[1], ...
-                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
-endfunction
-function [sim,gain] = ld_gain(sim, events, inp_list, gain) // PARSEDOCU_BLOCK
+// function [sim,bid] = libdyn_new_blk_gain(sim, events, c)
+//   btype = 20;
+//   [sim,bid] = libdyn_new_block(sim, events, btype, [], [c], ...
+//                    insizes=[1], outsizes=[1], ...
+//                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+// endfunction
+// function [sim,gain] = ld_gain(sim, events, inp_list, gain) // PARSEDOCU_BLOCK
+// //
+// // %PURPOSE: A simple gain
+// //
+// //
+//   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+// 
+//   [sim,gain] = libdyn_new_blk_gain(sim, events, gain);  
+//   [sim,gain] = libdyn_conn_equation(sim, gain, list(inp,0));
+//   [sim,gain] = libdyn_new_oport_hint(sim, gain, 0);    
+// endfunction
+
+
+function [sim,out] = ld_gain(sim, events, in, gain) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: A simple gain
+// 
+// in * - input
+// out * - output
+// 
+// out = in * gain
 //
-//
-  [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
-  [sim,gain] = libdyn_new_blk_gain(sim, events, gain);  
-  [sim,gain] = libdyn_conn_equation(sim, gain, list(inp,0));
-  [sim,gain] = libdyn_new_oport_hint(sim, gain, 0);    
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'gain', gain) );
+
+  [inp] = libdyn_extrakt_obj(in ); // compatibility
+
+  btype = 20;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [], [gain], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,out] = libdyn_conn_equation(sim, bid, list(inp,0));
+  [sim,out] = libdyn_new_oport_hint(sim, out, 0);    
 endfunction
-
-
-
-
 
 
 
@@ -2697,6 +2806,9 @@ function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
 // H is give as a Scilab rational
 //
 
+  ortd_checkpar(sim, list('Signal', 'inp_list', inp_list) );
+
+
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
     [sim,tf] = libdyn_new_blk_zTF(sim, events, H);
@@ -2798,6 +2910,10 @@ function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 // 
 // 
 // 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
+  ortd_checkpar(sim, list('String', 'str', str) );
 
 
   btype = 170;

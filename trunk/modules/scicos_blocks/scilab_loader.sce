@@ -9,13 +9,32 @@
 // An example could be the following scilab function. PARSEDOCU_BLOCK is a hint for the documentation generator to generate documentation for this block
 function [sim, outlist] = ld_scicosblock(sim, events, inlist, cosblk) // PARSEDOCU_BLOCK
 // 
-// %PURPOSE: include a scicos block / schematic (EXPERIMENTAL)
+// %PURPOSE: include a scicos block / schematic
 //
 // inlist  - list() of input ports forwarded to the Scicosblock
 // outlist  - list() of output ports forwarded from the Scicosblock
 // 
 // cosblk - structure as loaded by ortd_getcosblk containg the block parameters 
 //
+// Hint: There is a  way to compile Xcos-superblocks into C-computational functions.
+//       These functions can also be included by ld_scicosblock, but this is experimental
+//       and the process for doing so takes some manual steps to perform on the source-code.
+// 
+// 
+// Limitations:
+// 
+// In the C-structure "scicos_block" there is an entry ozptr that is not initiated 
+// correcty by the wrapper in the file "ScicosWrapper.cpp". Only the following steps
+// are performed that may be suffiecient for most applications:
+// 
+//   ozptr[0] = malloc(1000);
+//   ozptr[1] = malloc(1000);
+//   ozptr[2] = malloc(1000);
+//   ozptr[3] = malloc(1000);
+//   ozptr[4] = malloc(1000);  
+// 
+// These fields are used by the generated C-functions for Scicos-Superblocks.
+// 
 
   
 
@@ -111,9 +130,13 @@ function cosblk=ortd_getcosblk2(blockname, flag, cachefile)  // PARSEDOCU_BLOCK
   // %PURPOSE: Extract information from Scicos block interfacing function macros (*.sci) files
   //
   // pathtoscifile - The interfacing function macro (a *.sci file)
-  // flag - one of 'defaults', 'rundialog'
+  //   
+  // flag - one of 'defaults', 'rundialog' (shows a dialog that asks for the
+  //                blocks parameters,
+  //               'usecachefile' (prevents to apperance of the dialog)
   //
-
+  // The return value is a structure to be used by ld_scicosblock
+  //
 
   //exec(blockname + '_c.sci');
 //   exec(pathtoscifile);
@@ -246,7 +269,7 @@ endfunction
   
   if (flag == 'rundialog') then
   
-    // overwrite a potenially already available X, which does not belong this code.
+    // overwrite a potenially already available variable X, which does not belong this code.
     X=0; // make typeof X to be constant
   
     // check for cached cosblk
@@ -256,7 +279,7 @@ endfunction
           load(cachefile);  // ideally results in a new variable X, which is a structure
           printf("Using cachefile %s\n", cachefile);
         catch
-          1;
+          printf("No cachefile is loaded\n");
         end
         1;
       end

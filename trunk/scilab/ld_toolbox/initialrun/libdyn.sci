@@ -105,6 +105,62 @@ ORTD.ORTD_RT_NORMALTASK = 2;
 global libdyn_simu_id_counter;
 libdyn_simu_id_counter = 1000 + ceil(rand()*10000);
 
+
+
+
+
+
+function ortd_checkpar(sim, l)
+// 
+// Check for several datatypes used for parameters of the blocks
+// 
+
+//       printf("Checking signal %s\n", l(2) );
+
+  select l(1)
+    case 'Signal' then
+      try
+        libdyn_check_object(sim,l(3));
+      catch
+        printf("Unexpected type of the parameter ''%s''. Expected was a signal.\n", l(2)); error('.');
+      end
+
+    case 'SignalList' then
+      try
+        if (type(l(3)) == 15) then // is this a list?
+          List = l(3);
+          for i=1:length(List) 
+            libdyn_check_object(sim, List(i) ); // Are all entries signals?
+          end
+        else
+          error(".");
+        end
+      catch
+        printf("Unexpected type of the parameter ''%s''. Expected was a list() of signals.\n", l(2)); error('.');
+      end
+
+    case 'SingleValue' then
+      if (type(l(3)) ~= 1) | (length(l(3)) ~= 1) then
+        printf("Unexpected type of the parameter ''%s''. Expected was a single value.\n", l(2)); error('.');
+      end
+      
+    case 'Vector' then
+      if (type(l(3)) ~= 1)  then
+        printf("Unexpected type of the parameter ''%s''. Expected was a vector.\n", l(2)); error('.');
+      end
+
+    case 'String' then
+      if (type(l(3)) ~= 10) then
+        printf("Unexpected type of the parameter ''%s''. Expected was a string.\n", l(2)); error('.');
+      end
+
+    else
+//       error("Unknown type to check");
+      null;
+  end
+endfunction
+
+
 // 
 // get datatype size
 // 
@@ -249,12 +305,12 @@ endfunction
 // Check wheter the object given by the user is part of the given simulation
 function libdyn_check_object(sim,obj) 
   if libdyn_is_ldobject(obj) == %F then
-    printf("The given variable is no libdyn object");
+    printf("The given variable is no libdyn object\n");
     error("");
   end
 
   if obj.simid ~= sim.simid then
-    printf("Object does not belong to this simulation");
+    printf("Object does not belong to this simulation\n");
     error("");
   end
 endfunction
