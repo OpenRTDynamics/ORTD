@@ -189,6 +189,10 @@ struct dynlib_simulation_t *libdyn_new_simulation()
 
     sim->sync_callback.userdatDestructor = NULL;
     sim->sync_callback.sync_funcDestructor = NULL;
+    
+    sim->sync_callback.userdatTerminateThread = NULL;
+    sim->sync_callback.sync_TerminateThread = NULL;
+
 
     // events
     sim->events.Nevents = 0;
@@ -251,6 +255,18 @@ void libdyn_simulation_IOlist_add(struct dynlib_simulation_t *sim, int inout, st
     tmp->next = listelement;
   }
 
+}
+
+int libdyn_simulation_SyncCallback_terminateThread(struct dynlib_simulation_t *simulation, int signal)
+{
+  int ret;
+  // Call the callback for the simulations user defined destructor
+  if (simulation->sync_callback.sync_TerminateThread != NULL) {
+    printf("libdyn.c: Telling the creator of the thread to terminate his thread\n");
+    ret = (*simulation->sync_callback.sync_TerminateThread)(simulation);
+  }  
+  
+  return ret;
 }
 
 int libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *simulation) // runns the user defined destruction callback 
@@ -1103,6 +1119,18 @@ libdyn_simulation_setSyncCallbackDestructor(struct dynlib_simulation_t *simulati
 
   simulation->sync_callback.sync_funcDestructor = sync_func;
   simulation->sync_callback.userdatDestructor = userdat;
+  
+  return 1;
+}
+
+int libdyn_simulation_setSyncCallbackTerminateThread(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat)
+{
+  // register is callback that notifies that the thread shall be terminated
+  if (simulation->sync_callback.sync_TerminateThread != NULL)
+    return 0;
+
+  simulation->sync_callback.sync_TerminateThread = sync_func;
+  simulation->sync_callback.userdatTerminateThread = userdat;
   
   return 1;
 }

@@ -469,6 +469,7 @@ public:
 
 	// Trigger termination of the the main loop
 	ExitLoop = true;
+	libdyn_simulation_SyncCallback_terminateThread(block->sim, 1);
 //     pthread_mutex_unlock(&ExitMutex);
 
     }

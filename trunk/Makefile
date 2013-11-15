@@ -430,6 +430,13 @@ libilc.o: libilc.c
 libdyn_cpp.o: libdyn_cpp.cpp IncompiledVariables.h
 	$(CC) $(CFLAGS) -c libdyn_cpp.cpp
 
+
+# Do an update update
+.PHONY: update
+update: 
+	sh update.sh
+
+
 #
 # Installation
 #

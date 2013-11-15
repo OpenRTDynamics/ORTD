@@ -49,6 +49,7 @@ public:
     bool start_computation();
 
     void join_computation();
+    void TerminateThread(int signal);
 
     bool get_CompNotRunning();
     void set_CompNotRunning(bool f);
@@ -164,9 +165,15 @@ template <class compute_instance> bool background_computation<compute_instance>:
 
 }
 
+template <class compute_instance> void background_computation<compute_instance>::TerminateThread(int signal)
+{
+//    printf("About to kill thread\n");
+   pthread_cancel(thread);
+}
+
 template <class compute_instance> void background_computation<compute_instance>::join_computation()
 {
-//    TODO: kill computation
+
 
     // wait until computation is complete
     signal_thread(-1);
@@ -1486,6 +1493,7 @@ public:
     int computeNSteps(int N);
     bool computation_finished();
     void reset();
+    void TerminateThread(int signal);
     void join_computation();
 
 
@@ -1529,6 +1537,10 @@ template <class callback_class> void ortd_asychronous_computation2<callback_clas
     computer_mgr->reset_ThereWasAComputaion();
 }
 
+template <class callback_class> void ortd_asychronous_computation2<callback_class>::TerminateThread(int signal)
+{
+    computer_mgr->TerminateThread(signal);
+}
 
 template <class callback_class> int ortd_asychronous_computation2<callback_class>::computer()
 {
@@ -1845,6 +1857,9 @@ public:
 
 
         this->async_comp_mgr = new ortd_asychronous_computation2<async_simulationBlock>(this, simnest, 0);
+	
+	// Register Terminate callback function
+ 	libdyn_simulation_setSyncCallbackTerminateThread(simnest->get_current_simulation_libdynSimStruct(), &syncCallbackTerminateThread__, this);
 
         pthread_mutex_init(&this->output_mutex, NULL);
 
@@ -1861,6 +1876,16 @@ destruct_simulations:
         return -1;
     }
 
+    int syncCallbackTerminateThread() {
+      fprintf(stderr, "async_simulationBlock: Forcing thread to terminate\n");
+      async_comp_mgr->TerminateThread(1);
+    }
+    
+    static int syncCallbackTerminateThread__(struct dynlib_simulation_t * sim) {
+        void * obj = sim->sync_callback.userdatTerminateThread; // the instance of the class
+        async_simulationBlock *p = (async_simulationBlock *) obj;
+        return p->syncCallbackTerminateThread();
+    }
 
     void async_copy_output_callback()
     {

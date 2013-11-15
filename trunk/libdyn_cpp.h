@@ -447,6 +447,10 @@ public:
 
     // Activate a simulation from the slots
     bool set_current_simulation(int nSim);
+    
+    // get active simulation
+    dynlib_simulation_t* get_current_simulation_libdynSimStruct();
+    
 
     /**
     * \brief reset the states of all blocks in the current simulation (Flag COMPF_FLAG_RESETSTATES will be called for each block)
