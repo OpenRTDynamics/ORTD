@@ -262,6 +262,9 @@ struct dynlib_simulation_t {
     
     void *userdatDestructor; // users data
     int (*sync_funcDestructor)( struct dynlib_simulation_t *sim );  // Callback function. 
+
+    void *userdatTerminateThread; // users data
+    int (*sync_TerminateThread)( struct dynlib_simulation_t *sim );  // Callback function. 
   } sync_callback;
   
   
@@ -404,7 +407,10 @@ int libdyn_simulation_init(struct dynlib_simulation_t * sim);
 int libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
 int libdyn_simulation_setSyncCallbackConstructor(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
 int libdyn_simulation_setSyncCallbackDestructor(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
+int libdyn_simulation_setSyncCallbackTerminateThread(struct dynlib_simulation_t *simulation, int (*sync_func)( struct dynlib_simulation_t * sim ) , void *userdat);
+
 int libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *simulation); // runns the user defined destruction callback 
+int libdyn_simulation_SyncCallback_terminateThread(struct dynlib_simulation_t *simulation, int signal); // typically called by the syncrohising block, likely in its destructor
 
 int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_states); // Einen Schritt weitergehen
 void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim);

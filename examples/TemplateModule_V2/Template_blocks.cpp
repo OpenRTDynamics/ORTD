@@ -280,6 +280,7 @@ public:
 
 	// Trigger termination of the the main loop
 	ExitLoop = true;
+	libdyn_simulation_SyncCallback_terminateThread(block->sim, 1); // force termination of the thread. Only a dummy call by now.
 //     pthread_mutex_unlock(&ExitMutex);
 
     }

@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 24.10.2013
+Version of this document: 15.11.2013
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -258,6 +258,7 @@ make clean           # Clean up, always use this after updating the framework e.
 make cleanBuildFiles # remove all files generated during the build process, but not the
                        resulting binaries
 make clearconfig     # Delete the information gathered during make config.
+make update          # Download the latest version from the subversion repository and complile it
 
 BUILDING A SELF-EXTRACTING AND COMPILING PACKAGE
 ------------------------------------------------
@@ -921,4 +922,7 @@ By date as there will only be the svn-version
   - 14.11.13:Added support for checking the blocks parameters. Some blocks will now give usefull error 
              messages, if wrong parameter types are applied (e.g. if an ortd-signals is applied, while
              a constant is expected.).
+  - 15.11.13: Added libdyn_simulation_SyncCallback_terminateThread to force the termination of threads
+              in synchronised blocks. By now the parameter signal must be =0. pthread_cancel is called
+              on the thread.
 

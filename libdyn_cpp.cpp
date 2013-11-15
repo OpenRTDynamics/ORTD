@@ -1313,6 +1313,10 @@ bool libdyn_nested2::is_current_simulation(int slotID)
     return result;
 }
 
+dynlib_simulation_t* libdyn_nested2::get_current_simulation_libdynSimStruct()
+{
+  return current_sim->get_C_SimulationObject();
+}
 
 bool libdyn_nested2::set_current_simulation(int nSim)
 {

@@ -881,6 +881,7 @@ public:
 
         // Trigger termination of the the main loop
         ExitLoop = true;
+	IShObj->notify(-1);
 //     pthread_mutex_unlock(&ExitMutex);
 
     }

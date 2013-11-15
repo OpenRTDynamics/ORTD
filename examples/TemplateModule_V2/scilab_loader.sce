@@ -4,6 +4,22 @@
 
 
 
+// 
+// ortd_checkpar types:
+// 
+//     'Signal' 
+//     'SignalList' 
+//     'SingleValue' 
+//     'Vector'
+//     'String'
+// 
+//  e.g.
+// 
+//   ortd_checkpar(sim, list('Signal', 'in', in) );
+//   ortd_checkpar(sim, list('SingleValue', 'gain', gain) );
+// 
+
+
 
 function [sim, out] = ld_TemplateWrite(sim, events, str, in1, in2) // PARSEDOCU_BLOCK
 // ADD SOME DOCUMENTATION HERE, that will be copied to the scilab help
@@ -14,6 +30,13 @@ function [sim, out] = ld_TemplateWrite(sim, events, str, in1, in2) // PARSEDOCU_
 // 
 // out = abs(in)
 // 
+
+   // check the input parameters
+   ortd_checkpar(sim, list('String', 'str', str) );
+   ortd_checkpar(sim, list('Signal', 'in1', in1) );
+   ortd_checkpar(sim, list('Signal', 'in2', in2) );
+//    ortd_checkpar(sim, list('SingleValue', 'gain', gain) );
+
 
 // introduce some parameters that are refered to by id's
 parameter1 = 12345;
