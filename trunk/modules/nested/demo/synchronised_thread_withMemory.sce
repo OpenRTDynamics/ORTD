@@ -59,12 +59,18 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
 
 
+
+
+
+          // Define dummy input signal to the computation
+          [sim, CompInput] = ld_constvec(sim, events, vec=1:Nin); 
+
 // 
 // The following code creates a thread that runns the function "evaluation_Thread".
 // This nested simulation can be triggered by the signal "startcalc" defined below
 // 
 
-Nin = 10; // length of the input signal to the Thread
+          Nin = 10; // length of the input signal to the Thread
 
 	  // initialise a global memory for storing the input data for the computation
 	  [sim] = ld_global_memory(sim, ev, ident_str="ThreadInputMemory_1", ... 
@@ -72,21 +78,16 @@ Nin = 10; // length of the input signal to the Thread
 				  initial_data=[zeros(Nin,1)], ... 
 				  visibility='global', useMutex=1);
 
-
-          // Define dummy input signal to the computation
-          [sim, CompInput] = ld_constvec(sim, events, vec=1:10)
-
 //         [sim, startcalc] = ld_initimpuls(sim, 0); // triggers the computation only once 
           [sim, startcalc] = ld_const(sim, events, 1); // triggers your computation during each time step
-
 
 	  // Store the input data into a shared memory
 	  [sim, one] = ld_const(sim, ev, 1);
 	  [sim] = ld_write_global_memory(sim, 0, data=CompInput, index=one, ...
 					ident_str="ThreadInputMemory_1", datatype=ORTD.DATATYPE_FLOAT, ...
-					ElementsToWrite=10);
+					ElementsToWrite=Nin);
 
-	  [sim] = ld_printf(sim, 0, CompInput, "The input is: ", 10);
+	  [sim] = ld_printf(sim, 0, CompInput, "The input is: ", Nin);
 
 	  // Create a thread for performing the computation in the background
 	  function [sim, outlist, userdata] = evaluation_Thread(sim, inlist, userdata)
