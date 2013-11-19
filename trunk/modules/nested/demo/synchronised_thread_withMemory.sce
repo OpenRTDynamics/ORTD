@@ -28,7 +28,7 @@
 //
 
 
-thispath = get_absolute_file_path('synchronised_thread.sce');
+thispath = get_absolute_file_path('synchronised_thread_withMemory.sce');
 cd(thispath);
 
 
@@ -63,6 +63,16 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 // The following code creates a thread that runns the function "evaluation_Thread".
 // This nested simulation can be triggered by the signal "startcalc" defined below
 // 
+
+Nin = 10; // length of the input signal to the Thread
+
+	  // initialise a global memory for storing the input data for the computation
+	  [sim] = ld_global_memory(sim, ev, ident_str="ThreadInputMemory_1", ... 
+				  datatype=ORTD.DATATYPE_FLOAT, len=Nin, ...
+				  initial_data=[zeros(Nin,1)], ... 
+				  visibility='global', useMutex=1);
+
+
           // Define dummy input signal to the computation
           [sim, CompInput] = ld_constvec(sim, events, vec=1:10)
 
@@ -70,17 +80,26 @@ function [sim, outlist] = schematic_fn(sim, inlist)
           [sim, startcalc] = ld_const(sim, events, 1); // triggers your computation during each time step
 
 
+	  // Store the input data into a shared memory
+	  [sim, one] = ld_const(sim, ev, 1);
+	  [sim] = ld_write_global_memory(sim, 0, data=CompInput, index=one, ...
+					ident_str="ThreadInputMemory_1", datatype=ORTD.DATATYPE_FLOAT, ...
+					ElementsToWrite=10);
 
-[sim] = ld_printf(sim, 0, CompInput, "The input is: ", 10);
+	  [sim] = ld_printf(sim, 0, CompInput, "The input is: ", 10);
 
 	  // Create a thread for performing the computation in the background
 	  function [sim, outlist, userdata] = evaluation_Thread(sim, inlist, userdata)
 	    // This will run in a thread
 	    defaultevents = 0;
 	      
-	    // input to the calculation
-	    inputv = inlist(1);
-	    [sim] = ld_printf(sim, 0, inputv, "This is the computation running in a thread. The input is: ", 10);
+	    // get the stored sensor data
+	    [sim, readI] = ld_const(sim, ev, 1); // start at index 1
+	    [sim, ThreadInputMemory] = ld_read_global_memory(sim, ev, index=readI, ident_str="ThreadInputMemory_1", ...
+							datatype=ORTD.DATATYPE_FLOAT, ...
+							Nin);
+
+	    [sim] = ld_printf(sim, 0, ThreadInputMemory, "This is the computation running in a thread. The input is: ", Nin);
 
 
 	    //
@@ -154,7 +173,7 @@ parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 par = combine_irparam(parlist);
 
 // save vectors to a file
-save_irparam(par, 'synchronised_thread.ipar', 'synchronised_thread.rpar');
+save_irparam(par, 'synchronised_thread_withMemory.ipar', 'synchronised_thread_withMemory.rpar');
 
 // clear
 par.ipar = [];
