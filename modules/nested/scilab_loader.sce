@@ -1,5 +1,36 @@
-function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata)
-  // ThreadPrioStruct.prio1=0, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = 0;
+function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata) // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Run a nested libdyn simulation within a a thread
+//
+// INPUT Signals: 
+//
+// TriggerSignal * - Trigger one simulation step of the threaded and nested simulation, if TriggerSignal == 1 
+//                
+// inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+//
+// PARAMETERS:
+// 
+// insizes - input ports configuration
+// outsizes - output ports configuration
+// intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// nested_fn - scilab function defining the sub-schematics
+//             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)
+// 
+// name (string) - the name of the nested simulation
+// ThreadPrioStruct - Properties of the thread. e.g.:
+// 	  ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK;
+// 	  ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = -1;
+// 
+// userdata - A Scilab variable that will be forwarded to the function nested_fn
+// 
+// OUTPUTS:
+// 
+// outlist - list( ) of output signals
+// computation_finished - optional and only meanful if asynchron_simsteps > 0 (means async computation)
+// 
+
+// ThreadPrioStruct.prio1=0, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = 0;
   
     // check for sizes
   N1 = length(insizes);
