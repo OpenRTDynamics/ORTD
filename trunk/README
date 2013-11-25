@@ -812,13 +812,13 @@ BUGS
 
 - module udp_communication: If the host name is not known a segfault may be triggered (FIXED)
 
-- All blocks that synchronise simulations
+- REMARK: All blocks that synchronise simulations
   If a block without inputs has outputs and they are not connected the block will be optimised output.
   However, if it is supposed to synchronise a simulation this not possible then. So please: Connect
   the outputs otherwise there will be surprising results.
 
 - Check if ld_async_simulation waits for the termination of the nested simulation. Intoduce a sleep(10) 
-  and see what happening
+  and see what happening (FIXED)
 
 - Check what is happening if there is actually no block in a simulation.
 

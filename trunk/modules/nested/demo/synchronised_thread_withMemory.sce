@@ -59,6 +59,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
 
 
+          Nin = 10; // length of the input signal to the Thread
 
 
 
@@ -70,7 +71,6 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 // This nested simulation can be triggered by the signal "startcalc" defined below
 // 
 
-          Nin = 10; // length of the input signal to the Thread
 
 	  // initialise a global memory for storing the input data for the computation
 	  [sim] = ld_global_memory(sim, ev, ident_str="ThreadInputMemory_1", ... 
@@ -154,6 +154,7 @@ endfunction
 
 // defile events
 defaultevents = [0]; // main event
+ev = 0;
 
 // set-up schematic by calling the user defined function "schematic_fn"
 insizes = []; outsizes=[];

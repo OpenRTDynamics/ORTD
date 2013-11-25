@@ -26,6 +26,13 @@
 // intensive tasks without disturbing the real-time properties of a real-time loop).
 // Triggering is performed by the upper level schematic through the variable "startcalc".
 //
+// 
+// Note: Also have a look at synchronised_thread_withMemory.sce, showing how to use shared memories
+//       combination with thread.
+// 
+// 
+// 
+// 
 
 
 thispath = get_absolute_file_path('synchronised_thread.sce');
@@ -71,7 +78,9 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
 
 
-[sim] = ld_printf(sim, 0, CompInput, "The input is: ", 10);
+          // Please note: There is currently a BUG that prevents that the input values are forwarded (as of 25.11.13)
+          //              As a work around used the memory mechanism described in synchronised_thread_withMemory.sce.
+          [sim] = ld_printf(sim, 0, CompInput, "The input is: ", 10);
 
 	  // Create a thread for performing the computation in the background
 	  function [sim, outlist, userdata] = evaluation_Thread(sim, inlist, userdata)

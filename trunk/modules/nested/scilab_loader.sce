@@ -1023,13 +1023,23 @@ function [sim] = ld_global_memory(sim, events, ident_str, datatype, len, initial
 // %PURPOSE: inittialise a persistent globally shared memory
 // 
 // ident_str (string) - name of the memory
-// datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+// datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT works)
 // len (integer) - number of elements
 // initial_data - initial data of the memory
 // visibility (string) - 'global', ... (more are following)
 // useMutex (integer) - 0 or 1. Use a mutex if you access the memory from different threads
 // 
 // 
+
+  // check parameters
+  ortd_checkpar(sim, list('String', 'ident_str', ident_str) );
+  ortd_checkpar(sim, list('SingleValue', 'datatype', datatype) );  // FIXME: Change this to 'SingleORTDDatatype'
+  ortd_checkpar(sim, list('SingleValue', 'len', len) );
+  ortd_checkpar(sim, list('Vector', 'initial_data', initial_data) );
+  ortd_checkpar(sim, list('String', 'visibility', visibility) );
+  ortd_checkpar(sim, list('SingleValue', 'useMutex', useMutex) );
+
+
 
   ident_str = ident_str + '.memory';
 
@@ -1084,6 +1094,15 @@ function [sim] = ld_write_global_memory(sim, events, data, index, ident_str, dat
 // 
 // 
 
+
+  // check parameters
+  ortd_checkpar(sim, list('Signal', 'data', data) );
+  ortd_checkpar(sim, list('Signal', 'index', index) );
+  ortd_checkpar(sim, list('String', 'ident_str', ident_str) );
+  ortd_checkpar(sim, list('SingleValue', 'datatype', datatype) );  // FIXME: Change this to 'SingleORTDDatatype'
+  ortd_checkpar(sim, list('SingleValue', 'ElementsToWrite', ElementsToWrite) );
+
+
   ident_str = ident_str + '.memory';
 
   btype = 15001 + 5   ;	
@@ -1106,12 +1125,19 @@ function [sim, data] = ld_read_global_memory(sim, events, index, ident_str, data
 // 
 // %PURPOSE: Read a portion from a persistent globally shared memory
 // 
-// data *+(ElementsToRead) - data
-// index * - index to store the data. Starts at 1
+// data *+(ElementsToRead) - data read from memory
+// index * - start-index to read the data. Starts at 1
 // ident_str (string) - name of the memory
 // datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
 // ElementsToRead (integer) - number of elements to read from the memory
 // 
+
+  // check parameters
+  ortd_checkpar(sim, list('Signal', 'index', index) );
+  ortd_checkpar(sim, list('String', 'ident_str', ident_str) );
+  ortd_checkpar(sim, list('SingleValue', 'datatype', datatype) );  // FIXME: Change this to 'SingleORTDDatatype'
+  ortd_checkpar(sim, list('SingleValue', 'ElementsToRead', ElementsToRead) );
+
 
   ident_str = ident_str + '.memory';
 
