@@ -292,6 +292,8 @@ void *rt_task(void *p)
 // NAME(MODEL,_init)();
     siminit(global_p);
 
+    fprintf(stderr, "ortd: Simulation set-up successfully; entering main loop.\n");
+    
     while (!end) {
         /* wait untill next shot */
         if (!extclock)
@@ -316,6 +318,9 @@ void *rt_task(void *p)
         tsnorm(&t);
     }
 //  NAME(MODEL,_end)();
+ 
+    fprintf(stderr, "ortd: Main loop exited; Destructing the simulation\n");
+
     simend(global_p);
 }
 

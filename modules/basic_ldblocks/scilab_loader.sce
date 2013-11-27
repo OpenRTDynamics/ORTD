@@ -1910,7 +1910,7 @@ function [sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen) // PARSEDOCU_
    // pack all parameters into a structure "parlist"
    parlist = new_irparam_set();
 
-//    parlist = new_irparam_elemet_ivec(parlist, ascii(fname), 12); // id = 12; A string parameter
+   parlist = new_irparam_elemet_ivec(parlist, ascii(fname), 12); // id = 12; A string parameter
 
    p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
 

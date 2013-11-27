@@ -731,8 +731,25 @@ framework. There are some comment that give the necessary information.
 If you plan to port ORTD, consider to contact the author for support.
 
 
+DEFINED BLOCK ID REGIONS
+------------------------
 
+ID range | module
 
+11001 muparser
+14001 rt_server
+15001 nested
+15100 synchronisation
+15200 scicos_blocks
+15300 ext_process
+15400 piplines
+15500 android
+15800 EDF
+22000 scilab
+39001 udp_blocks
+39101 Visualisation
+60001 to basic_ldblocks
+69001 matrix
 
 PART  II  --  BACKGROUND INFORMATION
 

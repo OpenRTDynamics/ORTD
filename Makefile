@@ -75,7 +75,7 @@ ifeq ($(target),LINUX_DEBUG)
 
   # Detect system type and set Fflags
 #    export CFLAGS += -O2 -D$(targetmacro) -DDEBUG
-    export CFLAGS += -O2 -D$(targetmacro) 
+    export CFLAGS += -O2 -D$(targetmacro) -DEXECUTIONINFO
     export CFLAGS += -g 
     export INCLUDE +=  -I$(ortd_root)
     export LDFLAGS += 

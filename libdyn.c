@@ -217,6 +217,11 @@ struct dynlib_simulation_t *libdyn_new_simulation()
     
     ret = libdyn_siminit_modules(sim);
     
+#ifdef EXECUTIONINFO
+//      fprintf(stderr, )
+    libdyn_compfnlist_List(sim->private_comp_func_list);
+#endif
+    
     // kein Master; wird von libdyn_cpp überschrieben, falls ein master eingesetzt wird.
     sim->master = NULL;
     
@@ -1028,8 +1033,10 @@ int libdyn_simulation_callinitflag(struct dynlib_simulation_t * sim, int initfla
   if (current != 0) {
     do { // Destroy all blocks
       struct dynlib_block_t *block = current;
-      
-//      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
+
+#ifdef EXECUTIONINFO     
+      fprintf(stderr, "Going to call init flag %d irparid=%d compfnPtr=%p\n", initflag, block->irpar_config_id, block->comp_func);
+#endif
       
       int ret = (*block->comp_func)(initflag, block);
        if (ret == -1 && destructorflag != -1) { // check for errors if a destructorflag =! -1 is given
