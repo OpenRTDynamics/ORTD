@@ -346,6 +346,7 @@ public:
     {
         // free your allocated memory, ...
         fclose(fd);
+	free(filename); // free the memory allocated by irpar_getstr  
     }
 
     //
@@ -356,6 +357,7 @@ public:
     int N;
     int datatype;
     FILE *fd;
+    char *filename;
 
 
     //
@@ -377,33 +379,31 @@ public:
         // get a string (not so nice by now)
         //
         struct irpar_ivec_t str_;
-        char *str;
+        
         if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;
-	
-		printf("C\n");
-	
+		
 	if (error==-1) {
 	  fprintf(stderr, "ReadAsciiFileBlock: Error while loading parameters\n");
 	  return -1;	  
 	}
 
 	
-        irpar_getstr(&str, str_.v, 0, str_.n);
+        irpar_getstr(&filename, str_.v, 0, str_.n);
 	
-        printf("ReadAsciiFileBlock: Reading ascii file %s\n", str);
+        printf("ReadAsciiFileBlock: Reading ascii file %s\n", filename);
 
         // Open the file
 
-        fd = fopen ( str, "r" );
+        fd = fopen ( filename, "r" );
         if (fd == NULL) {
-            printf("ReadAsciiFileBlock: ERROR: cannot open file %s\n", str);
-            free(str);
+            printf("ReadAsciiFileBlock: ERROR: cannot open file %s\n", filename);
+            free(filename);
             return -1;
         }
 
         
 
-        free(str); // do not forget to free the memory allocated by irpar_getstr  // FIXME: Move this to destructor
+        
 
 
 
