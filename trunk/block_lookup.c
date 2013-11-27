@@ -38,7 +38,7 @@ struct lindyn_comp_func_list_head_t * libdyn_new_compfnlist()
 int libdyn_compfnlist_add(struct lindyn_comp_func_list_head_t *list, int blockid, int comp_fn_type, void *comp_fn)
 {
   struct lindyn_comp_func_list_ele_t * element = (struct lindyn_comp_func_list_ele_t *) malloc(sizeof(struct lindyn_comp_func_list_ele_t));
-
+  
   
   element->blockid = blockid;
   element->comp_fn = comp_fn;
@@ -54,8 +54,10 @@ int libdyn_compfnlist_add(struct lindyn_comp_func_list_head_t *list, int blockid
     list->list_head = element;
   }
   
-//   printf("register block %d\n", blockid);
-
+#ifdef EXECUTIONINFO
+  fprintf(stderr, "mapped block id %d to comp_fn %p\n", blockid, comp_fn);
+#endif
+  
   return 1;
 }
 
@@ -139,7 +141,7 @@ struct lindyn_comp_func_list_ele_t * libdyn_compfnlist_List(struct lindyn_comp_f
 //     if (current->blockid == blockid) {
 //       return current; // found!
 //     }
-    fprintf(stderr, "%d | %p", current->blockid, current->comp_fn);
+    fprintf(stderr, "%d | %p\n", current->blockid, current->comp_fn);
     
     current = current->next;
 

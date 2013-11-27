@@ -368,7 +368,6 @@ public:
 
         // Get the irpar parameters Uipar, Urpar
         libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
-
         //
         // extract some structured sample parameters
         //
@@ -380,20 +379,31 @@ public:
         struct irpar_ivec_t str_;
         char *str;
         if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;
-        irpar_getstr(&str, str_.v, 0, str_.n);
+	
+		printf("C\n");
+	
+	if (error==-1) {
+	  fprintf(stderr, "ReadAsciiFileBlock: Error while loading parameters\n");
+	  return -1;	  
+	}
 
-        printf("Reading ascii file %s\n", str);
+	
+        irpar_getstr(&str, str_.v, 0, str_.n);
+	
+        printf("ReadAsciiFileBlock: Reading ascii file %s\n", str);
 
         // Open the file
 
         fd = fopen ( str, "r" );
         if (fd == NULL) {
-            printf("ERROR: cannot open file %s\n", str);
+            printf("ReadAsciiFileBlock: ERROR: cannot open file %s\n", str);
             free(str);
             return -1;
         }
 
-        free(str); // do not forget to free the memory allocated by irpar_getstr
+        
+
+        free(str); // do not forget to free the memory allocated by irpar_getstr  // FIXME: Move this to destructor
 
 
 
@@ -404,6 +414,7 @@ public:
         datatype = libdyn_get_outportdatatype(block, 0); // the datatype
         int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
         int NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
+		printf("E\n");
 
         // set the initial states
         resetStates();
