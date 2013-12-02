@@ -48,21 +48,12 @@ z = poly(0,'z');
 
 
 function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
-  // This will run once in a thread
-
-
+  // This will run in a thread
   defaultevents = 0;
     
-  inputv = inlist(1);
-//  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
-
   //
   // Define non-constant sample times
   //
-
-//  [sim, Tpause] = ld_const(sim, events, 1);
-//  [sim,Tpause] = ld_play_simple(sim, events, r=[0.51, 0.52, 0.53, 0.54, 0.55, -1]);
-  [sim,Tpause] = ld_play_simple(sim, events, r=[ exp( linspace( -4, -0.5, 40) ), -1  ]);
 
   // Set the time interval between the simulation steps
   // The following block syncronises the simulation
@@ -70,8 +61,6 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
   // in a simulation.
 
   [sim, Data, SrcAddr] = ld_UDPSocket_Recv(sim, events, ObjectIdentifyer="aSocket", outsize=20);
-
-//   [sim] = ld_printf(sim, events, out, "out ", 10);
 
   // demo for disassembling this structure -- just to show how it works
   [sim, DisAsm] = ld_DisassembleData(sim, ev, in=Data, ...
@@ -87,12 +76,8 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
   [sim] = ld_printf(sim, ev, DisAsm(3), "DisAsm(3) (SourceID)       = ", 1);
   [sim] = ld_printf(sim, ev, DisAsm(4), "DisAsm(4) (Signal)         = ", 1);
 
-
-
-  [sim, result] = ld_constvec(sim, defaultevents, 1:10);
-
   // output of schematic
-  outlist = list(result);
+  outlist = list();
 endfunction
 
 
@@ -109,9 +94,6 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   
   events = defaultevents;
 
-       // input should be a signal vector of size 10
-        [sim, input] = ld_constvec(sim, events, vec=1:10)
-
         [sim, zero] = ld_const(sim, events, 0);
 
 //        [sim, startcalc] = ld_initimpuls(sim, events); // triggers your computation only once
@@ -127,14 +109,13 @@ function [sim, outlist] = schematic_fn(sim, inlist)
         ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = -1;
 
         [sim, outlist, computation_finished] = ld_async_simulation(sim, events, ...
-                              inlist=list(input), ...
-                              insizes=[10], outsizes=[10], ...
-                              intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT], ...
+                              inlist=list(), ...
+                              insizes=[], outsizes=[], ...
+                              intypes=[], outtypes=[], ...
                               nested_fn = run_thread_fn, ...
                               TriggerSignal=startcalc, name="Thread1", ...
                               ThreadPrioStruct, userdata=list() );
 
-         output1 = outlist(1);
          // computation_finished is one, when finished else zero
 
        [sim] = ld_printf(sim, events, in=computation_finished, str="computation_finished", insize=1);

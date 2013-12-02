@@ -47,21 +47,13 @@ z = poly(0,'z');
 
 
 
-function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
-  // This will run once in a thread
-
-
+function [sim, outlist, userdata] = UDPReceiverThread(sim, inlist, userdata)
+  // This will run in a thread
   defaultevents = 0;
     
-//  [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
-
   //
   // Define non-constant sample times
   //
-
-//  [sim, Tpause] = ld_const(sim, events, 1);
-//  [sim,Tpause] = ld_play_simple(sim, events, r=[0.51, 0.52, 0.53, 0.54, 0.55, -1]);
-  [sim,Tpause] = ld_play_simple(sim, events, r=[ exp( linspace( -4, -0.5, 40) ), -1  ]);
 
   // Set the time interval between the simulation steps
   // The following block syncronises the simulation
@@ -69,8 +61,6 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
   // in a simulation.
 
   [sim, Data, SrcAddr] = ld_UDPSocket_Recv(sim, events, ObjectIdentifyer="aSocket", outsize=20);
-
-//   [sim] = ld_printf(sim, events, out, "out ", 10);
 
   // demo for disassembling this structure -- just to show how it works
   [sim, DisAsm] = ld_DisassembleData(sim, ev, in=Data, ...
@@ -85,8 +75,6 @@ function [sim, outlist, userdata] = run_thread_fn(sim, inlist, userdata)
   [sim] = ld_printf(sim, ev, DisAsm(2), "DisAsm(2) (Packet Counter) = ", 1);
   [sim] = ld_printf(sim, ev, DisAsm(3), "DisAsm(3) (SourceID)       = ", 1);
   [sim] = ld_printf(sim, ev, DisAsm(4), "DisAsm(4) (Signal)         = ", 1);
-
-
 
   // output of schematic
   outlist = list();
@@ -124,7 +112,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
                               inlist=list(), ...
                               insizes=[], outsizes=[], ...
                               intypes=[], outtypes=[], ...
-                              nested_fn = run_thread_fn, ...
+                              nested_fn = UDPReceiverThread, ...
                               TriggerSignal=startcalc, name="Thread1", ...
                               ThreadPrioStruct, userdata=list() );
 
