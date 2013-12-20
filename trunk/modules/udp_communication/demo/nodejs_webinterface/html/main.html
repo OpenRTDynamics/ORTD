@@ -1,16 +1,81 @@
 <html>
 <head>
+
+
+
+<body>
+    <strong>GUI-interface to ORTD-simulation</strong>
+      <br>
+    Parameter 1 (suggested range: -5 to 5):
+    <input name="Parameter1" id="Parameter1" type="text" size="20" maxlength="20" value="0.00">
+      <br>
+    Parameter 2:
+    <input name="Parameter2" id="Parameter2" type="text" size="20" maxlength="20" value="0.00">
+      <br>
+    <input type="button" name="UploadParameters" id="UploadParameters" value="Upload Parameters" onClick="UploadParameters();">
+
+  <br><br>
+  <strong>Values:</strong> <div id="Values">0</div>
+
+  <!-- A smoothiechart -->
+   <canvas id="Chart1" width="600" height="300"></canvas>
+
+
+
+<!--
+http://www.user.tu-berlin.de/cklauer/Flotr2/flotr2.min.js
+http://www.user.tu-berlin.de/cklauer/Flotr2/Flotr.js
+http://github.com/joewalnes/smoothie/raw/master/smoothie.js
+-->
+
+</body>
+
+
+
+<!-- smootie charts: http://smoothiecharts.org/ -->
+    <script type="text/javascript" src="http://www.user.tu-berlin.de/cklauer/smoothie.js"></script>
+<!--    <script type="text/javascript" src="http://smoothiecharts.org/smoothie.js"></script>  -->
+
+
+<!-- always required -->
     <script src = "/socket.io/socket.io.js" > </script>
     <script type=text/javascript src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
     <script>
+
+  // <!-- smootie charts -->
+	var smoothie = new SmoothieChart({
+	  grid: { strokeStyle:'rgb(0, 80, 0)', fillStyle:'rgb(0, 30, 0)',
+		  lineWidth: 1, millisPerLine: 250, verticalSections: 6, },
+	  labels: { fillStyle:'rgb(255, 255, 255)',    },
+          millisPerPixel:10,
+          maxValueScale:1.00,
+          maxValue:10,minValue:-10
+	});
+	smoothie.streamTo(document.getElementById("Chart1"));
+
+	// Data
+	var line1 = new TimeSeries();
+	var line2 = new TimeSeries();
+
+	// Add to SmoothieChart
+	smoothie.addTimeSeries(line1, { strokeStyle:'rgb(150, 255, 150)',      lineWidth:1 });
+	smoothie.addTimeSeries(line2, { strokeStyle:'rgb(255, 255, 255)',  lineWidth:1 });
+
+        // Basic func for reading the data from ORTD
         var socket = io.connect();
             // wait for new signal-samples
             socket.on('Values', function (data) {
                 //console.log(data);   
                 document.getElementById('Values').innerHTML = 'x='+data[0]+'<br>v='+data[1];
+
+
+                // update smoothiecharts
+                line1.append(new Date().getTime(), data[0] );
+                line2.append(new Date().getTime(), data[1] );
+
             });
-    </script>
-    <script>
+
+
     function UploadParameters(){
       // update parameters button was clicked; send parameters
       ParSet = new Array();
@@ -27,19 +92,7 @@
     </script>
 </head> 
  
-<body>
-    <strong>GUI-interface to ORTD-simulation</strong>
-      <br>
-    Parameter 1:
-    <input name="Parameter1" id="Parameter1" type="text" size="20" maxlength="20" value="2.43">
-      <br>
-    Parameter 2:
-    <input name="Parameter2" id="Parameter2" type="text" size="20" maxlength="20" value="0.00">
-      <br>
-    <input type="button" name="UploadParameters" id="UploadParameters" value="Upload Parameters" onClick="UploadParameters();">
 
-  <br><br>
-  <strong>Values:</strong> <div id="Values">0</div>
 
-</body>
+
 </html>

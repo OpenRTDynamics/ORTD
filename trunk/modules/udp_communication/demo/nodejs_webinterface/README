@@ -13,7 +13,9 @@ $ npm install socket.io
 $ npm install jParser
 $ npm install concentrate
 
+OR
 
+$ npm install socket.io jParser concentrate
 
 To start the set-up start the ORTD-simulation
 
