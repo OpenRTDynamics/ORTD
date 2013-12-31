@@ -2,7 +2,7 @@
 <head>
 
 
-
+<!-- The layout -->
 <body>
     <strong>GUI-interface to ORTD-simulation</strong>
       <br>
@@ -22,11 +22,24 @@
 
 
 
+  <!-- A include a static plot that can be updated -->
       <br>
     <input type="button" name="Update" id="Update" value="Update Dataset" onClick="UpdateDataset();">
       <br>
-    <strong>Data:</strong> <div id="Data">0</div>
+    <strong>Data:</strong> <div id="Data"></div>
 
+    <style type="text/css">
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+      #StaticPlot {
+        width : 900px;
+        height: 384px;
+        margin: 8px auto;
+      }
+    </style>
+    <div id="StaticPlot"></div>
 
 
 <!--
@@ -41,15 +54,17 @@ http://github.com/joewalnes/smoothie/raw/master/smoothie.js
 
 <!-- smootie charts: http://smoothiecharts.org/ -->
     <script type="text/javascript" src="http://www.user.tu-berlin.de/cklauer/smoothie.js"></script>
-<!--    <script type="text/javascript" src="http://smoothiecharts.org/smoothie.js"></script>  -->
 
+<!-- includes for the plotr2 charts -->
+    <script type="text/javascript" src="http://www.user.tu-berlin.de/cklauer/Flotr2/flotr2.min.js"></script>
 
 <!-- always required -->
     <script src = "/socket.io/socket.io.js" > </script>
     <script type=text/javascript src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
     <script>
-
-  // <!-- smootie charts -->
+       //
+       // smootie charts
+       //
 	var smoothie = new SmoothieChart({
 	  grid: { strokeStyle:'rgb(0, 80, 0)', fillStyle:'rgb(0, 30, 0)',
 		  lineWidth: 1, millisPerLine: 250, verticalSections: 6, },
@@ -68,10 +83,15 @@ http://github.com/joewalnes/smoothie/raw/master/smoothie.js
 	smoothie.addTimeSeries(line1, { strokeStyle:'rgb(150, 255, 150)',      lineWidth:1 });
 	smoothie.addTimeSeries(line2, { strokeStyle:'rgb(255, 255, 255)',  lineWidth:1 });
 
+
+        //
         // Basic func for reading the data from ORTD
+        //
+
         var socket = io.connect();
-            // wait for new signal-samples
-	socket.on('Values', function (data) {
+
+        // wait for new signal-samples
+  	socket.on('Values', function (data) {
 	    //console.log(data);   
 	    document.getElementById('Values').innerHTML = 'x='+data[0]+'<br>v='+data[1];
 
@@ -82,11 +102,45 @@ http://github.com/joewalnes/smoothie/raw/master/smoothie.js
 
 	});
 
+
+	// fetch the whole ringbuffer from the node.js part
+	// a message named 'GetBufferReturn' will be returned
+	function UpdateDataset(){
+	  socket.emit('GetBuffer', 0);
+	}
+
         // if the server sends the streamed data of the past N values
 	socket.on('GetBufferReturn', function (data) {
                CurrentIndex = data[0];
                rawData = data[1];
-               document.getElementById('Data').innerHTML = 'Current index: '+ CurrentIndex + '<br>'+rawData;
+               DataBufferSize = rawData.length;
+//                document.getElementById('Data').innerHTML = 'Current_index: '+ CurrentIndex + '<br>'+rawData + ' DataBufferSize' + DataBufferSize;
+
+               // unwrap the ringbuffer:
+               // rearrange the dataset from a ringbuffer to a linear buffer
+               data = [];
+               var i, index;
+
+               index = 1;
+
+               for (i=CurrentIndex; i<DataBufferSize; ++i) {
+                 data.push( [ index, rawData[i][1] ] );
+                 index++;
+               }
+
+               for (i=0; i<CurrentIndex; ++i) {
+                 data.push( [ index, rawData[i][1] ] );
+                 index++;
+               }
+
+                // DrawStaticPlot using flotr2
+		graph = Flotr.draw(document.getElementById('StaticPlot'), [ data ], {
+		  yaxis : {
+		    max : 5,
+		    min : -5
+		  }
+		});
+
 	});
 
 
@@ -100,14 +154,9 @@ http://github.com/joewalnes/smoothie/raw/master/smoothie.js
       var p2 = document.getElementById('Parameter2').value;
       var p2_float = parseFloat(p2.replace(",", ".")); ParSet[1] = p2_float;
 
-//       socket.emit('ChangeParam_1', p1_float);
       socket.emit('ChangeParam_Set', ParSet);
     }
 
-
-    function UpdateDataset(){
-       socket.emit('GetBuffer', 0);
-    }
 
     </script>
 </head> 
