@@ -246,7 +246,9 @@ endfunction
   endfunction
   
   if (flag == 'usecachefile') then
-      [lhs,rhs]=argn(0);
+//       [lhs,rhs]=argn(0);
+      rhs=3;
+      
       if rhs >= 3 then
         try
           load(cachefile);  // ideally results in a new variable X, which is a structure
@@ -273,7 +275,10 @@ endfunction
     X=0; // make typeof X to be constant
   
     // check for cached cosblk
-      [lhs,rhs]=argn(0);
+    [lhs,rhs]=argn(0);
+      
+    rhs = 3; // always assume that the thirtd parameter is there
+      
       if rhs >= 3 then
         try
           load(cachefile);  // ideally results in a new variable X, which is a structure
@@ -310,11 +315,14 @@ endfunction
     printf("I/O of Scicosblock:\n  insizes=%s,\n  outsizes=%s\n", sci2exp( cosblk.in(:)' ), sci2exp( cosblk.out(:)' ) );
 
     // check for cached cosblk
-    [lhs,rhs]=argn(0) 
-    if rhs >= 3 then
+//     [lhs,rhs]=argn(0) 
+    rhs = 3; // always assume that the thirtd parameter is there
+
+//     printf("rhs... = %d\n", rhs);
+//     if rhs >= 3 then
       printf("Saving cachefile %s\n", cachefile);
-      save(cachefile, X);
-    end
+      save(cachefile, 'X');
+//     end
       
 
   end
