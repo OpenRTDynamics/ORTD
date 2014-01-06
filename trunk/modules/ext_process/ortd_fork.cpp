@@ -18,7 +18,16 @@ ortd_fork::ortd_fork(char* exec_path, char* chpwd, int prio, bool replace_io) //
     ToChild[1] = 0;
     ToParent[0] = 0;
     ToParent[1] = 0;
+    
+    CmdOption = NULL;
 }
+
+void ortd_fork::addCommandlineOption(char* opt)
+{
+   CmdOption = new std::string(opt);
+  fprintf(stderr, "Added cmd option %s\n", opt);
+}
+
 
 ortd_fork::~ortd_fork()  // Destructor
 {
@@ -35,7 +44,10 @@ ortd_fork::~ortd_fork()  // Destructor
     fclose(writefd);
     }
 
-    //printf("run_scilab deleted\n");
+    if (CmdOption != NULL) {
+      delete CmdOption;
+    }
+    
 }
 
 bool ortd_fork::init()    // starts scilab and generates pipes to scilab to send and receive data
@@ -99,10 +111,18 @@ bool ortd_fork::init()    // starts scilab and generates pipes to scilab to send
             }
         }
 
-//         fprintf(stderr, "exec of %s\n", exec_path);
-
-        status = execlp(exec_path, "",  NULL);   // replaces the child process image
-        // with a new scilab process image
+ 
+        char *opt = "";
+	if (CmdOption != NULL ) {
+	  opt = (char*) CmdOption->c_str(); 
+        }
+       
+        fprintf(stderr, "Going to execute of %s with option %s\n", exec_path, opt);
+	 
+	// only one commad-line argument is possible
+        status = execlp(exec_path, opt,  NULL);   // replaces the child process image
+        // with a new process 
+	
         if (status == -1)
         {
 	  char cwd[2000];
@@ -184,18 +204,35 @@ bool ortd_fork::send_to_stdin(const char* cmd)   // send command to scilab
             return false;
         }
         fflush(writefd);
-
-//    fprintf(stderr, ">>> %s\n", cmd);
-
         return true;
     }
-
     return false;
 }
+
+bool ortd_fork::send_to_stdin_noflush(const char* cmd)   // send command to scilab
+{
+    if (replace_io) {
+        int number_of_bytes;
+        number_of_bytes = fprintf(writefd, "%s\n", cmd);  // write the command to the write stream of scilab
+        if (number_of_bytes < 0)
+        {
+            fprintf(stderr, "Error writing the command: %s to process!\n", cmd);
+            return false;
+        }
+        fflush(writefd);
+        return true;
+    }
+    return false;
+}
+
 
 FILE* ortd_fork::get_readfd()   // read from scilab
 {
     return readfd; // return the read stream of scilab
 }
 
+FILE* ortd_fork::get_writefd()
+{
+  return writefd;
+}
 

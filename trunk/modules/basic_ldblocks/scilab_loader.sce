@@ -23,6 +23,10 @@ ORTD.termcode.clearscreen = ascii(27) + '[2J';
 
 
 
+// TODO: FIXME: this is implemented twice. Remove the block below
+// function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
+//   btype = 60001 + 26;
+
 
 // 
 // More basic functions that could also added to libdyn.sci
@@ -240,6 +244,10 @@ function [sim] = ld_file_save_machine2(sim, ev, inlist, cntrl, FileNamesList) //
 //                          cntrl=TriggerSave, FileNamesList          );
 // 
 
+  ortd_checkpar(sim, list('Signal', 'cntrl', cntrl) );
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+
+
     function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim, inlist, x_global, state, statename, userdata)
       // This function is called multiple times -- once for each state.
       // At runtime, these are three different nested simulations. Switching
@@ -380,6 +388,12 @@ function [sim, out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_B
 // if cntrl > 0 : out = in1
 // if cntrl < 0 : out = in2
 //
+
+  ortd_checkpar(sim, list('Signal', 'cntrl', cntrl) );
+  ortd_checkpar(sim, list('Signal', 'in1', in1) );
+  ortd_checkpar(sim, list('Signal', 'in2', in2) );
+
+
   btype = 60001;
   [sim,blk] = libdyn_new_block(sim, events, btype, [], [], ...
                    insizes=[1, 1, 1], outsizes=[1], ...
@@ -478,6 +492,13 @@ function [sim, out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off
 //
 //
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'switch_off_level', switch_off_level) );
+  ortd_checkpar(sim, list('SingleValue', 'switch_on_level', switch_on_level) );
+  ortd_checkpar(sim, list('SingleValue', 'onout', onout) );
+  ortd_checkpar(sim, list('SingleValue', 'offout', offout) );
+
+
   if (switch_off_level > switch_on_level) then
     error("ld_hysteresis: setting switch_off_level > switch_on_level makes no sense\n");
   end
@@ -502,6 +523,10 @@ function [sim, out] = ld_modcounter(sim, events, in, initial_count, mod) // PARS
 // if the counter value >= mod then it is reset to counter = initial_count
 //
 //
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'initial_count', initial_count) );
+  ortd_checkpar(sim, list('SingleValue', 'mod', mod) );
 
   if (mod < 0) then
     error("ld_modcounter: mod is less than zero\n");
@@ -528,6 +553,9 @@ function [sim, out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
 // it "1" flips back to the left side
 // 
 // 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'steps', steps) );
 
   if (steps <= 0) then
     error("ld_jumper: steps must be greater than zero\n");
@@ -556,6 +584,12 @@ function [sim, out] = ld_memory(sim, events, in, rememberin, initial_state) // P
 // initial output out = initial_state
 // 
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('Signal', 'rememberin', rememberin) );
+  ortd_checkpar(sim, list('SingleValue', 'initial_state', initial_state) );
+
+
+
   memsize = length(initial_state);
 
   btype = 60001 + 6;
@@ -577,6 +611,10 @@ function [sim, out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
 // out = abs(in)
 // 
 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+
+
   btype = 60001 + 7;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1], outsizes=[1], ...
@@ -597,6 +635,12 @@ function [sim, out] = ld_extract_element(sim, events, invec, pointer, vecsize ) 
   // 
   // out = invec[pointer], the first element is at pointer = 1
   //
+
+
+  ortd_checkpar(sim, list('Signal', 'invec', invec) );
+  ortd_checkpar(sim, list('Signal', 'pointer', pointer) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+
 
   btype = 60001 + 8;	
   ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
@@ -621,6 +665,8 @@ function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 // out *+ - the vector
 // 
+
+
   btype = 60001 + 9;	
   ipar = [length(vec); 0]; rpar = [vec];
 
@@ -651,6 +697,13 @@ function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) //
 // 
 // 
 
+
+  ortd_checkpar(sim, list('Signal', 'count', count) );
+  ortd_checkpar(sim, list('Signal', 'reset', reset) );  
+  ortd_checkpar(sim, list('Signal', 'resetto', resetto) );
+  ortd_checkpar(sim, list('SingleValue', 'initial', initial) );
+
+
   btype = 60001 + 10;
   ipar = [  ]; rpar = [ initial ];
 
@@ -666,12 +719,16 @@ endfunction
 function [sim, out] = ld_shift_register(sim, events, in, len) // FIXME TODO
 // %PURPOSE: A shift register with access to the stored values
 //
-// in *
-// out *+(len)
+// in * - will be put to the first position in the register that was shifted before.
+// out *+(len) - the whole memory
 //    
 // 
 // 
 // 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'len', len) );
+
   btype = 60001 + 11;
   ipar = [vecsize]; rpar = [];
 
@@ -715,6 +772,13 @@ function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpo
 // 
 // 
 
+  ortd_checkpar(sim, list('Signal', 'u', u) );
+  ortd_checkpar(sim, list('SingleValue', 'lower_b', lower_b) );
+  ortd_checkpar(sim, list('SingleValue', 'upper_b', upper_b) );
+
+  ortd_checkpar(sim, list('SingleValue', 'interpolation', interpolation) );
+
+
   btype = 60001 + 12;
   [sim,blk] = libdyn_new_block(sim, events, btype, [length(table), interpolation ], [ lower_b, upper_b, table(:)' ], ...
                    insizes=[1], outsizes=[1], ...
@@ -732,6 +796,9 @@ function [sim, out] = ld_not(sim, events, in) // PARSEDOCU_BLOCK
 // 
 // out = 0, if in > 0.5  OR  out = 1, if in < 0.5
 // 
+
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
 
   btype = 60001 + 13;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -751,6 +818,9 @@ function [sim, out] = ld_or(sim, events, inlist) // PARSEDOCU_BLOCK
 // 
 // 
 // 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+
+
   Nin=length(inlist);
 
   if (Nin ~= 2) then
@@ -779,6 +849,10 @@ function [sim, out] = ld_iszero(sim, events, in, eps) // PARSEDOCU_BLOCK
 // out = 1, if in between -eps and eps, othwewise out = 0
 // 
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'eps', eps) );
+
+
   btype = 60001 + 15;
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[ eps ], ...
                    insizes=[1], outsizes=[1], ...
@@ -806,6 +880,14 @@ function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, init
 // initially out is set to initial
 // 
 // 
+
+  ortd_checkpar(sim, list('Signal', 'count', count) );
+  ortd_checkpar(sim, list('Signal', 'reset', reset) );
+  ortd_checkpar(sim, list('Signal', 'resetto', resetto) );
+
+  ortd_checkpar(sim, list('SingleValue', 'initial', initial) );
+  ortd_checkpar(sim, list('SingleValue', 'lower_b', lower_b) );
+  ortd_checkpar(sim, list('SingleValue', 'upper_b', upper_b) );
 
   if (lower_b > upper_b) then
     error("lower_b is greater than upper_b");
@@ -836,6 +918,13 @@ function [sim, out] = ld_memorydel(sim, events, in, rememberin, initial_state) /
 // initial output out = initial_state
 // 
 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('Signal', 'rememberin', rememberin) );
+  ortd_checkpar(sim, list('SingleValue', 'initial_state', initial_state) );
+
+
+
   memsize = length(initial_state);
 
   btype = 60001 + 17;
@@ -854,6 +943,10 @@ function [sim, out] = ld_steps(sim, events, activation_simsteps, values) // PARS
 // out * - output
 // 
 // 
+
+//   ortd_checkpar(sim, list('Signal', 'in', in) );
+//   ortd_checkpar(sim, list('SingleValue', 'eps', eps) );
+
 
   if (length(activation_simsteps) ~= length(values)-1) then
     error("length(activation_simsteps) != length(values)-1");
@@ -905,6 +998,11 @@ function [sim, out] = ld_ramp(sim, events, in_from, in_to, start, reset, ramp_du
 // 
 // 
 
+  ortd_checkpar(sim, list('Signal', 'start', start) );
+  ortd_checkpar(sim, list('Signal', 'reset', reset) );
+  ortd_checkpar(sim, list('Signal', 'increase', increase) );
+
+
   btype = 60001 + 20;
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[  ], ...
                    insizes=[1,1,1], outsizes=[1], ...
@@ -921,6 +1019,8 @@ function [sim, out] = ld_and(sim, events, inlist) // PARSEDOCU_BLOCK
 // out * - output
 // 
 // 
+
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
 
   Nin=length(inlist);
 
@@ -969,6 +1069,12 @@ function [sim] = ld_printfstderr(sim, events, in, str, insize) // PARSEDOCU_BLOC
 // of size insize
 //
   //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('String', 'str', str) );
+  ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
+
+
   btype = 60001 + 23;;
   str = ascii(str);
 //   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
@@ -988,7 +1094,11 @@ function [sim] = ld_printfbar(sim, events, in, str) // PARSEDOCU_BLOCK
 //
 // str is a string that is printed followed by a bar whose length depends on in
 //
-  //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
+  
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('String', 'str', str) );
+
   btype = 60001 + 29;
   str = ascii(str);
   insize = 1;
@@ -1011,6 +1121,9 @@ function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
 // delay in by N steps
 // 
 // 
+
+  ortd_checkpar(sim, list('Signal', 'u', u) );
+  ortd_checkpar(sim, list('SingleValue', 'N', N) );
 
   if length(N) ~= 1 then
     error("N is not a scalar\n");
@@ -1053,23 +1166,26 @@ function [sim, out] = ld_steps2(sim, events, activation_simsteps, values) // PAR
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
-//
-// %PURPOSE: return the sign of the input sigal
-// either 1 or -1
-//
-
-  ortd_checkpar(sim, list('Signal', 'in', in) );
 
 
-  btype = 60001 + 26;
-  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
-                   insizes=[1], outsizes=[1], ...
-                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
-  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
-endfunction
+// function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
+// //
+// // %PURPOSE: return the sign of the input sigal
+// // either 1 or -1
+// //
+// 
+//   ortd_checkpar(sim, list('Signal', 'in', in) );
+// 
+// 
+//   btype = 60001 + 26;
+//   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+//                    insizes=[1], outsizes=[1], ...
+//                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+// 
+//   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+//   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+// endfunction
 
 
 function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // PARSEDOCU_BLOCK
@@ -1082,6 +1198,11 @@ function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // P
   // 
   // out[pointer] = in, the first element is at pointer = 1
   //
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('Signal', 'pointer', pointer) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+
 
   btype = 60001 + 27;	
   ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
@@ -1105,6 +1226,12 @@ function [sim] = ld_FlagProbe(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 // str is a string that is printed followed by the signal vector in
 // of size insize
 //
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('String', 'str', str) );
+  ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
+
+
   //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
   btype = 60001 + 28;
   str = ascii(str);
@@ -1124,6 +1251,8 @@ function [sim,out] = ld_ceilInt32(sim, events, in) // PARSEDOCU_BLOCK
 // return value is of type ORTD.DATATYPE_INT32
 // 
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+
   btype = 60001 + 30;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1], outsizes=[1], ...
@@ -1139,6 +1268,8 @@ function [sim,out] = ld_Int32ToFloat(sim, events, in) // PARSEDOCU_BLOCK
 // 
 // ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
 // 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
 
   btype = 60001 + 31;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1156,6 +1287,8 @@ function [sim,out] = ld_floorInt32(sim, events, in) // PARSEDOCU_BLOCK
 // return value is of type ORTD.DATATYPE_INT32
 // 
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+
   btype = 60001 + 32;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1], outsizes=[1], ...
@@ -1171,6 +1304,8 @@ function [sim,out] = ld_roundInt32(sim, events, in) // PARSEDOCU_BLOCK
 // 
 // return value is of type ORTD.DATATYPE_INT32
 // 
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
 
   btype = 60001 + 33;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1205,6 +1340,9 @@ function [sim,out] = ld_sumInt32(sim, events, in1, in2) // PARSEDOCU_BLOCK
 // TODO
 //
 
+  ortd_checkpar(sim, list('Signal', 'in1', in1) );
+  ortd_checkpar(sim, list('Signal', 'in2', in2) );
+
   btype = 60001 + 35;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1,1], outsizes=[1], ...
@@ -1219,6 +1357,8 @@ function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
 // %PURPOSE: return - in
 // TODO
 //
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
 
   btype = 60001 + 37;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1235,6 +1375,9 @@ function [sim,out] = ld_OneStepDelInt32(sim, events, in, init_state) // PARSEDOC
 // TODO
 //
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'init_state', init_state) );
+
   btype = 60001 + 38;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ init_state ], [  ], ...
                    insizes=[1], outsizes=[1], ...
@@ -1250,6 +1393,9 @@ function [sim,out] = ld_MulInt32(sim, ev, in1, in2) // PARSEDOCU_BLOCK
 // TODO
 //
 
+  ortd_checkpar(sim, list('Signal', 'in1', in1) );
+  ortd_checkpar(sim, list('Signal', 'in2', in2) );
+
   btype = 60001 + 39;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1,1], outsizes=[1], ...
@@ -1262,30 +1408,37 @@ endfunction
 function [sim,out] = ld_DivInt32(sim, ev, num, den) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: return num DIV den
-// TODO
+// TODO. not implemented by now
 //
+
+  ortd_checkpar(sim, list('Signal', 'num', num) );
+  ortd_checkpar(sim, list('Signal', 'den', den) );
+
 
   btype = 60001 + 40;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1,1], outsizes=[1], ...
                    intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(num, div) );
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(num, den) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
 function [sim,out] = ld_ModInt32(sim, ev, num, den) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: return num MODULO den
-// TODO
+// TODO: not implemented by now
 //
+
+  ortd_checkpar(sim, list('Signal', 'num', num) );
+  ortd_checkpar(sim, list('Signal', 'den', den) );
 
   btype = 60001 + 41;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1,1], outsizes=[1], ...
                    intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
 
-  [sim,blk] = libdyn_conn_equation(sim, blk, list(num, div) );
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(num, den) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
@@ -1296,6 +1449,9 @@ function [sim,out] = ld_CompareEqInt32(sim, events, in, CompVal) // PARSEDOCU_BL
 // in*, float
 // out*, int32 - 0 if (in == CompVal); 1 if (in != CompVal);
 //
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'CompVal', CompVal) );
 
   btype = 60001 + 42;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ CompVal ], [  ], ...
@@ -1329,6 +1485,10 @@ endfunction
 
 
 
+//   ortd_checkpar(sim, list('Signal', 'in', in) );
+//   ortd_checkpar(sim, list('String', 'str', str) );
+//   ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
+
 
 
 
@@ -1347,6 +1507,8 @@ function [sim, out] = ld_vector_delay(sim, events, in, vecsize) // PARSEDOCU_BLO
 // 
 // 
 
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
 
   btype = 60001 + 65;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [ ], ...
@@ -1367,6 +1529,10 @@ function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOC
 //
 // Equivalent to Scilab 'diff' function
 //    
+
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+
   btype = 60001 + 50;	
   ipar = [vecsize]; rpar = [];
 

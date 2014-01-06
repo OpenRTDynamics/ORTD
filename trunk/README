@@ -942,4 +942,5 @@ By date as there will only be the svn-version
   - 15.11.13: Added libdyn_simulation_SyncCallback_terminateThread to force the termination of threads
               in synchronised blocks. By now the parameter signal must be =0. pthread_cancel is called
               on the thread.
+  - 6.1.14:   Added: I/O to external Processes (module ext_process)
 
