@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 15.11.2013
+Version of this document: 25.1.2014
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -116,6 +116,8 @@ PART  I  --  TECHNICAL INFORMATION
 - PRINCIPLES FOR DEVELOPING SCHEMATICS
 - EXAMPLES
 - DATATYPES
+- NOTES ON REAL-TIME CAPABILITIES
+- REMOTE CONTROL INTERFACE
 - IMPORTANT SOURCE FILES
 - REAL-TIME BENCHMARK
 - PORTING TO OTHER TARGETS
@@ -563,16 +565,19 @@ are typically defined in the scilab_loader.sce files.
 
   --- Blocks that synchronise simulations ---
 
-There are some special blocks that trigger a simulation step of the simulation containing
-such a block. They are used to execute a simulation step when a certain event occurs, e.g.
-a network packet arrives or a certain amount of time has passed. Some of these blocks are:
-
-  * ld_ClockSync  // Sync to a timer
-  * ld_AndroidSensors   // When a measurement becomes available
-                           one simulation step is performed
-  * ld_UDPSocket_Recv  // One simulation when a network packet arrives
+The OpenRTDynamics simulator provides a special callback-based API that allows one
+block in a simulation running in a thread to trigger simulation steps.
+This is used by some special blocks to trigger a simulation step of the simulation containing
+such a block. They are used to synchronise the simulation when e.g. an event occurs, e.g. when
+a network packet arrives, a certain amount of time has passed or the thread was signaled by
+another one or new sensor data is available (and more). Some of these blocks are:
+  
+  * ld_ClockSync          // Sync to a timer
+  * ld_AndroidSensors     // When a measurement becomes available
+                          // one simulation step is performed (only Android)
+  * ld_UDPSocket_Recv     // One simulation when a network packet arrives
   * ld_RecvNotifications  // Receives notifications triigered by other simulations
-                             running in other threads
+                          // running in other threads
 
 
 Such blocks must be placed into simulations that are running in threads started by 
@@ -676,6 +681,45 @@ For data conversion the following blocks are available up to now:
 
 Simple datatypes: ld_roundInt32, ld_ceilInt32, ld_floorInt32, ld_Int32ToFloat
 Structures: ld_DisassembleData, ld_ConcateData
+
+NOTES ON REAL-TIME CAPABILITIES
+-------------------------------
+
+1) Please note that there are serveral blocks that call I/O operations
+of the OS. Among theses are ld_printf, ld_ReadAsciiFile, ld_UDPSocket_SendTo
+and many others. Such blocks can potentially disturbe the real-time execution
+by introducing unpredictable delays.
+If low jitter is allowed, you may consider using such blocks in separate 
+simulations running in separated thread that communicate to the hard real-time
+simulation using rinfbuffers (ld_ringbuf) or shared memory (ld_global_memory).
+However, the blocks ld_savefile and ld_file_save_machine are suitable for running
+in real-time simulations to save data to disk, because they internally use a
+ringbuffer to communicate to a separated thread for calling the OS.
+
+2) The execution time of one simulation step can be measured using ld_clock that
+reads the clock of the computer.
+
+3) Apply the proper priorities to the threads. It is suggested to start with
+the template examples/Template_rtcontrol.
+
+REMOTE CONTROL INTERFACE
+------------------------
+
+Possibilities:
+
+A) A TCP-based remote control interface is provided by the rt_server module, providing
+   ld_parameter and ld_stream. As it is thought about a more simple (in terms of lines
+   of C-code) (UDP)packet-based communication in combination with an external javascript 
+   (node.js) program for higher level logic, the infrastructure will not be further 
+   developed. In the long-long-term it will be removed and replaced by a new framework B)
+   while the old one A) will be emulated/re-implemented using node.js, thus compatibility 
+   will be preserved.
+
+B) A new (UDP-based) framework will be developed. An example implementation that 
+   visualises data using a web-browser is already available at
+   https://github.com/christianausb/OpenRTDynamics/tree/master/Examples/nodejs_webinterface .
+
+
 
 IMPORTANT SOURCE FILES
 ----------------------
@@ -943,4 +987,5 @@ By date as there will only be the svn-version
               in synchronised blocks. By now the parameter signal must be =0. pthread_cancel is called
               on the thread.
   - 6.1.14:   Added: I/O to external Processes (module ext_process)
+  - 16.2.14:  Cleaned up code; task priorities fixed.
 
