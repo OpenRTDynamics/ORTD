@@ -246,39 +246,6 @@ public:
 
     // called by an instance of rt_server to request its deletion
     void hangup_request(rt_server *rt_server_i);
-private:
-/*    pthread_mutex_t hangup_request_state_mutex;
-    rt_server *hangup_request_state; // if != NULL
-
-    // starts the transaction (this can only run once, which is protexted by a mutex)
-    void mainlook_rendevous_start(rt_server *state) {
-        pthread_mutex_lock(&hangup_request_state_mutex);
-        this->hangup_request_state = state;
-	printf("hangup transaction stated\n");
-        // pthread_mutex_unlock(&hangup_request_state_mutex);
-        pthread_kill( mainloop_thread, SIGUSR1 ); // signal the accept thread
-    }
-
-    // stop the transaction
-    rt_server *mainloop_rendevous_check()  {
-        printf("Trying wheter lock is set hangup_request_state_mutex\n");
-        if (pthread_mutex_trylock(&hangup_request_state_mutex) == EBUSY) {
-	    printf("yes\n");
-            // Mutex is locked -- so there is a running transaction
-	  
-            rt_server *tmp =  this->hangup_request_state;
-           // pthread_mutex_unlock(&hangup_request_state_mutex);
-            return tmp;
-        } else {
-	   pthread_mutex_unlock(&hangup_request_state_mutex); // undo the locking
-	  return NULL;
-	}
-	
-    }
-    
-    void mainloop_rendevous_finish() {
-      pthread_mutex_unlock(&hangup_request_state_mutex); 
-    }*/
 public:
 
     void destruct();

@@ -9,13 +9,9 @@
 */
 
 var app = require('http').createServer(handler);
-var io = require('socket.io').listen(app);
+var io = require('socket.io').listen(app); io.set('log level', 1);
 var fs = require('fs');
 var dgram = require('dgram');
-
-// binary packets
-var jParser = require('jParser');
-var Concentrate = require('concentrate');
 
 // http-interface
 app.listen(8090);
@@ -35,7 +31,128 @@ var NParameters = 2;
 // 
 
 
-// ring buffer class
+
+var RingBuffer = new RingBuffer(DataBufferSize, NValues);
+console.log("RingBuffer created");
+
+// 
+// http-server
+// 
+function handler (req, res) {
+  fs.readFile('html/main_StaticPlot.html',
+  function (err, data) {
+    if (err) {
+      res.writeHead(500);
+      return res.end('Error loading main.html');
+    }
+ 
+    res.writeHead(200);
+    res.end(data);
+  });
+}
+ 
+ 
+  
+//  
+// UDP interface
+// 
+var server = dgram.createSocket('udp4');
+server.on('listening', function () {
+    var address = server.address();
+    console.log('UDP Server listening on ' + address.address + ":" + address.port);
+});
+
+
+// Buffer for sending UDP packets
+var UDPSendPacketBuffer = new Buffer(2000); // size is propably bigger than every UDP-Packet
+
+
+server.on('message', function (message, remote) {
+    // received new packet from ORTD via UDP
+    //console.log(remote.address + ':' + remote.port);  
+    var i;
+    
+    try {
+      // disassemble header
+      var SenderID = message.readInt32LE( 0 );
+      var PacketCounter = message.readInt32LE( 4 );
+      var SourceID = message.readInt32LE( 8 );
+
+      // check wheter the sender ID is correct
+      if (SenderID != 1295793)
+	throw 1;
+      
+      // check if the recved packet has the correct size
+      if ( message.length != 12+8*NValues) 
+	throw 2;
+
+      // disassemble data-values
+      var ValuesBuffer = message.slice(12, 12+8*NValues);
+      var Values = new Array(NValues);
+      
+      for (i=0; i<NValues; ++i)
+	Values[i] = ValuesBuffer.readDoubleLE( i*8 );
+	
+      // send to all web browser
+      try { io.sockets.emit('Values', Values ); } catch(err) { }
+	  
+      // buffer the vales
+      RingBuffer.addElement(Values);
+    } catch(err) {
+      console.log("Received a malformed UDP-packet");
+    }
+});
+ 
+// bind UDP-socket
+server.bind(PORT, HOST);
+
+
+// 
+// websockets connection to the web browser(s) 
+// 
+
+io.sockets.on('connection', function (socket) {
+  console.log('new socket.io connection');
+  
+  // Wait for requirest to send the entire ringbuffer
+  socket.on('GetBuffer', function (data) {
+    try { socket.emit('GetBufferReturn', [ RingBuffer.WriteIndex , RingBuffer.DataBuffer ] ); } catch(err) { }
+  });
+  
+  // wait for a parameter upload by the client
+  socket.on('ChangeParam_Set', function (data) {
+    //
+    // assemble the binary udp-packet
+    //
+    
+    var i;
+    
+    // the required message length
+    var MessageLength = 12+NParameters*8;
+    
+    // write the header of the UDP-packet
+    UDPSendPacketBuffer.writeInt32LE( 1, 0 );
+    UDPSendPacketBuffer.writeInt32LE( 1234, 4 );
+    UDPSendPacketBuffer.writeInt32LE( 6468235, 8 );
+    
+    // add the parameters given in data[i]
+    for (i=0; i<NParameters; ++i) {
+      UDPSendPacketBuffer.writeDoubleLE(  data[i], 12+i*8 );
+    }
+    		
+    // send this packet to ORTD
+    server.send(UDPSendPacketBuffer, 0, MessageLength, ORTD_PORT, ORTD_HOST, function(err, bytes) {
+      if (err) throw err;
+      console.log('UDP message sent to ' + ORTD_HOST +':'+ ORTD_PORT);
+    });    
+  });
+  
+});
+
+
+// 
+// ring buffer class for storing data send by ORTD
+// 
 function RingBuffer(DataBufferSize,NumElements)
 {
   this.DataBufferSize=DataBufferSize;
@@ -75,117 +192,4 @@ function RingBuffer(DataBufferSize,NumElements)
       this.WriteIndex = 0;
     }
   }
-  
-//   this.ReturnBuffer=ReturnBuffer;
-//   function ReturnBuffer() {
-//     return DataBuffer;
-//   }
 }
-
-
-var RingBuffer = new RingBuffer(DataBufferSize, NValues);
-console.log("RingBuffer created");
-
-// 
-// http-server
-// 
-function handler (req, res) {
-  fs.readFile('html/main_StaticPlot.html',
-  function (err, data) {
-    if (err) {
-      res.writeHead(500);
-      return res.end('Error loading main.html');
-    }
- 
-    res.writeHead(200);
-    res.end(data);
-  });
-}
- 
- 
-  
-//  
-// UDP interface
-// 
-var server = dgram.createSocket('udp4');
-server.on('listening', function () {
-    var address = server.address();
-    console.log('UDP Server listening on ' + address.address + ":" + address.port);
-});
-
-
-server.on('message', function (message, remote) {
-    // received new packet from ORTD via UDP
-    //console.log(remote.address + ':' + remote.port);  
-  
-    // check if the recved packet has the correct size
-    if ( message.length == 12+8*NValues) {
-      // prepare the disassembling of the binary message
-      var parserS = new jParser(message, {
-	packet: {
-	  SenderID: 'int32',
-	  PacketCounter: 'int32',
-	  SourceID: 'int32',
-	  Values: ['array', 'float64', NValues] 
-	}
-      });
-
-      // Disasseble
-      Disasm = parserS.parse('packet')
-      
-      // If the sender ID is correct, forward to the client
-      if (Disasm.SenderID == 1295793) {
-	// send to web browser
-	io.sockets.emit('Values', Disasm.Values );
-	
-	// buffer the vales
-// 	Buffers['var'].addElement(Disasm.Values);
-	  RingBuffer.addElement(Disasm.Values);
-      }
-    }
-  
-});
- 
-// bind UDP-port
-server.bind(PORT, HOST);
-
-
-// 
-// websockets connection to the web browser(s) 
-// 
-io.sockets.on('connection', function (socket) {
-  console.log('iosocket init ok');
-  
-  socket.on('GetBuffer', function (data) {
-    io.sockets.emit('GetBufferReturn', [ RingBuffer.WriteIndex , RingBuffer.DataBuffer ] );
-  });
-  
-  // wait for a parameter upload by the client
-  socket.on('ChangeParam_Set', function (data) {
-    //console.log(data);
-
-    // Nvalues_recv == 2 in UDPio.sce, thus two double values must be send here
-    
-    // assemble the binary udp-packet
-    var message = Concentrate().int32le(1).int32le(1234).int32le(6468235);
-//        message = message.doublele(data[0]).doublele(data[1]).result(); // two double values
-    
-    // add the parameters given in data[i]
-    var i;
-    for (i=0; i<NParameters; ++i) {
-      message = message.doublele(data[i]);
-    }
-    message = message.result();
-	
-	
-    // send this packet to ORTD
-    server.send(message, 0, message.length, ORTD_PORT, ORTD_HOST, function(err, bytes) {
-      if (err) throw err;
-      console.log('UDP message sent to ' + ORTD_HOST +':'+ ORTD_PORT);
-    });
-  });
-  
-  
-});
-
-  

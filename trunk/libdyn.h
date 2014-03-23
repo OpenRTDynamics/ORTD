@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009, 2010, 2011, 2012, 2013  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 
@@ -214,19 +214,19 @@ struct dynlib_event_t { // Event Struktur
   struct dynlib_event_t *more_events; // Reserved
 };
 
-struct dynlib_portlist_t { // FIXME: unused for now // usage for superblocks content
-  struct dynlib_block_t *block;
-  int port;
-
-  struct dynlib_portlist_t *next;
-};
-
-struct dynlib_simIO_t { // FIXME: unused for now // usage for superblocks content
-  struct dynlib_portlist_t *inlist_head; // List of simulation input connections
-  struct dynlib_portlist_t *inlist_tail;
-  struct dynlib_portlist_t *outlist_head; // List of simulation output connections
-  struct dynlib_portlist_t *outlist_tail;
-};
+// struct dynlib_portlist_t { // FIXME: unused for now // usage for superblocks content
+//   struct dynlib_block_t *block;
+//   int port;
+// 
+//   struct dynlib_portlist_t *next;
+// };
+// 
+// struct dynlib_simIO_t { // FIXME: unused for now // usage for superblocks content
+//   struct dynlib_portlist_t *inlist_head; // List of simulation input connections
+//   struct dynlib_portlist_t *inlist_tail;
+//   struct dynlib_portlist_t *outlist_head; // List of simulation output connections
+//   struct dynlib_portlist_t *outlist_tail;
+// };
 
 struct dynlib_simulation_t {
   // Simulation states
@@ -269,7 +269,7 @@ struct dynlib_simulation_t {
   
   
   // simulation I/O
-  struct dynlib_simIO_t simIO; // FIXME: unused for now // usage for superblocks content
+//   struct dynlib_simIO_t simIO; // FIXME: unused for now // usage for superblocks content
 
   int numID_counter; // Zähler für Block IDs
 
@@ -277,11 +277,17 @@ struct dynlib_simulation_t {
   int clock_multiplier[LIBDYN_MAX_EVENTS]; // If an element is zero its curresponding (to array indice) event will not be activated automatically
   int num_cm; // number of elements obove
 
-  double t;
+//   double t;
   int stepcounter; // count simulation steps
   
   struct lindyn_comp_func_list_head_t *private_comp_func_list;
   struct lindyn_comp_func_list_head_t *global_comp_func_list;
+  
+  // Vererbung
+  int NestedLevel; // the level of the simulation nest, 0 mean top level simulation
+  
+  // pointer to an instance of the wrapper-class "libdyn_nested2"-class for nesting simulations
+  void *SimnestClassPtr;
   
   // optinal: Master
   // Ist eine cpp-Klasse

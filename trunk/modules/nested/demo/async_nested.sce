@@ -17,8 +17,11 @@
 //    along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-
-
+// 
+// WARNING: This example uses the obsolete "ld_simnest"-function
+// consider using ld_async_simulation instead. 
+// As demonstrated e.g. in synchronised_thread.sce.
+// 
 
 
 //

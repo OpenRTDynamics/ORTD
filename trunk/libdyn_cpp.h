@@ -107,7 +107,7 @@ public:
         struct irpar_ivec_t vec;
         if ( irpar_get_ivec(&vec, ipar, rpar, id) < 0 ) throw 1;
 //         printf("vec[0] = %d\n", vec.v[0]);
-	v = vec.v;
+	v = vec.v;	n = vec.n;
   }
   
   int n;
@@ -121,7 +121,7 @@ public:
         struct irpar_rvec_t vec;
         if ( irpar_get_rvec(&vec, ipar, rpar, id) < 0 ) throw 1;
 //         printf("vec[0] = %d\n", vec.v[0]);
-	v = vec.v;
+	v = vec.v;	n = vec.n;
   }
   
   int n;
@@ -138,7 +138,7 @@ public:
         if ( irpar_get_ivec(&str_, ipar, rpar, id) < 0 ) throw 1;
         irpar_getstr(&str, str_.v, 0, str_.n);
 
-        printf("str = %s\n", str);
+//         printf("str = %s\n", str);
 
 	s = new std::string(str);
 	
@@ -341,13 +341,25 @@ class libdyn_simple_if {
 };
 
 class libdyn_nested2 { // TODO derive from libdyn_simple_if
+public:  
+    libdyn_nested2(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
+    libdyn_nested2(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
+    libdyn_nested2(int Nin, int Nout, bool use_buffered_input);
+    
+    void FinishConfiguration();
+
 private:
     bool internal_init(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
+    void allocate_structures(int Nin, int Nout);
     bool allocate_inbuffers();
     void set_buffer_inptrs();
 
     void* InputBuffer;
+    
+    bool ConfigurationFinished;
 
+    class libdyn_nested2* Parent_SimnestClassPtr; // pointer to parent simulation nest
+    
 public:
     libdyn_master * ld_master;
 
@@ -379,36 +391,34 @@ private:
     sim_slot_t *current_slot; // replacement for the old current_sim variable
     int usedSlots; // The number of slots with actually contain simulations (index from 0 to usedSlots-1)
 
+    dynlib_simulation_t *ParentSim;
+    int NestedLevel;
+    
+    int NestedLevel_AtWhichResetAppreared;
+
 public:
     // slot management; call BEFORE add_simulation
     void allocate_slots(int n);
 
-
-//     // for online exchange support
-//    public:
-//     bool replaceable_simulation;
-//     bool initialised_replaced_simulation;
-
-
-//     bool set_current_simulation(struct dynlib_simulation_t *sim);
-
-    //
-    // main
-    //
-
-
-public:
     bool is_current_simulation(int slotID);
 
-
-public:
-
-    libdyn_nested2(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes);
-    libdyn_nested2(int Nin, const int* insizes_, const int *intypes, int Nout, const int* outsizes_, const int *outtypes, bool use_buffered_input);
 
     void destruct();
 
     void set_master(libdyn_master *master);
+
+    // Vererbung
+    void set_parent_simulation( dynlib_simulation_t *ParentSim );
+    static class libdyn_nested2* GetSimnestClassPtrFromC(dynlib_simulation_t *sim) {
+      return (class libdyn_nested2*) sim->SimnestClassPtr;
+    }
+    
+    int getNestedLevel() {
+      return NestedLevel; 
+    }
+    void setNestedLevel( int Level ) {
+      NestedLevel = Level;
+    }
 
     /**
       * \brief Configure pointer to input port source variables
@@ -419,6 +429,9 @@ public:
       * \param inptr array of a double variables that will be used as input vector
       */
     bool cfg_inptr(int in, void *inptr);
+    bool cfg_inptr(int in, void *inptr, int size, int datatype);
+    
+    void cfg_output(int out, int size, int datatype);
 
 
     // uses a buffer for copies of the input data - necessary within scicos blocks or for a threaded nested simulation
@@ -457,6 +470,7 @@ public:
     */
     void reset_blocks();
     void reset_blocks(int slotId); // UNTESTED AND UNUSED FOR NOW
+    void forwardReset();
 
     // laods NSimulations schematics from an irpar container with increasing irparid starting irparid = at start_boxid.
     // add_simulation is called for each
@@ -494,6 +508,7 @@ public:
 class libdyn {
 private:
     libdyn_master *ld_master; // NEU pointer to libdyn_master; initial == NULL;
+//     int NestedLevel;
 
     struct dynlib_simulation_t *sim;
     struct libdyn_io_config_t iocfg;
@@ -505,13 +520,11 @@ private:
     int prepare_replacement_sim(int *ipar, double *rpar, int boxid);
     void switch_to_replacement_sim();
 
-    // NEU liste eingebetter Simulationen. Diese kann sich durch laden einer neuen simulation ändern
-
+    // Liste eingebetter Simulationen. Diese kann sich durch laden einer neuen simulation ändern
     libdyn **nested_sim;
 
-    // NEU Simulation der höheren Ebene, wenn keine =NULL
-
-    libdyn *higher_level_sim;
+//     // NEU Simulation der höheren Ebene, wenn keine =NULL
+//     libdyn *higher_level_sim;
 
 
     // Fehler ??
@@ -531,6 +544,7 @@ public:
 
     // NEU set a new master
     void set_master(libdyn_master *ld_master);
+//     void setNestedLevel( int Level );
 
     /**
      * \brief Set-up a new libdyn instance

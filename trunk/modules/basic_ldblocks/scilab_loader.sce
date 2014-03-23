@@ -630,7 +630,7 @@ function [sim, out] = ld_extract_element(sim, events, invec, pointer, vecsize ) 
   // %PURPOSE: Extract one element of a vector
   //
   // invec *+ - the input vector signal
-  // pointer * - the index signal
+  // pointer * - the index signal (indexing starts at 1)
   // vecsize - length of input vector
   // 
   // out = invec[pointer], the first element is at pointer = 1
@@ -1615,7 +1615,7 @@ function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsi
 // %PURPOSE: Extract "in" from to from+window_len
 // 
 //  in *+(vecsize) - vector signal
-//  from * - index signal
+//  from * - index signal, (indexing starts at 1)
 //  out *+(window_len) - output signal
 //
 //    
@@ -2015,6 +2015,8 @@ endfunction
 // 
 // 
 
+
+
 function [sim, out] = ld_RTCrossCorr(sim, events, u, shapeSig, len) // PARSEDOCU_BLOCK
 // 
 // Online Cross Correlation
@@ -2103,6 +2105,51 @@ function [sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen) // PARSEDOCU_
  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_ArrayInt32(sim, events, array, in) // PARSEDOCU_BLOCK
+// 
+// Lookup a value inside an array - block
+//
+// in * - input
+// out * - output
+// 
+// out = array[in]
+// 
+
+   // check the input parameters
+   ortd_checkpar(sim, list('Signal', 'in', in) );
+  //FIXME check array
+
+// introduce some parameters that are refered to by id's
+
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+   parlist = new_irparam_elemet_ivec(parlist, array, 10); // id = 10
+
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];
+  Urpar = [ p.rpar ];
+  btype = 60001 + 303; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+  insizes=[1]; // Input port sizes
+  outsizes=[1]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[ORTD.DATATYPE_INT32]; // datatype for each input port
+  outtypes=[ORTD.DATATYPE_INT32]; // datatype for each output port
+
+  blocktype = 2; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // connect the inputs
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(in) ); // connect in1 to port 0 and in2 to port 1
+
+  // connect the ouputs
+ [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -3210,5 +3257,38 @@ function [sim,save_]=ld_dumptoiofile(sim, events, fname, source) //OBSOLET
 endfunction
 
 
+
+
+//////////////////////////////////////////////////////////
+// More complex blocks based on elementary blocks
+//////////////////////////////////////////////////////////
+
+//
+// Generic controllers
+//
+
+function [sim,u] = ld_standard_controller(sim, event, r, y, K)
+// classic linear controller
+    [sim,e] = ld_sum(sim, event, list(r,0, y,0), 1,-1 );
+    [sim,u] = ld_ztf(sim, event, list(e,0), K);
+endfunction
+
+function [sim,u] = ld_standard_controller_2dof(sim, event, r, y, K, M)
+// like classic controller but with a measurement filter M
+    [sim,y_] = ld_ztf(sim, event, list(y,0), M);
+    [sim,e] = ld_sum(sim, event, list(r,0, y_,0), 1,-1 );
+    [sim,u] = ld_ztf(sim, event, list(e,0), K);
+endfunction
+
+function [sim,u,u_fb,u_ff] = ld_standard_controller_ffw(sim, event, r, y, K, Gm1, T)
+// controller with a feedforwad part
+    [sim,r_] = ld_ztf(sim, event, list(r,0), T); // closed loop model
+    
+    [sim,e] = ld_sum(sim, event, list(r_,0, y,0), 1,-1 );
+    [sim,u_fb] = ld_ztf(sim, event, list(e,0), K);
+    
+    [sim,u_ff] = ld_ztf(sim, event, list(r,0), Gm1);
+    [sim,u] = ld_sum(sim, event, list(u_fb,0, u_ff,0), 1,1 );
+endfunction
 
 

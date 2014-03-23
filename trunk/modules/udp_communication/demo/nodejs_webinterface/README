@@ -1,28 +1,62 @@
-A sample communication interface to ORTD to nodejs using UDP datagrams.  
+This is a demonstration on how to set-up a web-interface to a control
+system implemented using OpenRTDynamics.sf.net. As you'll notice
+this is possible in a few lines of code, because the usage of
+Javascript for implementing the gui-part and ORTD for the 
+real-time part including the UDP-communication allows an efficient
+formulation of the algorithms.
+
+A demonstration run can be watched on YouTube: http://youtu.be/Mln_JxfzLD0
+
+In the future, the code will included in the framework to allow an even 
+more compact implementation, such that only a few lines of ORTD-code 
+to describe the data to send and receive and optional html-code will 
+be required to obtain a full web-based graphical user interface.
+The aim is to allow to let ORTD automagically create a gui for you,
+similar to e.g. LabView (TM) does.
+For now, it is suggested to use this example as a template for other 
+applications. Additionally this example may serve to show how to
+do the following tasks in ORTD:
+
+- implementation of threads
+- implementation of a packet-based communication protocol
+- synchronisation of simulations in a thread to events (in 
+  this case the arrival of UDP-packets)
+- implementation and simulation of a discrete-time dynamic model
+
+
  
-UDPio.sce is a sample ORTD-simulation and webappUDP.js the nodejs program
-that connects to this simulation. Further it provides a web-interface 
-at http://localhost:8090.
+The files used in this example are:
 
-The template for the web-interface is stored in html/main.html.
+- UDPio.sce is a sample ORTD-simulation that simulates an osicillator
+            and a communication interface to node.js using UDPio
+- webappUDP.js is the node.js program that connects to this simulation 
+               via an UDP-interface and provides a web-interface on port 8090.
+- Different templates for the html-page are stored in html/main*.html.
 
-A recent node.js version is required, I used v0.10.22. Additionally some more packages
-are required that can be installed with "npm":
+- UDPio.ipar and UDPio.rpar are the compiled ORTD-programm files.
+
+To make this example working:
+
+- The installation of node.js (nodejs.org) and its package manager
+  npm is required. 
+- Then, the "socket.io" node.js-package of node.js 
+  is required that can be installed with "npm". To do this, call the 
+  following commmand from the directory that contains webappUDP.js:
 
 $ npm install socket.io
-$ npm install jParser
-$ npm install concentrate
 
-OR
+- To start the set-up, two services / processes are required to run
+  at the same time:
 
-$ npm install socket.io jParser concentrate
+the ORTD-simulation is started by running
 
-To start the set-up start the ORTD-simulation
+ $ sh run_UDPio.sh
 
- $ run_UDPio.sh
-
-in one terminal and
+and the node.js part by
  
- $ node webappUDP.js
+ $ node webappUDP.js 
 
-in another one. The go to http://localhost:8090
+The order doesn't matter and it is also possible to start / stop each
+service, which is one advantage of using stateless UDP-communication.
+
+- Finally, point your browser to http://localhost:8090 .

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010, 2011, 2012  Christian Klauer
+    Copyright (C) 2010, 2011, 2012, 2013, 2014  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
 

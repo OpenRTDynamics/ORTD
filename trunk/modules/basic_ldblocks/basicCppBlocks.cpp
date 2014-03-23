@@ -38,6 +38,146 @@ extern "C" {
 
 
 
+
+class ArrayInt32Block {
+public:
+    ArrayInt32Block(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~ArrayInt32Block()
+    {
+        destruct();
+    }
+
+    
+    //
+    // define states or other variables
+    //
+
+
+    //
+    // initialise your block
+    //
+
+    
+    // variables that point to allocated memot
+    irpar_string *s;
+    irpar_ivec *Array;
+    
+    
+    
+    void destruct() 
+    {
+      // free your during init() allocated memory, ...
+      
+      if (s!=NULL) delete s;
+      if (Array!=NULL) delete Array;
+    }    
+    
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+	try {
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+	// init all pointers with NULL
+	s = NULL;
+	Array = NULL;
+	
+        //
+        // extract some structured sample parameters
+        //
+
+        //
+        // get a string
+        //
+	
+// 	// cpp version (nicer), an exception is thrown in case something goes wrong
+// 	s = new irpar_string(Uipar, Urpar, 12);
+//  	printf("cppstr = %s\n", s->s->c_str());
+	
+	
+        //
+        // get a vector of integers (double vectors are similar, replace ivec with rvec)
+        //
+		
+	// c++ version (nicer), an exception is thrown in case something goes wrong
+
+	  Array = new irpar_ivec(Uipar, Urpar, 10); // then use:  veccpp.n; veccpp.v;
+// 	  printf("****** n=%d veccpp[0] = %d\n",Array->n, Array->v[0]); // print the first element 
+// 	                                           // of the vector that is of size veccpp.n	
+	
+	
+	
+        // set the initial states
+        resetStates();
+
+      
+         } catch(int e) { // check if initialisation went fine
+            // deallocate all previously allocated memeory in case something went wrong
+            fprintf(stderr, "ArrayInt32Block: something went wrong. Exception = %d\n", e);
+            destruct(); // free all memory allocated by now.
+            return -1; // indicate an error
+        }
+
+        // Return 0 to indicate that there was no error
+        return 0;
+    }
+
+
+    inline void updateStates()
+    {
+    }
+
+    inline void calcOutputs()
+    {
+        int32_t *in1 = (int32_t *) libdyn_get_input_ptr(block,0); // the first input port
+        int32_t *output = (int32_t*) libdyn_get_output_ptr(block, 0); // the first output port
+
+// 	printf("in %d %d\n", *in1, Array->n);
+	
+	int32_t tmp = *in1;
+	
+	if (tmp < 0) tmp = 0;	
+	if (tmp >= Array->n) tmp = Array->n - 1;
+	
+        int32_t y = Array->v[tmp];
+	   *output = y;
+	   
+    }
+
+    inline void resetStates()
+    {
+    }
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ArrayInt32Block block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<ArrayInt32Block>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
+
+
 class RTCrossCorrBlock {
 public:
     RTCrossCorrBlock(struct dynlib_block_t *block) {
@@ -500,8 +640,7 @@ extern "C" {
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+301, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ReadAsciiFileBlock::CompFn);
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+302, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RTShapeCompareBlock::CompFn);
 	
-	
-
+	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+303, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ArrayInt32Block::CompFn);
 	
     }
 

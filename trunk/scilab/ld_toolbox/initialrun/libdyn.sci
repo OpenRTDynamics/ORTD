@@ -1,7 +1,7 @@
 //
-//    Copyright (C) 2010, 2011  Christian Klauer
+//    Copyright (C) 2010, 2011, 2012, 2013, 2013  Christian Klauer
 //
-//    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+//    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 //
 //    OpenRTDynamics is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@
 // depends on irpar.sci
 //
 //
-//
+// in function libdyn_setup_sch2: add datatype checking
 //
 //
 // TODO: nur noch die Objectliste in sim structur über vom beutzer übergebene oid verwenden
@@ -211,6 +211,31 @@ function sim = libdyn_new_simulation(insizes, outsizes)
 
   sim = sim_struct;
 endfunction
+
+// New version forked form above as of 16.2.14 to add in and outtypes
+function sim = libdyn_new_simulation2(insizes, outsizes, intypes, outtypes)
+  sim_struct.insizes = insizes; // Vektor of insizes
+  sim_struct.outsizes = outsizes; // Vektor of outsizes
+  sim_struct.intypes = intypes;
+  sim_struct.outtypes = outtypes;
+
+  sim_struct.parlist = new_irparam_set(); // irparam container
+  
+  // used by libdyn_new_blockid() to create new block ids
+  sim_struct.objectidcounter = 200; // also used for irpar ids, never start at 0 because its is reserverd for external in/out
+  
+  sim_struct.cllist = list(); // Connection list is stored here
+//  sim_struct.clist_count = 0;
+
+  sim_struct.objectlist = list(); // Contains all block etc...
+
+  global libdyn_simu_id_counter;
+  sim_struct.simid = libdyn_simu_id_counter; // a unique identifier for each simulation struct
+  libdyn_simu_id_counter = libdyn_simu_id_counter + 1;
+
+  sim = sim_struct;
+endfunction
+
 
 
 // creates a new unique block identifier, which is also used as id for saving irpar parameters
@@ -1054,7 +1079,7 @@ end
      error("length of outsizes and outtypes not equal");
    end
 
-    sim = libdyn_new_simulation(insizes, outsizes);
+   sim = libdyn_new_simulation2(insizes, outsizes, intypes, outtypes);
 
    [sim,simulation_inputs] = libdyn_get_external_ins(sim);   
 
@@ -1066,11 +1091,14 @@ end
    end
 
    // let the user defined function describe the schematic
-   // It will fill in sim
+   // It will fill in the structure "sim"
+
+// TODO: Check inlist(i) types to match intypes
 
    [sim, outlist, userdata] = fn(sim, inlist, userdata);
 //    printf("outlist:\n"); disp(outlist);
-   
+
+// TODO: Check outlist(i) types to match outtypes
    
    // check the number of provided outputs
    if (length(outsizes) > length(outlist)) then
@@ -1110,39 +1138,6 @@ end
 endfunction
 
 
-
-
-//////////////////////////////////////////////////////////
-// More complex blocks based on elementary blocks
-//////////////////////////////////////////////////////////
-
-//
-// Generic controllers
-//
-
-function [sim,u] = ld_standard_controller(sim, event, r, y, K)
-// classic linear controller
-    [sim,e] = ld_sum(sim, event, list(r,0, y,0), 1,-1 );
-    [sim,u] = ld_ztf(sim, event, list(e,0), K);
-endfunction
-
-function [sim,u] = ld_standard_controller_2dof(sim, event, r, y, K, M)
-// like classic controller but with a measurement filter M
-    [sim,y_] = ld_ztf(sim, event, list(y,0), M);
-    [sim,e] = ld_sum(sim, event, list(r,0, y_,0), 1,-1 );
-    [sim,u] = ld_ztf(sim, event, list(e,0), K);
-endfunction
-
-function [sim,u,u_fb,u_ff] = ld_standard_controller_ffw(sim, event, r, y, K, Gm1, T)
-// controller with a feedforwad part
-    [sim,r_] = ld_ztf(sim, event, list(r,0), T); // closed loop model
-    
-    [sim,e] = ld_sum(sim, event, list(r_,0, y,0), 1,-1 );
-    [sim,u_fb] = ld_ztf(sim, event, list(e,0), K);
-    
-    [sim,u_ff] = ld_ztf(sim, event, list(r,0), Gm1);
-    [sim,u] = ld_sum(sim, event, list(u_fb,0, u_ff,0), 1,1 );
-endfunction
 
 
 

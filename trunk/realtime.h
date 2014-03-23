@@ -24,10 +24,19 @@
 #ifndef _ORTD_REALTIME_H
 #define _ORTD_REALTIME_H 1
 
+
+struct TaskPriority_t {
+  int *par;
+  int Npar;
+};
+
+int ortd_rt_SetThreadProperties2(struct TaskPriority_t TaskPriority);
 int ortd_rt_SetThreadProperties(int *par, int Npar);
 int ortd_rt_SetCore(int core_id);
 long int ortd_mu_time();
 int ortd_rt_ChangePriority(unsigned int flags, int priority);
+
+
 
 #define ORTD_RT_REALTIMETASK 1
 #define ORTD_RT_NORMALTASK 2

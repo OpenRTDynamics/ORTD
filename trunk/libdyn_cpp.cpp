@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2010, 2011, 2012  Christian Klauer
+    Copyright (C) 2010, 2011, 2012, 2013, 2014  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,8 @@
 
 /*
     TODO: long term:  remove libdyn_nested
+
+    TODO: Suche nach sizeof(double) und abändern
 
 */
 
@@ -55,7 +57,7 @@ irpar::irpar()
     rpar = NULL;
     Nrpar = 0;
     Nipar = 0;
-    
+
     magic = 0xabcd34;
 //     fprintf(stderr, "irpar::ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
 }
@@ -67,7 +69,7 @@ irpar::irpar(int Nipar, int Nrpar)
 
     this->ipar = (int*) malloc( sizeof(int) * Nipar );
     this->rpar = (double*) malloc( sizeof(double) * Nrpar );
-    
+
 //     fprintf(stderr, "irpar::ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
 }
 
@@ -81,10 +83,10 @@ void irpar::destruct()
 {
 //   fprintf(stderr, "irpar::destruct() this=%p\n", this);
 //   fprintf(stderr, "irpar::destruct() magic=%p\n", magic);
-  if (magic != 0xabcd34) {
-    printf("irpar: this ptr seems to be wroing\n");
-  }
-  
+    if (magic != 0xabcd34) {
+        printf("irpar: this ptr seems to be wroing\n");
+    }
+
 //     fprintf(stderr, "irpar::destruct() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
     if (ipar != NULL) {
         free(ipar);
@@ -111,8 +113,8 @@ bool irpar::load_from_afile(char *fname_i, char* fname_r)
     }
 
 //     fprintf(stderr, "irpar::load_from_afile(char*, char*) this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
-    
-    
+
+
     return true;
 }
 
@@ -129,18 +131,18 @@ bool irpar::load_from_afile(char* fname)
     bool ret = this->load_from_afile(fname_ipar, fname_rpar);
 
 //    fprintf(stderr, "irpar::load_from_afile(char *fname) this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
-   
-   return ret;
+
+    return ret;
 
 }
 
 
 
-// 
+//
 //
 // class libdyn_nested Version 1 (OLD)
 //
-// 
+//
 
 
 
@@ -163,18 +165,18 @@ bool libdyn_nested::internal_init(int Nin, const int* insizes_, const int* intyp
 
     for (i = 0; i < iocfg.inports; ++i) {
         insizes[i] = insizes_[i];
-	intypes_[i] = intypes[i]; // DATATYPE_FLOAT; // default datatype
+        intypes_[i] = intypes[i]; // DATATYPE_FLOAT; // default datatype
     }
     for (i = 0; i < iocfg.outports; ++i) {
         outsizes[i] = outsizes_[i];
-	outtypes_[i] = outtypes[i]; // DATATYPE_FLOAT;// default datatype
+        outtypes_[i] = outtypes[i]; // DATATYPE_FLOAT;// default datatype
     }
 
     iocfg.insizes = insizes;
     iocfg.outsizes = outsizes;
     iocfg.intypes = intypes_;
     iocfg.outtypes = outtypes_;
-    
+
 
 
     // List of Pointers to in vectors
@@ -302,8 +304,8 @@ void libdyn_nested::destruct()
         // destruct all nested simulations
         int i;
 
-	lock_slots();
-	
+        lock_slots();
+
         for (i = 0; i < Nslots; i++) {
             libdyn * sim = sim_slots[i];
             if (sim != NULL) {
@@ -313,7 +315,7 @@ void libdyn_nested::destruct()
                 sim_slots[i] = NULL;
             }
         }
-        
+
         unlock_slots();
 
     } else if (current_sim != NULL) {
@@ -351,7 +353,7 @@ void libdyn_nested::allocate_slots(int n)
 
     slot_addsim_pointer = 0;
     current_slot = 0;
-    
+
     pthread_mutex_init(&slots_mutex, NULL);
 }
 
@@ -359,7 +361,7 @@ void libdyn_nested::free_slots()
 {
     if (this->sim_slots != NULL) {
         free(sim_slots);
-	pthread_mutex_destroy(&slots_mutex);
+        pthread_mutex_destroy(&slots_mutex);
     }
 }
 
@@ -432,7 +434,7 @@ int libdyn_nested::add_simulation(int slotID, int* ipar, double* rpar, int boxid
 
         return err;
     }
-    
+
     fprintf(stderr, "Simulation was set-up\n");
 
     if (this->add_simulation(slotID, sim) < 0)
@@ -447,20 +449,20 @@ int libdyn_nested::add_simulation(int slotID, libdyn* sim)
 {
 
 
-    
+
     if (slotID == -1) {
         // also set to be the current simulation
         current_sim = sim;
 
-	if (sim_slots == NULL) {	    
-	    return 1; // slots are not used: go out - everything is fine now
-	}
-	
-         // slots are not used
-         if (slots_available() <= 0) {
-             fprintf(stderr, "nested: no more slots available\n");
-             return -1;
-         }
+        if (sim_slots == NULL) {
+            return 1; // slots are not used: go out - everything is fine now
+        }
+
+        // slots are not used
+        if (slots_available() <= 0) {
+            fprintf(stderr, "nested: no more slots available\n");
+            return -1;
+        }
 
         // add simulation to the next slot
         sim_slots[ slot_addsim_pointer ] = sim;
@@ -470,31 +472,31 @@ int libdyn_nested::add_simulation(int slotID, libdyn* sim)
         slot_addsim_pointer++;
         usedSlots++;
     } else {
-      // slots are used
+        // slots are used
 
-      if (sim_slots == NULL) {
-          fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
-          return -1;
-      }
+        if (sim_slots == NULL) {
+            fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
+            return -1;
+        }
 
-       
+
         if (!slotindexOK(slotID)) {
             fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
             return -1;
         }
 
         lock_slots();
-	
+
         // slot has to be free
         if (sim_slots[ slotID ] != NULL) {
-	    unlock_slots();
+            unlock_slots();
             fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot is not free\n");
             return -1;
         }
 
         sim_slots[ slotID ] = sim;
-	
-	unlock_slots();
+
+        unlock_slots();
 
     }
 
@@ -514,18 +516,18 @@ int libdyn_nested::del_simulation(int slotID)
     }
 
     lock_slots();
-    
+
     if (is_current_simulation(slotID)) {
-      // Tryed to exchange the currently active simulation
-      fprintf(stderr, "libdyn_nested: Tryed to exchange the currently active simulation\n");
-      
-      unlock_slots();
-      return -2;      
+        // Tryed to exchange the currently active simulation
+        fprintf(stderr, "libdyn_nested: Tryed to exchange the currently active simulation\n");
+
+        unlock_slots();
+        return -2;
     }
-    
+
     if (sim_slots[ slotID ] == NULL) {
         unlock_slots();
-	
+
         fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
         return -1;
     }
@@ -536,16 +538,16 @@ int libdyn_nested::del_simulation(int slotID)
 
     // mark as a free slot
     this->sim_slots[slotID] = NULL;
-    
+
     unlock_slots();
-    
+
     return 1;
 }
 
 int libdyn_nested::del_simulation(int slotID, int switchto_slotID)
 {
     libdyn *sim; // FIXME volatile
-  
+
     if (sim_slots == NULL) {
         fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
         return -1;
@@ -563,26 +565,26 @@ int libdyn_nested::del_simulation(int slotID, int switchto_slotID)
 
     lock_slots();
     {
-    
-      if (sim_slots[ slotID ] == NULL) {
-	  unlock_slots();
-	  
-	  fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
-	  return -1;
-      }
 
-      // switch to another simulation
-      current_sim = this->sim_slots[switchto_slotID];
-      
-      // destruct the simulation
-      sim = this->sim_slots[slotID];
+        if (sim_slots[ slotID ] == NULL) {
+            unlock_slots();
 
-      // mark as a free slot
-      this->sim_slots[slotID] = NULL;
-    
+            fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
+            return -1;
+        }
+
+        // switch to another simulation
+        current_sim = this->sim_slots[switchto_slotID];
+
+        // destruct the simulation
+        sim = this->sim_slots[slotID];
+
+        // mark as a free slot
+        this->sim_slots[slotID] = NULL;
+
     }
     unlock_slots();
-    
+
     sim->destruct(); // do the destruction outside the locked area since this lasts a long time
 
     return 1;
@@ -602,10 +604,10 @@ bool libdyn_nested::load_simulations(int* ipar, double* rpar, int start_boxid, i
 
 bool libdyn_nested::is_current_simulation(int slotID)
 {
-  
-  // lock_slots(); has to be called in advance to calling this function
-  // unlock_slots() afterwards
-  
+
+    // lock_slots(); has to be called in advance to calling this function
+    // unlock_slots() afterwards
+
     if (sim_slots == NULL) {
         fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
         return false;
@@ -617,14 +619,14 @@ bool libdyn_nested::is_current_simulation(int slotID)
     }
 
     bool result = (sim_slots[slotID] == current_sim);
-    
+
     return result;
 }
 
 
 bool libdyn_nested::set_current_simulation(int nSim)
 {
-  
+
     if (sim_slots == NULL) {
         fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
         return false;
@@ -636,10 +638,10 @@ bool libdyn_nested::set_current_simulation(int nSim)
     }
 
     lock_slots();
-    
+
     if (sim_slots[ nSim ] == NULL) {
         unlock_slots();
-	
+
         fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
         return false;
     }
@@ -648,24 +650,24 @@ bool libdyn_nested::set_current_simulation(int nSim)
     current_sim = this->sim_slots[nSim];
 
     unlock_slots();
-  
-/*
-    if ( (sim_slots != NULL) ) {
-        if (slotindexOK(nSim)) {
-            if (this->sim_slots[nSim] != NULL) {
-	      
-	      
-                
-//       printf("switching simulation to %d  cs = %p\n", nSim, current_sim);
 
-                return true;
+    /*
+        if ( (sim_slots != NULL) ) {
+            if (slotindexOK(nSim)) {
+                if (this->sim_slots[nSim] != NULL) {
+
+
+
+    //       printf("switching simulation to %d  cs = %p\n", nSim, current_sim);
+
+                    return true;
+                }
             }
+        } else {
+            fprintf(stderr, "libdyn_nested: slots are not configured\n");
         }
-    } else {
-        fprintf(stderr, "libdyn_nested: slots are not configured\n");
-    }
 
-    return false;*/
+        return false;*/
 }
 
 
@@ -681,7 +683,7 @@ void libdyn_nested::copy_outport_vec(int nPort, void* dest)
 //     printf("copy_outport_vec from ptr %p: ", src);
 //     for (i = 0; i<= len; ++i) {
 //       printf("%f ",  ( (double*) src )[i]  );
-//       
+//
 //     }
 //     printf("\n");
 
@@ -753,63 +755,50 @@ void libdyn_nested::event_trigger_mask(int mask)
 
 
 
-// 
+//
 //
 // class libdyn_nested Version 2
 //
-// 
+//
 
-bool libdyn_nested2::internal_init(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
+
+void libdyn_nested2::allocate_structures(int Nin, int Nout)
 {
-    int sum, tmp, i;
+    int tmp, i;
     double *p;
 
+    //
+    ConfigurationFinished = false;
+
+    // standard configuration
+    this->sim_slots = NULL;
+    this->usedSlots = 0;
+    this->current_sim = NULL;
+    this->ParentSim = NULL;
+    this->Parent_SimnestClassPtr = NULL;
+    this->NestedLevel = 0;
+
+    //
+    // configure I/O
+    //
     iocfg.provided_outcaches = 0;
 
     iocfg.inports = Nin;
     iocfg.outports = Nout;
 
-//     int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
-//     int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
-// 
-//     for (i = 0; i < iocfg.inports; ++i)
-//         insizes[i] = insizes_[i];
-//     for (i = 0; i < iocfg.outports; ++i)
-//         outsizes[i] = outsizes_[i];
-// 
-//     iocfg.insizes = insizes;
-//     iocfg.outsizes = outsizes;
-// 
+    // allocate arrays for the I/O configuration
+    iocfg.insizes = (int*) malloc(sizeof(int) * iocfg.inports);
+    iocfg.outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
+    iocfg.intypes = (int*) malloc(sizeof(int) * iocfg.inports);
+    iocfg.outtypes = (int*) malloc(sizeof(int) * iocfg.outports);
 
-    
-    
-    
-    int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
-    int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
-    int *intypes_ = (int*) malloc(sizeof(int) * iocfg.inports);
-    int *outtypes_ = (int*) malloc(sizeof(int) * iocfg.outports);
 
-    for (i = 0; i < iocfg.inports; ++i) {
-        insizes[i] = insizes_[i];
-	intypes_[i] = intypes[i]; // DATATYPE_FLOAT; // default datatype
-    }
-    for (i = 0; i < iocfg.outports; ++i) {
-        outsizes[i] = outsizes_[i];
-	outtypes_[i] = outtypes[i]; // DATATYPE_FLOAT;// default datatype
-    }
-
-    iocfg.insizes = insizes;
-    iocfg.outsizes = outsizes;
-    iocfg.intypes = intypes_;
-    iocfg.outtypes = outtypes_;    
-    
-    
-    
-    
-    
-    // List of Pointers to in vectors
+    //
+    // Allocate the list of pointers to the input vectors
+    //
     iocfg.inptr = (double **) malloc(sizeof(double *) * iocfg.inports);
 
+    // init with NULL
     for (i=0; i<iocfg.inports; ++i)
         iocfg.inptr[i] = (double*) NULL;
 
@@ -820,14 +809,54 @@ bool libdyn_nested2::internal_init(int Nin, const int* insizes_, const int* inty
 
     iocfg.outptr = (double **) malloc(sizeof(double *) * iocfg.outports);
 
+    // init with NULL
     for (i=0; i<iocfg.outports; ++i)
         iocfg.outptr[i] = (double*) NULL;
+
 
     // Initially there is no master
     this->ld_master = NULL;
 
     // Initially there is no simulation
     this->current_sim = NULL;
+
+
+}
+
+
+bool libdyn_nested2::internal_init(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
+{
+    int tmp, i;
+    double *p;
+
+    allocate_structures(Nin, Nout);
+    /*
+        iocfg.provided_outcaches = 0;
+
+        iocfg.inports = Nin;
+        iocfg.outports = Nout;
+
+
+
+
+        int *insizes = (int*) malloc(sizeof(int) * iocfg.inports);
+        int *outsizes = (int*) malloc(sizeof(int) * iocfg.outports);
+        int *intypes_ = (int*) malloc(sizeof(int) * iocfg.inports);
+        int *outtypes_ = (int*) malloc(sizeof(int) * iocfg.outports);*/
+
+    // copy the given I/O config arrays
+    for (i = 0; i < iocfg.inports; ++i) {
+        iocfg.insizes[i] = insizes_[i];
+        iocfg.intypes[i] = intypes[i]; // DATATYPE_FLOAT; // default datatype
+    }
+    for (i = 0; i < iocfg.outports; ++i) {
+        iocfg.outsizes[i] = outsizes_[i];
+        iocfg.outtypes[i] = outtypes[i]; // DATATYPE_FLOAT;// default datatype
+    }
+
+
+
+
 
 //     fprintf(stderr, "Internal init finished\n");
 
@@ -844,15 +873,15 @@ void libdyn_nested2::set_buffer_inptrs()
     i = 0;
     iocfg.inptr[i] = (double *) ptr; //sim->cfg_inptr(i, (double *) ptr);
 
+    // calc datatype lengthts
     for (i = 1; i < iocfg.inports; ++i) {
-      
-//         int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i-1]); // FIXME
 
-printf("libdyn_nested2::set_buffer_inptrs\n");
 
         int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[i-1] );
         int vlen = iocfg.insizes[i-1];
         ptr += TypeBytes*vlen;
+
+//          printf("--------------------- libdyn_nested2::set_buffer_inptrs %p\n", ptr);
 
         //  sim->cfg_inptr(i, (double*) ptr);
         iocfg.inptr[i] = (double *) ptr;
@@ -868,15 +897,23 @@ bool libdyn_nested2::allocate_inbuffers()
 
     int nBytes_for_input = 0;
 
+    // calc the required memory for all input ports
     for (i = 0; i < iocfg.inports; ++i) {
-        int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); // FIXME
+
+        // calc the required bytes for the port i
+        int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[i] );
         int vlen = iocfg.insizes[i];
 
-        nBytes_for_input = nBytes_for_input + element_len * vlen;
+//         int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); // FIXME
+//         int vlen = iocfg.insizes[i];
+
+        nBytes_for_input += TypeBytes * vlen;
     }
 
+    // allocate the buffer
     InputBuffer = (void*) malloc(nBytes_for_input);
 
+    // set the simulation's input ports
     this->set_buffer_inptrs();
 
     return true;
@@ -884,59 +921,126 @@ bool libdyn_nested2::allocate_inbuffers()
 
 bool libdyn_nested2::cfg_inptr(int in, void* inptr)
 {
-    if (this->use_buffered_input == true) {
-        fprintf(stderr, "cfg_inptr: You configured buffered input\n");
-        return false;
+    if (ConfigurationFinished) {
+        fprintf(stderr, "ASSERTION FAILED: libdyn_nested2::FinishConfiguration: already finished\n");
+        throw 1;
+    }
+
+    if (this->use_buffered_input == true && inptr != NULL) {
+        fprintf(stderr, "ASSERTION failed: cfg_inptr: You configured buffered input. Set inptr = NULL\n");
+//         return false;
+        throw 1;
     }
 
     if ( (iocfg.inports <= in) || (in < 0) ) {
-        fprintf(stderr, "cfg_inptr: in out of range\n");
-        return false;
+        fprintf(stderr, "ASSERTION failed: cfg_inptr: in out of range\n");
+//         return false;
+        throw 1;
     }
+
+    // if buffered inputs are used, do not overwrite the pointers to the allocated buffers
+    if (this->use_buffered_input)
+        return true;
 
     iocfg.inptr[in] = (double*) inptr;
 
     return true;
 }
 
-
-
-libdyn_nested2::libdyn_nested2(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
+bool libdyn_nested2::cfg_inptr(int in, void* inptr, int size, int datatype)
 {
-    this->sim_slots = NULL;
-    this->usedSlots = 0;
-    this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
-    this->current_sim = NULL;
-    
-//         // for online exchange support
-//     this->initialised_replaced_simulation = false;
-//     this->replaceable_simulation = false; // start with false   
+    if (ConfigurationFinished) {
+        fprintf(stderr, "ASSERTION FAILED: libdyn_nested2::FinishConfiguration: already finished\n");
+        throw 1;
+    }
+
+    if ( !cfg_inptr(in, inptr) ) {
+        throw 1;
+    };
+
+    iocfg.insizes[in] = size;
+    iocfg.intypes[in] = datatype;
 }
 
+void libdyn_nested2::cfg_output(int out, int size, int datatype)
+{
+    if (ConfigurationFinished) {
+        fprintf(stderr, "ASSERTION FAILED: libdyn_nested2::FinishConfiguration: already finished\n");
+        throw 1;
+    }
+
+    if ( (iocfg.outports <= out) || (out < 0) ) {
+        fprintf(stderr, "ASSERTION failed: cfg_output: out of range\n");
+        throw 1;
+    }
+
+    iocfg.outsizes[out] = size;
+    iocfg.outtypes[out] = datatype;
+}
+
+
+// TODO: remove
+libdyn_nested2::libdyn_nested2(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes)
+{
+//     this->sim_slots = NULL;
+//     this->usedSlots = 0;
+//     this->current_sim = NULL;
+//     this->ParentSim = NULL;
+
+    this->use_buffered_input = false;
+
+    this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
+
+//         // for online exchange support
+//     this->initialised_replaced_simulation = false;
+//     this->replaceable_simulation = false; // start with false
+}
+
+// TODO: remove
 libdyn_nested2::libdyn_nested2(int Nin, const int* insizes_, const int* intypes, int Nout, const int* outsizes_, const int* outtypes, bool use_buffered_input)
 {
-    this->sim_slots = NULL; // initially slots are not used
+//     this->sim_slots = NULL; // initially slots are not used
+//     this->usedSlots = 0;
+//     this->current_sim = NULL;
+//     this->ParentSim = NULL;
+
     this->use_buffered_input = use_buffered_input;
-    this->usedSlots = 0;
-    this->current_sim = NULL;
 
     this->internal_init(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
 
 
     if (use_buffered_input) {
-        /*    printf("Allocate buffers\n");
-        */
         this->allocate_inbuffers();
     }
 
-
-    //this->libdyn_nested(Nin, insizes_, intypes, Nout, outsizes_, outtypes);
-
-//     // for online exchange support
-//     this->initialised_replaced_simulation = false;
-//     this->replaceable_simulation = false; // start with false   
-
 }
+
+libdyn_nested2::libdyn_nested2(int Nin, int Nout, bool use_buffered_input)
+{
+    this->use_buffered_input = use_buffered_input;
+
+    this->allocate_structures(Nin, Nout);
+
+//     if (use_buffered_input) {
+//         this->allocate_inbuffers();
+//     }
+}
+
+void libdyn_nested2::FinishConfiguration()
+{
+    if (ConfigurationFinished) {
+        fprintf(stderr, "ASSERTION FAILED: libdyn_nested2::FinishConfiguration: already finished\n");
+        throw 1;
+    }
+
+    // allocate the input buffers if needed.
+    if (use_buffered_input) {
+        this->allocate_inbuffers();
+    }
+
+    ConfigurationFinished = true;
+}
+
 
 void libdyn_nested2::destruct()
 {
@@ -979,10 +1083,10 @@ int libdyn_nested2::CallSyncCallbackDestructor()
     //
     //
 
-     if ( (sim_slots != NULL) ) {
+    if ( (sim_slots != NULL) ) {
 
         // slots are used
-        // destruct all nested simulations
+        // call destructor for all nested simulations
         int i;
 
         lock_slots();
@@ -1002,8 +1106,8 @@ int libdyn_nested2::CallSyncCallbackDestructor()
 
     }
 
-    
- 
+
+
     // FIXME always returns 0
     return 0;
 }
@@ -1057,16 +1161,36 @@ bool libdyn_nested2::slotindexOK(int nSim)
     return true;
 }
 
+void libdyn_nested2::set_parent_simulation(dynlib_simulation_t* ParentSim)
+{
+    this->ld_master = (libdyn_master *) ParentSim->master;
+    this->ParentSim = ParentSim;
+//   this->Parent_SimnestClassPtr = (class libdyn_nested2*) ParentSim->SimnestClassPtr;
+    this->Parent_SimnestClassPtr = libdyn_nested2::GetSimnestClassPtrFromC(ParentSim);
+
+    if (this->Parent_SimnestClassPtr == NULL) {
+        fprintf(stderr, "Warning: libdyn_nested2::set_parent_simulation: Parent simulation is not included by a simnest2 wrapper class\n");
+        this->setNestedLevel(1); // nested level must be at least one
+        return;
+    }
+
+    // inc nesting level counters
+    this->setNestedLevel( Parent_SimnestClassPtr->getNestedLevel() + 1 );
+}
+
 
 void libdyn_nested2::set_master(libdyn_master* master)
 {
-  
     this->ld_master = master;
 }
 
 
 int libdyn_nested2::add_simulation(int slotID, irpar* param, int boxid)
 {
+//   if (!ConfigurationFinished) {
+//     fprintf(stderr, "ASSERTION FAILED: Configuration must be finished before calling add_simulation.");
+//   }
+
     if (sim_slots != NULL)
         if (slots_available() <= 0)
             return -1; // no more slots available
@@ -1090,9 +1214,12 @@ int libdyn_nested2::add_simulation(int slotID, int* ipar, double* rpar, int boxi
 
     libdyn *sim;
 
-//    sim = new libdyn(&iocfg);
-    sim = new libdyn( iocfg.inports, iocfg.insizes, iocfg.outports, iocfg.outsizes );
+    // create a new simulation
+    sim = new libdyn( iocfg.inports, iocfg.insizes, iocfg.intypes, iocfg.outports, iocfg.outsizes, iocfg.outtypes);
+
+    // master
     sim->set_master(ld_master);
+
 
     // set pointers to inputs
     int i;
@@ -1112,20 +1239,23 @@ int libdyn_nested2::add_simulation(int slotID, int* ipar, double* rpar, int boxi
         return err;
     }
 
-    fprintf(stderr, "Simulation was set-up\n");
+    fprintf(stderr, "Nested Simulation was set-up. Nesting level is %d\n", NestedLevel);
 
     if (this->add_simulation(slotID, sim) < 0)
         return -1;
 
 
-    return err;
+    return err; // return
 }
+
+
 
 int libdyn_nested2::add_simulation(int slotID, libdyn* sim)
 // main add_simulation function that is called by the two other derivates
 {
-
-
+    // store the pointer to the inestance of this wrapper class in the simulation
+    sim->get_C_SimulationObject()->SimnestClassPtr = (void*) this;
+//   printf("------------------------ sim->get_C_SimulationObject()->SimnestClassPtr = (void*) this;\n");
 
     if (slotID == -1) {
 
@@ -1141,25 +1271,24 @@ int libdyn_nested2::add_simulation(int slotID, libdyn* sim)
 
         // add simulation to the next free slot
         sim_slots[ slot_addsim_pointer ].sim = sim;
-	sim_slots[ slot_addsim_pointer ].replaceable_simulation_initialised = false;
-		
+        sim_slots[ slot_addsim_pointer ].replaceable_simulation_initialised = false;
+
+
         // also set to be the current simulation
         current_sim = sim;
-	current_slot = &sim_slots[slot_addsim_pointer];
-	current_slot_nr = slot_addsim_pointer;
+        current_slot = &sim_slots[slot_addsim_pointer];
+        current_slot_nr = slot_addsim_pointer;
 
 
-	// inc counters
+        // inc counters
         slot_addsim_pointer++;
         usedSlots++;
     } else {
         // slots are used
-
         if (sim_slots == NULL) {
             fprintf(stderr, "libdyn_nested: ASSERTION FAILED slots are not configured\n");
             return -1;
         }
-
 
         if (!slotindexOK(slotID)) {
             fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
@@ -1176,16 +1305,15 @@ int libdyn_nested2::add_simulation(int slotID, libdyn* sim)
         }
 
         sim_slots[ slotID ].sim = sim;
-	sim_slots[ slotID ].replaceable_simulation_initialised = false;
+        sim_slots[ slotID ].replaceable_simulation_initialised = false;
 
         // also set to be the current simulation // MAYBE WAS A BUG TO NOT DO THIS? related to async nested simulations?
         current_sim = sim;
-	current_slot = &sim_slots[ slotID ];
-	current_slot_nr = slot_addsim_pointer;
+        current_slot = &sim_slots[ slotID ];
+        current_slot_nr = slot_addsim_pointer;
 
-	
+
         unlock_slots();
-
     }
 
     return 1;
@@ -1274,7 +1402,7 @@ int libdyn_nested2::del_simulation(int slotID, int switchto_slotID)
     unlock_slots();
 
     // do the destruction outside the locked area since this could lasts a long time and would therefore destroy realtime
-    sim->destruct(); 
+    sim->destruct();
 
     return 1;
 
@@ -1315,7 +1443,7 @@ bool libdyn_nested2::is_current_simulation(int slotID)
 
 dynlib_simulation_t* libdyn_nested2::get_current_simulation_libdynSimStruct()
 {
-  return current_sim->get_C_SimulationObject();
+    return current_sim->get_C_SimulationObject();
 }
 
 bool libdyn_nested2::set_current_simulation(int nSim)
@@ -1355,15 +1483,13 @@ void libdyn_nested2::copy_outport_vec(int nPort, void* dest)
 {
     // copy the output port nPort of the current simulation to dest
     void *src = current_sim->get_vec_out(nPort);
-    int len = this->iocfg.outsizes[nPort];
-//     int datasize = sizeof(double); // FIXME
 
+    int len = this->iocfg.outsizes[nPort];
     int outtype = iocfg.outtypes[nPort];
-//     len = libdyn_config_get_datatype_len(outtype);  // FIXME: uncomment
-    
+
 //     printf("libdyn_nested2::copy_outport_vec\n");
-    int TypeBytes = libdyn_config_get_datatype_len( iocfg.outtypes[nPort] );
-    
+    int TypeBytes = libdyn_config_get_datatype_len( outtype );
+
     memcpy(dest, src, len*TypeBytes);
 }
 
@@ -1371,19 +1497,16 @@ void libdyn_nested2::copy_outport_vec(int nPort, void* dest)
 void libdyn_nested2::copy_inport_vec(int nPort, void* src)
 {
     if (use_buffered_input == false) {
-        fprintf(stderr, "You are not using buffered_input\n");
+        fprintf(stderr, "libdyn_nested2: ASSERTION FAILED: You are not using buffered_input\n");
         return;
     }
 
-    int element_len = sizeof(double); // libdyn_get_typesize(iocfg.intypes[i]); %FIXME: Remove
-    int vlen = iocfg.insizes[nPort];
-    int intype = iocfg.intypes[nPort];
-//     element_len = libdyn_config_get_datatype_len(intype);  // FIXME:uncomment
-    
-//     printf("libdyn_nested2::copy_inport_vec\n");
-    int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[nPort] );
+    int vlen = iocfg.insizes[nPort];   // input port size
+    int intype = iocfg.intypes[nPort]; // input port type
 
-    
+    int TypeBytes = libdyn_config_get_datatype_len( intype );
+
+
     memcpy((void*) iocfg.inptr[nPort], src, TypeBytes * vlen);
 }
 
@@ -1395,33 +1518,45 @@ void libdyn_nested2::simulation_step(int update_states)
 
 void libdyn_nested2::simulation_step_outpute()
 {
- current_sim->simulation_step(0);
- current_slot->replaceable_simulation_initialised = true;
+    current_sim->simulation_step(0);
+    current_slot->replaceable_simulation_initialised = true;
 //  initialised_replaced_simulation = true;
 }
 
 void libdyn_nested2::simulation_step_supdate()
 {
-  // make sure that simulation_step_output is called before simulation_step_supdate
-  // if not,skip and wait
-  
-   if (current_slot->replaceable_simulation_initialised) { 
+    // make sure that simulation_step_output is called before simulation_step_supdate
+    // if not,skip and wait
+
+    if (current_slot->replaceable_simulation_initialised) {
 //     printf("sim is initialised\n");
-    current_sim->simulation_step(1);
-   } else {
+        current_sim->simulation_step(1);
+    } else {
 //      printf("sim is not initialised skipping s update\n");
-   }
+    }
 }
 
 
 void libdyn_nested2::reset_blocks()
 {
+    // reset the currently active simulation
     current_sim->reset_blocks();
 }
 
+void libdyn_nested2::forwardReset()
+{
+//   this->ParentSim;
+//   this->Parent_SimnestClassPtr;
+
+// TODO Add a counter for the number of forwardings
+
+  this->reset_blocks();
+}
 
 void libdyn_nested2::reset_blocks(int slotId)
 {
+  // UNTESTED AND UNUSED FOR NOW
+  
     //
     // Reset blocks of the simulation assigned to slotID, which cannot be the currently active simulation
     // This may be called from other threads
@@ -1479,33 +1614,33 @@ void libdyn_nested2::event_trigger_mask(int mask)
 
 dynlib_simulation_t* libdyn::get_C_SimulationObject()
 {
-  return sim;
+    return sim;
 }
 
 int libdyn::CallSyncCallbackDestructor()
 {
-  return libdyn_simulation_CallSyncCallbackDestructor(sim);
+    return libdyn_simulation_CallSyncCallbackDestructor(sim);
 }
 
 bool libdyn::IsSyncronised()
 {
-  
-  #ifdef DEBUG
+
+#ifdef DEBUG
     printf("simulation %p is synchronised to %p\n", sim, sim->sync_callback.sync_func);
 #endif
-  
-  // check for a sync_callback function
-  if ( sim->sync_callback.sync_func != NULL )
-    return true;
-  else
-    return false;
+
+    // check for a sync_callback function
+    if ( sim->sync_callback.sync_func != NULL )
+        return true;
+    else
+        return false;
 }
 
 int libdyn::RunSyncCallbackFn()
 {
-  int ret = sim->sync_callback.sync_callback_state = (*sim->sync_callback.sync_func)(sim);
-  
-  return ret;
+    int ret = sim->sync_callback.sync_callback_state = (*sim->sync_callback.sync_func)(sim);
+
+    return ret;
 }
 
 void libdyn::event_trigger_mask(int mask)
@@ -1550,6 +1685,7 @@ int libdyn::irpar_setup(int* ipar, double* rpar, int boxid)
 
     // Make master available, if any
     sim->master = (void*) ld_master; // anonymous copy for "C"-only Code
+//     sim->NestedLevel = NestedLevel;
 
     // Call INIT FLag of all blocks
     error = libdyn_simulation_init(sim);
@@ -1642,6 +1778,8 @@ void libdyn::libdyn_internal_constructor(int Nin, const int* insizes_, int Nout,
 
     // Initially there is no master
     this->ld_master = NULL;
+
+
 }
 
 libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
@@ -1651,6 +1789,7 @@ libdyn::libdyn(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 
 libdyn::libdyn(int Nin, const int* insizes_, const int*intypes, int Nout, const int* outsizes_, const int *outtypes)
 {
+    // TODO Datatypes are not considered here
     libdyn_internal_constructor(Nin, insizes_, Nout, outsizes_);
 }
 
@@ -1723,12 +1862,12 @@ void libdyn::destruct()
 libdyn_master::libdyn_master()
 {
     magic = 0x89abcde2;
-  
+
     this->realtime_environment = RTENV_UNDECIDED;
 
     global_comp_func_list = libdyn_new_compfnlist();
     fprintf(stderr, "Created new libdyn master; ptr=%p\n", this);
-    
+
 #ifdef REMOTE
     // Initial subsystems (not available)
     dtree = NULL;
@@ -1744,7 +1883,7 @@ libdyn_master::libdyn_master()
 libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 {
     magic = 0x89abcde2;
-  
+
     this->realtime_environment = realtime_env;
 
     global_comp_func_list = libdyn_new_compfnlist();
@@ -1761,18 +1900,18 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 
     if (remote_control_tcpport != 0) {
         if (init_communication(remote_control_tcpport) <= 0) {   // FIXME: Handle return value
-          fprintf(stderr, "WARNING: Running without the communication_server\n");
-	}
+            fprintf(stderr, "WARNING: Running without the communication_server\n");
+        }
     }
 #endif
 }
 
 void libdyn_master::check_memory()
 {
-  if (magic != 0x89abcde2) {
-    fprintf(stderr, "ASSERTION failed: libdyn_master::check_memory: bad magic for object ptr=%p. Propably a memory corruption.\n", this);
-    exit(-1);
-  }
+    if (magic != 0x89abcde2) {
+        fprintf(stderr, "ASSERTION failed: libdyn_master::check_memory: bad magic for object ptr=%p. Propably a memory corruption.\n", this);
+        exit(-1);
+    }
 }
 
 
