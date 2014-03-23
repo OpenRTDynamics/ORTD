@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 25.1.2014
+Version of this document: 14.3.2014
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -988,4 +988,6 @@ By date as there will only be the svn-version
               on the thread.
   - 6.1.14:   Added: I/O to external Processes (module ext_process)
   - 16.2.14:  Cleaned up code; task priorities fixed.
-
+  - 14.3.14:  Fixed a Bug in the irpar-c++ class
+              Re-organisation of the code for nesting schematics
+              New blocks for a new communication framework

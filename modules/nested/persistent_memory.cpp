@@ -52,6 +52,7 @@ extern "C" {
     extern int persistent_memory_block(int flag, struct dynlib_block_t *block);
     extern int write_persistent_memory_block(int flag, struct dynlib_block_t *block);
     extern int read_persistent_memory_block(int flag, struct dynlib_block_t *block);
+    extern int write2_persistent_memory_block(int flag, struct dynlib_block_t *block);
 };
 
 
@@ -512,6 +513,10 @@ int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
 
 
 
+
+
+
+
 class persistent_memory_read_block_class {
 public:
     persistent_memory_read_block_class(struct dynlib_block_t *block)    {
@@ -696,4 +701,205 @@ int read_persistent_memory_block(int flag, struct dynlib_block_t *block)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class persistent_memory_write2_block_class {
+public:
+    persistent_memory_write2_block_class(struct dynlib_block_t *block)    {
+        this->block = block;
+    }
+    void destruct() {        }
+
+    void io_output() {};
+    void io_update() {
+        void *dataToWrite = (void *) libdyn_get_input_ptr(block,0);
+        int32_t *index__ = (int32_t *) libdyn_get_input_ptr(block,1);
+	int index = *index__;
+        int32_t *Nwrite__ = (int32_t *) libdyn_get_input_ptr(block,2);
+	int Nwrite = *Nwrite__;
+        
+
+        int maxindex = pmem->data_num_elements - Nwrite + 1;
+        if (index < 1 || index > maxindex || Nwrite > MaxElements) {
+	  fprintf(stderr, "write_persistent_memory_block2: index / Nwrite out of range\n");
+	  
+	  return;
+	}
+	  
+
+//         printf("write %d elements to index %d\n", Nwrite, index);
+
+        index--; // convert to C-index
+
+
+        // calc destination ptr
+        void *destptr = (void*) ( ((char*) pmem->get_dataptr()) + pmem->data_element_size*index );
+
+        if (useMutex) {
+            pmem->lock_data();
+            memcpy(destptr, dataToWrite, Nwrite*pmem->data_element_size);
+            pmem->unlock_data();
+        } else {
+            memcpy(destptr, dataToWrite, Nwrite*pmem->data_element_size);
+        }
+
+    };
+    void reset() {};
+    int init() {
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
+
+        int datatype = ipar[1];
+	MaxElements = ipar[2];
+
+        int len_ident_str = ipar[10];
+        char * directory_entry_fname;
+        irpar_getstr(&directory_entry_fname, ipar, 11, len_ident_str);
+
+#ifdef DEBUG
+        fprintf(stderr, "write_persistent_memory_block2: datatype %d indentStr %s\n", datatype, directory_entry_fname);
+#endif
+
+        libdyn_master *master = (libdyn_master *) block->sim->master;
+//         pmem = new persistent_memory_shobj( directory_entry_fname, master, this->datatype, this->size, NULL, this->useMutex );
+
+        // FIXME: need to make sure that this is really a memory object and not something else
+        pmem = (persistent_memory_shobj*) get_ortd_global_shared_object(directory_entry_fname, master);        
+
+        if (pmem == NULL) {
+            fprintf(stderr, "ERROR: write_persistent_memory_block2: memory <%s> could not be found\n", directory_entry_fname);
+	    free(directory_entry_fname);
+            return -1;
+        }
+        free(directory_entry_fname);
+	
+        useMutex = pmem->getuseMutex();
+
+
+        // check consistency
+        if (pmem->datatype != datatype) {
+            fprintf(stderr, "ERROR: write_persistent_memory_block2: missmatching datatype for memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+
+
+// 	fprintf(stderr,"pmem ptr = %p\n", pmem);
+
+        return 0;
+    }
+
+private:
+    struct dynlib_block_t *block;
+
+
+
+
+   
+    int MaxElements;
+    bool useMutex;
+
+    persistent_memory_shobj  *pmem;
+};
+
+
+
+// NOTE: MUSTER für C++ compfn
+int write2_persistent_memory_block(int flag, struct dynlib_block_t *block)
+{
+//     printf("persistent_memory_ write block: flag==%d\n", flag);
+
+    double *in;
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int Nin = 3;
+    int Nout = 0;
+
+    in = (double *) libdyn_get_input_ptr(block,0);
+    persistent_memory_write2_block_class *worker = (persistent_memory_write2_block_class *) libdyn_get_work_ptr(block);
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        worker->io_output();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        worker->io_update();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
+    {
+        int datatype = ipar[1];
+        int size = ipar[2]; // len of datainput
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, size, datatype); // data input
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // control input ofs
+        libdyn_config_block_input(block, 2, 1, DATATYPE_INT32); // control input Nwrite
+	
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:
+    {
+        worker = new persistent_memory_write2_block_class(block);
+        libdyn_set_work_ptr(block, (void*) worker);
+
+        int ret = worker->init();
+        if (ret < 0)
+            return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        worker->reset();
+    }
+    return 0;
+    break;
+//     case COMPF_FLAG_HIGHERLEVELRESET:
+//     {
+//         worker->io(1);
+//     }
+//     return 0;
+//     break;
+    case COMPF_FLAG_PREINITUNDO: // destroy instance
+    {
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        worker->destruct();
+        delete worker;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a persistent_memory writing2 block\n");
+        return 0;
+        break;
+
+    }
+}
 

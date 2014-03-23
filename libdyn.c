@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2009, 2010, 2011, 2012, 2013  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014  Christian Klauer
 
-    This file is part of OpenRTDynamics, the Real Time Dynamics Toolbox
+    This file is part of OpenRTDynamics, the Real Time Dynamics Framework
 
     OpenRTDynamics is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -167,7 +167,7 @@ struct dynlib_simulation_t *libdyn_new_simulation()
 
     sim->blocks_initialised = 0;
     
-    sim->t = 0.0;
+//     sim->t = 0.0; TODO REMOVE
     sim->stepcounter = 0;
     sim->numID_counter = 0;
 
@@ -222,8 +222,14 @@ struct dynlib_simulation_t *libdyn_new_simulation()
     libdyn_compfnlist_List(sim->private_comp_func_list);
 #endif
     
+    
+    
     // kein Master; wird von libdyn_cpp überschrieben, falls ein master eingesetzt wird.
     sim->master = NULL;
+
+    sim->SimnestClassPtr = NULL;
+    
+    sim->NestedLevel = 0;// TODO REMOVE
     
     // END
     
@@ -237,30 +243,30 @@ void libdyn_simulation_set_cfl(struct dynlib_simulation_t *sim, struct lindyn_co
   sim->global_comp_func_list = list;
 }
 
-void libdyn_simulation_IOlist_add(struct dynlib_simulation_t *sim, int inout, struct dynlib_block_t *block, int port)
-{
-  //  inout = 0 -> inport
-  //  inout = 0 -> outport
-
-  struct dynlib_portlist_t *listelement = (struct dynlib_portlist_t *) malloc(sizeof(struct dynlib_portlist_t));
-
-  listelement->block = block;
-  listelement->port = port;
-
-  listelement->next = (struct dynlib_portlist_t *) 0; // No next list element
-
-  if (sim->simIO.inlist_head == 0) {
-    sim->simIO.inlist_head = listelement;
-    sim->simIO.inlist_tail = listelement;
-  } else {
-    struct dynlib_portlist_t *tmp;
-
-    tmp = sim->simIO.inlist_tail;
-    sim->simIO.inlist_tail = listelement;
-    tmp->next = listelement;
-  }
-
-}
+// void libdyn_simulation_IOlist_add(struct dynlib_simulation_t *sim, int inout, struct dynlib_block_t *block, int port)
+// {
+//   //  inout = 0 -> inport
+//   //  inout = 0 -> outport
+// 
+//   struct dynlib_portlist_t *listelement = (struct dynlib_portlist_t *) malloc(sizeof(struct dynlib_portlist_t));
+// 
+//   listelement->block = block;
+//   listelement->port = port;
+// 
+//   listelement->next = (struct dynlib_portlist_t *) 0; // No next list element
+// 
+//   if (sim->simIO.inlist_head == 0) {
+//     sim->simIO.inlist_head = listelement;
+//     sim->simIO.inlist_tail = listelement;
+//   } else {
+//     struct dynlib_portlist_t *tmp;
+// 
+//     tmp = sim->simIO.inlist_tail;
+//     sim->simIO.inlist_tail = listelement;
+//     tmp->next = listelement;
+//   }
+// 
+// }
 
 int libdyn_simulation_SyncCallback_terminateThread(struct dynlib_simulation_t *simulation, int signal)
 {
@@ -1283,16 +1289,11 @@ void libdyn_simulation_resetblocks(struct dynlib_simulation_t * sim)
   struct dynlib_block_t *current = sim->allblocks_list_head;
   
   if (current != 0) {
-    do { // Destroy all blocks
+    do { // reset all blocks
       struct dynlib_block_t *block = current;
-      
-//      fprintf(stderr, "init id=%d\n", block->irpar_config_id);
       
       int ret = (*block->comp_func)(COMPF_FLAG_PREPARERESET, block);
       ret = (*block->comp_func)(COMPF_FLAG_RESETSTATES, block);
-/*      if (ret == -1) {
-	;
-      }*/
     
       current = current->allblocks_list_next; // step to the next block in list
     } while (current != 0); // while there is a next block in this list
@@ -2805,6 +2806,9 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
   return 0;
 
  error:
+  fprintf(stderr, "Dump of Blocks \n");
+  fprintf(stderr, "---------------\n");
+  libdyn_dump_all_blocks(*sim);
  
   // Undo everything
   libdyn_del_simulation(*sim);

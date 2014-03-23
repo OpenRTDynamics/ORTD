@@ -166,6 +166,11 @@
 
   } /* mu_time */
 
+  int ortd_rt_SetThreadProperties2(struct TaskPriority_t TaskPriority)
+  {
+    return ortd_rt_SetThreadProperties(TaskPriority.par, TaskPriority.Npar);
+  }
+  
   int ortd_rt_SetThreadProperties(int *par, int Npar)
   {
       if (Npar >= 3) {
@@ -181,8 +186,14 @@
 	  ortd_rt_ChangePriority(par[0], par[1]);
 
 	  ortd_rt_stack_prefault();
+	  
+	  fprintf(stderr, "realtime.c: Successfully set the task properties\n");
+	  
+	  return 0;
       }
 
+      fprintf(stderr, "realtime.c: no task properties were given\n");
+      return -1;
   }
 
 

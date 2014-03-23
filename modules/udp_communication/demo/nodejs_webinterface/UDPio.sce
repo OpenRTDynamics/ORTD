@@ -59,16 +59,17 @@ function [sim]=SendUDP(sim, Signal, NValues_send)
   [sim, SenderID] = ld_const(sim, ev, 1295793); // random number
   [sim, SenderID_int32] = ld_ceilInt32(sim, ev, SenderID);
 
-
   // print data
-  [sim] = ld_printf(sim, ev, Signal, "Signal to send = ", NValues_send);
+  [sim] = ld_printf(sim, ev, Signal, "Packaged values = ", NValues_send);
 
-  // make a binary structure
+  // make a binary structure; NOTE: Make sure the available amount of bytes
+  // for an UDP-packet are nor exeeded. (e.g. must be smaller than 1500-IP_overhead
+  // for ethernet-networks)
   [sim, Data, NBytes] = ld_ConcateData(sim, ev, ...
                          inlist=list(SenderID_int32, Counter_int32, SourceID_int32, Signal ), insizes=[1,1,1,NValues_send], ...
                          intypes=[ ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_FLOAT ] );
 
-  printf("The size of the UDP-packets will be %d bytes.\n", NBytes);
+  printf("The size of the UDP-packets will be %d bytes. Please make sure packets of this size will be transfered by the network.\n", NBytes);
 
   // send to the network 
   [sim, NBytes__] = ld_constvecInt32(sim, ev, vec=NBytes); // the number of bytes that are actually send is dynamic, but must be smaller or equal to 

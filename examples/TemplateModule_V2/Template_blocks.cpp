@@ -39,15 +39,17 @@ extern "C" {
 
 
 class TemplateBlock {
+  // The simplest form of a block
 public:
     TemplateBlock(struct dynlib_block_t *block) {
         this->block = block;    // no nothing more here. The real initialisation take place in init()
     }
     ~TemplateBlock()
     {
-        // free your allocated memory, ...
+        destruct();
     }
 
+    
     //
     // define states or other variables
     //
@@ -58,25 +60,42 @@ public:
     // initialise your block
     //
 
+    
+    // variables that point to allocated memot
+    irpar_string *s;
+    irpar_ivec *Array;
+    
+    void destruct() 
+    {
+      // free your during init() allocated memory, ...
+      
+      if (s!=NULL) delete s;
+      if (Array!=NULL) delete Array;
+    }    
+    
     int init() {
         int *Uipar;
         double *Urpar;
 
+	try {
         // Get the irpar parameters Uipar, Urpar
         libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
 
+	// init all pointers with NULL
+	s = NULL;
+	Array = NULL;
+	
         //
         // extract some structured sample parameters
         //
-        int error = 0;
 
         //
         // get a string
         //
 	
 	// cpp version (nicer), an exception is thrown in case something goes wrong
-	irpar_string s(Uipar, Urpar, 12);
-	printf("cppstr = %s\n", s.s->c_str());
+	s = new irpar_string(Uipar, Urpar, 12);
+ 	printf("cppstr = %s\n", s->s->c_str());
 	
 	
         //
@@ -84,31 +103,35 @@ public:
         //
 		
 	// c++ version (nicer), an exception is thrown in case something goes wrong
-	try {
-	  irpar_ivec veccpp(Uipar, Urpar, 11); // then use:  veccpp.n; veccpp.v;
-	  printf("veccpp[0] = %d\n", veccpp.v[0]); // print the first element 
-	                                           // of the vector that is of size veccpp.n
-	} catch(int e) {
-	  // parameter not found
-	  error = -1;
-	}
-	
+
+	  Array = new irpar_ivec(Uipar, Urpar, 11); // then use:  veccpp.n; veccpp.v;
+	  printf("veccpp[0] = %d\n", Array->v[0]); // print the first element 
+	                                           // of the vector that is of size veccpp.n	
 	
 	
 	
         //
         // get some informations on the first input port
  	//
-	int N = libdyn_get_inportsize(block, 0);  // the size of the first (=0) input vector
-	int datatype = libdyn_get_inportdatatype(block, 0); // the datatype
+	int port = 0; // 1st
+	int N = libdyn_get_inportsize(block, port);  // the size of the first (=0) input vector
+	int datatype = libdyn_get_inportdatatype(block, port); // the datatype
 	int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
 	int NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
 	
         // set the initial states
         resetStates();
 
-        // Return -1 to indicate an error, so the simulation will be destructed
-        return error;
+      
+         } catch(int e) { // check if initialisation went fine
+            // deallocate all previously allocated memeory in case something went wrong
+            fprintf(stderr, "TemplateBlock: something went wrong. Exception = %d\n", e);
+            destruct(); // free all memeory allocated by now.
+            return -1; // indicate an error
+        }
+
+        // Return 0 to indicate that there was no error
+        return 0;
     }
 
 

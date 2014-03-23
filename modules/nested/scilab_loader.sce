@@ -162,6 +162,321 @@ endfunction
 
 
 
+
+
+function [sim, outlist, userdata] = ld_NoResetNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, ResetLevel, SimnestName, userdata) // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Run a nested libdyn simulation and prevent resets of this simulation
+//
+// INPUT Signals: 
+//
+// inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+//
+// PARAMETERS:
+// 
+// insizes - input ports configuration
+// outsizes - output ports configuration
+// intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// nested_fn - scilab function defining the sub-schematics
+//             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)
+// 
+// ResetLevel - set to -1
+// SimnestName (string) - the name of the nested simulation
+// 
+// userdata - A Scilab variable that will be forwarded to the function nested_fn
+// 
+// OUTPUTS:
+// 
+// outlist - list( ) of output signals
+// 
+
+
+    // check for sizes
+  N1 = length(insizes);
+  N2 = length(outsizes);
+  N3 = length(intypes);
+  N4 = length(outtypes);
+  // ...
+  if (length(inlist) ~= N1) then
+    error("length inlist invalid or length of insizes invalid\n");
+  end
+
+  if N4 ~= N2 then
+    error("length of outsizes invalid\n");
+  end
+
+  if N1 ~= N3 then
+    error("length of intypes invalid\n");
+  end
+
+    Noutp = length(outsizes);
+  
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+  // Create parameters
+   parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
+   parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
+   parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
+   parlist = new_irparam_elemet_ivec(parlist, outtypes, 13); 
+
+  //    parlist = new_irparam_elemet_ivec(parlist, [0, 0], 20); 
+  parlist = new_irparam_elemet_ivec(parlist, ascii(SimnestName), 21); 
+      
+  // nested_fn -  the function to call for defining the schematic
+  Nsimulations = 1; // create only one simulation  
+  irpar_sim_idcounter = 900;
+
+  for i = 1:Nsimulations
+    // define schematic
+    [sim_container_irpar, nested_sim, TMPuserdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
+    userdata = TMPuserdata(2);
+
+    // pack simulations into irpar container with id = 901
+    parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
+
+    // increase irpar_sim_idcounter so the next simulation gets another id
+    irpar_sim_idcounter = irpar_sim_idcounter + 1;
+  end
+
+
+  // combine parameters  
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];  Urpar = [ p.rpar ];
+  btype = 15001 + 11; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+//   // add additional input
+//   insizes=[insizes(:)', 1];
+//   intypes=[intypes(:)', ORTD.DATATYPE_FLOAT]; // the additional trigger input signal
+// 
+//   // add additional output
+//   outsizes=[outsizes(:)', 1];
+//   outtypes=[outtypes(:)', ORTD.DATATYPE_FLOAT]; // the addotional comp finished output signal
+  
+//   disp(outsizes);
+  
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, ev, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // add switch and reset input signals
+  blocks_inlist = inlist;
+
+  // add an additional input signal
+//   blocks_inlist($+1) = TriggerSignal; 
+
+  // connect all inputs
+  [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
+ 
+  // connect all outputs
+  outlist = list();
+  if Noutp ~= 0 then
+    for i = 0:(Noutp-1)
+      [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
+      outlist(i+1) = out;
+    end
+  else
+    null;
+//      printf("ld_simnest: No outputs to connect\n");
+  end
+
+  // connect additional outputs
+//   [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp+0);   // the last port
+  
+  
+endfunction
+
+
+function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, SimnestName, CaseNameList, userdata) 
+// 
+// %PURPOSE: Switch mechanism for multiple nested simulations 
+//
+// INPUT Signals: 
+//
+// inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+// switch - * swicht signal of type ORTD.DATATYPE_INT32
+//
+// PARAMETERS:
+// 
+// insizes - input ports configuration
+// outsizes - output ports configuration
+// intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+// nested_fn - scilab function defining the sub-schematics
+//             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)
+// 
+// SimnestName (string) - the name of the nested simulation
+// CaseNameList list() of strings
+// 
+// userdata - A Scilab variable that will be forwarded to the function nested_fn
+// 
+// OUTPUTS:
+// 
+// outlist - list( ) of output signals
+// 
+
+
+  function [sim, outlist, userdata ] = WrapCaseSwitch(sim, inlist, userdata)
+    case = userdata(1);
+    userdata_nested = userdata(2);
+    fn = userdata(3);
+    casename = userdata(4);  
+    Nin_usersignals = userdata(5);
+    Nout_usersignals = userdata(6);
+      
+    printf("ld_CaseSwitchNest: case=%s (#%d)\n", casename, case );
+      
+    // make a list containing only the input signals forwarded to the nested simulation(s)
+    inlist_inner = list();
+    N = length(Nin_usersignals);
+    for i = 1:N
+	inlist_inner($+1) = inlist(i);
+    end
+
+    // additional input signals
+//     additionalInput1 = inlist(N+1);
+
+    // call the actual function
+    [sim, outlist_inner, userdata] = fn(sim, inlist_inner, case, casename, userdata_nested);
+
+    if length(outlist_inner) ~= Nout_usersignals then
+	printf("ld_CaseSwitchNest: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+	error(".");
+    end
+
+    // make a list containing only the output signals comming form the nested simulation(s)
+    outlist = list();
+    N = length(outlist_inner);
+    for i = 1:N
+	outlist($+1) = outlist_inner(i);
+    end
+    // additional outputs
+//     outlist($+1) = active_state;
+
+  endfunction
+
+//  TODO go further form here on
+
+
+    // check for sizes
+  N1 = length(insizes);
+  N2 = length(outsizes);
+  N3 = length(intypes);
+  N4 = length(outtypes);
+  // ...
+  if (length(inlist) ~= N1) then
+    error("length inlist invalid or length of insizes invalid\n");
+  end
+
+  if N4 ~= N2 then
+    error("length of outsizes invalid\n");
+  end
+
+  if N1 ~= N3 then
+    error("length of intypes invalid\n");
+  end
+
+    Noutp = length(outsizes);
+  
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+  // Create parameters
+   parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
+   parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
+   parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
+   parlist = new_irparam_elemet_ivec(parlist, outtypes, 13); 
+
+  //    parlist = new_irparam_elemet_ivec(parlist, [0, 0], 20); 
+  parlist = new_irparam_elemet_ivec(parlist, ascii(SimnestName), 21); 
+      
+  // nested_fn -  the function to call for defining the schematic
+  Nsimulations = length(CaseNameList); // create only one simulation  
+  irpar_sim_idcounter = 900;
+
+  for i = 1:Nsimulations
+    // define schematic
+    [sim_container_irpar, nested_sim, TMPuserdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
+    userdata = TMPuserdata(2);
+
+    // pack simulations into irpar container with id = 901
+    parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
+
+    // increase irpar_sim_idcounter so the next simulation gets another id
+    irpar_sim_idcounter = irpar_sim_idcounter + 1;
+  end
+
+
+  // combine parameters  
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];  Urpar = [ p.rpar ];
+  btype = 15001 + 12; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+   // add additional input(s)
+  insizes=[insizes(:)', 1];
+  intypes=[intypes(:)', ORTD.DATATYPE_INT32]; // the additional switch input signal
+// 
+//   // add additional output
+//   outsizes=[outsizes(:)', 1];
+//   outtypes=[outtypes(:)', ORTD.DATATYPE_FLOAT]; // the addotional comp finished output signal
+  
+//   disp(outsizes);
+  
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, ev, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // add switch and reset input signals
+  blocks_inlist = inlist;
+
+  // add an additional input signal
+  blocks_inlist($+1) = switch_signal; 
+
+  // connect all inputs
+  [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
+ 
+  // connect all outputs
+  outlist = list();
+  if Noutp ~= 0 then
+    for i = 0:(Noutp-1)
+      [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
+      outlist(i+1) = out;
+    end
+  else
+    null;
+//      printf("ld_simnest: No outputs to connect\n");
+  end
+
+  // connect additional outputs
+//   [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp+0);   // the last port
+  
+  
+endfunction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal  ) // PARSEDOCU_BLOCK
 // 
 // %PURPOSE: create one (or multiple) nested libdyn simulation within a normal libdyn block it is possible to switch between them by an special input signal
@@ -1186,6 +1501,52 @@ function [sim, data] = ld_read_global_memory(sim, events, index, ident_str, data
    [sim,data] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim] = ld_WriteMemory2(sim, events, data, index, ElementsToWrite, ident_str, datatype, MaxElements)   // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Write a portion to a persistent globally shared memory
+// 
+// Initialises a memory structure which can be refered by an
+// identifier. Data is available for read and write access
+// accross different state machines as well as accross
+// different threads.
+// 
+// Make sure to only use the memory created by this function in 
+// lower level simulations such as nested state machines, etc.
+// Access from higher level simulations is possible but should
+// be avoided, as the memory can not be freed on destruction.
+// 
+// data *+(MaxElements) - data
+// index * INT32 - index to store the data. Starts at 1
+// ElementsToWrite * INT32 - number of elements to write to the memory
+// ident_str (string) - name of the memory
+// datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+// MaxElements - maximal elements to write
+// 
+// 
+
+
+  // check parameters
+  ortd_checkpar(sim, list('Signal', 'data', data) );
+  ortd_checkpar(sim, list('Signal', 'index', index) );
+  ortd_checkpar(sim, list('Signal', 'ElementsToWrite', ElementsToWrite) );
+  ortd_checkpar(sim, list('String', 'ident_str', ident_str) );
+  ortd_checkpar(sim, list('SingleValue', 'datatype', datatype) );  // FIXME: Change this to 'SingleORTDDatatype'
+  ortd_checkpar(sim, list('MaxElements', 'datatype', datatype) );
+
+
+  ident_str = ident_str + '.memory';
+
+  btype = 15001 + 7   ;	
+  ipar = [0, datatype, MaxElements, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
+  rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[MaxElements , 1, 1], outsizes=[], ...
+                   intypes=[ datatype, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32  ], outtypes=[]  );
+ 
+ 
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(data, index, ElementsToWrite) );
+endfunction
 
 
 
