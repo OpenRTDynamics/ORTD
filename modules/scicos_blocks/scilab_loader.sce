@@ -244,7 +244,9 @@ endfunction
     x.graphics.exprs = c(:); // exprs
     x.d = d;
   endfunction
-  
+
+//   printf("Parameters: blockname = %s, flag = %s, cachefile %s, \n", blockname, flag, cachefile);  
+
   if (flag == 'usecachefile') then
 //       [lhs,rhs]=argn(0);
       rhs=3;
@@ -264,11 +266,9 @@ endfunction
         1;
       else
         error("No cachefile was specified");
-      end
-
-      
+      end      
   end
-  
+ 
   if (flag == 'rundialog') then
   
     // overwrite a potenially already available variable X, which does not belong this code.
@@ -278,7 +278,7 @@ endfunction
     [lhs,rhs]=argn(0);
       
     rhs = 3; // always assume that the thirtd parameter is there
-      
+
       if rhs >= 3 then
         try
           load(cachefile);  // ideally results in a new variable X, which is a structure
@@ -320,14 +320,18 @@ endfunction
 
 //     printf("rhs... = %d\n", rhs);
 //     if rhs >= 3 then
-      printf("Saving cachefile %s\n", cachefile);
-      save(cachefile, 'X');
+      printf("Saving to cachefile %s\n", cachefile);
+
+      if getversion() == "scilab-5.3.3" // Grrrr!
+        save(cachefile, X);
+      else
+        save(cachefile, 'X'); // newer scilab versions
+      end
 //     end
       
 
   end
 //  clear X;
-
 endfunction
 
 
