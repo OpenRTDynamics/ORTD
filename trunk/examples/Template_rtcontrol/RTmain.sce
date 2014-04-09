@@ -8,7 +8,7 @@
 
 
 // The name of the program
-ProgramName = 'template'; // must be the filename without .sce
+ProgramName = 'RTmain'; // must be the filename without .sce
 
 //
 // To run the generated controller stored in template.[i,r]par, call from a terminal the 
