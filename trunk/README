@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 14.3.2014
+Version of this document: 22.4.2014
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -54,6 +54,22 @@ frameworks e.g. Scicos or used within other software by including a shared
 library.
 
 
+IMPORTANT NEWS and NOTES
+------------------------
+
+- Rev 495: A new framework for remote control / communication has been integrated
+  called Packet Framework. This renders the old rt_server module obsolete (c.f. Sec.
+  REMOTE CONTROL INTERFACE). Build e.g. web interfaces to your ORTD implementation!
+  The command line option --master_tcpport can (and should) be omitted when calling
+  the command ortd, if rt_server is not used.
+
+- Though it is used in some examples, do not use the block "ld_simnest" 
+  for running asynchronous simulations any more. These not updated examples 
+  may not terminate on Cntrl-C properly. Use ld_async_simulation instead. 
+
+
+
+
 --- The features that make this framework powerful ---
 
 * Nesting simulations (sub-controllers) into each other up to unlimited depth,
@@ -77,7 +93,7 @@ library.
 --- Other nice features ---
 
 * Mathematical formula parsing (modules/muparser)
-* Remote control interface (modules/rt_server)
+* Remote control interface to e.g. buid a webinterface (examples/PacketFramework)
 * Starting external processes (modules/ext_process)
 * Ability to call time-discrete Xcos-Blocks trough a wrapper (modules/scicos_blocks), 
   e.g. those from the HART toolbox. If you're interested, please ask me how to do so,
@@ -98,6 +114,7 @@ PART  I  --  TECHNICAL INFORMATION
 - LICENSE
 - REQUIREMENTS
 - INSTALLATION (GRAPHICAL INSTALLATION)
+- GETTING STARTED
 - COMPILATION / INSTALLATION (normal PC x86/amd64)
 - IMPORTANT MAKE-TARGETS
 - BUILDING A SELF-EXTRACTING AND COMPILING PACKAGE
@@ -190,18 +207,41 @@ For compiling the framework
 INSTALLATION (GRAPHICAL INSTALLATION)
 -------------------------------------
 
+Install some required packets (Ubuntu): 
+
+sudo apt-get install zenity g++ make subversion build-essential
+
+
+
+Download the latest packet from http://sourceforge.net/projects/openrtdynamics/files/
+and run it in your shell (self extractible archieve):
+
+$ sh OpenRTDynamics_source_revXXX.sh
+
+The framework will be unpacked into the current folder and installed automatically.
+It is a good idea to let the installer install Scilab for you, as the Scilab-Toolbox
+will be automatically set-up during this process.
+
+-- OR --
+
 The newest version is found in subversion and can be installed by a graphical 
 user interface via pasting
-
-  sudo apt-get install g++ make subversion
-
-and 
 
   wget openrtdynamics.sf.net/getit.sh -O - | bash
 
 into your Terminal on Linux. You should also install Scilab if you're
 asked to do so as the ORTD toolbox for Scilab will be automatically
 installed.
+
+
+GETTING STARTED
+---------------
+
+Read section PRINCIPLES FOR DEVELOPING SCHEMATICS to learn the basics of ORTD-coding
+and have a look at the huge amount of examples.
+
+Consider the files in examples/Template_rtcontrol/ as a starting point for setting up
+realtime control applications.
 
 COMPILATION / INSTALLATION (normal PC x86/amd64)
 ------------------------------------------------
@@ -512,8 +552,8 @@ Modules are placed within the modules subdirectory. For now, you will find the
 following:
 
 - muparser: Evaluation of mathematical expressions
-- rt_server: Remote control of your controller via an TCP-Interface (Experimental)
-- nested: includind and switching of ORTD-Simulations within ORTD-Simulations (Experimental)
+- udp_communication / PacketFramework: Remote control of your controller via an UDP-Interface
+- nested: includind and switching of ORTD-Simulations within ORTD-Simulations
 - basic_ldblocks: Basic Blocks (hysteresis, modulo counter, (de)multiplexer, 2to1 switch ...)
 - template: A module template for creating your own blocks
 - ...
@@ -707,17 +747,20 @@ REMOTE CONTROL INTERFACE
 
 Possibilities:
 
-A) A TCP-based remote control interface is provided by the rt_server module, providing
+B) RECOMMENDED: A new (UDP-based) framework is available (Packet framework). An example that 
+   visualises data using a web-browser is available at
+   https://github.com/christianausb/OpenRTDynamics/tree/master/Examples/nodejs_webinterface_Level2
+   or examples/PacketFramework
+   
+
+
+A) OBSOLETE: A TCP-based remote control interface is provided by the rt_server module, providing
    ld_parameter and ld_stream. As it is thought about a more simple (in terms of lines
    of C-code) (UDP)packet-based communication in combination with an external javascript 
    (node.js) program for higher level logic, the infrastructure will not be further 
    developed. In the long-long-term it will be removed and replaced by a new framework B)
    while the old one A) will be emulated/re-implemented using node.js, thus compatibility 
    will be preserved.
-
-B) A new (UDP-based) framework will be developed. An example implementation that 
-   visualises data using a web-browser is already available at
-   https://github.com/christianausb/OpenRTDynamics/tree/master/Examples/nodejs_webinterface .
 
 
 
@@ -991,3 +1034,12 @@ By date as there will only be the svn-version
   - 14.3.14:  Fixed a Bug in the irpar-c++ class
               Re-organisation of the code for nesting schematics
               New blocks for a new communication framework
+  - 16.4.14:  Removed the dependency on an rt_server TCP-server
+              The command ortd should now be used without the
+              parameter --master-tcpport . Also changed this in the
+              template for Realtime control.
+  -           Added the new communication framework: Packet Framework: Build e.g. web interfaces to your ORTD
+              implementation!
+  -           Added examples/PacketFramework
+
+

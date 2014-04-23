@@ -271,21 +271,23 @@ int directory_tree::callback_list_dir(rt_server_command* cmd, rt_server* rt_serv
 
 
 
-// directory_tree::directory_tree() // FIXME remove
-// {
-//   root = new directory_leaf();
-//   
-//   pwd = root; // start in the root directory
-//   
-//   pthread_mutex_init(&this->list_process_mutex, NULL);
-// }
+directory_tree::directory_tree()
+{
+  magic = 0xabcdef;
+  root = new directory_leaf();
+  pwd = root; // start in the root directory
+
+// //   printf("adding remote cmd ls\n");
+//   rts->add_command("ls", &callback_list_dir__, this );
+
+  pthread_mutex_init(&this->list_process_mutex, NULL);
+}
+
 
 directory_tree::directory_tree(rt_server_threads_manager* rts)
 {
   magic = 0xabcdef;
-  
   root = new directory_leaf();
-  
   pwd = root; // start in the root directory
 
 //   printf("adding remote cmd ls\n");

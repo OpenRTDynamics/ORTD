@@ -9,4 +9,4 @@ adb push ReadSensors.ipar /mnt/sdcard
 adb push ReadSensors.rpar /mnt/sdcard
 adb push ReadSensors.sh /mnt/sdcard
 
-echo "cd /mnt/sdcard; /data/local/ortd  --baserate=10000 -s ReadSensors -i 901 -l 0 --master_tcpport 10000" | adb shell
+echo "cd /mnt/sdcard; /data/local/ortd  --baserate=10000 -s ReadSensors -i 901 -l 0" | adb shell

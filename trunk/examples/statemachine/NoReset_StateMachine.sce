@@ -208,7 +208,7 @@ par.rpar = [];
 
 
 // optionally execute
-messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 100 --master_tcpport 10000');
+messages=unix_g(ORTD.ortd_executable+ ' -s '+SchematicName+' -i 901 -l 100');
 
 //
 //// load results
