@@ -13,11 +13,11 @@ ProgramName = 'ProcIO'; // must be the filename without .sce
 //
 // To run the generated controller stored in template.[i,r]par, call from a terminal the 
 //
-// ortd --baserate=1000 --rtmode 1 -s template -i 901 -l 0 --master_tcpport 10000
+// ortd --baserate=1000 --rtmode 1 -s template -i 901 -l 0 
 // 
 // If you want to use harder real-time capabilities, run as root: 
 // 
-// sudo ortd --baserate=1000 --rtmode 1 -s template -i 901 -l 0 --master_tcpport 10000
+// sudo ortd --baserate=1000 --rtmode 1 -s template -i 901 -l 0 
 // 
 
 

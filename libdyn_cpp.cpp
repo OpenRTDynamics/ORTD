@@ -1550,13 +1550,13 @@ void libdyn_nested2::forwardReset()
 
 // TODO Add a counter for the number of forwardings
 
-  this->reset_blocks();
+    this->reset_blocks();
 }
 
 void libdyn_nested2::reset_blocks(int slotId)
 {
-  // UNTESTED AND UNUSED FOR NOW
-  
+    // UNTESTED AND UNUSED FOR NOW
+
     //
     // Reset blocks of the simulation assigned to slotID, which cannot be the currently active simulation
     // This may be called from other threads
@@ -1898,10 +1898,8 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
     dtree = NULL;
 
 
-    if (remote_control_tcpport != 0) {
-        if (init_communication(remote_control_tcpport) <= 0) {   // FIXME: Handle return value
-            fprintf(stderr, "WARNING: Running without the communication_server\n");
-        }
+    if (init_communication(remote_control_tcpport) <= 0) {   // FIXME: Handle return value
+        fprintf(stderr, "WARNING: Running without the communication_server\n");
     }
 #endif
 }
@@ -1919,32 +1917,43 @@ void libdyn_master::check_memory()
 
 int libdyn_master::init_communication(int tcpport)
 {
-    // init communication_server
 
-    fprintf(stderr, "Initialising remote control interface on port %d\n", tcpport);
+    if (tcpport != 0) {
+        // init communication_server
 
-    this->rts_mgr = new rt_server_threads_manager();
+        fprintf(stderr, "Initialising remote control interface on port %d. WARNING: This will become obsolete!\n", tcpport);
+
+        this->rts_mgr = new rt_server_threads_manager();
 
 //     printf("rts_mgr = %p\n", rts_mgr);
 //     rts_mgr->command_map.clear();
 
-    int cret = rts_mgr->init_tcp(tcpport);
+        int cret = rts_mgr->init_tcp(tcpport);
 
-    if (cret < 0) {
-        fprintf(stderr , "Initialisation of communication server failed\n");
-        rts_mgr->destruct();
-        delete this->rts_mgr;  // FIXME INCLUDE THIS
-        return cret;
+        if (cret < 0) {
+            fprintf(stderr , "Initialisation of communication server failed\n");
+            rts_mgr->destruct();
+            delete this->rts_mgr;  // FIXME INCLUDE THIS
+            return cret;
+        }
+
+        fprintf(stderr, "Creating root directory\n");
+        dtree = new directory_tree(this->rts_mgr); // Requires rts_mgr
+
+        pmgr = new parameter_manager( rts_mgr, dtree );
+        stream_mgr = new ortd_stream_manager(rts_mgr, dtree );
+
+        rts_mgr->start_threads();
+
+    } else {
+
+      fprintf(stderr, "Running without rt_server -- good choice!\n");
+      
+        // without any tcp server. Now the preferred choice
+        this->rts_mgr = NULL;
+        dtree = new directory_tree();
     }
 
-
-    fprintf(stderr, "Creating root directory\n");
-    dtree = new directory_tree(this->rts_mgr); // Requires rts_mgr
-
-    pmgr = new parameter_manager( rts_mgr, dtree );
-    stream_mgr = new ortd_stream_manager(rts_mgr, dtree );
-
-    rts_mgr->start_threads();
 
     return 1;
 
