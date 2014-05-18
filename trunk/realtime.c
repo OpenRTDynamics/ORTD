@@ -82,7 +82,7 @@
 //  Headers for the individual target systems
 //
 
-#ifdef __ORTD_TARGET_LINUX || __ORTD_TARGET_ANDROID
+#if defined(__ORTD_TARGET_LINUX) || defined(__ORTD_TARGET_ANDROID)
 // normal linux with optional rt_preempt
 #define _GNU_SOURCE
 
@@ -146,7 +146,7 @@
 
 
 
-#ifdef __ORTD_TARGET_LINUX || __ORTD_TARGET_ANDROID
+#if defined(__ORTD_TARGET_LINUX) || defined(__ORTD_TARGET_ANDROID)
 // normal linux with optional rt_preempt OR ANDROID
 
 
@@ -195,6 +195,15 @@ void ortd_InstallThreadSignalHandler() {
 // #endif
 
 
+void ortd_rt_stack_prefault(void) {
+
+    unsigned char dummy[MAX_SAFE_STACK];
+
+    memset(dummy, 0, MAX_SAFE_STACK);
+    return;
+}
+
+
 int ortd_rt_SetThreadProperties(int *par, int Npar)
 {
     // set signal handlers
@@ -228,6 +237,31 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
 
 int ortd_rt_SetCore(int core_id) {
 
+  
+  #ifdef __ORTD_TARGET_ANDROID
+
+// http://stackoverflow.com/questions/16319725/android-set-thread-affinity
+  
+  
+  #define CPU_SETSIZE 1024
+#define __NCPUBITS  (8 * sizeof (unsigned long))
+typedef struct
+{
+   unsigned long __bits[CPU_SETSIZE / __NCPUBITS];
+} cpu_set_t;
+
+#define CPU_SET(cpu, cpusetp) \
+  ((cpusetp)->__bits[(cpu)/__NCPUBITS] |= (1UL << ((cpu) % __NCPUBITS)))
+#define CPU_ZERO(cpusetp) \
+  memset((cpusetp), 0, sizeof(cpu_set_t))
+  
+  
+  fprintf(stderr, "WARNING: CPU affinity not supported on Android by now!\n");
+  return -1;
+    
+#else
+	
+  
     if (core_id < 0)
         return;
 
@@ -253,14 +287,7 @@ int ortd_rt_SetCore(int core_id) {
     }
 
     return ret;
-}
-
-void ortd_rt_stack_prefault(void) {
-
-    unsigned char dummy[MAX_SAFE_STACK];
-
-    memset(dummy, 0, MAX_SAFE_STACK);
-    return;
+  #endif
 }
 
 
@@ -326,9 +353,9 @@ int ortd_pthread_cancel(pthread_t thread) {
     // workaround for the missing pthread_cancel in the android NDK
     // http://stackoverflow.com/questions/4610086/pthread-cancel-alternatives-in-android-ndk
     
-    if ( (status = pthread_kill(pthread_id, SIGUSR1)) != 0)
+    if ( (status = pthread_kill(thread, SIGUSR1)) != 0)
     {
-        fprintf(stderr, "Error cancelling thread %d, error = %d (%s)", pthread_id, status, strerror status));
+//         fprintf(stderr, "Error cancelling thread %d, error = %d (%s)\n", thread, status, strerror status);
     }
     return status;
 #else
@@ -360,6 +387,14 @@ int ortd_rt_ChangePriority(unsigned int flags, int priority)
 int ortd_rt_SetThreadProperties(int *par, int Npar)
 {
     printf("realtime.c: ortd_rt_SetThreadProperties not implemented by now for this target\n");
+}
+
+void ortd_InstallThreadSignalHandler() {
+
+}
+
+int ortd_pthread_cancel(pthread_t thread) {
+    return pthread_cancel(thread);
 }
 
 long int ortd_mu_time()
