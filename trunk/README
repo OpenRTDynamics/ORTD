@@ -835,6 +835,7 @@ ID range | module
 22000 scilab
 39001 udp_blocks
 39101 Visualisation
+39201 Comedi
 60001 to basic_ldblocks
 69001 matrix
 

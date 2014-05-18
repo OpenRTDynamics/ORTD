@@ -743,7 +743,132 @@ inline int LibdynCompFnTempate(int flag, struct dynlib_block_t *block) {
     }
 
 
-    
+   
+/*
+   A nicer C++ interface for compuational functions
+   This is a template for a C-function that forwards the calls to a c++ class given by T
+*/
+
+// Version 2: The C++ class will be initialised with preinit flags
+//            Normal init will be called
+
+template <class T> 
+inline int LibdynCompFnTempate2(int flag, struct dynlib_block_t *block) {
+        // This is the main C-Callback function, which forwards requests to the functions of the C++-Class
+
+        // uncomment this if you want to know when this block is called by the simulator
+//           printf("comp_func Template: flag==%d\n", flag);
+
+        // the blocks raw parameter sets for integers and doubles
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
+
+        switch (flag) {
+        case COMPF_FLAG_CALCOUTPUTS:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->calcOutputs();
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_UPDATESTATES:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->updateStates();
+        }
+        return 0;
+        break;
+	
+        case COMPF_FLAG_PREPARERESET:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->PrepareReset();
+        }
+        return 0;
+        break;
+
+	case COMPF_FLAG_RESETSTATES:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->resetStates();
+        }
+        return 0;
+        break;
+
+        case COMPF_FLAG_HIGHERLEVELRESET:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->HigherLevelResetStates();
+        }
+        return 0;
+        break;
+	
+        case COMPF_FLAG_POSTINIT:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->PostInit();
+        }
+        return 0;
+        break;
+	
+	case COMPF_FLAG_PREINIT:
+	{
+	   // Get the irpar parameters Uipar, Urpar
+          int *Uipar;          double *Urpar;
+          libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+	  
+	  // create the instance of the C++ Class
+	    T *worker = new T(block, &Uipar, &Urpar);
+            libdyn_set_work_ptr(block, (void*) worker); // remember the instance of the C++ Class
+	    
+	    worker->PreInit();
+	}
+	return 0;
+	break;
+	
+        case COMPF_FLAG_PREINITUNDO: // destroy instance
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            delete worker;
+
+        }
+        return 0;
+        break;
+	
+        case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this within COMPF_FLAG_INIT instead!
+        {
+            return libdyn_AutoConfigureBlock(block, ipar, rpar);
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_INIT:  // init
+        {
+	     T *worker = (T *) libdyn_get_work_ptr(block);
+            int ret = worker->init();
+            if (ret < 0)
+                return -1;
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_DESTUCTOR: // destroy instance
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            delete worker;
+
+        }
+        return 0;
+        break;
+        case COMPF_FLAG_PRINTINFO:
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            worker->printInfo();
+        }
+        return 0;
+        break;
+
+        }
+
+    } 
     
     
 template <class T> 

@@ -292,6 +292,11 @@ function [sim, outlist, userdata] = ld_NoResetNest(sim, ev, inlist, insizes, out
 endfunction
 
 
+
+// 
+// Use this as a template for nesting simulations
+// 
+
 function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, SimnestName, CaseNameList, userdata) 
 // 
 // %PURPOSE: Switch mechanism for multiple nested simulations 
@@ -362,6 +367,10 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
 
 //  TODO go further form here on
 
+  nested_fn = WrapCaseSwitch; // nested_fn -  the function to call for defining the schematic
+  Nsimulations = length(CaseNameList); //
+
+
 
     // check for sizes
   N1 = length(insizes);
@@ -394,11 +403,9 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
 
   //    parlist = new_irparam_elemet_ivec(parlist, [0, 0], 20); 
   parlist = new_irparam_elemet_ivec(parlist, ascii(SimnestName), 21); 
-      
-  // nested_fn -  the function to call for defining the schematic
-  Nsimulations = length(CaseNameList); // create only one simulation  
-  irpar_sim_idcounter = 900;
 
+  
+  irpar_sim_idcounter = 900;
   for i = 1:Nsimulations
     // define schematic
     [sim_container_irpar, nested_sim, TMPuserdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
