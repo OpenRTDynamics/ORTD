@@ -234,7 +234,7 @@ template <class compute_instance> bool background_computation<compute_instance>:
 template <class compute_instance> void background_computation<compute_instance>::TerminateThread(int signal)
 {
 //    printf("About to kill thread\n");
-    pthread_cancel(thread);
+    ortd_pthread_cancel(thread);
 }
 
 template <class compute_instance> void background_computation<compute_instance>::join_computation()
@@ -2201,7 +2201,6 @@ extern "C" {
     extern int write_persistent_memory_block(int flag, struct dynlib_block_t *block);
     extern int read_persistent_memory_block(int flag, struct dynlib_block_t *block);
     extern int write2_persistent_memory_block(int flag, struct dynlib_block_t *block);
-    
 };
 
 int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)

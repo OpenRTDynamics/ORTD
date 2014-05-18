@@ -24,6 +24,7 @@
 #ifndef _ORTD_REALTIME_H
 #define _ORTD_REALTIME_H 1
 
+#include <pthread.h>
 
 struct TaskPriority_t {
   int *par;
@@ -35,7 +36,7 @@ int ortd_rt_SetThreadProperties(int *par, int Npar);
 int ortd_rt_SetCore(int core_id);
 long int ortd_mu_time();
 int ortd_rt_ChangePriority(unsigned int flags, int priority);
-
+int ortd_pthread_cancel(pthread_t thread);
 
 
 #define ORTD_RT_REALTIMETASK 1

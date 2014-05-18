@@ -38,6 +38,8 @@ extern "C" {
 
 
 
+// TODO: Migrate to LibdynCompFnTempate2
+
 class TemplateBlock {
   // The simplest form of a block
 public:
