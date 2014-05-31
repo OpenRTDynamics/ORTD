@@ -1,3 +1,9 @@
+-------------------------------------------------------------------
+      This is a module / plugin to the Real-time framework
+                     OpenRTDynamics.sf.net
+-------------------------------------------------------------------
+
+
 This is a template that can be either used for an ORTD-module
 or to compile computational functions into an ORTD-plugin
 that can be loaded during simulation startup.

@@ -65,6 +65,7 @@
  *                pthread_exit
  *                pthread_join
  *                pthread_kill
+ *                pthread_cancel          // workaround for Android
  *                pthread_mutex_destroy
  *                pthread_mutex_init
  *                pthread_mutex_lock
@@ -237,31 +238,31 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
 
 int ortd_rt_SetCore(int core_id) {
 
-  
-  #ifdef __ORTD_TARGET_ANDROID
+
+#ifdef __ORTD_TARGET_ANDROID
 
 // http://stackoverflow.com/questions/16319725/android-set-thread-affinity
-  
-  
-  #define CPU_SETSIZE 1024
+
+
+#define CPU_SETSIZE 1024
 #define __NCPUBITS  (8 * sizeof (unsigned long))
-typedef struct
-{
-   unsigned long __bits[CPU_SETSIZE / __NCPUBITS];
-} cpu_set_t;
+    typedef struct
+    {
+        unsigned long __bits[CPU_SETSIZE / __NCPUBITS];
+    } cpu_set_t;
 
 #define CPU_SET(cpu, cpusetp) \
   ((cpusetp)->__bits[(cpu)/__NCPUBITS] |= (1UL << ((cpu) % __NCPUBITS)))
 #define CPU_ZERO(cpusetp) \
   memset((cpusetp), 0, sizeof(cpu_set_t))
-  
-  
-  fprintf(stderr, "WARNING: CPU affinity not supported on Android by now!\n");
-  return -1;
-    
+
+
+    fprintf(stderr, "WARNING: CPU affinity not supported on Android by now!\n");
+    return -1;
+
 #else
-	
-  
+
+
     if (core_id < 0)
         return;
 
@@ -287,7 +288,7 @@ typedef struct
     }
 
     return ret;
-  #endif
+#endif
 }
 
 
@@ -352,7 +353,7 @@ int ortd_pthread_cancel(pthread_t thread) {
 
     // workaround for the missing pthread_cancel in the android NDK
     // http://stackoverflow.com/questions/4610086/pthread-cancel-alternatives-in-android-ndk
-    
+
     if ( (status = pthread_kill(thread, SIGUSR1)) != 0)
     {
 //         fprintf(stderr, "Error cancelling thread %d, error = %d (%s)\n", thread, status, strerror status);
