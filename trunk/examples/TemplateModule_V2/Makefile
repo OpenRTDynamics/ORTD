@@ -41,7 +41,7 @@ lib: Template_blocks.o
 	ar rvs module.a Template_blocks.o 
 
 clean:
-	rm -f *.o module.a module_Linux.a
+	rm -f *.o module.a module_Linux.a ortd_plugin.so
 
 
 Template_blocks.o: Template_blocks.cpp
