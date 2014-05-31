@@ -1,7 +1,21 @@
-// TODO: Make this working
 
-function [sim, q, R, g_s] = CalibrationExample(sim, AccGyro, Flag, Ts)
 
+function [sim, q, R, g_s] = AutoCalibration(sim, AccGyro, Ts)
+
+// AccGyro, Ts are measurements
+
+
+// Automatically perform an experiment and the ongoing evaluation.
+// The computation required for the evaluation is performed in a the background
+// by means of a thread.
+// 
+// There are several callback functions that describe:
+// 
+// experiment_fn: The schematic for performing the experiment, e.g. collecting data
+// whileComputing_fn: The schematic that is activated during the computation is active_state
+// evaluation_fn: The schematic that performs the evaulation in a thread.
+//                One simulation step is performed here
+// whileIdle_fn:  The schematic that is active when the procedure finished.
 
   function [sim, finished, outlist, userdata] = experiment(sim, ev, inlist, userdata)
       // Do the experiment
