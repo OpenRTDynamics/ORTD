@@ -71,14 +71,17 @@ function [sim, outlist, userdata] = Thread_MainRT(sim, inlist, userdata)
    Configuration.DestPort = 20000;
    Configuration.LocalSocketHost = "127.0.0.1";
    Configuration.LocalSocketPort = 20001;
-   [sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName="TrockenofenRemoteControl", Configuration)
+   [sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName="RemoteControl", Configuration)
 
    // Add a parameter for controlling the oscillator
-   [sim, PacketFramework, Input]=ld_PF_Parameter(sim, PacketFramework, NValues=1, datatype=ORTD.DATATYPE_FLOAT, ParameterName="Oscillator input");
+   [sim, PacketFramework, Input]=ld_PF_Parameter(sim, PacketFramework, NValues=1, ...
+                           datatype=ORTD.DATATYPE_FLOAT, ParameterName="Oscillator input");
 
    // some some more parameters
-   [sim, PacketFramework, AParVector]=ld_PF_Parameter(sim, PacketFramework, NValues=10, datatype=ORTD.DATATYPE_FLOAT, ParameterName="A vectorial parameter");
-   [sim, PacketFramework, par2]=ld_PF_Parameter(sim, PacketFramework, NValues=2, datatype=ORTD.DATATYPE_FLOAT, ParameterName="Test");
+   [sim, PacketFramework, AParVector]=ld_PF_Parameter(sim, PacketFramework, NValues=10, ...
+                           datatype=ORTD.DATATYPE_FLOAT, ParameterName="A vectorial parameter");
+   [sim, PacketFramework, par2]=ld_PF_Parameter(sim, PacketFramework, NValues=2, ...
+                           datatype=ORTD.DATATYPE_FLOAT, ParameterName="Test");
 
    // printf these parameters
    [sim] = ld_printf(sim, ev, Input, "Oscillator input ", 1);
@@ -91,8 +94,10 @@ function [sim, outlist, userdata] = Thread_MainRT(sim, inlist, userdata)
   T_a = 0.1; [sim, x,v] = damped_oscillator(sim, Input);
 
   // Stream the data of the oscillator
-  [sim, PacketFramework]=ld_SendPacket(sim, PacketFramework, Signal=x, NValues_send=1, datatype=ORTD.DATATYPE_FLOAT, SourceName="X")
-  [sim, PacketFramework]=ld_SendPacket(sim, PacketFramework, Signal=v, NValues_send=1, datatype=ORTD.DATATYPE_FLOAT, SourceName="V")
+  [sim, PacketFramework]=ld_SendPacket(sim, PacketFramework, Signal=x, NValues_send=1, ...
+                                            datatype=ORTD.DATATYPE_FLOAT, SourceName="X")
+  [sim, PacketFramework]=ld_SendPacket(sim, PacketFramework, Signal=v, NValues_send=1, ...
+                                            datatype=ORTD.DATATYPE_FLOAT, SourceName="V")
   
   // finalise the communication interface
   [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework);

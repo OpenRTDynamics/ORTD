@@ -494,7 +494,7 @@ CALLING SCILAB FROM ORTD SIMULATIONS
 ====================================
 
 With help of the module "scilab" (modules/scilab) blocks can be implemented
-using the scilab language (example available in (modules/scilab/demo).
+using the scilab language (example available in (modules/scilab/demo/ScilabRTTest).
 For this, Scilab is started as a separate process and interfaced by
 standard input / output streams.
 
