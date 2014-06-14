@@ -2501,7 +2501,7 @@ function [sim, reached] = ld_reference_reached(sim, ev, r, y, N, eps) // PARSEDO
     // eps - the half tolerance band width
     //
 
-  [sim, e] = ld_add(sim, ev, list(r,y), list(1,-1) );
+  [sim, e] = ld_add(sim, ev, list(r,y), [1,-1] );
   //[sim, i1] = ld_ztf(sim, ev, e, 1/(3+1) * (1 + z^(-1) + z^(-2) + z^(-3) ) );
 
   i1 = e;

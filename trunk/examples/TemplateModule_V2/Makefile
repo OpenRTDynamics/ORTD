@@ -1,5 +1,8 @@
-# Change this to the folder where you installed ORTD
-# if you plan to use this as a module, just put "../..".
+MODULENAME := TemplateModule_V2
+blockid_start := 999911111
+
+
+# Get the include path to the ORTD framework
 ORTDFOLDER := $(shell ortd --GetIncludePath)
 
 
@@ -31,21 +34,27 @@ endif # ifeq ($(main_makefile_invoked),yes)
 
 
 all: lib
-	@echo "Module Template done"
+	@echo "Module" $(MODULENAME) "done"
 
 plugin: lib pluginLoader.o 
-	g++ -shared Template_blocks.o pluginLoader.o -o ortd_plugin.so
+	g++ -shared TemplateModule_V2_blocks.o pluginLoader.o -o ortd_plugin.so
 #	g++ -shared module.a pluginLoader.o -o ortd_plugin.so
 
-lib: Template_blocks.o 
-	ar rvs module.a Template_blocks.o 
+lib: TemplateModule_V2_blocks.o 
+	ar rvs module.a TemplateModule_V2_blocks.o 
+
+config: scilab_loader.sce
+	echo $(blockid_start) > blockid_start.conf.tmp
+	
+scilab_loader.sce: scilab_loader_Prototype.sce
+	cat scilab_loader_Prototype.sce | sed 's/ORTD_BLOCKIDSTART/$(blockid_start)/' > scilab_loader.sce
 
 clean:
-	rm -f *.o module.a module_Linux.a ortd_plugin.so
+	rm -f *.o module.a module_Linux.a ortd_plugin.so blockid_start.conf.tmp scilab_loader.sce
 
 
-Template_blocks.o: Template_blocks.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) -c Template_blocks.cpp
+TemplateModule_V2_blocks.o: config TemplateModule_V2_blocks.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c TemplateModule_V2_blocks.cpp
 
 #Template_SharedObjects.o: Template_SharedObjects.cpp	
 #	$(CC) $(CFLAGS) $(INCLUDE) -c Template_SharedObjects.cpp

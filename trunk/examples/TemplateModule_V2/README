@@ -10,10 +10,15 @@ that can be loaded during simulation startup.
 
 The important files are:
 
-  scilab_loader.sce: Interfacing function for Scilab 
-  Template_blocks.cpp: The computational functions written in C/C++
+  scilab_loader_Prototype.sce: Interfacing function for Scilab 
+  TemplateModule_V2_blocks.cpp: The computational functions written in C/C++
   demo/demo.sce: An example on how to use the block
 
+Edit the Makefile and edit the module name
+(must be the same name like the folder in which the module is placed)
+as well as the start for blockids (find a free one from the ORTD-README 
+file.  
+  
 To use it as a module copy or link this folder to the modules/
 directory of the framework and recompile the framework
 using 
@@ -21,10 +26,9 @@ using
   make clean
   make
   make install
-  make scilabhelp .
+  make scilabhelp . 
 
-To produce a plugin, edit the Makefile and put the path to
-your ORTD installation in it. Then run
+To compile a plugin, run
 
   make plugin
 
