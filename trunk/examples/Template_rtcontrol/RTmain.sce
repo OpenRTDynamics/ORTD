@@ -54,7 +54,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 // Create a thread that runs the control system
 // 
    
-        ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK; // or  ORTD.ORTD_RT_NORMALTASK
+        ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK; // or  ORTD.ORTD_RT_REALTIMETASK
         ThreadPrioStruct.prio2=0; // for ORTD.ORTD_RT_REALTIMETASK: 1-99 as described in   man sched_setscheduler
                                   // for ORTD.ORTD_RT_NORMALTASK this is the nice-value (higher value means less priority)
         ThreadPrioStruct.cpu = -1; // The CPU on which the thread will run; -1 dynamically assigns to a CPU, 
