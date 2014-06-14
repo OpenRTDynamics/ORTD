@@ -1,4 +1,4 @@
-function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata) // PARSEDOCU_BLOCK
+function [sim, outlist, computation_finished, userdata] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata) // PARSEDOCU_BLOCK
 // 
 // %PURPOSE: Run a nested libdyn simulation within a a thread
 //
@@ -90,7 +90,7 @@ function [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, inl
 
   for i = 1:Nsimulations
     // define schematic
-    [sim_container_irpar, nested_sim] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
+    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
 
     // pack simulations into irpar container with id = 901
     parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);

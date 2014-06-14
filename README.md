@@ -348,6 +348,9 @@ Then proceed using:
 1. Make sure you have the gnu compilers, perl and make on your target system (should be the case)
 2. Download the default package from <http://sourceforge.net/projects/openrtdynamics/files/> named OpenRTDynamics_source_revXXX.sh; XXX stands for the current revision number.
 3. Transfer this file to your BB and place it into a folder in which you would like to install the framework. A subdirectory will be created within this folder.
+
+          scp OpenRTDynamics_source_revXXX.sh debian@192.168.7.2:/home/debian
+
 4. From inside the chosen folder run: $ sh OpenRTDynamics_source_revXXX.sh; The source code will be automatically extracted and compiled.
 5. Follow the given instructions
 

@@ -1,7 +1,14 @@
-
-
+// 
+// 
 // Interfacing functions are placed in this place
-
+// 
+// 
+// This is a template from which scilab_loader.sce is automatically produced
+// when running the module's makefile.
+//
+// The placeholder ORTD_BLOCKIDSTART will be repalced when running the Makefile by the 
+// contents of the variable blockid_start in the beginning of the Makefile
+// 
 
 
 // 
@@ -54,7 +61,7 @@ vec = [1,2,3];
 // Set-up the block parameters and I/O ports
   Uipar = [ p.ipar ];
   Urpar = [ p.rpar ];
-  btype = 999911111 + 0; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+  btype = ORTD_BLOCKIDSTART + 0; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
 
   insizes=[1,1]; // Input port sizes
   outsizes=[1]; // Output port sizes
@@ -105,14 +112,14 @@ function [sim] = ld_Template_shObj(sim, events, ObjectIdentifyer, Visibility) //
 
    parlist = new_irparam_elemet_ivec(parlist, parameter1, 10); // id = 10
 //    parlist = new_irparam_elemet_ivec(parlist, vec, 11); // vector of integers (double vectors are similar, replace ivec with rvec)
-//    parlist = new_irparam_elemet_ivec(parlist, ascii(str), 12); // id = 12; A string parameter
+   parlist = new_irparam_elemet_ivec(parlist, ascii("This is a string parameter"), 12); // id = 12; A string parameter
 
    p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
 
 // Set-up the block parameters. There are no I/O ports
   Uipar = [ p.ipar ];
   Urpar = [ p.rpar ];
-  btype = 999911111 + 10; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+  btype = ORTD_BLOCKIDSTART + 10; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
 
   [sim] =  libdyn_CreateSharedObjBlk(sim, btype, ObjectIdentifyer, Visibility, Uipar, Urpar); 
 endfunction
@@ -143,7 +150,7 @@ vec = [1,2,3];
 // Set-up the block parameters and I/O ports
   Uipar = [ p.ipar ];
   Urpar = [ p.rpar ];
-  btype = 999911111 + 11; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+  btype = ORTD_BLOCKIDSTART + 11; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
 
   insizes=[1,1]; // Input port sizes
   outsizes=[1]; // Output port sizes

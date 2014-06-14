@@ -74,7 +74,11 @@ then
     echo
     echo "  make demo"
     echo
-    echo "from this folder to see a demo."
+    echo "from this folder to see a demo. Run"
+    echo
+    echo "  make install"
+    echo 
+    echo "To (re)install the binaries into /usr/local ."
     echo
     echo "Now, upen up Scilab and load the toolbox from the toolboxes-menu"
     echo "As a next step, you could try to run several examples from the folder examples."
