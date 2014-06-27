@@ -840,6 +840,7 @@ DEFINED BLOCK ID REGIONS
   39001    | udp_blocks
   39101    | Visualisation
   39201    | Comedi
+  39301    | I2C
   60001    | basic_ldblocks
   69001    | matrix
 
