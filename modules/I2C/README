@@ -1,0 +1,50 @@
+I2C-Module
+----------
+
+An interface to the linux kernel's I2C API.
+
+
+
+
+
+-------------------------------------------------------------------
+      This is a module / plugin to the Real-time framework
+                     OpenRTDynamics.sf.net
+-------------------------------------------------------------------
+
+
+This is a template that can be either used for an ORTD-module
+or to compile computational functions into an ORTD-plugin
+that can be loaded during simulation startup.
+
+The important files are:
+
+  scilab_loader_Prototype.sce: Interfacing function for Scilab 
+  TemplateModule_V2_blocks.cpp: The computational functions written in C/C++
+  demo/demo.sce: An example on how to use the block
+
+Edit the Makefile and edit the module name
+(must be the same name like the folder in which the module is placed)
+as well as the start for blockids (find a free one from the ORTD-README 
+file.  
+  
+To use it as a module copy or link this folder to the modules/
+directory of the framework and recompile the framework
+using 
+
+  make clean
+  make
+  make install
+  make scilabhelp . 
+
+To compile a plugin, run
+
+  make plugin
+
+within this folder. The result will be a shared library
+ortd_plugin.so, which must then be placed into the directory
+from where you are going to run you simulation from via
+the "ortd"-command. The system searches for ortd_plugin.so
+and ortd_plugin[0-9].so and loads all of them.
+
+

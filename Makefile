@@ -270,6 +270,8 @@ cleanBuildFiles:
 	for d in $(MODULES); do (cd modules/$$d; $(MAKE) clean ); done	
 	rm -f OpenRTDynamics_source.sh
 
+	# TODO: Also clean scilab help source *.xml files
+
 clean: cleanBuildFiles
 	rm -f *.so *.a
 	rm -f bin/libdyn_generic_exec bin/libdyn_generic_exec_static bin/ortd bin/ortd_static
