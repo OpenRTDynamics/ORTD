@@ -3,7 +3,12 @@ I2C-Module
 
 An interface to the linux kernel's I2C API.
 
-
+Hardware communication using the linux kernel's I2C-interface. (linux/i2c-dev.h, linux/i2c.h
+https://www.kernel.org/doc/Documentation/i2c/dev-interface )
+Hardware supporting this interface is e.g. available at the following systems
+ 
+ *) Beaglebone
+ *) Rasperry Pi
 
 
 

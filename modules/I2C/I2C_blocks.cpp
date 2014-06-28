@@ -163,6 +163,20 @@ public:
         // i2c_smbus_write_word_data(FD, reg, value);
     }
 
+    uint8_t ReadRegister(uint8_t reg)
+    {
+        uint8_t data[2];
+        data[0] = reg;
+        if (write(FD, data, 1) != 1) {
+            perror("ReadRegister set register");
+        }
+        if (read(FD, data, 1) != 1) {
+            perror("ReadRegister read value");
+        }
+        return data[0];
+    }
+    
+    
 // read a 16 bit value from a register pair
     uint16_t ReadRegisterPair(uint8_t reg)
     {
@@ -501,7 +515,7 @@ public:
 
 
 
-/*
+
 class I2CDevice_ReadRegister_AccessShObjBlock {
 public:
     I2CDevice_ReadRegister_AccessShObjBlock(struct dynlib_block_t *block) {
@@ -518,6 +532,8 @@ public:
 
     I2CDevice_SharedObject *IShObj; // instance of the shared object
 
+    uint8_t register_;
+    
     //
     // initialise your block
     //
@@ -526,6 +542,7 @@ public:
         int *Uipar;
         double *Urpar;
 
+	
         try {
 
             // Get the irpar parameters Uipar, Urpar
@@ -534,15 +551,18 @@ public:
             //
             // extract some structured sample parameters
             //
-
+	    
+	    irpar_ivec *Par = new irpar_ivec(Uipar, Urpar, 10); // then use:  veccpp.n; veccpp.v;    
+	    register_ = Par->v[0];
+	    
             // Obtain the shared object's instance
             if ( ortd_GetSharedObj<I2CDevice_SharedObject>(block, &IShObj) < 0 ) {
-                throw 1;
+                throw 10;
             }
 
         } catch(int e) { // check if initialisation went fine
             // deallocate all previously allocated memeory in case something went wrong
-            fprintf(stderr, "I2CDeviceBlock: something went wrong. Exception = %d\n", e);
+            fprintf(stderr, "I2CDeviceBlock_WriteRegister: something went wrong. Exception = %d\n", e);
             return -1; // indicate an error
         }
 
@@ -557,18 +577,17 @@ public:
 
     inline void updateStates()
     {
-        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
-        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0); 
 
-        IShObj->ReadRegisterPair(0x01);
+        uint8_t content = IShObj->ReadRegister(register_);
+	out[0] = content;
+	
+//  	printf("reading from register %x, %d\n", register_, content);
     }
 
     inline void calcOutputs()
     {
-        double *in1 = (double *) libdyn_get_input_ptr(block,0); // the first input port
-        double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
 
-        *output = *in1;
     }
 
     inline void resetStates()
@@ -578,7 +597,7 @@ public:
 
 
     void printInfo() {
-        fprintf(stderr, "I'm a I2CDevice block\n");
+        fprintf(stderr, "I'm a I2CDevice read block\n");
     }
 
     // uncommonly used flags
@@ -596,7 +615,7 @@ public:
 
     // The data for this block managed by the simulator
     struct dynlib_block_t *block;
-};*/
+};
 
 
 
@@ -637,8 +656,9 @@ extern "C" {
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid+11, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_WriteRegister_AccessShObjBlock::CompFn);
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid+12, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_BufferWrite_AccessShObjBlock::CompFn);
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid+13, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_Transmit_AccessShObjBlock::CompFn);
+	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+14, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_ReadRegister_AccessShObjBlock::CompFn);
 	
-	
+	printf("Added %d\n", blockid+14);
 	
 	
 	
