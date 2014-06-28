@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 22.4.2014
+Version of this document: 28.6.2014
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -1028,5 +1028,6 @@ By date as there will only be the svn-version
   -           Added the new communication framework: Packet Framework: Build e.g. web interfaces to your ORTD
               implementation!
   -           Added examples/PacketFramework
+  - 28.6.14:  Added I2C module
 
 
