@@ -48,6 +48,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
    
   // create a new vector
   [sim,vector] = ld_constvec(sim, defaultevents, [1,2,4,4,6,-6,-1,6] );
+  [sim,vector2] = ld_constvec(sim, defaultevents, [10,11,13] );
 //  [sim,vector] = ld_constvec(sim, defaultevents, [  0.1, -0.2, 2.2, 3.5, -5.4, 3.3, 0, -10 ] );
   
   //Vector diff test
@@ -96,7 +97,12 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim, out] = ld_vector_mute(sim, defaultevents, in=vector, from, len, setto, vecsize=8);
   [sim] = ld_printf(sim, defaultevents, out, "muted vector = ", 8);
 
-  
+  // cat two vectors
+  [sim, CatVector] = ld_vector_concate(sim, 0, in1=vector, in2=vector2, size1=8, size2=3);
+  [sim] = ld_printf(sim, 0, CatVector, "CatVector = ", 8+3);
+
+
+
   // save the vector to a file 
   [sim]=ld_savefile(sim, defaultevents, fname="saved_vector.dat", source=vector, vlen=8);
   

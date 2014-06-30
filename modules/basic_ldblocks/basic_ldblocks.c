@@ -4264,6 +4264,79 @@ int ortd_compu_func_TrigSwitch1toN(int flag, struct dynlib_block_t *block)
 
 
 
+int ortd_compu_func_vectorConcatenate(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size1 = ipar[0];
+    int size2 = ipar[1];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in1, *in2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in1 = (double *) libdyn_get_input_ptr(block,0);
+        in2 = (double *) libdyn_get_input_ptr(block,1);
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+        int i,j;
+	j=0;
+	
+        for (i=0; i < size1; ++i) {
+            out[j] = in1[i];
+	    j++;
+        }
+        
+        for (i=0; i < size2; ++i) {
+            out[j] = in2[i];
+	    j++;
+        }
+        
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size1 < 1 || size2 < 1) {
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size1+size2, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size1, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, size2, DATATYPE_FLOAT); // from input
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm vectorcat block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
 
 /*
 
@@ -4506,6 +4579,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 68, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_eventDemux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 69, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_TrigSwitch1toN);
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 70, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorConcatenate);
 
     
     

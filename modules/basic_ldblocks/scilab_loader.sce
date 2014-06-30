@@ -1190,7 +1190,7 @@ endfunction
 
 function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // PARSEDOCU_BLOCK
   //
-  // %PURPOSE: Insert one element in a vector
+  // %PURPOSE: Insert one element into a vector
   //
   // in *+ - the input element signal
   // pointer * - the index signal
@@ -2001,6 +2001,37 @@ function [sim, out] = ld_TrigSwitch1toN(sim, events, Event, SwitchInputList, Ini
   
 endfunction
 
+function [sim, out] = ld_vector_concate(sim, events, in1, in2, size1, size2) // PARSEDOCU_BLOCK
+  //
+  // %PURPOSE: Concatenate two vectors
+  //
+  // in1, in2 *+ - input vectors
+  // out *(size1+size2) - the concatenated vector
+  // size1, size2 - respective length for both vectors
+  // 
+  //
+
+  ortd_checkpar(sim, list('Signal', 'in1', in1) );
+  ortd_checkpar(sim, list('Signal', 'in2', in2) );
+  ortd_checkpar(sim, list('SingleValue', 'size1', size1) );
+  ortd_checkpar(sim, list('SingleValue', 'size2', size2) );
+
+
+  btype = 60001 + 70;	
+  ipar = [ size1, size2 ]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[size1, size2], outsizes=[size1+size2], ...
+                       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in1, in2) );
+
+  // connect each outport
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
+endfunction
+
+
+
 
 
 
@@ -2720,15 +2751,38 @@ endfunction
 
 
 
+// 
+// 
 
-// function generator
-// at the moment only sinus (shape = ?)
-// input port 1: amplitude
-// input port 2: frequency
-function [sim,bid] = libdyn_new_blk_fngen(sim, events, shape_)
-  btype = 80;
-  [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [shape_], []);
-endfunction
+// // function [sim,bid] = libdyn_new_blk_fngen(sim, events, shape_)
+// //   btype = 80;
+// //   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [shape_], []);
+// // endfunction
+// function [sim,out] = ld_fngen(sim, events, shape_) // PARSEDOCU_BLOCK
+// //
+// // %PURPOSE: function generator
+// // 
+// // shape_ - the shape of the output signal: =0 : ???
+// // out * - output
+// // 
+// //
+// 
+//   ortd_checkpar(sim, list('SingleValue', 'shape_', shape_) );
+// 
+//   btype = 80;
+//   [sim,bid] = libdyn_new_block(sim, events, btype, [shape_], [], ...
+//                    insizes=[], outsizes=[1], ...
+//                    intypes=[], outtypes=[ORTD.DATATYPE_FLOAT]  );
+// 
+//   [sim,out] = libdyn_conn_equation(sim, bid, list());
+//   [sim,out] = libdyn_new_oport_hint(sim, out, 0);
+// endfunction
+
+
+
+
+
+
  
 // serial to parallel
 function [sim,bid] = libdyn_new_blk_s2p(sim, events, len)
@@ -2870,24 +2924,6 @@ endfunction
 
 
 
-// function [sim,bid] = libdyn_new_blk_gain(sim, events, c)
-//   btype = 20;
-//   [sim,bid] = libdyn_new_block(sim, events, btype, [], [c], ...
-//                    insizes=[1], outsizes=[1], ...
-//                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
-// endfunction
-// function [sim,gain] = ld_gain(sim, events, inp_list, gain) // PARSEDOCU_BLOCK
-// //
-// // %PURPOSE: A simple gain
-// //
-// //
-//   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
-// 
-//   [sim,gain] = libdyn_new_blk_gain(sim, events, gain);  
-//   [sim,gain] = libdyn_conn_equation(sim, gain, list(inp,0));
-//   [sim,gain] = libdyn_new_oport_hint(sim, gain, 0);    
-// endfunction
-
 
 function [sim,out] = ld_gain(sim, events, in, gain) // PARSEDOCU_BLOCK
 //
@@ -2966,16 +3002,29 @@ endfunction
   
   
   
-  
-  
-  
-function [sim,fngen] = ld_fngen(sim, events, inp_list, shape_)
+function [sim,out] = ld_fngen(sim, events, shape_, period, amp) // PARSEDOCU_BLOCK
+//
 // %PURPOSE: function generator
-// need cleanup
-    [sim,fngen] = libdyn_new_blk_fngen(sim, events, shape_)
-    [sim,fngen] = libdyn_conn_equation(sim, fngen, inp_list);
-    [sim,fngen] = libdyn_new_oport_hint(sim, fngen, 0);
+// 
+// shape_ - the shape of the output signal: =0 : sinus, more to come...
+// period, amp * - Periode length in samples and amplitude
+// out * - output
+// 
+//
+
+  ortd_checkpar(sim, list('SingleValue', 'shape_', shape_) );
+
+  btype = 80;
+  [sim,bid] = libdyn_new_block(sim, events, btype, [shape_], [], ...
+                   insizes=[1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,out] = libdyn_conn_equation(sim, bid, list(period, amp));
+  [sim,out] = libdyn_new_oport_hint(sim, out, 0);
 endfunction
+
+  
+  
 
 
 // function [sim,delay] = ld_delay(sim, events, inp_list, delay_len)
@@ -3074,11 +3123,18 @@ function [sim,bid] = libdyn_new_flipflop(sim, events, initial_state)
 endfunction
 function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state) // PARSEDOCU_BLOCK
 //
-// %PURPOSE: A flip-flop (FIXME: more documentation needed)
+// %PURPOSE: A flip-flop
 //
-// set0, set1, reset * - control of the flipflop
+// set0, set1, reset * - control of the flipflop (set output to zero if set0 is >0.5 for at least one sample, ...)
 // initial_state - constant
 //
+
+  ortd_checkpar(sim, list('Signal', 'set0', set0) );
+  ortd_checkpar(sim, list('Signal', 'set1', set1) );
+  ortd_checkpar(sim, list('Signal', 'reset', reset) );
+  ortd_checkpar(sim, list('SingleValue', 'init_state', init_state) );
+
+
     [sim,blk] = libdyn_new_flipflop(sim, events, initial_state);
     [sim,blk] = libdyn_conn_equation(sim, blk, list(set0,0, set1,0, reset,0)); // FIXME: remove ,0
     [sim,y] = libdyn_new_oport_hint(sim, blk, 0);    
