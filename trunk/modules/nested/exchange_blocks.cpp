@@ -141,7 +141,6 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: <%s> and/or <%s> were not found\n", ifname, rfname);
 	  delete par;
 	  
-	  
 	  return;
 	}
 
@@ -156,7 +155,6 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	// ok
 	*output = 1;
 	fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s>\n", nested_simname);
-	
     }
 }
 
@@ -171,7 +169,7 @@ void compu_func_nested_exchange_fromfile_class::destruct()
 int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block)
 {
 
-//     printf("comp_func nested_exchange_fromfile: flag==%d\n", flag);
+//      printf("comp_func nested_exchange_fromfile: flag==%d\n", flag);
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);

@@ -1211,6 +1211,7 @@ void compu_func_statemachine_class::io_sync(int update_states)
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
 
+//              fprintf(stderr, "Switch to state %d\n", active, tmp);
 #ifdef DEBUG
             fprintf(stderr, "Switch to state %d\n", active, tmp);
             //printf( "Switch to state %d \n", active, tmp);
@@ -1737,8 +1738,6 @@ public:
         // extract some structured sample parameters
         //
 
-        // set the initial states
-        resetStates();
 
 
         simnest = NULL;
@@ -1843,6 +1842,10 @@ public:
 
             pthread_mutex_init(&this->output_mutex, NULL);
 
+            // set the initial states
+            resetStates();
+	     
+	    
         } catch (int e) {
             fprintf(stderr, "ld_async: something went wrong. Exception = %d\n", e);
             destruct();
@@ -1937,6 +1940,13 @@ public:
 
     inline void resetStates()
     {
+//    printf("reset states async\n");
+//         double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout + 0); // additional output #0
+//         *comp_finished = 0;   // added on 8.8.14
+//         
+        this->async_comp_mgr->reset(); // added on 8.8.14
+	
+	
       // TODO: forward reset events
     }
 

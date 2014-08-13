@@ -224,7 +224,7 @@ export main_makefile_invoked := yes
 
 
 
-all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib ScilabToolbox_sce
+all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib scilab/ORTDToolbox.sce
 	#echo "------- Build finished: Now you can do > make install <  -------"
 	cat documentation/finish_info.txt
 
@@ -249,18 +249,27 @@ libdyn_generic_exec: lib libdyn_generic_exec.o
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib IncompiledVariables.h
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
-lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o
-	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o          all_Targets/*.o `cat tmp/LDFALGS.list` $(LD_LIBRARIES) -o libortd.so
-	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
+lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o
+	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o         all_Targets/*.o `cat tmp/LDFALGS.list` $(LD_LIBRARIES) -o libortd.so
+	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o                 all_Targets/*.o
 
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
 	# FIXME remove this
 	#$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o  $(LD_LIBRARIES) -o libortd_hart.so
 	#ar rvs libortd_hart.a module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o                  all_Targets/*.o
 
-ScilabToolbox_sce: $(MODULES) 
+# ScilabToolbox_sce: $(MODULES) 
+# 	cat  scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce > scilab/ORTDToolbox.sce
+	
+scilab/ORTDToolbox.sce: $(MODULES) scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce
 	cat  scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce > scilab/ORTDToolbox.sce
 
+# Embed the Source-code of the ORTD-Scilab Toolbox into the ORTD-binaries 
+# This is e.g. used by modules/scilab
+ORTDToolbox.o: scilab/ORTDToolbox.sce
+	ld -r -b binary -o ORTDToolbox.o scilab/ORTDToolbox.sce
+
+	
 scilabhelp:
 	(cd scilab; ./build_toolbox.sh)
 
