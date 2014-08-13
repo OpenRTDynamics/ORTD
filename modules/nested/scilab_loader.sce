@@ -29,6 +29,8 @@ function [sim, outlist, computation_finished, userdata] = ld_async_simulation(si
 // outlist - list( ) of output signals
 // computation_finished - optional and only meanful if asynchron_simsteps > 0 (means async computation)
 // 
+// 6.8.14: Fixed Bug forwarding userdata
+// 
 
 // ThreadPrioStruct.prio1=0, ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = 0;
   
@@ -90,7 +92,7 @@ function [sim, outlist, computation_finished, userdata] = ld_async_simulation(si
 
   for i = 1:Nsimulations
     // define schematic
-    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, list(i, userdata));
+    [sim_container_irpar, nested_sim, userdata] = libdyn_setup_sch2(nested_fn, insizes, outsizes,  intypes, outtypes, userdata);
 
     // pack simulations into irpar container with id = 901
     parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
@@ -857,7 +859,7 @@ function [par, userdata] = ld_simnest2_replacement( insizes, outsizes, intypes, 
 // intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
 // outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
 // nested_fn - scilab function defining sub-schematics
-// N - FIXME ???
+// N - slot id; set to 2
 // 
 // OUTPUTS:
 //
@@ -932,42 +934,6 @@ endfunction
 
 
 
-function [sim, outlist, userdata ] = LD_STATEMACHINE_MAIN(sim, inlist, userdata)
-  state = userdata(1);
-  userdata_nested = userdata(2);
-  fn = userdata(3);
-  statename = userdata(4);  
-  Nin_userdata = userdata(5);  
-  Nout_userdata = userdata(6); 
-  Nevents = userdata(7);
-//  Nevents = 1;
-  
-  //pause;
-    
-  printf("ld_statemachine: state=%s (#%d) Nin_userdata=%d Nout_userdata=%d, %d events are forwarded\n", statename, state, Nin_userdata, Nout_userdata, Nevents);
-    
-  x_global = inlist(Nin_userdata+1); // the global states
-  
-  // call the actual function
-  [sim, outlist_inner, active_state, x_global_kp1, userdata] = fn(sim, inlist, x_global, state, statename, userdata_nested);
-
-
-  if length(outlist_inner) ~= Nout_userdata then
-      printf("ld_statemachine: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
-      error(".");
-  end
-
-  outlist = list();
-
-  N = length(outlist_inner);
-  for i = 1:N
-      outlist($+1) = outlist_inner(i);
-  end
-  outlist($+1) = active_state;
-  outlist($+1) = x_global_kp1
-
-//  outlist = list(, switch_event, global_states);
-endfunction
 
 
 function [sim, outlist, x_global, active_state, userdata] = ld_statemachine(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nstates, state_names_list, inittial_state, x0_global, userdata  ) // PARSEDOCU_BLOCK
@@ -1031,6 +997,57 @@ function [sim, outlist, x_global, active_state, userdata] = ld_statemachine(sim,
 
 
 
+
+
+  function [sim, outlist, userdata ] = LD_STATEMACHINE_MAIN(sim, inlist, userdata)
+    // wrapper function
+
+    state = userdata(1);
+    userdata_nested = userdata(2);
+    fn = userdata(3);
+    statename = userdata(4);  
+    Nin_userdata = userdata(5);  
+    Nout_userdata = userdata(6); 
+    Nevents = userdata(7);
+  //  Nevents = 1;
+    
+      
+    printf("ld_statemachine: defining state=%s (#%d)\n", statename, state);
+//     pause;
+      
+    x_global = inlist(Nin_userdata+1); // the global states
+    
+    // rmeove the x_global signal form the inlist_inner. Added, Bugfix 5.8.14
+    inlist = list( inlist(1:Nin_userdata) );
+    
+// pause;
+
+    // call the actual function
+    [sim, outlist_inner, active_state, x_global_kp1, userdata_nested] = fn(sim, inlist, x_global, state, statename, userdata_nested);
+
+// pause;
+
+    if length(outlist_inner) ~= Nout_userdata then
+	printf("ld_statemachine: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+	error(".");
+    end
+
+    outlist = list();
+
+    N = length(outlist_inner);
+    for i = 1:N
+	outlist($+1) = outlist_inner(i);
+    end
+    outlist($+1) = active_state;
+    outlist($+1) = x_global_kp1
+
+    userdata = userdata_nested;
+
+// pause;
+  endfunction
+
+
+
   parlist = new_irparam_set();
 
   N1 = length(insizes);
@@ -1084,7 +1101,6 @@ function [sim, outlist, x_global, active_state, userdata] = ld_statemachine(sim,
   irpar_sim_idcounter = 900;
 
   for i = 1:Nstates
-
     // the parameters for the wrapper scilab function
     wrapper_fn_arg = list(i, userdata, nested_fn, state_names_list(i), N_datainports, N_dataoutports, length(ev) );
 
@@ -1170,7 +1186,7 @@ endfunction
 
 
 function [sim, outvec] = ld_survivereset(sim, events, invec, initvec) // PARSEDOCU_BLOCK
-// %PURPOSE: Keep stored data through a simulation reset (EXPERIMENTAL FOR NOW)
+// %PURPOSE: Keep stored data even if a simulation reset occurs (EXPERIMENTAL FOR NOW)
 //
 // in *+(vecsize) - input
 // out *+(vecsize) - output
@@ -1219,92 +1235,73 @@ function [sim, outlist, userdata, replaced] = ld_ReplaceableNest(sim, ev, inlist
 //    
 
 
-function [sim, outlist] = exch_helper_thread(sim, inlist)
-      // This superblock will run the evaluation of the experiment in a thread.
-      // The superblock describes a sub-simulation, whereby only one step is simulated
-      // which is enough to call scilab one signle time
+  function [sim, outlist] = exch_helper_thread(sim, inlist)
+	// This superblock will run the evaluation of the experiment in a thread.
+	// The superblock describes a sub-simulation, whereby only one step is simulated
+	// which is enough to call scilab one signle time
 
 
-  defaultevents = 0;
+    defaultevents = 0;
+      
+    inputv = inlist(1);
+
+  //   [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
+
+    //
+    // A resource demanding Scilab calculation
+    //
     
-  inputv = inlist(1);
+    [sim, dummyin] = ld_const(sim, defaultevents, 1);
 
-//   [sim] = ld_printf(sim, defaultevents, inputv, "inputv = ", 10);
+	[sim, compready]  = ld_const(sim, defaultevents, 1);
+	[sim, result] = ld_constvec(sim, defaultevents, vec=1:10)
 
+    // replace schematic RST_ident
+    [sim, exchslot] = ld_const(sim, defaultevents, 2);                            
+    [sim, out] = ld_nested_exchffile(sim, defaultevents, compresult=compready, slot=exchslot, ... 
+				    fname=irpar_fname, simnest_name);
+
+
+    // output of schematic
+    outlist = list(result);
+  endfunction
+
+
+
+
+  function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
+  //    
+  //    The nested simulation contains two sub-simulations:
+  //    
+  //    1) A schematic, which commonly contains nothing and is switched to
+  //       when the replacement is in progress (which may take some time)
   //
-  // A resource demanding Scilab calculation
+  //    2) The schematic, which actually contains the algorithm to execute
   //
-  
-  [sim, dummyin] = ld_const(sim, defaultevents, 1);
-
-      [sim, compready]  = ld_const(sim, defaultevents, 1);
-//      [sim, result]  = ld_const_vec(sim, defaultevents, 123);
-      [sim, result] = ld_constvec(sim, defaultevents, vec=1:10)
-
-  // replace schematic RST_ident
-  [sim, exchslot] = ld_const(sim, defaultevents, 2);                            
-  [sim, out] = ld_nested_exchffile(sim, defaultevents, compresult=compready, slot=exchslot, ... 
-                                   fname=irpar_fname, simnest_name);
+  //    Here, the initial simulations are defined, which can then be 
+  //   replaced during runtime
+  //    
 
 
-  // output of schematic
-  outlist = list(result);
-endfunction
+    ev = 0;
 
+    cntrlN = par(1); // the number of the nested schematics (one of two) "1" means the 
+		    // dummy schematic which is activated while the 2nd "2" is exchanged during runtime
+    userdata = par(2);
+    
+    useruserdata = userdata(1);
+    define_fn = userdata(2);
+    
+    if (cntrlN == 1) then  // is this the schematic 2) ?
+      [sim, outlist, useruserdata] = define_fn( sim, inlist, schematic_type='spare', useruserdata );
+    end
+    
+    if (cntrlN == 2) then  // is this the schematic 2) ?
+      [sim, outlist, useruserdata] = define_fn( sim, inlist, schematic_type='default', useruserdata );
+    end
 
-
-
-function [sim, outlist, userdata ] = replaceable_cntrl_main(sim, inlist, par)
-//    
-//    The nested simulation contains two sub-simulations:
-//    
-//    1) A schematic, which commonly contains nothing and is switched to
-//       when the replacement is in progress (which may take some time)
-//
-//    2) The schematic, which actually contains the algorithm to execute
-//
-//    Here, the initial simulations are defined, which can then be 
-//   replaced during runtime
-//    
-
-
-  ev = 0;
-
-  cntrlN = par(1); // the number of the nested schematics (one of two) "1" means the 
-                   // dummy schematic which is activated while the 2nd "2" is exchanged during runtime
-  userdata = par(2);
-  
-  useruserdata = userdata(1);
-  define_fn = userdata(2);
-  
-//  input1 = inlist(1);
-  
-  
-//   // a zero
-//   [sim, zero] = ld_const(sim, ev, 0);
-
- // printf("Defining a replaceable controller\n");
-
-  if (cntrlN == 1) then  // is this the schematic 2) ?
-    [sim, outlist, useruserdata] = define_fn( sim, inlist, schematic_type='spare', useruserdata );
-
-  end
-  
-  if (cntrlN == 2) then  // is this the schematic 2) ?
-
-    [sim, outlist, useruserdata] = define_fn( sim, inlist, schematic_type='default', useruserdata );
-
-//          // Here the  default controller can be defined
-//          [sim, output] = ld_gain(sim, ev, input1, 5); // 
-//          [sim] = ld_printf(sim, ev, in=zero, str="This is just a dummy simulation, which can be replaced.", insize=1);
-  end
-
-  userdata(1) = useruserdata;
-
-
-
-//   outlist = list(zero);
-endfunction
+    userdata(1) = useruserdata;
+  endfunction
 
   [sim,zero] = ld_const(sim, ev, 0);
   [sim,active_sim] = ld_const(sim, ev, 1);

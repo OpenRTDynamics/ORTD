@@ -22,6 +22,8 @@ class run_scilab {
       bool send_to_scilab(const char *cmd);  // send command to scilab
       bool send_to_scilab_noFlush(const char *cmd);  // send command to scilab
       
+      bool send_to_scilab(char *buf, int size);
+      
       
       FILE * get_readfd();    // read from scilab
       
@@ -45,6 +47,7 @@ class scilab_calculation {
 
       bool calculate(int invec_no, int outvec_no, int insize, int outsize); // calc_cmd in scilab ausführen
       bool send_vector_to_scilab(int vector_nr, double *data, int veclen);
+      bool send_buffer(char *buf, int size);
       bool read_vector_from_scilab(int vector_nr, double *data, int veclen);
       bool print_vector(int vector_nr);
       bool exit_scilab_and_read_remaining_data();

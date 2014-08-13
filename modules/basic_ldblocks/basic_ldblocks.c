@@ -2121,7 +2121,8 @@ int compu_func_insert_element(int flag, struct dynlib_block_t *block)
 int compu_func_FlagProbe(int flag, struct dynlib_block_t *block)
 {
   
-//   printf("comp_func printf: flag==%d\n", flag);
+  printf("FLAG PROBE: flag==%d\n", flag);
+  
   int Nout = 0;
   int Nin = 1;
 

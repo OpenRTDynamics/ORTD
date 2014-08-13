@@ -44,88 +44,96 @@ public:
     void io(int update_states);
     int init();
 private:
-   struct dynlib_block_t *block;
-   char *retstr;
-   scilab_calculation *scilab_calc;
-   
-   // strings that are parameters to the block
-   char *init_cmd, *calc_cmd, *destruct_cmd, *scilab_path;
+    struct dynlib_block_t *block;
+    char *retstr;
+    scilab_calculation *scilab_calc;
+
+    // strings that are parameters to the block
+    char *init_cmd, *calc_cmd, *destruct_cmd, *scilab_path;
 
 };
 
 compu_func_scilab_class::compu_func_scilab_class(dynlib_block_t* block)
 {
     this->block = block;
-    
-    
 }
+
+extern char _binary_scilab_ORTDToolbox_sce_start[];
+extern uint _binary_scilab_ORTDToolbox_sce_size;
+extern char _binary_scilab_ORTDToolbox_sce_end[];
 
 int compu_func_scilab_class::init()
 {
     int *ipar = libdyn_get_ipar_ptr(block);
 
     int start_init_param = 11;
-    
+
     int length_init_cmd = ipar[start_init_param];
     int length_calc_cmd = ipar[start_init_param + 1];
     int length_destruct_cmd = ipar[start_init_param + 2];
     int length_scilab_path = ipar[start_init_param + 3];
-    
+
     int start_init_cmd = start_init_param + 4;
     int start_calc_cmd = start_init_cmd + length_init_cmd;
     int start_destruct_cmd = start_calc_cmd + length_calc_cmd;
     int start_scilab_path = start_destruct_cmd + length_destruct_cmd;
-    
-    
- 
-    
-    irpar_getstr(&init_cmd, ipar, start_init_cmd, length_init_cmd);    
+
+
+
+    irpar_getstr(&init_cmd, ipar, start_init_cmd, length_init_cmd);
     irpar_getstr(&calc_cmd, ipar, start_calc_cmd, length_calc_cmd);
     irpar_getstr(&destruct_cmd, ipar, start_destruct_cmd, length_destruct_cmd);
     irpar_getstr(&scilab_path, ipar, start_scilab_path, length_scilab_path);
 
-        printf("scilab PATH read from position %d: >>%s<<\n", start_scilab_path, scilab_path);
-
+    fprintf(stderr, "Scilab executable is %s\n", scilab_path);
 
     scilab_calc = new scilab_calculation(scilab_path, init_cmd, destruct_cmd, calc_cmd);
+
+    // Load the ORTD-Scilab Toolbox that was compiled into the ortd executables into the Scilab instance
+//     scilab_calc->send_buffer( _binary_scilab_ORTDToolbox_sce_start, _binary_scilab_ORTDToolbox_sce_size );
+    scilab_calc->send_buffer( _binary_scilab_ORTDToolbox_sce_start, _binary_scilab_ORTDToolbox_sce_end - _binary_scilab_ORTDToolbox_sce_start );
+
     scilab_calc->init(); // send init_cmd to scilab
-  
+
     return 0;
 }
 
 
 void compu_func_scilab_class::io(int update_states)
 {
-   if (update_states==0) {
-      double *output = (double*) libdyn_get_output_ptr(block, 0);
-      double *in = (double *) libdyn_get_input_ptr(block,0);
-      int *ipar = libdyn_get_ipar_ptr(block);
-      int insize = ipar[0];
-      int outsize = ipar[1];
-      int invec_no = ipar[2];
-      int outvec_no = ipar[3];
-      int i;
-        
-       fprintf(stderr, "scilab: Start send_vector_to_scilab\n");
-      if (scilab_calc->send_vector_to_scilab(invec_no, in, insize))
-      {
-          fprintf(stderr, "scilab: Start calculate\n");
-         if (scilab_calc->calculate(invec_no, outvec_no, insize, outsize)) // send calc_cmd to scilab
-         {
-            fprintf(stderr, "scilab: Start read_vector_from_scilab\n");
-            scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
-         }
-      }
-       fprintf(stderr, "scilab: computation finished\n");
-        
+    if (update_states==0) {
+        double *output = (double*) libdyn_get_output_ptr(block, 0);
+        double *in = (double *) libdyn_get_input_ptr(block,0);
+        int *ipar = libdyn_get_ipar_ptr(block);
+        int insize = ipar[0];
+        int outsize = ipar[1];
+        int invec_no = ipar[2];
+        int outvec_no = ipar[3];
+        int i;
+
+        fprintf(stderr, "scilab: Start send_vector_to_scilab\n");
+        if (scilab_calc->send_vector_to_scilab(invec_no, in, insize))
+        {
+            fprintf(stderr, "scilab: Start calculate\n");
+            if (scilab_calc->calculate(invec_no, outvec_no, insize, outsize)) // send calc_cmd to scilab
+            {
+                fprintf(stderr, "scilab: Start read_vector_from_scilab\n");
+                scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
+            }
+        }
+        fprintf(stderr, "scilab: computation finished\n");
+
     }
 }
 
 void compu_func_scilab_class::destruct()
 {
     delete scilab_calc; // destruct_cmd and "exit" to scilab
-    
-    free(init_cmd); free(calc_cmd); free(destruct_cmd); free(scilab_path);
+
+    free(init_cmd);
+    free(calc_cmd);
+    free(destruct_cmd);
+    free(scilab_path);
 }
 
 
@@ -135,23 +143,23 @@ int compu_func_scilab(int flag, struct dynlib_block_t *block)
     //printf("comp_func scilab: flag==%d\n", flag);
 
     int *ipar = libdyn_get_ipar_ptr(block);
-    
+
     int insize = ipar[0];
     int outsize = ipar[1];
-    
+
     int Nin = 1;
     int Nout = 1;
-    
+
 
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
 
         compu_func_scilab_class *worker = (compu_func_scilab_class *) libdyn_get_work_ptr(block);
-        
+
         worker->io(0);
-        
-        
+
+
     }
     return 0;
     break;
@@ -168,7 +176,7 @@ int compu_func_scilab(int flag, struct dynlib_block_t *block)
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
         int i;
-        
+
         if ((insize < 1) || (outsize < 1)) {
             printf("size cannot be smaller than 1\n");
             printf("insize = %d\n", insize);
@@ -176,9 +184,9 @@ int compu_func_scilab(int flag, struct dynlib_block_t *block)
 
             return -1;
         }
-        
 
-        
+
+
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
         for (i = 0; i < Nin; ++i)
@@ -197,7 +205,7 @@ int compu_func_scilab(int flag, struct dynlib_block_t *block)
         libdyn_set_work_ptr(block, (void*) worker);
 
         int ret = worker->init();
-        
+
         if (ret < 0)
             return -1;
     }

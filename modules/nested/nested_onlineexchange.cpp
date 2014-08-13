@@ -67,7 +67,7 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
   
   
   
-  // delete the old now unused irpar data for the old simulation
+  // delete the old, now unused irpar data for the old simulation
   if (this->current_irdata != NULL) {
     fprintf(stderr, "delete irpar of old simulation\n");
     delete this->current_irdata;    

@@ -1029,5 +1029,7 @@ By date as there will only be the svn-version
               implementation!
   -           Added examples/PacketFramework
   - 28.6.14:  Added I2C module
+  - 13.8.14:  Improved automation capabilities: ld_AutoOnlineExch_dev
+              module/scilab: The ORTD-Scilab Toolbox is now automatically available in embedded Scilab
 
 

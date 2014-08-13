@@ -17,6 +17,49 @@
     along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+
+
+http://stackoverflow.com/questions/13679568/using-android-gyroscope-instead-of-accelerometer-i-find-lots-of-bits-and-pieces
+
+http://developer.android.com/reference/android/hardware/SensorManager.html
+
+http://code.google.com/p/android/issues/detail?id=41965
+
+
+But the important thing is that newer versions of Android contain these two new virtual sensors:
+
+TYPE_GRAVITY is the accelerometer input with the effect of motion filtered out 
+TYPE_LINEAR_ACCELERATION is the accelerometer with the gravity component filtered out.
+
+These two virtual sensors are synthesized through a combination of accelerometer input and gyro input.
+Another notable sensor is TYPE_ROTATION_VECTOR which is a Quaternion synthesized from accelerometer, 
+magnetometer, and gyro. It represents the full 3-d orientation of the device with the effects of linear 
+acceleration filtered out.
+
+ * Sensor types from master/hardware/libhardware/include/hardware/sensors.h
+ * Not all are exposed through NDK (r8d)
+
+ #define SENSOR_TYPE_ACCELEROMETER       1
+#define SENSOR_TYPE_MAGNETIC_FIELD      2
+#define SENSOR_TYPE_ORIENTATION         3
+#define SENSOR_TYPE_GYROSCOPE           4
+#define SENSOR_TYPE_LIGHT               5
+#define SENSOR_TYPE_PRESSURE            6
+#define SENSOR_TYPE_TEMPERATURE         7   // deprecated
+#define SENSOR_TYPE_PROXIMITY           8
+#define SENSOR_TYPE_GRAVITY             9
+#define SENSOR_TYPE_LINEAR_ACCELERATION 10
+#define SENSOR_TYPE_ROTATION_VECTOR     11
+#define SENSOR_TYPE_RELATIVE_HUMIDITY   12
+#define SENSOR_TYPE_AMBIENT_TEMPERATURE 13
+
+
+
+
+*/
+
+
 #include <malloc.h>
 #include <stdio.h>
 
@@ -160,28 +203,7 @@ public:
         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
         int32_t *SensorID = (int32_t *) libdyn_get_output_ptr(block, 1); // the first output port
 
-// 	*SensorID = Sid;
-
-
-//         *SensorID = event.sensor;
         *SensorID = event.type;
-	
-// 	printf("Sensor %d\n", event.sensor);
-
-//         // Put out the sensor value
-//         if (event.sensor == AccId) {
-//             output[0] = event.acceleration.x;
-//             output[1] = event.acceleration.y;
-//             output[2] = event.acceleration.z;
-//         } else if (event.sensor == GyroId) {
-//             output[3] = event.vector.x;
-//             output[4] = event.vector.y;
-//             output[5] = event.vector.z;
-//         } else if (event.sensor == MagnId) {
-//             output[6] = event.magnetic.x;
-//             output[7] = event.magnetic.y;
-//             output[8] = event.magnetic.z;
-// 	}
 
         // Put out the sensor value
         if (event.type == ASENSOR_TYPE_ACCELEROMETER) {
@@ -198,7 +220,6 @@ public:
             output[8] = event.magnetic.z;
 	}
 
-        //   printf("output calc\n");
     }
 
 

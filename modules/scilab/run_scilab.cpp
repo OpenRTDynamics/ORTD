@@ -1,4 +1,5 @@
 #include "scilab.h"
+#include <stdio.h>
 
 /*#if !defined(ARRAY_SIZE)
     #define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))
@@ -181,10 +182,22 @@ bool run_scilab::send_to_scilab(const char* cmd)   // send command to scilab
     }
     fflush(writefd);
 
-//    fprintf(stderr, ">>> %s\n", cmd);
-
     return true;
 }
+
+
+bool run_scilab::send_to_scilab(char *buf, int size)
+{
+//   printf("size = %d\n", size);
+  int i;  
+  for (i = 0; i < size; ++i) {
+    fputc(buf[i], writefd);
+//      putchar(buf[i]);
+  }
+  fflush(writefd);
+}
+
+
 
 bool run_scilab::send_to_scilab_noFlush(const char* cmd)   // send command to scilab
 {
@@ -242,9 +255,9 @@ scilab_calculation::~scilab_calculation()  // Destructor
 
     exit_scilab_and_read_remaining_data();
 
-    init_cmd = "";
-    destr_cmd == "";
-    calc_cmd == "";
+//     init_cmd = "";
+//     destr_cmd == "";
+//     calc_cmd == "";
 
     delete scilab;
     //printf("scilab_calculation deleted\n");
@@ -302,6 +315,12 @@ bool scilab_calculation::send_vector_to_scilab(int vector_nr, double *data, int 
     return true;
 }
 
+bool scilab_calculation::send_buffer(char *buf, int size)
+{
+  scilab->send_to_scilab(buf, size);
+}
+
+
 bool scilab_calculation::calculate(int invec_no, int outvec_no, int insize, int outsize)
 {
     bool status;
@@ -327,148 +346,6 @@ bool scilab_calculation::calculate(int invec_no, int outvec_no, int insize, int 
 
 
     return true;
-/*    
-    do
-    {
-        if (!feof(read_fd)
-                && !ferror(read_fd)
-                && fgets(buf, sizeof buf, read_fd) != NULL)
-        {
-            if (state==0) { 
-	      fprintf(stderr, "scilab says: >>> %s\n", buf); 	      
-	    } else {
-	      fprintf(stderr, "REMscilab says: >>> %s\n", buf); 	      
-	    }
-
-            if (strstr (buf,"scilab_interf  =") != NULL)      {
-                state = 1;
-            }         else if (strstr (buf,"error") != NULL)         {
-                state = -1;
-            }
-        }
-        else
-        {
-            fprintf(stderr, "scilab_interf: error: nothing to read in check-routine (state 0) of calculate\n");
-            return false;
-        }
-    } while (state == 0);
-
-    if (state == 1)
-    {
-        do
-        {
-            if (!feof(read_fd)
-                    && !ferror(read_fd)
-                    && fgets(buf, sizeof buf, read_fd) != NULL)
-            {
-//                 fprintf(stderr, "scilab says: >>> %s\n", buf);
-
-                if (strstr (buf,"invec") != NULL)
-                {
-                    rec_vec_no = -999;
-                    sscanf (buf,"%*5s%d%*1s %*1s%d", &rec_vec_no, &rec_veclen);
-                    if (rec_vec_no == -999)
-                    {
-                        fprintf(stderr, "scilab_interf: Error: invector number could not be read!\n");
-                        return false;
-                    }
-                    else if (rec_vec_no != invec_no)
-                    {
-                        fprintf(stderr, "scilab_interf: Error: Wrong invector number received (received = %d, expected = %d)!\n", rec_vec_no, invec_no);
-                        return false;
-                    }
-                    else
-                    {
-                        if (rec_veclen != insize)
-                        {
-                            fprintf(stderr, "scilab_interf: Error: Wrong invector length received (received = %d, expected = %d)!\n", rec_veclen, insize);
-                            return false;
-                        }
-                        else
-                        {
-                            state = 2;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                fprintf(stderr, "scilab_interf: error: nothing to read in check-routine (state 1) of calculate\n");
-                return false;
-            }
-        } while (state == 1);
-    }
-    else if (state == -1)
-    {
-        if (!feof(read_fd)
-                && !ferror(read_fd)
-                && fgets(buf, sizeof buf, read_fd) != NULL)
-        {
-            fprintf(stderr, "error: %s\n", buf);
-            return false;
-        }
-        else
-        {
-            fprintf(stderr, "scilab_interf: error: nothing to read (error-message of scilab missing in calculate)\n");
-            return false;
-        }
-    }
-
-    if (state == 2)
-    {
-        do
-        {
-            if (!feof(read_fd)
-                    && !ferror(read_fd)
-                    && fgets(buf, sizeof buf, read_fd) != NULL)
-            {
-                fprintf(stderr, "REMscilab says: >>> %s\n", buf);
-
-                if (strstr (buf,"outvec") != NULL)
-                {
-                    rec_vec_no = -999;
-                    sscanf (buf,"%*6s%d%*1s %*1s%d", &rec_vec_no, &rec_veclen);
-                    if (rec_vec_no == -999)
-                    {
-                        fprintf(stderr, "scilab_interf: Error: outvector number could not be read!\n");
-                        return false;
-                    }
-                    else if (rec_vec_no != outvec_no)
-                    {
-                        fprintf(stderr, "scilab_interf: Error: Wrong outvector number received (received = %d, expected = %d)!\n", rec_vec_no, outvec_no);
-                        return false;
-                    }
-                    else
-                    {
-                        if (rec_veclen != outsize)
-                        {
-                            fprintf(stderr, "scilab_interf: Error: Wrong outvector length received (received = %d, expected = %d)!\n", rec_veclen, outsize);
-                            return false;
-                        }
-                        else
-                        {
-                            state = 3;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                fprintf(stderr, "scilab_interf: error: nothing to read in check-routine (state 2) of calculate\n");
-                return false;
-            }
-        } while (state == 2);
-    }
-
-    if (state == 3)
-    {
-        return true;
-    }
-    else
-    {
-        fprintf(stderr, "scilab_interf: unknown error in calculate\n");
-        return false;
-    }*/
 }
 
 bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, int veclen)
