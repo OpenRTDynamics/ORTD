@@ -1735,9 +1735,7 @@ double * libdyn::get_vec_out(int out)
 
 void libdyn::libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 {
-    fprintf(stderr, "....................................\n");
-    fprintf(stderr, ".. Setting up new simulation  ......\n");
-    fprintf(stderr, "....................................\n");
+    fprintf(stderr, "--- Setting up new simulation ---\n");
 
 
     error = 0;
