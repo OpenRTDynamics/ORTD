@@ -262,7 +262,7 @@ lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_look
 # 	cat  scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce > scilab/ORTDToolbox.sce
 	
 scilab/ORTDToolbox.sce: $(MODULES) scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce
-	cat  scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce > scilab/ORTDToolbox.sce
+	cat  scilab/ld_toolbox/initialrun/irpar.sci scilab/ld_toolbox/initialrun/libdyn.sci scilab/modules_loader.sce scilab/ld_toolbox/initialrun/message.sce > scilab/ORTDToolbox.sce
 
 # Embed the Source-code of the ORTD-Scilab Toolbox into the ORTD-binaries 
 # This is e.g. used by modules/scilab

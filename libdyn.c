@@ -1555,8 +1555,8 @@ mydebug(1) fprintf(stderr, "Yeah 2\n");
 
 
   if (simulation->execution_sup_list_head == 0) { // there is no list
-    fprintf(stderr, "NOTE: There are no dynamic blocks on the sup execution list!\n");
-    fprintf(stderr, "      This mode of libdyn not well tested for now - You are on your own\n");
+//     fprintf(stderr, "NOTE: There are no dynamic blocks on the sup execution list!\n");
+//     fprintf(stderr, "      This mode of libdyn not well tested for now - You are on your own\n");
   } else {
   
     //
@@ -2626,7 +2626,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
     }
 
     if (cl[i].src_type == 1 && cl[i].dst_type == 1) { // connect ex in to ex out: not possible at the moment
-      fprintf(stderr, "libdyn: EXPERIMENTAL: Try to connect simulation output directly to a simulation input. This is not tested by now.\n");
+//       fprintf(stderr, "libdyn: EXPERIMENTAL: Try to connect simulation output directly to a simulation input. This is not tested by now.\n");
 
       int in_portsize = iocfg->insizes[cl[i].src_port];
       int out_portsize = iocfg->outsizes[cl[i].dst_port];

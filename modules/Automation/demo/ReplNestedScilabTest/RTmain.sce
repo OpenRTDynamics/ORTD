@@ -17,7 +17,63 @@ cd(thispath);
 
 function [sim] = AutoCalibration(sim, Signal)
 
+
+
+    
+
+
+
+
   function [sim, finished, outlist, userdata] = experiment_example(sim, ev, inlist, userdata, CalledOnline)
+
+    function [sim] = ScilabCompu(sim, S1_minus_ofs);
+
+      function [block]=sample_comp_fn( block, flag )
+	// This scilab function is called during run-time
+	// NOTE: Please note that the variables defined outside this
+	//       function are typically nor available at run-time.
+	//       This also holds true for self defined Scilab functions!
+	
+	function outvec=calc_outputs()
+	  printf("...\n");
+	  outvec=(1:6)';
+	endfunction
+
+	select flag
+	  case 1 // only the output flag is available
+	    printf("update outputs\n");
+      //      outvec = [1:6]';
+
+      //       in = block.inptr(1)(1:3);  // inputs
+
+	    outvec = calc_outputs();
+
+	    block.outptr(1) = outvec;
+
+	  case 4 // init
+	    printf("init\n");
+
+	  case 5 // terminate
+	    printf("terminate\n");
+
+	  case 10 // configure
+	    printf("configure\n");
+	    block.invecsize = 1;
+	    block.outvecsize = 6;
+
+	end
+      endfunction
+      
+
+    // The nicer interface. If BUILDIN_PATH is not found: Do a make clean ; make config; make ; make install on openrtdynamics
+      [sim, out] = ld_scilab2(sim, 0, in=S1_minus_ofs, comp_fn=sample_comp_fn, include_scilab_fns=list(), scilab_path="BUILDIN_PATH");
+
+      [sim] = ld_printf(sim, 0, out, "Scilab output", 6);
+
+
+    endfunction
+
+
 
     // Define parameters. They must be defined once again at this place, because this will also be called at
     // runtime.
@@ -111,6 +167,10 @@ function [sim] = AutoCalibration(sim, Signal)
 	  Signal = inlist(1);  [sim, S1] = ld_demux(sim, 0, 2, Signal);
           [sim, S1_minus_ofs] = ld_add_ofs(sim, 0, S1(1), -mean_S1);
 	  [sim] = ld_printf(sim, 0, S1_minus_ofs, "The offset compensated input signal" , 1);
+
+
+          // For stress testing purposes: start scilab
+           [sim] = ScilabCompu(sim, S1_minus_ofs);
 
           // next state: recalibrate by going to "init" again after "finished" is set to 1
 	  userdata.State = "init";
