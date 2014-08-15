@@ -1,7 +1,7 @@
 //
-//    Copyright (C) 2010, 2011  Christian Klauer
+//    Copyright (C) 2010, 2011, 2012, 2013, 2014  Christian Klauer
 //
-//    This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
+//    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 //
 //    OpenRTDynamics is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
 //
 // Simple example for using scilab interface to libdyn
 //
-// execute within scilab and run "libdyn_generic_exec -s simple_demo -i 901 -l 100" within 
+// execute within scilab and run "ortd -s simple_demo -i 901 -l 100" within 
 // the directory of this file
 //
 // It will write output data to *dat files
@@ -34,85 +34,101 @@
 thispath = get_absolute_file_path('scilab_demo.sce');
 cd(thispath);
 
-
-z = poly(0,'z');
-
-
 //
 // Set up simulation schematic
 //
-
-// 
-
-
 
 
 // This is the main top level schematic
 function [sim, outlist] = schematic_fn(sim, inlist)
    u1 = inlist(1); // Simulation input #1
    
-  [sim, u1] = ld_constvec(sim, defaultevents, [0.6,0.5,0,1,-1]);
-  // 
-//  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=5, "", ...
-//  "a=1;\n save(\'a.dat\', a);  \n scilab_interf.outvec1 = scilab_interf.invec1 * 2", "", "/usr/local/bin/scilab533");
+  [sim, u1] = ld_constvec(sim, 0, [0.6,0.5,0,1,-1]);
 
 
-
-// The raw interface
-
-//  [sim,out] = ld_scilab(sim, defaultevents, in=u1, invecsize=5, outvecsize=6, "", ...
-//  "scilab_interf.outvec1 = [ scilab_interf.invec1 * 2; 9999 ] ", "", "/localhome/arne/openrtdynamics/trunk/scilab-5.3.3/bin/scilab"); // Adapt the path to the scilab5 executable to your needs
-//  [sim] = ld_printf(sim, defaultevents, out, "resultvector = ", 6);
-
-
-
-  function [block]=sample_comp_fn( block, flag )
-    // This scilab function is called during run-time
+  function [block]=EmbeddedScilabFn( block, flag )
+    // This Scilab function is called during run-time in the embedded
+    // Scilab instance
+    // 
     // NOTE: Please note that the variables defined outside this
-    //       function are typically nor available at run-time.
+    //       function are typically nor available at run-time, unless
+    //       they are copied by using ForwardVars=%t .
     //       This also holds true for self defined Scilab functions!
+    //       They can be embedded using par.include_scilab_fns .
+    //
+    // NOTE: All error messages of runtime errors occuring in this 
+    //       function will only be visible in the "stderr" output
+    //       of the ortd interpreter. To log these errors, e.g.
+    //       add a redirection of the error output, e.g.:
+    //
+    //       ortd <...>  2> Error.log
+    //
     
-    function outvec=calc_outputs()
-      printf("...\n");
+    function outvec=calc_outputs(in, counter)
+      printf("Computing in embedded Scilab...\n");
       outvec=(1:6)';
+      outvec(1) = SomeFunction(in(1));
+      outvec(2) = cfpar.V(2);
+      outvec(3) = counter;
+      printf("done\n");
     endfunction
 
     select flag
       case 1 // only the output flag is available
-	printf("update outputs\n");
-  //      outvec = [1:6]';
-
-  //       in = block.inptr(1)(1:3);  // inputs
-
-	outvec = calc_outputs();
-
-	block.outptr(1) = outvec;
+        in = block.inptr(1);  // inputs
+	outvec = calc_outputs(in, block.states.Counter);
+	block.outptr(1) = outvec; // write outputs
+        block.states.Counter = block.states.Counter + 1; // update a state
 
       case 4 // init
+        // e.g. open data from a file
 	printf("init\n");
+        block.states.Counter = 0; // initialise a state variable
 
       case 5 // terminate
 	printf("terminate\n");
-
-      case 10 // configure
-	printf("configure\n");
-	block.invecsize = 5;
-	block.outvecsize = 6;
+        // e.g. to close log files
 
     end
   endfunction
   
 
-// The nicer interface. If BUILDIN_PATH is not found: Do a make clean ; make config; make ; make install on openrtdynamics
-  [sim, out] = ld_scilab2(sim, defaultevents, in=u1, comp_fn=sample_comp_fn, include_scilab_fns=list(), scilab_path="BUILDIN_PATH");
+  //
+  // Embedded Scilab. Run the function scilab_comp_fn defined above for one time step to perform the calibration
+  // that is implemented in Scilab.
+  //
 
+  par.include_scilab_fns = list(SomeFunction, "SomeFunction"); // Transfer one or more Scilab functions to the embedded Scilab
+
+  LF = char(10);
+  par.InitStr = "cfpar.V=" + vec2str([1.2, 1.3, 1.4]) + LF; // This string is executed by the embedded Scilab in advance
+
+  par.scilab_path = "BUILDIN_PATH";  // The path to the Scilab executable
+
+  [sim, out] = ld_scilab4(sim, 0, in=u1, invecsize=5, outvecsize=6, ...
+			  comp_fn=EmbeddedScilabFn, ForwardVars=%f, par);
+
+
+  // Display the output of the Scilab computation
   [sim] = ld_printf(sim, 0, out, "Scilab output", 6);
   
   // output of schematic
-  [sim,out] = ld_const(sim, defaultevents, 0);
+  [sim,out] = ld_const(sim, 0, 0);
   outlist = list(out); // Simulation output #1
 endfunction
 
+function [out] = SomeFunction(in)
+  out = in * 2;
+endfunction
+
+function str = vec2str(v)
+  LF = char(10);  // line feed char
+  str = "[";
+  for i=1:(length(v)-1)
+    str = str + string(v(i)) + "," + LF;
+  end
+  str = str + string( v($) ) + "];";
+endfunction
 
   
 //
@@ -146,18 +162,4 @@ save_irparam(par, 'scilab_demo.ipar', 'scilab_demo.rpar');
 // clear
 par.ipar = [];
 par.rpar = [];
-
-
-
-
-// optionally execute
-//messages=unix_g(ORTD.ortd_executable+ ' -s scilab_demo -i 901 -l 1');
-
-
-// load results
-//A = fscanfMat('result.dat');
-
-//scf(1);clf;
-//plot(A(:,1), 'k');
-
 

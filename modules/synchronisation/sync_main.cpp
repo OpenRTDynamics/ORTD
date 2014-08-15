@@ -1036,8 +1036,9 @@ int libdyn_module_synchronisation_siminit(struct dynlib_simulation_t *sim, int b
 
 
 
-
+#ifdef DEBUG
     printf("libdyn module sync initialised\n");
+#endif  
 
 }
 

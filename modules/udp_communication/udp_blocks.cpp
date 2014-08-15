@@ -918,8 +918,10 @@ extern "C" int libdyn_module_udp_communication_siminit(struct dynlib_simulation_
     
     
     
-    
+#ifdef DEBUG
     printf("libdyn module udp-communication initialised\n");
+#endif  
+
 
 }
 

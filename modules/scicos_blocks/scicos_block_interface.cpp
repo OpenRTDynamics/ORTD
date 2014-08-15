@@ -361,7 +361,10 @@ int libdyn_module_scicos_blocks_siminit(struct dynlib_simulation_t *sim, int bid
     int blockid = 15200 + 0;  // CHANGE HERE: choose a unique id for each block
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_scicosinterface);
 
+#ifdef DEBUG
     printf("libdyn module scicos_blocks initialised\n");
+#endif  
+    
 
 }
 
