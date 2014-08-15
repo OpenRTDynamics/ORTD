@@ -113,9 +113,6 @@ int libdyn_config_get_datatype_len(int datatype)
        break;
        
      case DATATYPE_INT32 :
-#ifdef DEBUG
-       fprintf(stderr, "requ. for not implemented datatype\n");
-#endif  
        return sizeof(int32_t);
        break;
        
@@ -1603,7 +1600,7 @@ mydebug(1) fprintf(stderr, "Yeah 2\n");
   
   }
   
-  fprintf(stderr, "libdyn: successfully compiled schematic\n");
+  fprintf(stderr, "--- libdyn: successfully loaded schematic; sim=%p ---\n", simulation);
   
   return 0;
 }

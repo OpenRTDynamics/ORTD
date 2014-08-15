@@ -108,7 +108,7 @@ template <class compute_instance> void background_computation<compute_instance>:
   this->TaskPriority = TaskPriority;
   
   
-    pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutex, NULL);  pthread_mutex_lock(&mutex); // mutex initially locked
     pthread_cond_init(&cond, NULL);
 
     pthread_mutex_init(&CompNotRunning_mutex, NULL);
@@ -127,6 +127,8 @@ template <class compute_instance> void background_computation<compute_instance>:
         fprintf(stderr, "ERROR; return code from pthread_create() is %d\n", rc);
 	throw 1;
     }    
+    
+    // TODO wait until the thread is ready
 }
 
 template <class compute_instance> background_computation<compute_instance>::~background_computation()
@@ -160,11 +162,13 @@ template <class compute_instance> void * background_computation<compute_instance
 template <class compute_instance> void background_computation<compute_instance>::loop()
 {
     signal = 0;
+    // mutex is initially locked now.
+    // Thus, this thread can only be signaled, if 
+    // execution pauses at pthread_cond_wait, meaning the thread is initialised
+    
+//    pthread_mutex_lock(&mutex);  // moved to
 
     for (;;) {
-
-        pthread_mutex_lock(&mutex);
-
 
         while (signal == 0) {
             pthread_cond_wait(&cond, &mutex);
@@ -179,6 +183,7 @@ template <class compute_instance> void background_computation<compute_instance>:
 #endif
 
         pthread_mutex_unlock(&mutex);
+	// This thread can be sigaled from here on, but that would not be catched
 
 
         // do something based on sig
@@ -199,14 +204,35 @@ template <class compute_instance> void background_computation<compute_instance>:
         if (sig == -1)
             return;
 
+        pthread_mutex_lock(&mutex);
+	
+	
     }
 }
+
+
+
+// async_simulationBlock: added schematic
+// ortd: Simulation set-up successfully; entering main loop.
+// -- step O --- sim=0x3b7b90
+// -- step U --- sim=0x3b7b90
+// async_simulationBlock: Trigger computation
+// Comp mgr sending signal to thread
+// Task Prio1 (flags) would be 2 (1 means ORTD_RT_REALTIMETASK)
+// Task Prio2 would be 0
+// Task CPU would be -1
+// realtime.c: initialised a non real-time thread
+// realtime.c: Successfully set the task properties
+// -- step O --- sim=0x3b7b90
+// -- step U --- sim=0x3b7b90
+
 
 template <class compute_instance> void background_computation<compute_instance>::signal_thread(int sig)
 {
 
 #ifdef DEBUG
     fprintf(stderr, "Comp mgr sending signal to thread\n");
+//     sleep(1);
 #endif
 
     pthread_mutex_lock(&mutex);
