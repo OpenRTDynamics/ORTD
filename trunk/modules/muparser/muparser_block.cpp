@@ -265,7 +265,10 @@ int libdyn_module_muparser_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     int blockid = 11001;
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_muparser);
 
+#ifdef DEBUG
     printf("libdyn module muparser initialised\n");
+#endif  
+    
 
 }
 

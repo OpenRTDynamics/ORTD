@@ -97,7 +97,7 @@ int libdyn_config_get_datatype_len(int datatype)
   int datatype_len = datatype >> 5;
 
 #ifdef DEBUG
-  fprintf(stderr, "calculated datatype len %d\n", datatype_len);
+//   fprintf(stderr, "calculated datatype len %d\n", datatype_len);
 #endif  
   
   switch (datatype) {
@@ -1101,7 +1101,7 @@ libdyn_simulation_setSyncCallback(struct dynlib_simulation_t *simulation, int (*
   if (simulation->sync_callback.sync_func != NULL)
     return 0;
   
-#ifdef DEBUG2
+#ifdef DEBUG
     printf("simulation %p will be synchronised to %p\n", simulation, sync_func);
 #endif
   
@@ -1162,6 +1162,10 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   if (simulation->blocks_initialised == 0)
     libdyn_simulation_init(simulation);
   
+  
+  
+
+  
     
   struct dynlib_block_t *current; // Iterator for executionlists.
   
@@ -1171,6 +1175,9 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   
   if (update_states == 0) {
     
+#ifdef DEBUG
+   fprintf(stderr, "-- step O --- sim=%p\n", simulation);
+#endif  
     
 //     /*
 //      * Wait for synhronisation callback function
@@ -1232,6 +1239,10 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   //
 
   if (update_states == 1) {
+    
+#ifdef DEBUG
+   fprintf(stderr, "-- step U --- sim=%p\n", simulation);
+#endif  
     
     
     simulation->stepcounter++; // stepcounter wird nur bei stateupdates weitergeführt

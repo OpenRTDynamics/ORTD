@@ -339,9 +339,6 @@ int libdyn_module_matrix_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
   // printf("libdyn module siminit function called\n"); 
   
   // Register my blocks to the given simulation
-  
-  printf("Adding MATRIX module\n");
-  
   int blockid = 69001;
   libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 1, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_constmat);
   libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 2, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_vec2mat);
@@ -349,6 +346,11 @@ int libdyn_module_matrix_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 #if GSL_INCLUDED == 1
   libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 4, LIBDYN_COMPFN_TYPE_LIBDYN, &compu_func_leastsquares);
 #endif
+  
+#ifdef DEBUG
+  printf("Added MATRIX module\n");
+#endif  
+  
 }
 
 //} // extern "C"

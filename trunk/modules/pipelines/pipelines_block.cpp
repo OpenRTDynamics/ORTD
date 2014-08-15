@@ -56,7 +56,10 @@ int libdyn_module_pipelines_siminit(struct dynlib_simulation_t *sim, int bid_ofs
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &write_RingBuffer_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &read_RingBuffer_block);
 
+#ifdef DEBUG
     printf("libdyn module pipelines initialised\n");
+#endif  
+
 
 }
 

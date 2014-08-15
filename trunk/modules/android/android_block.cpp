@@ -428,8 +428,10 @@ int libdyn_module_android_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 
 //     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_AndroidAudio);
 
-
+#ifdef DEBUG
     printf("libdyn module android initialised\n");
+#endif  
+
 
 //// Compile only on Android /////
 #endif

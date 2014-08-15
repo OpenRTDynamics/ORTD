@@ -703,8 +703,10 @@ int libdyn_module_ext_process_siminit(struct dynlib_simulation_t *sim, int bid_o
 // ProcessReceiverBlock
 // ProcessSendToBlock
 
-
+#ifdef DEBUG
     printf("libdyn module ext_process initialised\n");
+#endif  
+
 
 }
 

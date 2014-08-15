@@ -658,14 +658,12 @@ extern "C" {
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid+13, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_Transmit_AccessShObjBlock::CompFn);
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+14, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_ReadRegister_AccessShObjBlock::CompFn);
 	
-	printf("Added %d\n", blockid+14);
-	
-	
-	
 //         libdyn_compfnlist_add(sim->private_comp_func_list, blockid+12, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &I2CDevice_ReadRegister_AccessShObjBlock::CompFn);
 
-
+#ifdef DEBUG
         printf("module I2CDevice is initialised\n");
+#endif  
+
 
     }
 

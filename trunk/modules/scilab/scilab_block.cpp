@@ -111,17 +111,31 @@ void compu_func_scilab_class::io(int update_states)
         int outvec_no = ipar[3];
         int i;
 
+#ifdef DEBUG
         fprintf(stderr, "scilab: Start send_vector_to_scilab\n");
-        if (scilab_calc->send_vector_to_scilab(invec_no, in, insize))
+#endif
+
+	if (scilab_calc->send_vector_to_scilab(invec_no, in, insize))
         {
+	  
+#ifdef DEBUG
             fprintf(stderr, "scilab: Start calculate\n");
-            if (scilab_calc->calculate(invec_no, outvec_no, insize, outsize)) // send calc_cmd to scilab
+#endif
+
+	    if (scilab_calc->calculate(invec_no, outvec_no, insize, outsize)) // send calc_cmd to scilab
             {
+	      
+#ifdef DEBUG
                 fprintf(stderr, "scilab: Start read_vector_from_scilab\n");
-                scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
+#endif
+
+		scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
             }
         }
+
+#ifdef DEBUG
         fprintf(stderr, "scilab: computation finished\n");
+#endif
 
     }
 }
@@ -239,8 +253,9 @@ int libdyn_module_scilab_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     int blockid = 22000;
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_scilab);
 
+#ifdef DEBUG
     printf("libdyn module scilab initialised\n");
-
+#endif
 }
 
 

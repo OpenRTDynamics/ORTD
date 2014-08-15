@@ -2236,7 +2236,9 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+11, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ld_NoResetNest::CompFn);
 
 
-
+#ifdef DEBUG
     fprintf(stderr, "libdyn module nested initialised\n");
+#endif  
+
 
 }

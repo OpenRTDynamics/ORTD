@@ -429,8 +429,10 @@ int libdyn_module_rt_server_siminit(struct dynlib_simulation_t *sim, int bid_ofs
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_rt_server_param);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid + 1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &compu_func_rt_server_strem);
     
-
+#ifdef DEBUG
     printf("libdyn module rt_server initialised\n");
+#endif  
+
 
 }
 

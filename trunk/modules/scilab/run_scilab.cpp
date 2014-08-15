@@ -324,7 +324,6 @@ bool scilab_calculation::send_buffer(char *buf, int size)
 bool scilab_calculation::calculate(int invec_no, int outvec_no, int insize, int outsize)
 {
     bool status;
-    char buf[1024];
     int state = 0;
     int rec_vec_no, rec_veclen;
 
@@ -377,6 +376,11 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 //     }
 
     // Make scilab to print out a "magic" number which helps to separate from the usual output of the scilab calculation
+    
+#ifdef DEBUG
+    fprintf(stderr, "scilab_interface: Try read a vector\n");
+#endif
+    
     sprintf(tmp, "try;"
                  "printf(\"vlg3hdl1289fn28=%%d \\n \", length(scilab_interf.outvec%d));  "
 		  "catch; "
@@ -387,6 +391,10 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
         fprintf(stderr, "scilab_interface: Error writing to scilab!\n");
         return false;
     }
+
+#ifdef DEBUG
+    fprintf(stderr, "scilab_interface: Command to trigger the output was sent\n");
+#endif
 
     do
     {
