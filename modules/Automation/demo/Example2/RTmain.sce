@@ -1,10 +1,67 @@
 // 
-// A demonstration for automating experiments.
+// 
+// 
+// A demonstration for automating experiments using the macro ld_AutoOnlineExch_dev
 // 
 // 
 // 
+// This example shows, how to automate experiments involving e.g. calibration
+// routines and the ongoing design of control systems. Normal Scilab
+// code can be used to automatically perform calibration / controller design
+// procedures, while the overall control system is running. Concepts like
+// embedded Scilab and on-line replaceable schematics are involved.
 // 
-// embedded 
+// 
+// Definitions of terms:
+// 
+// This example involves the execution of Scilab code to define schematics as
+// well as to perform calculations, while the control
+// system is running by using Scilab embedded into the ORTD interpreter
+// (ld_scilab4). If comments in the code state that a certain part of Scilab
+// commands are executed "On-line" or "at runtime" it means these commands will be
+// run in the embedded Scilab instance, when the ortd interpreter is running.
+// Parts marked by the term "Off-line" are executed when this Scilab-Script
+// (RTmain.sce) is executed prior to running the ortd-interpreter.
+// 
+// The schematic that is responsible for performing e.g. calibration
+// or implementing control systems is called "experiment controller".
+// Such schematics are defined using the function "ExperimentCntrl" in
+// this example. This function may run Off-line (to define an initial 
+// experiment controller) as well as On-line to define experiment controllers 
+// during runtime. The execution of this function is triggered each time
+// an experiment controller decides to finish its execution, which is indicated
+// by setting the return-signal "finished" to one. In a next step, typically,
+// a replacement for the current experiment controller is defined that is automatically
+// loaded.
+// 
+// By implementing "ExperimentCntrl" using a state machine, complex experiment control
+// logic can be implemented. Herein, each state may be used to define new experiment
+// controllers potentially based on results (e.g. collected data) of previously 
+// active experiment controllers.
+// 
+// 
+// In this example the following steps are performed
+// 
+// 1) An initial, dummy schematic for the experiment controller is
+//    active that finishes executing after 10 execution steps.
+// 2) The function "ExperimentCntrl" is called using the embedded 
+//    Scilab instance. The state "init" is active and used to define
+//    an experiment controller that is supposed to collect measured
+//    data.
+// 3) The experiment controller is loaded and executed. Collection of data
+//    is progressing until NcalibSamples=20 samples are collected.
+// 4) Again, he function "ExperimentCntrl" is called using the embedded 
+//    Scilab instance to define a next experiment controller. Now, the state "control"
+//    is active. The previously collected data is used obtain some parameters 
+//    (e.g. a mean value) using normal Scilab commands to design a control system.
+// 5) The control system is loaded and executed.
+// 6) after some time, the control system decides to perform a re-calibration;
+//    Step 2) and the ongoing logic is performed again.
+// 
+// 
+// Please note: All error messages occurring when embedded Scilab code is executed
+//              go to stderr of the ortd interpreter. E.g. append something like
+//              ortd <...> 2> Errors.log
 // 
 
 
@@ -17,7 +74,7 @@ cd(thispath);
 
 function [sim] = AutoCalibration(sim, Signal)
 
-  function [sim, finished, outlist, userdata] = experiment_example(sim, ev, inlist, userdata, CalledOnline)
+  function [sim, finished, outlist, userdata] = ExperimentCntrl(sim, ev, inlist, userdata, CalledOnline)
 
     // Define parameters. They must be defined once again at this place, because this will also be called at
     // runtime.
@@ -49,7 +106,7 @@ function [sim] = AutoCalibration(sim, Signal)
       SchematicInfo = "On-line compiled in iteration #" + string(userdata.Acounter);
 
       // 
-      // Define a new schematic that is used to replace experiment-controller
+      // Define a new experiment controller schematic depending on the currently active state
       // 
 
       // default output (dummy)
@@ -86,12 +143,13 @@ function [sim] = AutoCalibration(sim, Signal)
 	  [sim, out] = ld_const(sim, ev, 0);
 	  outlist=list(out);
 
-          // chose the next state, which would define a control system
+          // chose the next state to enter when the calibration experiment controller has finished
 	  userdata.State = "control";
 
 	case "control" // define a new schematic based on the parameters obtained during the calibration
 
           // use the data collected during the experiment that was defined by state "init"
+          // data comming out of userdata.InputData is the output ToScilab of "PreScilabRun"
 	  data = userdata.InputData;
 	  A=matrix( userdata.InputData , Data_vecsize, NcalibSamples )';
 	  printf("Got the following data for iteration %d:\n", userdata.Acounter);  disp(A);
@@ -165,14 +223,6 @@ function [sim] = AutoCalibration(sim, Signal)
                            initial_data=[zeros(NcalibSamples*Data_vecsize,1)], ... 
                            visibility='global', useMutex=1);
 
-//   // initialise a global memory for storing the calibration result
-//   [sim] = ld_global_memory(sim, ev, ident_str="CalibrationResult", ... 
-//                            datatype=ORTD.DATATYPE_FLOAT, len=20, ...
-//                            initial_data=[zeros(20,1)], ... 
-//                            visibility='global', useMutex=1);
-
-
-
   // Start the experiment
   ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK;
   ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = -1;
@@ -181,14 +231,11 @@ function [sim] = AutoCalibration(sim, Signal)
   intypes=[ORTD.DATATYPE_FLOAT]; outtypes=[ORTD.DATATYPE_FLOAT];
 
 
-  CallbackFns.experiment = experiment_example;
+  CallbackFns.experiment = ExperimentCntrl;
   CallbackFns.whileComputing = whileComputing_example;
   CallbackFns.PreScilabRun = PreScilabRun;
 
-//
-// 
-// 
-// 
+  // Please note ident_str must be unique.
   userdata = [];
   [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, 0, inlist=list(Signal), ...
                                                              insizes, outsizes, intypes, outtypes, ... 
@@ -220,7 +267,7 @@ function [sim, outlist, userdata] = Thread_MainRT(sim, inlist, userdata)
 
   // save the absolute time into a file
   [sim, time] = ld_clock(sim, ev);
-  [sim] = ld_savefile(sim, ev, fname="AbsoluteTime.dat", source=time, vlen=1);
+//   [sim] = ld_savefile(sim, ev, fname="AbsoluteTime.dat", source=time, vlen=1);
 
   //
   // Add you own control system here

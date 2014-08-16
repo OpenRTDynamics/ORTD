@@ -716,6 +716,8 @@ public:
     int WaitForSignal() {
 //       printf("waiting for a notification\n");
       
+        // Note: FIXME: It is not ensured that this thread is ready in pthread_cond_wait
+        //              when a first signal is send to this thread!
         pthread_mutex_lock(&mutex);
 
         while (signal == 0) {

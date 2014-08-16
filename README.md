@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 28.6.2014
+Version of this document: 16.8.2014
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -1032,5 +1032,6 @@ By date as there will only be the svn-version
   - 13.8.14:  Improved automation capabilities: ld_AutoOnlineExch_dev
               module/scilab: The ORTD-Scilab Toolbox is now automatically available in embedded Scilab
               removed some very obsolete warning messages in libdyn.c
+              fixed a threading Bug that appeared very seldom.
 
 
