@@ -165,6 +165,10 @@ template <class compute_instance> void background_computation<compute_instance>:
     // mutex is initially locked now.
     // Thus, this thread can only be signaled, if 
     // execution pauses at pthread_cond_wait, meaning the thread is initialised
+    //
+    // This was changed to fix a BUG on 15.8.14
+    // 
+    // NOTE: Also investigate ThreadNotify_SharedObject in sync_main.cpp (module synchronisation)
     
 //    pthread_mutex_lock(&mutex);  // moved to
 
