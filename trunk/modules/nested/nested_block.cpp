@@ -890,9 +890,6 @@ void compu_func_nested_class::destruct()
     }
 
 
-    // exchange_helper depends on nested_sim_name
-    if (this->nested_sim_name != NULL)
-        free(this->nested_sim_name);
 
 
     simnest->destruct();   // HERE WAS A BUG solved at 2.7.12: both lines were flipped  and the exchange_helper was deleted before this!
@@ -906,6 +903,9 @@ void compu_func_nested_class::destruct()
         delete exchange_helper;
     }
 
+    // exchange_helper depends on nested_sim_name
+    if (this->nested_sim_name != NULL)
+        free(this->nested_sim_name);
 
 }
 
