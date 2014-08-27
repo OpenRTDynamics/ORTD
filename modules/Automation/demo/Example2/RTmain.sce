@@ -1,12 +1,14 @@
 // 
-// 
+// This file is part of OpenRTDynamics.sf.net, the Real-Time Dynamics Framework
 // 
 // A demonstration for automating experiments using the macro ld_AutoOnlineExch_dev
+// --------------------------------------------------------------------------------
+// 
+// Rev 1. 16.8.14
 // 
 // 
-// 
-// This example shows, how to automate experiments involving e.g. calibration
-// routines and the ongoing design of control systems. Normal Scilab
+// This example shows how to automate sequences of experiments including
+// their evaluation and/or the ongoing design of control systems. Normal Scilab
 // code can be used to automatically perform calibration / controller design
 // procedures, while the overall control system is running. Concepts like
 // embedded Scilab and on-line replaceable schematics are involved.

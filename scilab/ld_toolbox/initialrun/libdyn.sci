@@ -335,7 +335,7 @@ function libdyn_check_object(sim,obj)
   end
 
   if obj.simid ~= sim.simid then
-    printf("Object does not belong to this simulation\n");
+    printf("Object does not belong to the simulation-context described by the <sim> structure\n");
     error("");
   end
 endfunction
@@ -1022,14 +1022,14 @@ function [sim_container_irpar, sim] = libdyn_setup_schematic(fn, insizes, outsiz
    // check the number of provided outputs
    if (length(outsizes) > length(outlist)) then
       printf("libdyn: config for I/O: Your function provides %d outports and %d inports\n", length(outlist), length(inlist)  );
-      printf("configured was\n");
+      printf("however, configured was\n");
       disp(outsizes); disp(insizes);
       error("libdyn: libdyn_setup_schematic: your function did not provide enough outputs");
    end
    
    if (length(outsizes) < length(outlist)) then
       printf("libdyn: config for I/O: Your function provides %d outports and %d inports\n", length(outlist), length(inlist)  );
-      printf("configured was\n");
+      printf("however, configured was\n");
       disp(outsizes); disp(insizes);
       error("libdyn: libdyn_setup_schematic: your function provides too much outputs");
    end

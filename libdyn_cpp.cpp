@@ -51,15 +51,12 @@ extern "C" {
 
 irpar::irpar()
 {
-//     fprintf(stderr, "new irpar() \n");
-
     ipar = NULL;
     rpar = NULL;
     Nrpar = 0;
     Nipar = 0;
 
     magic = 0xabcd34;
-//     fprintf(stderr, "irpar::ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
 }
 
 irpar::irpar(int Nipar, int Nrpar)
@@ -69,25 +66,19 @@ irpar::irpar(int Nipar, int Nrpar)
 
     this->ipar = (int*) malloc( sizeof(int) * Nipar );
     this->rpar = (double*) malloc( sizeof(double) * Nrpar );
-
-//     fprintf(stderr, "irpar::ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
 }
 
 irpar::~irpar()
 {
-//   fprintf(stderr, "irpar::~ipar() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
     destruct();
 }
 
 void irpar::destruct()
 {
-//   fprintf(stderr, "irpar::destruct() this=%p\n", this);
-//   fprintf(stderr, "irpar::destruct() magic=%p\n", magic);
     if (magic != 0xabcd34) {
         printf("irpar: this ptr seems to be wroing\n");
     }
 
-//     fprintf(stderr, "irpar::destruct() this ptr=%p ipar=%p rpar=%p\n", this, ipar, rpar );
     if (ipar != NULL) {
         free(ipar);
         ipar = NULL;
@@ -1015,12 +1006,16 @@ libdyn_nested2::libdyn_nested2(int Nin, const int* insizes_, const int* intypes,
 
 }
 
+
 libdyn_nested2::libdyn_nested2(int Nin, int Nout, bool use_buffered_input)
 {
     this->use_buffered_input = use_buffered_input;
 
     this->allocate_structures(Nin, Nout);
 
+    // The allocated_inbuffers() is performed in the call FinishConfiguration()
+    // that has to be called when using this constructor
+    
 //     if (use_buffered_input) {
 //         this->allocate_inbuffers();
 //     }
@@ -1076,6 +1071,18 @@ void libdyn_nested2::destruct()
 
     free_slots();
 
+    // deallocate ioconfig structures
+    free(iocfg.insizes);
+    free(iocfg.outsizes);
+    free(iocfg.intypes);
+    free(iocfg.outtypes);
+    free(iocfg.inptr);
+    free(iocfg.outptr);
+    
+    // dellocate input buffers if any
+    if (use_buffered_input) {
+      free(InputBuffer); 
+    }
 }
 
 int libdyn_nested2::CallSyncCallbackDestructor()

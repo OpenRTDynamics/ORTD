@@ -93,19 +93,12 @@ int log_ringbuffer_del(struct ringbuffer_t *rb)
   // FIXME join thread
   //pthread_join(rb->t, NULL);
 
-
   pthread_mutex_destroy(&rb->thread_mutex);
   pthread_cond_destroy(&rb->thread_condition);
 
-  mydebug(0) printf("destroyed mutexs\n");
-  
-  free(rb->buf);
-  mydebug(0) printf("freed buffer\n");
-
-  free(rb);
-  mydebug(0) printf("freed rb\n");
-  
+  free(rb->buf);  
   free(rb->cntrl_signal_ring.buffer );
+  free(rb);
 }
 
 //
@@ -420,6 +413,9 @@ int log_sink_del(struct sink_t *sink)
   
   log_ringbuffer_del(sink->rb);
   mydebug(0) printf("ringbuf deleted\n");
+  
+  free(sink->oneelebuf);
+    
   free(sink);
 }
 
