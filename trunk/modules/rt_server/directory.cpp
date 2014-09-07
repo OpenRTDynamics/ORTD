@@ -84,7 +84,7 @@ bool directory_leaf::add_entry(char* name, int type, void *belonges_to_class, vo
   
   //std::string *n = new std::string(name); // FIXME geht das so?
   std::string n(name); // FIXME pot segfault???
-  directory_entry *entry = new directory_entry(); 
+  directory_entry *entry = new directory_entry();   // ANGEBLICH WIRD DIES HIER NICHT FREI GEGEBEN
   
   std::pair <std::string, directory_entry* > paired = std::make_pair(n, entry);
   entries.insert(paired);
@@ -97,7 +97,7 @@ bool directory_leaf::add_entry(char* name, int type, void *belonges_to_class, vo
  // entries[name] = entry;
   return true;
 }
-
+ 
 directory_entry* directory_leaf::get_entry(char* name)
 {
   std::string n(name);

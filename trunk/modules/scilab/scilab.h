@@ -7,6 +7,10 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
+extern "C" {
+#include "libdyn.h"
+}
+
 class run_scilab {
    private:
       char *scilab_path;
@@ -33,7 +37,7 @@ class run_scilab {
 class scilab_calculation {
    public:
       // send init_cmd an scilab
-      scilab_calculation(const char *scilab_path, char *init_cmd, char *destr_cmd, char *calc_cmd);//, int Nin, int Nout, int *insizes, int *outsizes, double **inptr, double **outptr);
+      scilab_calculation(dynlib_block_t *block, const char *scilab_path, char *init_cmd, char *destr_cmd, char *calc_cmd);//, int Nin, int Nout, int *insizes, int *outsizes, double **inptr, double **outptr);
       
       
       // send destr_cmd an scilab
@@ -57,4 +61,6 @@ class scilab_calculation {
       char *init_cmd;
       char *destr_cmd;
       char *calc_cmd;
+      
+      dynlib_block_t *block;
 };

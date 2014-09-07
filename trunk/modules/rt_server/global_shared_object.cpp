@@ -69,7 +69,11 @@ void ortd_global_shared_object::constructor(const char* identName, libdyn_master
       throw 3;
   }
   
+  
+  //   // TODO: add entries to a  list stored in the simnest2 class
+//   simnest->addElement((char*) identName_.c_str(), ORTD_DIRECTORY_ENTRYTYPE_SHAREDOBJECT, this );
 
+ 
   pthread_mutex_init(&counter_mutex, NULL);
 }
 
@@ -85,6 +89,9 @@ ortd_global_shared_object::~ortd_global_shared_object()
   // remove the directory entry
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry((char*) identName_.c_str());
+  
+  //   // TODO: use simnest2 class
+//   simnest->deleteElement( (char*) identName_.c_str() );
   
     pthread_mutex_destroy(&counter_mutex);
 

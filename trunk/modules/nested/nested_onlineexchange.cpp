@@ -3,6 +3,10 @@
 #include "nested_onlineexchange.h"
 #include <libdyn_cpp.h>
 
+
+
+//  TODO re-implement using a globally shared object
+
 nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* simnest)
 {
   this->identName = identName;
@@ -18,7 +22,7 @@ nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* si
     
     return;
   }
-  
+   
   directory_tree *dtree = ldmaster->dtree;
   if (dtree == NULL) {
     fprintf(stderr, "stderr: nested_onlineexchange: needs a root directory_tree\n");
@@ -27,6 +31,10 @@ nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* si
   }
     
   dtree->add_entry((char*) this->identName.c_str(), ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this, this);
+  
+//   // TODO: add entries to a  list stored in the simnest2 class
+//   simnest->addElement((char*) this->identName.c_str(), ORTD_DIRECTORY_ENTRYTYPE_NESTEDONLINEEXCHANGE, this );
+   
   
 //   fprintf(stderr, "nested_onlineexchange created. this=%p current_irdata=%p\n", this, current_irdata);
 }
@@ -98,6 +106,9 @@ nested_onlineexchange::~nested_onlineexchange()
   
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry((char*) identName.c_str());
+  
+  // TODO enable this instead
+//   simnest->deleteElement( (char*) identName.c_str() );
   
   if (this->current_irdata != NULL) {
 #ifdef DEBUG

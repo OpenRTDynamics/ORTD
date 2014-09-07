@@ -29,7 +29,7 @@ extern "C" {
 }
 
 
-
+#include "io.h"
 
 
 
@@ -86,8 +86,9 @@ int compu_func_scilab_class::init()
     irpar_getstr(&scilab_path, ipar, start_scilab_path, length_scilab_path);
 
     fprintf(stderr, "Scilab executable is %s\n", scilab_path);
+    ortd_io::PutString(block->sim, "Scilab ::\n");
 
-    scilab_calc = new scilab_calculation(scilab_path, init_cmd, destruct_cmd, calc_cmd);
+    scilab_calc = new scilab_calculation(block, scilab_path, init_cmd, destruct_cmd, calc_cmd);
 
     // Load the ORTD-Scilab Toolbox that was compiled into the ortd executables into the Scilab instance
 //     scilab_calc->send_buffer( _binary_scilab_ORTDToolbox_sce_start, _binary_scilab_ORTDToolbox_sce_size );

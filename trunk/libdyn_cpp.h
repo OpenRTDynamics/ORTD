@@ -53,6 +53,7 @@ class libdyn_master;
 class libdyn;
 class libdyn_nested;
 class libdyn_nested2;
+class ortd_io_internal;
 
 
 // Änderungen:
@@ -165,7 +166,7 @@ public:
 	
 	
 	
-	
+#include "io.h"
 
 class libdyn_master {
 private:
@@ -206,6 +207,10 @@ public:
     void close_communication();
     // ... //
 #endif
+    
+    // The io framework ADded onn
+    // 4.9.14
+    ortd_io_internal *ortd_io;
 
     // calls every module to register its blocks
     int init_blocklist();
@@ -267,7 +272,12 @@ public:
 
     void destruct();
 
-    void set_master(libdyn_master *master);
+    void set_master(libdyn_master *master) {
+      this->ld_master = master;
+    }
+    libdyn_master * get_master() {
+      return this->ld_master;
+    }
 
     /**
       * \brief Configure pointer to input port source variables
@@ -405,9 +415,15 @@ public:
 
     void destruct();
 
-    void set_master(libdyn_master *master);
-
+    
     // Vererbung
+    void set_master(libdyn_master *ld_master)  {
+	this->ld_master = ld_master;  
+    }     
+    libdyn_master * get_master() {
+      return this->ld_master;
+    }
+
     void set_parent_simulation( dynlib_simulation_t *ParentSim );
     static class libdyn_nested2* GetSimnestClassPtrFromC(dynlib_simulation_t *sim) {
       return (class libdyn_nested2*) sim->SimnestClassPtr;
@@ -419,6 +435,21 @@ public:
     void setNestedLevel( int Level ) {
       NestedLevel = Level;
     }
+    
+    // List of elements TODO Supposed to remove all directory.cpp stuff
+    void addElement(char *name, int type, void *userptr); // TODO Implement add an element to the list of objects
+    void *lockupElement(char *name, int type);
+    void deleteElement(char *name, int type);
+
+    typedef struct {
+      void * userptr;
+      int type;
+      int ID; // 
+    } Element_t;
+    typedef std::map<std::string, Element_t> Element_map_t;
+    Element_map_t Elements;
+    int ElementIDcounter;
+
 
     /**
       * \brief Configure pointer to input port source variables
@@ -543,7 +574,15 @@ public:
 
 
     // NEU set a new master
-    void set_master(libdyn_master *ld_master);
+    void set_master(libdyn_master *ld_master)  {
+	this->ld_master = ld_master;  
+    }
+
+     
+    libdyn_master * get_master() {
+      return this->ld_master;
+    }
+
 //     void setNestedLevel( int Level );
 
     /**

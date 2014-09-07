@@ -1034,5 +1034,7 @@ By date as there will only be the svn-version
               removed some very obsolete warning messages in libdyn.c
               fixed a threading Bug that appeared very seldom.
   - 27.8.14:  Fixed many memory leaks that were detected by valgrind
+  -  7.9.13:  More memory leaks were fixed.
+              Introduced io.h / io.cpp. Currently used to output the output of the Scilab-module's Scilab instance
 
 

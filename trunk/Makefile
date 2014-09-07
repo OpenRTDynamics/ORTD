@@ -249,9 +249,9 @@ libdyn_generic_exec: lib libdyn_generic_exec.o
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib IncompiledVariables.h
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
 
-lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o
-	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o         all_Targets/*.o `cat tmp/LDFALGS.list` $(LD_LIBRARIES) -o libortd.so
-	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o                 all_Targets/*.o
+lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o io.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o
+	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o io.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o         all_Targets/*.o `cat tmp/LDFALGS.list` $(LD_LIBRARIES) -o libortd.so
+	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o io.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o                 all_Targets/*.o
 
 	# This is used for RTAI code generation within the Hart-Toolbox. Therefore, some parts are skipped
 	# FIXME remove this
@@ -440,6 +440,9 @@ libilc.o: libilc.c
 
 libdyn_cpp.o: libdyn_cpp.cpp IncompiledVariables.h
 	$(CC) $(CFLAGS) -c libdyn_cpp.cpp
+
+io.o: io.cpp
+	$(CC) $(CFLAGS) -c io.cpp
 
 
 # Do an update update
