@@ -1,6 +1,8 @@
 #include "scilab.h"
 #include <stdio.h>
 
+#include "io.h"
+
 /*#if !defined(ARRAY_SIZE)
     #define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))
 #endif*/
@@ -18,7 +20,7 @@ run_scilab::run_scilab(const char* scilab_path) // Constructor
     ToChild[1] = 0;
     ToParent[0] = 0;
     ToParent[1] = 0;
-    
+
     readfd = NULL;
     writefd = NULL;
 }
@@ -91,9 +93,9 @@ bool run_scilab::init()    // starts scilab and generates pipes to scilab to sen
             fprintf(stderr, "Error replacing stdout with the out-side of the ToParent-pipe in child process!\n");
             exit (1);
         }
-        
-        
-        #include "scilabconf.h"
+
+
+#include "scilabconf.h"
 
         // run scilab
 //         status = execl(scilab_path, "scilab", "-nw", NULL);   // replaces the child process image
@@ -101,13 +103,13 @@ bool run_scilab::init()    // starts scilab and generates pipes to scilab to sen
 //  fprintf(stderr, "**** compare path %d \n", strcmp(scilab_path, "BUILDIN_PATH"));
 
         if ( strcmp(scilab_path, "BUILDIN_PATH") == 0 ) {
-	  fprintf(stderr, "running scilab from buildin path: %s\n", SCILAB_EXEC);
-          status = execl(SCILAB_EXEC, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image	  	  
-	} else {
-	  fprintf(stderr, "running scilab from the given path: %s\n", scilab_path);
-          status = execl(scilab_path, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image
-	}
-	
+            fprintf(stderr, "running scilab from buildin path: %s\n", SCILAB_EXEC);
+            status = execl(SCILAB_EXEC, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image
+        } else {
+            fprintf(stderr, "running scilab from the given path: %s\n", scilab_path);
+            status = execl(scilab_path, "scilab", "-nwni", NULL);   //  no gui, replaces the child process image
+        }
+
         // with a new scilab process image
         if (status == -1)
         {
@@ -164,7 +166,7 @@ bool run_scilab::init()    // starts scilab and generates pipes to scilab to sen
     {
         /* If a negative value (-1) is returned, an error has occurred */
         fprintf (stderr, "Error creating child process (PID < 0)\n");
-	return false;
+        return false;
 //         exit (0);
     }
 
@@ -189,12 +191,12 @@ bool run_scilab::send_to_scilab(const char* cmd)   // send command to scilab
 bool run_scilab::send_to_scilab(char *buf, int size)
 {
 //   printf("size = %d\n", size);
-  int i;  
-  for (i = 0; i < size; ++i) {
-    fputc(buf[i], writefd);
+    int i;
+    for (i = 0; i < size; ++i) {
+        fputc(buf[i], writefd);
 //      putchar(buf[i]);
-  }
-  fflush(writefd);
+    }
+    fflush(writefd);
 }
 
 
@@ -222,18 +224,19 @@ FILE* run_scilab::get_readfd()   // read from scilab
 
 
 
-scilab_calculation::scilab_calculation(const char *scilab_path, char *init_cmd, char *destr_cmd, char *calc_cmd)//, int Nin, int Nout, int *insizes, int *outsizes, double **inptr, double **outptr)
+scilab_calculation::scilab_calculation(dynlib_block_t *block, const char *scilab_path, char *init_cmd, char *destr_cmd, char *calc_cmd)//, int Nin, int Nout, int *insizes, int *outsizes, double **inptr, double **outptr)
 {
     bool status;
 
+    this->block = block;
     scilab = new run_scilab(scilab_path);
 
     status = scilab->init();
     if (status == false)
     {
         fprintf(stderr, "scilab_interf: Error init a scilab instance!\n");
-	delete scilab;
-	
+        delete scilab;
+
         exit(0);
     }
 
@@ -317,7 +320,7 @@ bool scilab_calculation::send_vector_to_scilab(int vector_nr, double *data, int 
 
 bool scilab_calculation::send_buffer(char *buf, int size)
 {
-  scilab->send_to_scilab(buf, size);
+    scilab->send_to_scilab(buf, size);
 }
 
 
@@ -335,7 +338,7 @@ bool scilab_calculation::calculate(int invec_no, int outvec_no, int insize, int 
     }
 
 //     FILE *read_fd = scilab->get_readfd();
-// 
+//
 //     status = scilab->send_to_scilab("printf(\"\\n\")"); // to get something to read
 //     if (status == false)
 //     {
@@ -376,15 +379,15 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 //     }
 
     // Make scilab to print out a "magic" number which helps to separate from the usual output of the scilab calculation
-    
+
 #ifdef DEBUG
     fprintf(stderr, "scilab_interface: Try read a vector\n");
 #endif
-    
+
     sprintf(tmp, "try;"
-                 "printf(\"vlg3hdl1289fn28=%%d \\n \", length(scilab_interf.outvec%d));  "
-		  "catch; "
-		  "printf(\"ERRORvlg3hdl1289fn28\\n \" ); end; " , vector_nr);
+            "printf(\"vlg3hdl1289fn28=%%d \\n \", length(scilab_interf.outvec%d));  "
+            "catch; "
+            "printf(\"ERRORvlg3hdl1289fn28\\n \" ); end; " , vector_nr);
     status = scilab->send_to_scilab(tmp);
     if (status == false)
     {
@@ -402,8 +405,8 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
                 && !ferror(read_fd)
                 && fgets(buf, sizeof buf, read_fd) != NULL)
         {
-	    if (sscanf (buf,"vlg3hdl1289fn28=%d",&rec_veclen) == 1) { // is there my magic number?
-	        // check vector length
+            if (sscanf (buf,"vlg3hdl1289fn28=%d",&rec_veclen) == 1) { // is there my magic number?
+                // check vector length
                 if (rec_veclen != veclen)   {
                     fprintf(stderr, "scilab_interface: Error: Wrong vector length received! Expected length %d but got %d\n", veclen, rec_veclen);
                     return false;
@@ -411,17 +414,19 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 //                  fprintf(stderr, "got veclen=%d\n", rec_veclen);
                     state = 1;
                 }
-	      
-	    } else if (strstr (buf,"ERRORvlg3hdl1289fn28") != NULL)   { // insted got error FIXME: the normal code could also hav send this
+
+            } else if (strstr (buf,"ERRORvlg3hdl1289fn28") != NULL)   { // insted got error FIXME: the normal code could also hav send this
                 state = -1;
-		fprintf(stderr, "scilab_interface: There was an error reading out the variable \"scilab_interf.outvec%d\" \n", vector_nr);
-		return false;
+                fprintf(stderr, "scilab_interface: There was an error reading out the variable \"scilab_interf.outvec%d\" \n", vector_nr);
+                return false;
             } else if (state == 0) { // as long as "vectorlen_g3hdl1289fn28" or "error" is not found, put out the scilab outputs to stderr
-	      fprintf(stderr, "scilab says: >>> %s\n", buf);
-	    }
+//                 fprintf(stderr, "scilab says: >>> %s\n", buf);
+// 		ortd_io::PutString(block, "scilab:");
+		ortd_io::PutString(block, buf);
+            }
 
 
-	    
+
 // 	    if (strstr (buf,"vectorleng3hdl1289fn28=") != NULL) // wait for the special line
 //             {
 //                 sscanf (buf,"%10s%d",tmp,&rec_veclen);
@@ -432,12 +437,12 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 // //                  fprintf(stderr, "got veclen=%d\n", rec_veclen);
 //                     state = 1;
 //                 }
-//                 
-//                 
+//
+//
 //             }  else if (strstr (buf,"error") != NULL)   {
 //                 state = -1;
 //             }
-//             
+//
         }
         else
         {
@@ -520,7 +525,7 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
 {
     bool status;
     char buf[1024];
-        
+
 
     status = scilab->send_to_scilab("exit\nquit\n");
     if (status == false)
@@ -535,8 +540,10 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
             && !ferror(read_fd)
             && fgets(buf, sizeof buf, read_fd) != NULL)
     {
-        fprintf(stderr, "scilab says: >>> %s\n", buf);      
-	
+//         fprintf(stderr, "scilab says: >>> %s\n", buf);
+//       ortd_io::PutString(block, "scilab:");
+	ortd_io::PutString(block, buf);
+
         // Was ist das hier? - leere Zeilen abfangen
         if (((int)buf[0] != 32) && ((int)buf[0] != 10) && ((int)buf[3] != 0))
         {

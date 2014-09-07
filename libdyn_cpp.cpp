@@ -373,10 +373,6 @@ bool libdyn_nested::slotindexOK(int nSim)
 }
 
 
-void libdyn_nested::set_master(libdyn_master* master)
-{
-    this->ld_master = master;
-}
 
 
 int libdyn_nested::add_simulation(int slotID, irpar* param, int boxid)
@@ -768,6 +764,7 @@ void libdyn_nested2::allocate_structures(int Nin, int Nout)
     this->ParentSim = NULL;
     this->Parent_SimnestClassPtr = NULL;
     this->NestedLevel = 0;
+    this->ElementIDcounter = 0; // init the counter for the elements list
 
     //
     // configure I/O
@@ -1052,7 +1049,11 @@ void libdyn_nested2::destruct()
             if (sim_slots[i].sim != NULL) {
                 sim_slots[i].sim->destruct();
                 delete sim_slots[i].sim;
-
+		
+#ifdef DEBUG
+		fprintf(stderr, "libdyn_nested2::destruct(): removed  %p from %p index %d\n",  sim_slots[i].sim, sim_slots, i );
+#endif
+		
                 sim_slots[i].sim = NULL;
             }
         }
@@ -1186,12 +1187,6 @@ void libdyn_nested2::set_parent_simulation(dynlib_simulation_t* ParentSim)
 }
 
 
-void libdyn_nested2::set_master(libdyn_master* master)
-{
-    this->ld_master = master;
-}
-
-
 int libdyn_nested2::add_simulation(int slotID, irpar* param, int boxid)
 {
 //   if (!ConfigurationFinished) {
@@ -1280,6 +1275,10 @@ int libdyn_nested2::add_simulation(int slotID, libdyn* sim)
         sim_slots[ slot_addsim_pointer ].sim = sim;
         sim_slots[ slot_addsim_pointer ].replaceable_simulation_initialised = false;
 
+	#ifdef DEBUG
+		fprintf(stderr, "libdyn_nested2::add_simulation: inserted1  %p into %p index %d\n",  sim, sim_slots, slot_addsim_pointer );
+#endif
+
 
         // also set to be the current simulation
         current_sim = sim;
@@ -1311,6 +1310,11 @@ int libdyn_nested2::add_simulation(int slotID, libdyn* sim)
             return -1;
         }
 
+#ifdef DEBUG
+		fprintf(stderr, "libdyn_nested2::add_simulation: inserted2  %p into %p index %d\n",  sim, sim_slots, slotID );
+#endif
+
+        
         sim_slots[ slotID ].sim = sim;
         sim_slots[ slotID ].replaceable_simulation_initialised = false;
 
@@ -1358,6 +1362,7 @@ int libdyn_nested2::del_simulation(int slotID)
     // destruct the simulation
     libdyn *sim = this->sim_slots[slotID].sim;
     sim->destruct();
+    delete sim;
 
     // mark as a free slot
     this->sim_slots[slotID].sim = NULL;
@@ -1410,6 +1415,7 @@ int libdyn_nested2::del_simulation(int slotID, int switchto_slotID)
 
     // do the destruction outside the locked area since this could lasts a long time and would therefore destroy realtime
     sim->destruct();
+    delete sim;
 
     return 1;
 
@@ -1610,6 +1616,80 @@ void libdyn_nested2::event_trigger_mask(int mask)
 {
     current_sim->event_trigger_mask(mask);
 }
+
+/*
+  List of elements
+*/
+
+void libdyn_nested2::addElement(char* name, int type, void* userptr)
+{
+  Element_t e;
+  e.type = type; e.userptr = userptr; e.ID = ElementIDcounter;
+  std::string s(name);
+  Elements.insert(std::make_pair( s, e ) );
+  ElementIDcounter++; 
+} 
+
+void libdyn_nested2::deleteElement(char* name, int type)
+{
+  std::string n(name);
+  
+  Element_map_t::iterator it;
+  it = Elements.find(n);
+  
+  if (it == Elements.end()) {
+    throw 1;
+  } 
+
+  if (it->second.type != type) {
+    // wrong type
+    throw 2;
+  }
+
+  Elements.erase(it);
+}
+
+void* libdyn_nested2::lockupElement(char* name, int type)
+{
+  std::string n(name);
+  
+  Element_map_t::iterator it;
+  it = Elements.find(n);
+  
+  if (it == Elements.end()) {
+    
+    if (this->Parent_SimnestClassPtr == NULL) {
+      throw 1;
+    }
+    
+    // lookup in the upper level
+    fprintf(stderr, "libdyn_nested2::lockupElement: going t parent simulation\n");
+    return this->Parent_SimnestClassPtr->lockupElement(name, type);
+  } 
+  
+  if (it->second.type != type) {
+    throw 2;
+  }
+  fprintf(stderr, "libdyn_nested2::lockupElement: found\n");
+  
+  return it->second.userptr;
+}
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1814,11 +1894,6 @@ libdyn::libdyn(struct libdyn_io_config_t * iocfg)
     this->ld_master = NULL;
 }
 
-void libdyn::set_master(libdyn_master* ld_master)
-{
-    this->ld_master = ld_master;
-//   printf("Master was set\n");
-}
 
 int libdyn::prepare_replacement_sim(int* ipar, double* rpar, int boxid)
 {
@@ -1867,6 +1942,7 @@ void libdyn::destruct()
 libdyn_master::libdyn_master()
 {
     magic = 0x89abcde2;
+    ortd_io = new ortd_io_internal();
 
     this->realtime_environment = RTENV_UNDECIDED;
 
@@ -1888,6 +1964,7 @@ libdyn_master::libdyn_master()
 libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 {
     magic = 0x89abcde2;
+    ortd_io = new ortd_io_internal();
 
     this->realtime_environment = realtime_env;
 
@@ -2013,6 +2090,8 @@ void libdyn_master::destruct()
 #ifdef REMOTE
     close_communication();
 #endif
+    
+    delete ortd_io;
 
 }
 
