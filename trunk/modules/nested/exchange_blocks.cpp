@@ -154,7 +154,9 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 
 	// ok
 	*output = 1;
-	fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s>\n", nested_simname);
+#ifdef DEBUG	
+	fprintf(stderr, "compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s>\n", nested_simname);
+#endif	
     }
 }
 
