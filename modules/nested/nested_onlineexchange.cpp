@@ -17,7 +17,7 @@ nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* si
   
   this->ldmaster = simnest->ld_master;
   if (this->ldmaster == NULL) {
-    fprintf(stderr, "stderr: nested_onlineexchange: needs a libdyn master\n");
+    fprintf(stderr, "nested_onlineexchange: nested_onlineexchange: needs a libdyn master\n");
     // FIXME: throuw exception
     
     return;
@@ -25,7 +25,7 @@ nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* si
    
   directory_tree *dtree = ldmaster->dtree;
   if (dtree == NULL) {
-    fprintf(stderr, "stderr: nested_onlineexchange: needs a root directory_tree\n");
+    fprintf(stderr, "nested_onlineexchange: nested_onlineexchange: needs a root directory_tree\n");
     // FIXME: throuw exception
      
   }
@@ -41,7 +41,7 @@ nested_onlineexchange::nested_onlineexchange(char* identName, libdyn_nested2* si
 
 int nested_onlineexchange::replace_simulation(irpar* irdata, int id, int slot)
 {  
-  fprintf(stderr, "stderr: nested_onlineexchange: removing old simulation\n");
+  fprintf(stderr, "nested_onlineexchange: destructing the currently active simulation in slot %d\n", slot);
     
   // remove the old simulation
   int ret = simnest->del_simulation( slot );
@@ -51,6 +51,8 @@ int nested_onlineexchange::replace_simulation(irpar* irdata, int id, int slot)
   // delete the old now unused irpar data for the old simulation
   if (this->current_irdata != NULL)
     delete this->current_irdata;
+  
+  fprintf(stderr, "nested_onlineexchange: loading the new simulation into slot %d\n", slot);
   
   // install the new one
   this->current_irdata = irdata;
@@ -62,11 +64,11 @@ int nested_onlineexchange::replace_simulation(irpar* irdata, int id, int slot)
 
 int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 {
-  fprintf(stderr, "nested_onlineexchange: removing old simulation\n");
-//   fprintf(stderr, "nested_onlineexchange created. this=%p current_irdata=%p\n", this, current_irdata);
   
   int standby_slot = 0;
   int slot = 1; // exchange the second slot
+
+  fprintf(stderr, "nested_onlineexchange: destructing the currently active simulation in slot %d\n", slot);
   
   // remove the old simulation
   int ret = simnest->del_simulation( slot, standby_slot );
@@ -77,23 +79,30 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
   
   // delete the old, now unused irpar data for the old simulation
   if (this->current_irdata != NULL) {
-    fprintf(stderr, "delete irpar of old simulation\n");
+#ifdef DEBUG
+    fprintf(stderr, "nested_onlineexchange: delete irpar of old simulation\n");
+#endif
     delete this->current_irdata;    
   }
   
   // install the new one
+#ifdef DEBUG
   fprintf(stderr, "load new irpar for the new simulation\n");
-    
+#endif
+
+  
+  fprintf(stderr, "nested_onlineexchange: loading the new simulation into slot %d\n", slot);
+  
   this->current_irdata = irdata;
   ret = simnest->add_simulation(slot, current_irdata->ipar, current_irdata->rpar, id);
   if (ret < 0) {
-    fprintf(stderr, "Error while setting up the new simulation\n");
+#ifdef DEBUG
+     fprintf(stderr, "nested_onlineexchange: Error while setting up the new simulation\n");
+#endif
     // error setting up the simulation
     // irdata is unused now
     delete this->current_irdata;
     this->current_irdata = NULL;
-    
-    fprintf(stderr, "irpar unloaded again\n");
   }
     
   return ret;
@@ -102,7 +111,9 @@ int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 
 nested_onlineexchange::~nested_onlineexchange()
 {
-  fprintf(stderr, "Destroying nested_onlineexchange for %s\n", identName.c_str());
+#ifdef DEBUG
+   fprintf(stderr, "Destroying nested_onlineexchange for %s\n", identName.c_str());
+#endif
   
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry((char*) identName.c_str());
@@ -112,14 +123,16 @@ nested_onlineexchange::~nested_onlineexchange()
   
   if (this->current_irdata != NULL) {
 #ifdef DEBUG
-    fprintf(stderr, "Running delete this->current_irdata  ptr=%p\n", this->current_irdata); 
+    fprintf(stderr, "nested_onlineexchange: Running delete this->current_irdata  ptr=%p\n", this->current_irdata); 
 #endif
     delete this->current_irdata; 
     this->current_irdata = NULL;
     
-    fprintf(stderr, "Sucessfully destroyed nested_onlineexchange for %s\n", identName.c_str());
+#ifdef DEBUG
+     fprintf(stderr, "nested_onlineexchange: Sucessfully destroyed nested_onlineexchange for %s\n", identName.c_str());
+#endif
   } else {
-    fprintf(stderr, "Could not find %s\n", identName.c_str());
+    fprintf(stderr, "nested_onlineexchange: Could not find %s\n", identName.c_str());
   }
     
   

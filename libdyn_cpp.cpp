@@ -953,12 +953,12 @@ bool libdyn_nested2::cfg_inptr(int in, void* inptr, int size, int datatype)
 void libdyn_nested2::cfg_output(int out, int size, int datatype)
 {
     if (ConfigurationFinished) {
-        fprintf(stderr, "ASSERTION FAILED: libdyn_nested2::FinishConfiguration: already finished\n");
+        fprintf(stderr, "ASSERTION FAILED: libdyn_nested2::cfg_output: already finished\n");
         throw 1;
     }
 
     if ( (iocfg.outports <= out) || (out < 0) ) {
-        fprintf(stderr, "ASSERTION failed: cfg_output: out of range\n");
+        fprintf(stderr, "ASSERTION failed:  libdyn_nested2::cfg_output: out of range\n");
         throw 1;
     }
 
@@ -1124,7 +1124,7 @@ int libdyn_nested2::CallSyncCallbackDestructor()
 void libdyn_nested2::allocate_slots(int n)
 {
     if (this->sim_slots != NULL) {
-        fprintf(stderr, "nested: slotes are already allocated!\n");
+        fprintf(stderr, "libdyn_nested2: slotes are already allocated!\n");
         return;
     }
 
@@ -1236,12 +1236,14 @@ int libdyn_nested2::add_simulation(int slotID, int* ipar, double* rpar, int boxi
     if (err == -1) {
         // There may be some problems during compilation.
         // Errors are reported on stdout
-        fprintf(stderr, "Error in libdyn\n");
+        fprintf(stderr, "libdyn_nested2: Error in libdyn interpreter\n");
 
         return err;
     }
-
+    
+#ifdef DEBUG
     fprintf(stderr, "Nested Simulation was set-up. Nesting level is %d\n", NestedLevel);
+#endif    
 
     if (this->add_simulation(slotID, sim) < 0)
         return -1;
