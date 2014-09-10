@@ -62,9 +62,9 @@
 \DeclareRobustCommand{\vec}[1]{{\mbox{\mathversion{bold}\ensuremath{#1}}}}
 \DeclareRobustCommand{\mat}[1]{{\mbox{\mathversion{bold}\ensuremath{#1}}}}
 
-\title[]{ORTD --- The Open Realtime Dynamics Toolbox}
+\title[]{OpenRTDynamics --- A framework for the implementation of real-time controllers}
 	\subtitle{} %Mehrgrößenregelung einer Neuro-Prothese zur Generierung von Bewegungen  der oberen Extremität mittels Neuromuskulärer Elektrostimulation (NMES)
-\date{May 2012}
+\date{May 2014}
 \author{Christian Klauer$^{1}$\\
 \tiny $^{1}$Control Systems Group, Technische Universität Berlin\\
 Kontakt: klauer@control.tu-berlin.de
@@ -87,19 +87,19 @@ Kontakt: klauer@control.tu-berlin.de
 
 \begin{frame}
 
-\textbf{OpenRTDynamics is}
+\textbf{OpenRTDynamics contains}
 
  \begin{itemize}
-  \item A simulator for time-discrete dynamical systems
-  \item A Scilab-Toolbox for describing these systems in an block/signal based way.
-  \item Additional modules (e.g. an remote control interface, state machines, parallelism using threads, math formula parsing, ...)
+  \item A simulator/interpreter for discrete-time dynamical systems
+  \item A Scilab-toolbox for describing these systems in an block/signal based way.
+  \item Many plugins (e.g. state machines, threads (multiple main loops), UDP-communication, remote control via GUIs, ...)
  \end{itemize}
 
 \textbf{Compared to other systems it features}
 \begin{itemize}
- \item A new way of defining schematics, which enables well structured code that is easy to maintain as projects get bigger.
- \item Multiple nested-schematics: Switching around sub-schematics and resetting them (like a restart).
- \item Because of an interpretation algorithm, schematics can be exchanged online.
+ \item A new concept of defining schematics that enables well structured and easy maintainable code as projects get bigger.
+ \item Nesting schematics of infinite depth: e.g. ability to reset and/or switch between sub-schematics (state machines).
+ \item Specially defined parts of the real-time implementation can be exchanged on-line.
 % \item Does not require a code compilation step for generating real-time code, because of online interpretation.
 % \item On-line exchange of schematics
 \end{itemize}
@@ -121,13 +121,22 @@ Kontakt: klauer@control.tu-berlin.de
 
 
 \begin{frame}
-\frametitle{Interfaces}
+\frametitle{Targets / Interfaces}
 
-\textbf{The interpreter can be interfaced via}
+\textbf{Target systems so far:}
+\begin{itemize}
+ \item Linux incl. realtime preemption
+ \item Linux on ARM-based systems (Beaglebone, Raspberry Pi, ...)
+ \item Android
+ \item Easily portable if an implementation of Posix Threads is available.
+\end{itemize}
+
+
+\textbf{Possible modes of operation}
   \begin{itemize}
-   \item The provided Scicos-Block
-   \item The executable \texttt{libdyn\_generic\_exec}
-   \item Third party C++ Code by linking to the shared library { \texttt{libortd.so} }
+   \item Standalone applications using the \texttt{ortd}-command
+   \item Embedded into a Scicos-block
+   \item API for C++/C projects available { \texttt{libortd.so} }
   \end{itemize}
 
 \end{frame}
@@ -148,7 +157,7 @@ Kontakt: klauer@control.tu-berlin.de
 
 
 \begin{frame}[fragile]
-  \frametitle{Standalone interface}
+  \frametitle{Standalone}
 
   \centering \includegraphics[trim=0mm 0mm 00mm 00mm, clip, width=0.8\linewidth]{figures/start_from_console.png} 
 
@@ -168,13 +177,13 @@ Kontakt: klauer@control.tu-berlin.de
 \textbf{How schematics are defined:}
 
   \begin{itemize}
-  \item \textbf{Signals} are represented by a special Scilab variable type.
-  \item \textbf{Blocks} are created by calls to special Scilab functions. They can take input signals and can give back new signal variables.
+  \item \textbf{Signals} are represented by a special Scilab variables.
+  \item \textbf{Blocks} are defined by calls to special Scilab functions (\texttt{ld\_}-prefix). They may take input signal variables and may return new signal variables.
   \end{itemize}
 
 \textbf{An Example:}
   \begin{itemize}
-  \item A linear combination of two signals ( $y=u_1 - u_2$ ) would look like:
+  \item A linear combination of two signals ( $y=u_1 - u_2$ ) is implemented:
   \end{itemize}
 
   {\small 
@@ -184,7 +193,7 @@ Kontakt: klauer@control.tu-berlin.de
     
 
   \begin{itemize}
-  \item A time-discrete transfer function is implemented like this:
+  \item A time-discrete transfer function is implemented like:
   \end{itemize}
 
   {\small 
@@ -194,7 +203,7 @@ Kontakt: klauer@control.tu-berlin.de
 
 \textbf{Please Note:}
   \begin{itemize}
-  \item For all calculations the toolbox functions have to be used. \textbf{Not possible:} \texttt{y = u1 - u2}
+  \item For all calculations the toolbox functions must be used. \textbf{Not possible:} \texttt{y = u1 - u2}, whereby \texttt{u1} and \texttt{u2} are signal variables.
   \end{itemize}
   
 
@@ -215,15 +224,15 @@ Kontakt: klauer@control.tu-berlin.de
 \end{lstlisting}}
  
  \begin{itemize}
-  \item The variable \texttt{sim} is used to emulate Object-Orientated behaviour in Scilab.
-\item \texttt{defaultevents} defines a set of events that will be forwarded to the block. (Commonly set to \texttt{0})
+   \item The variable \texttt{sim} is technically used to emulate object-orientated behaviour in Scilab.
+   \item \texttt{defaultevents} must be zero.
  \end{itemize}
 
  \vspace{1.5cm}
 
-\textbf{For Help:}
+\textbf{Help:}
  \begin{itemize}
-  \item A list of blocks is available through the Scilab help browser, e.g. try \texttt{help ld\_add}.
+  \item A list of available blocks may be browsed using the Scilab-help functionality, e.g. try \texttt{help ld\_add}.
  \end{itemize}
  
 
@@ -332,7 +341,7 @@ Kontakt: klauer@control.tu-berlin.de
 
 \begin{itemize}
  \item This example describes a superblock, which has two inputs \texttt{u} and \texttt{cntrl} and one output \texttt{y}.
-\item \texttt{mutewhengreaterzero} describes an parameter.
+\item \texttt{mutewhengreaterzero} describes a parameter.
 \item \textbf{NOTE}: With the if / else construction a superblock can have different behaviour depending on a parameter! (This enables great possibilities for creating reusable code)
 \end{itemize}
 
@@ -441,15 +450,15 @@ Kontakt: klauer@control.tu-berlin.de
   \textbf{Principle:}
 
   \begin{itemize}
-   \item Each state is represented by a whole sub-schematic. Thus, a state machine contains multiple of them.
-   \item Only one schematic is active at once, representing the active state.
-   \item Every time the active sub-schematic can cause switching to another state.
+   \item Each state is represented by a one sub-schematic. 
+   \item Indicating the current state, only one schematic is active at once. State related computations are performed while the state is active.
+   \item The active sub-schematic may cause the transition to another state at any time.
   \end{itemize}
 
   \textbf{Extra features:}
   \begin{itemize}
-   \item All blocks within a schematic that is going to be inactive are reset.
-   \item Possibility to share a memory among all schematics for realising global states (counters, ...)
+   \item When a state is left, the corresponding schematic is reset.
+   \item Possibility to share variables among states; to e.g. realise counters, ...
   \end{itemize}
 
   
@@ -462,11 +471,49 @@ Kontakt: klauer@control.tu-berlin.de
 
 % \begin{itemize}
 %  \item 
-A function (Superblock) is evaluate once for each state. Differentiation among schematics is achieved by a \texttt{select} statement
+One superblock-function is evaluate for each state. Differentiation among states may be realised by using a \texttt{select} statement:
 % \end{itemize}
   
 
 \centering \includegraphics[trim=2.7cm 9.5cm 4cm 1.4cm, clip, width=1.0\linewidth]{figures/state_mainfn.pdf} 
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Threads}
+
+  \centering \includegraphics[width=1\linewidth]{figures/Threads_crop.pdf} 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Remote Control Interface -- I}
+
+  \begin{itemize}
+    \item Send and receive data/streams via packet-based communication channels, e.g. UDP
+  \end{itemize}
+  \centering \includegraphics[width=1\linewidth]{figures/RemoteControl_Cut_crop.pdf} 
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Remote Control Interface -- II}
+
+  \begin{itemize}
+    \item Use e.g. a node.js program to build a web-interface to visualise data and to edit parameters.
+  \end{itemize}
+
+  \centering \includegraphics[width=0.8\linewidth]{figures/Webinterface.png} 
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Automatic calibration procedures}
+  \begin{itemize}
+    \item Allows to easily implement automated calibration procedures. The calib. routine may also be implemented using normal Scilab code.
+  \end{itemize}
+  \centering \includegraphics[width=1\linewidth]{figures/Autocalibration_crop.pdf} 
 
 \end{frame}
 
@@ -479,16 +526,18 @@ Examples for advanced features like
 \item Online replacement of sub-controllers (\texttt{modules/nested})
 \item State machines (\texttt{modules/nested})
 \item Simulations running in threads (\texttt{modules/nested})
+\item Shared memory, circular buffers, sending events to threads, ...
 \item Mathematical formula parsing (\texttt{modules/muparser})
-\item Vectors handling blocks (\texttt{modules/basic\_ldblocks})
-\item Calling Scilab from the simulation (\texttt{modules/scilab})
-\item Remote control interface (\texttt{modules/rt\_server})
-\item Starting external processes (\texttt{modules/ext\_process})
-\item Timer for simulations running in threads (pending) (\texttt{modules/synchronisation})
+\item Vector/matrix operations (\texttt{modules/basic\_ldblocks})
+\item Embeding Scilab-code (\texttt{modules/scilab})
+\item Starting, I/O to external processes (\texttt{modules/ext\_process})
+\item Variable sampling rates (\texttt{modules/synchronisation})
 \item Scicos to ORTD block wrapper (\texttt{modules/scicos\_blocks})
+\item UDP-communication \& remote control interface (\texttt{modules/udp\_communication})
+\item ...
   \end{itemize}
 
-  can be found within the directories \texttt{modules/*/demo}. Often they are ready to run and can be started by executing a simple shell script.
+  can be found within the directories \texttt{modules/*/demo}. Most of them are ready to run.
 \end{frame}
 
 
