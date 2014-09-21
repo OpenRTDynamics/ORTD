@@ -361,6 +361,67 @@ void libdyn_add_to_allblocks_list(struct dynlib_simulation_t *simulation, struct
 
 
 
+//
+// list helper functions for the order-of-execution list
+//
+int libdyn_add_to_execution_list(struct dynlib_simulation_t *simulation, struct dynlib_block_t *block)
+{
+  if (block->block_executed == 1) {
+    mydebug(2) fprintf(stderr, "Block aready included in list\n");
+    return 0;
+  }
+  mydebug(2) fprintf(stderr, "Block added to exec list\n");
+
+  if (simulation->execution_list_head != 0) { // there is a list
+    struct dynlib_block_t *lastblock = simulation->execution_list_tail;
+
+    lastblock->exec_list_next = block; // add to the tail of the list
+    simulation->execution_list_tail = block; // Set new tail of list
+    block->exec_list_next = 0; // Mark end of list
+  } else { // begin with list
+    simulation->execution_list_head = block;
+    simulation->execution_list_tail = block;
+    block->exec_list_next = 0; // Mark end of list
+  } 
+
+  block->block_executed = 1; // Mark as allredy included in list
+  return 1;
+}
+
+void libdyn_add_to_sup_execution_list(struct dynlib_simulation_t *simulation, struct dynlib_block_t *block)
+{
+  mydebug(1) fprintf(stderr, "suplist add\n");
+
+  if (simulation->execution_sup_list_head != 0) { // there is a list
+    struct dynlib_block_t *lastblock = simulation->execution_sup_list_tail;
+
+    lastblock->exec_sup_list_next = block; // add to the tail of the list
+    simulation->execution_sup_list_tail = block; // Set new tail of list
+    block->exec_sup_list_next = 0; // Mark end of list
+  } else { // begin with list
+    simulation->execution_sup_list_head = block;
+    simulation->execution_sup_list_tail = block;
+    block->exec_sup_list_next = 0; // Mark end of list
+  } 
+}
+
+// Check the availability of a block input,
+// 
+int libdyn_setup_executionlist_setandcheck_avail(struct dynlib_block_t *block, int in) // set block's input #in available and check other inputs for completeness
+{ 
+  block->inlist[in].input_available[0] = 1;
+  block->remaining_input_availability--; 
+
+  if (block->remaining_input_availability == 0) {
+    return 1;
+    mydebug(1) fprintf(stderr, "no remaining inputs\n");
+  } else {
+    return 0;
+    //fprintf(stderr, "Block already on execlist\n");
+  }
+}
+
+
 struct dynlib_block_t *libdyn_new_block__(struct dynlib_simulation_t *sim, void *comp_func, int *ipar, double *rpar, void *opar, void *extra_par)
 {
       int i;
@@ -889,6 +950,8 @@ int libdyn_clock_event_generator_addclock(struct dynlib_simulation_t *simulation
     simulation->clock_multiplier[simulation->num_cm] = mult;
     simulation->num_cm++;
   }
+  
+  return 1;
 }
 
 void libdyn_clock_event_generator(struct dynlib_simulation_t *simulation)
@@ -1021,7 +1084,7 @@ int libdyn_simulation_init(struct dynlib_simulation_t * sim)
   // call the post-init flag for all blocks. -1 means no fault handling
   libdyn_simulation_callinitflag(sim, COMPF_FLAG_POSTINIT, -1 ); 
   
-  
+  return 0; // Potential Bug solved on 21.9.14
 }
 
 
@@ -1157,7 +1220,7 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   //
   
   if (simulation->blocks_initialised == 0)
-    libdyn_simulation_init(simulation);
+    libdyn_simulation_init(simulation);  // FIXME: No error code is catched!
   
   
   
@@ -1351,66 +1414,9 @@ void libdyn_junctionlist_next(struct dynlib_block_t **cblptr, int *cbliptr) // L
 }
 
 
-// list helper
-int libdyn_add_to_execution_list(struct dynlib_simulation_t *simulation, struct dynlib_block_t *block)
-{
-  if (block->block_executed == 1) {
-    mydebug(2) fprintf(stderr, "Block aready included in list\n");
-    return 0;
-  }
-  mydebug(2) fprintf(stderr, "Block added to exec list\n");
-
-  if (simulation->execution_list_head != 0) { // there is a list
-    struct dynlib_block_t *lastblock = simulation->execution_list_tail;
-
-    lastblock->exec_list_next = block; // add to the tail of the list
-    simulation->execution_list_tail = block; // Set new tail of list
-    block->exec_list_next = 0; // Mark end of list
-  } else { // begin with list
-    simulation->execution_list_head = block;
-    simulation->execution_list_tail = block;
-    block->exec_list_next = 0; // Mark end of list
-  } 
-
-  block->block_executed = 1; // Mark as allredy included in list
-  return 1;
-}
-
-// list helper
-void libdyn_add_to_sup_execution_list(struct dynlib_simulation_t *simulation, struct dynlib_block_t *block)
-{
-  mydebug(1) fprintf(stderr, "suplist add\n");
-
-  if (simulation->execution_sup_list_head != 0) { // there is a list
-    struct dynlib_block_t *lastblock = simulation->execution_sup_list_tail;
-
-    lastblock->exec_sup_list_next = block; // add to the tail of the list
-    simulation->execution_sup_list_tail = block; // Set new tail of list
-    block->exec_sup_list_next = 0; // Mark end of list
-  } else { // begin with list
-    simulation->execution_sup_list_head = block;
-    simulation->execution_sup_list_tail = block;
-    block->exec_sup_list_next = 0; // Mark end of list
-  } 
-}
-
-// Check the availability of a block input,
-// 
-int libdyn_setup_executionlist_setandcheck_avail(struct dynlib_block_t *block, int in) // set block's input #in available and check other inputs for completeness
-{ 
-  block->inlist[in].input_available[0] = 1;
-  block->remaining_input_availability--; 
-
-  if (block->remaining_input_availability == 0) {
-    return 1;
-    mydebug(1) fprintf(stderr, "no remaining inputs\n");
-  } else {
-    return 0;
-    //fprintf(stderr, "Block already on execlist\n");
-  }
-}
 
 // the algorithm itself
+// Build a list describing the order for executing the blocks
 int libdyn_setup_executionlist(struct dynlib_simulation_t *simulation)
 {
   // SUP liste durchgehen, nur die non dfeed Blöcke nehmen -> X
@@ -1993,6 +1999,8 @@ double libdyn_filter(struct dynlib_filter_t *p, double input)
 	return libdyn_impulse_filter_(p,input,1);
 	break;  
   }
+  
+  return 0.0;
 }
 
 double libdyn_newout(struct dynlib_filter_t *p, double input)
@@ -2011,6 +2019,8 @@ double libdyn_newout(struct dynlib_filter_t *p, double input)
 	return libdyn_impulse_filter_(p,input,0);
 	break;
   }
+  
+  return 0.0;
 }
 
 double libdyn_lastout(struct dynlib_filter_t *p)
@@ -2034,6 +2044,8 @@ double libdyn_out(struct dynlib_filter_t *p, double input, int update_states)
 	return libdyn_impulse_filter_(p,input,update_states);
 	break;
   }
+  
+  return 0.0;
 }
 
 
@@ -2401,9 +2413,11 @@ struct libdyn_conn_list_element_t * libdyn_conn_list_new(int n)
   return p;
 }
 
-struct libdyn_conn_list_element_t * libdyn_conn_list_del(struct libdyn_conn_list_element_t * cl)
+struct libdyn_conn_list_element_t * libdyn_conn_list_del(struct libdyn_conn_list_element_t * cl) // FIXME: remove this retrun val
 {
   free(cl);
+  
+  return NULL;
 }
 
 int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double *rpar, 
@@ -2586,7 +2600,7 @@ int irpar_get_libdynconnlist(struct dynlib_simulation_t *sim, int *ipar, double 
 	int portsize = iocfg->insizes[cl[i].src_port];
 	
 	mydebug(7) fprintf(stderr, "external inp to inport =%d ; addr =%x; portsize = %d\n"  , cl[i].src_port,  (unsigned int)  inports[cl[i].src_port], portsize);
-        if (err = libdyn_block_connect_external(cl[i].dst_block, cl[i].dst_port, inports[cl[i].src_port], portsize) != 0) {
+        if ((err = libdyn_block_connect_external(cl[i].dst_block, cl[i].dst_port, inports[cl[i].src_port], portsize)) != 0) {
    	  fprintf(stderr, "Error connecting external input for block id %d - destination port not defined or wrong port sizes! Code = %d\n", cl[i].dst_block->numID, err);
 	  goto error;
 	}
