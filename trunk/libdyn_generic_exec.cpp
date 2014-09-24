@@ -120,8 +120,8 @@ int siminit(struct global_t *global_p)
     err = irpar_load_from_afile(&global_p->ipar_cpy, &global_p->rpar_cpy, &global_p->Nipar, &global_p->Nrpar, fname_i, fname_r);
     if (err == -1) {
         //printf("Error in libdyn\n");
-        free(global_p->ipar_cpy);
-	free(global_p->rpar_cpy);
+       // free(global_p->ipar_cpy);
+	// free(global_p->rpar_cpy);
         
         exit(1);
     }
