@@ -1,0 +1,153 @@
+\documentclass[serif,9pt,xcolor=dvipsnames]{beamer}
+\usetheme{default}
+
+%\usepackage[english]{babel}    % deutsche Sonderzeichen, Trennmuster, etc
+\usepackage[german]{babel}    % deutsche Sonderzeichen, Trennmuster, etc
+
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc}  % deutsche Umlaute
+
+
+\usetheme[]{Warsaw}
+%\usetheme[]{Rochester}
+
+%  \usecolortheme[named=Brown]{structure} 
+%\usecolortheme[]{crane} 
+%\usecolortheme[]{rose} 
+\usecolortheme[]{christian1} 
+
+% Mathekram
+%\usepackage{amsmath}
+%\usepackage{amsfonts}
+%\usepackage{amssymb}
+
+% Graphiken
+%\usepackage{epsfig}            % Paket zum Einbinden von postscript Graphiken
+\usepackage{graphicx}		% Andere Graphikdateien einbinden
+\usepackage{float}             % Hilfesmakros beim Positionieren von Graphiken
+\usepackage{color}
+%\usepackage{subfig}
+\usepackage{textcomp}
+
+\usepackage[sc]{mathpazo}	%FONT
+
+\usepackage{relsize} % Notwenfig für verbatim
+\usepackage{listings}
+\usepackage{verbatim}
+
+
+%% GLEGRAPHICS
+\graphicspath{{./bilder/gleplots/}}
+
+\newcommand{\includeglegraphics}[1]{  
+%\includegraphics[]{#1.pdf}
+\input{#1.inc}   
+}
+
+% \newcommand{\listing}[1]{
+%    {\small 
+%   \begin{lstlisting}
+%    
+%   \end{lstlisting}}
+% }
+
+\newcommand{\Th}{\vartheta}
+
+%\newcommand{\Th}{\vartheta}
+
+
+\definecolor{feedforwardpath}{rgb}{0.0,1,0.0}
+\definecolor{feedbackpath}{rgb}{1.0,0.0,0.0}
+
+\DeclareRobustCommand{\vec}[1]{{\mbox{\mathversion{bold}\ensuremath{#1}}}}
+\DeclareRobustCommand{\mat}[1]{{\mbox{\mathversion{bold}\ensuremath{#1}}}}
+
+\title[]{ORTD --- The Real-time Dynamics Framework}
+	\subtitle{} %Mehrgrößenregelung einer Neuro-Prothese zur Generierung von Bewegungen  der oberen Extremität mittels Neuromuskulärer Elektrostimulation (NMES)
+\date{May 2012}
+\author{Christian Klauer$^{1}$\\
+\tiny $^{1}$Control Systems Group, Technische Universität Berlin\\
+Kontakt: klauer@control.tu-berlin.de
+}
+
+
+
+
+\begin{document}
+% \frame[plain]{\titlepage}
+
+% \author{Christian Klauer$^{1}$}
+
+
+
+
+
+\begin{frame}
+  \frametitle{Comparison to other systems - I}
+
+{\small
+
+  \begin{tabular}{p{0.18\linewidth}|p{0.24\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}|}
+  Feature & Xcos & Simulink & OpenRTDynamics \\
+\hline
+	Continuous-time simulation  &   Yes   &   Yes       &  only by embedding into Xcos (planned Simulink)         \\
+\hline
+	Realisation of Real-time Programms  &  code generation    &   code generation       &       real-time capable interpreter       \\
+\hline
+	Description language &  GUI-based Blocks  & GUI-based Blocks  &  textural description using Scilab    \\
+\hline
+	Ability to obtain well structured code &  superblocks  & subsystems,  &  superblocks for sharing code, conditional definition (like compiler flags), for loops, ..., allows to build powerful macros  \\
+\hline
+	Possible Target Systems &  Rtai, Real-time preemption, with much effort more & Nearly any target  &  Linux RT-Preemption and normal Linux: PC-based Linux, Android, embedded ARM devices  \\
+  \end{tabular}
+
+}
+
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{Comparison to other systems -- II}
+
+{\small
+
+  \begin{tabular}{p{0.18\linewidth}|p{0.24\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}|}
+  Feature & Xcos & Simulink & OpenRTDynamics \\
+\hline
+	Communication with RT-Programms  &  only if Rtai is used   &   Yes     &       Yes      \\
+\hline
+	Implementation of Logic structures &  using events (red lines) and signals; cumbersome and much effort  &   Stateflow, separation of continuous parts and logic    &     state machines that allow to combine continuous parts and logic; low implementation effort; start/stop/reset of superblocks      \\
+\hline
+	Multiple Threads with a separate main loop in each &  No  &   allows to start ``Tasks''  &       Yes: shared memory, ring buffer, events for communication      \\
+\hline
+	Time basis of the main loop &  regular timer &  regular timer  &  irregular time intervals possible, synchronisation to events e.g.: sensor data available, network packets arrived          \\
+  \end{tabular}
+
+}
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Comparison to other systems -- III}
+
+{\small
+
+  \begin{tabular}{p{0.18\linewidth}|p{0.24\linewidth}|p{0.23\linewidth}|p{0.23\linewidth}|}
+  Feature & Xcos & Simulink & OpenRTDynamics \\
+\hline
+	Including Scilab/Matlab Code into the RT-Program &  No  &  Code based a subset of the Matlab language can be compiled to C-Code  &  Yes: embedded Scilab interpreter, however no-deterministic execution time. Suggested to only use in separated threads  \\
+\hline
+	Replacing Code portions of the RT-Program while it is running &  No  &  No & Yes, the code of specially marked superblocks can be exchanged. The embedded Scilab interpreter can online-compile new superblocks \\
+\hline
+	Automating laboratory experiments with less effort &  No  &  Not sure & Yes, macros that greatly simplify automation tasks using Scilab-Code and replaceable superblocks are available \\
+
+  \end{tabular}
+
+}
+
+\end{frame}
+
+
+\end{document}
