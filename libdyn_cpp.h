@@ -23,13 +23,18 @@
 #define _LIBDYN_CPP_H 1
 
 
+#include <stdlib.h>
+#ifndef __APPLE__
+  #include <malloc.h>
+#endif
 
 extern "C" {
 #include "libdyn.h"
 #include "irpar.h"
 }
 
-#include <malloc.h>
+
+
 
 #define REMOTE
 

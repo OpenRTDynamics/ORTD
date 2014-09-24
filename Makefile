@@ -26,7 +26,8 @@ export ortd_root := $(shell pwd)
 export target := $(shell cat target.conf)
 
 # Default which should be overwritten
-targetmacro=__HMM
+targetmacro=__undef
+systemAPI = undef
 
 # Name of the resulting ortd binary
 ORTD_INTERPRETERNAME=ortd
@@ -35,8 +36,37 @@ ORTD_INTERPRETERNAME=ortd
 SYSTEM_LIBRARY_FOLDER=/usr/local/lib
 SYSTEM_BINARY_FOLDER=/usr/local/bin
 
+ifeq ($(target),MACOSX)
+  targetmacro=__ORTD_TARGET_MACOSX
+  export systemAPI := MACOSX
+
+  # detect host type
+	export host-type := $(shell arch)
+	ifeq ($(host-type),i386)
+	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+
+  # Detect system type and set Fflags
+    export CFLAGS += -O2 -D$(targetmacro)
+    export CFLAGS +=     
+    
+    # The path include/MACOSX is added with contains <malloc.h> for macosx
+    export INCLUDE +=  -I$(ortd_root) -I$(ortd_root)/include/MACOSX
+    
+    # include files installed by Mac Ports
+    export INCLUDE += -I /opt/local/include
+    
+    # this is included to reach <malloc.h>
+    #export INCLUDE +=  -I/usr/include/sys   
+    export LDFLAGS += -sectcreate __DATA ORTDToolbox_sce scilab/ORTDToolbox.sce
+    export LD_LIBRARIES += -lm -lpthread -ldl
+endif
+
 ifeq ($(target),LINUX)
   targetmacro=__ORTD_TARGET_LINUX
+  export systemAPI := LINUX
 
   # detect host type
 	export host-type := $(shell arch)
@@ -60,6 +90,7 @@ endif
 
 ifeq ($(target),LINUX_DEBUG)
   targetmacro=__ORTD_TARGET_LINUX
+  export systemAPI := LINUX
 
   # detect host type
 	export host-type := $(shell arch)
@@ -84,6 +115,7 @@ endif
 
 ifeq ($(target),LINUX_x86_32)
   targetmacro=__ORTD_TARGET_LINUX
+  export systemAPI := LINUX
 
   SYSTEM_LIBRARY_FOLDER=/usr/lib32
   ORTD_INTERPRETERNAME=ortd_x86_32
@@ -97,6 +129,7 @@ endif
 
 ifeq ($(target),RTAI_COMPATIBLE_x86_32)
   targetmacro=__ORTD_TARGET_RTAI
+  export systemAPI := LINUX
 
     # 32 Bit
     export CFLAGS += -m32 -g -O2 -D$(targetmacro)
@@ -108,6 +141,7 @@ endif
 
 ifeq ($(target),LINUX_pentium)
   targetmacro=__ORTD_TARGET_LINUX
+  export systemAPI := LINUX
   ORTD_INTERPRETERNAME=ortd32
 
     # 32 Bit
@@ -120,6 +154,7 @@ endif
 
 ifeq ($(target),RTAI_COMPATIBLE) 
   targetmacro=__ORTD_TARGET_RTAI
+  export systemAPI := LINUX
 
   # detect host type
 	export host-type := $(shell arch)
@@ -143,6 +178,7 @@ endif
 ifeq ($(target),XCOS_RTAI_COMPATIBLE) 
   # for embedding ORTD into XCOS/SCICOS generated rtai code
   targetmacro=__ORTD_TARGET_RTAI -D __ORTD_TARGET_XCOS
+  export systemAPI := LINUX
 
   # detect host type
 	export host-type := $(shell arch)
@@ -167,6 +203,7 @@ endif
 
 ifeq ($(target),CYGWIN) # TODO 
   targetmacro=__ORTD_TARGET_CYGWIN
+  export systemAPI := CYGWIN
 
   export CFLAGS += -g -O2 -D$(targetmacro)
   export INCLUDE +=  -I$(ortd_root)
@@ -176,6 +213,7 @@ endif
 
 ifeq ($(target),ANDROID_ARM) 
   targetmacro=__ORTD_TARGET_ANDROID
+  export systemAPI := ANDROID
 
 #  export CFLAGS += -I/home/chr/bin/AndroidArmToolchain/sysroot/usr/include --sysroot=/home/chr/bin/AndroidArmToolchain/sysroot -O2 -D$(targetmacro) 
   
@@ -195,6 +233,7 @@ endif
 
 ifeq ($(target),ANDROID_ARM_NEON) 
   targetmacro=__ORTD_TARGET_ANDROID
+  export systemAPI := ANDROID
 
 #  export CFLAGS += -I/home/chr/bin/AndroidArmToolchain/sysroot/usr/include --sysroot=/home/chr/bin/AndroidArmToolchain/sysroot -O2 -D$(targetmacro) 
   export CFLAGS += -fPIC  -O2 -D$(targetmacro) -march=armv7-a -mfloat-abi=softfp -mfpu=neon
@@ -212,9 +251,11 @@ ifeq ($(target),ANDROID_ARM_NEON)
 endif
 
 
+targetmacro += -D __SYSTEMAPI_$(systemAPI)
+
 #
 # This tells the sub-makefiles that the variables 
-#from this makefile are available
+# from this main makefile are available
 #
 
 export main_makefile_invoked := yes
@@ -222,16 +263,56 @@ export main_makefile_invoked := yes
 
 
 
+# FIXME: lib: wird nicht geupdated, wenn etwas in den Modulen geändert wird
 
 
-all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib scilab/ORTDToolbox.sce
+all: libdyn_generic_exec_static libdyn_generic_exec bin/ortd bin/ortd_static lib scilab/ORTDToolbox.sce ortdrun ortdrun_static
 	#echo "------- Build finished: Now you can do > make install <  -------"
 	cat documentation/finish_info.txt
 
+
+
+
 #
-# FIXME: lib: wird nicht geupdated, wenn etwas in den Modulen geändert wird
+# Build new version of the interpreter command
 #
 
+ortdrun_static: lib ortdrun.o
+	echo "Static binary is disabled"
+	$(LD) $(LDFLAGS) ortdrun.o libortd.a `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/ortdrun_static 
+
+ortdrun: lib ortdrun.o
+ifeq ($(target),MACOSX)	
+	$(LD) $(LDFLAGS)  ortdrun.o -L. -lortd `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/ortdrun 
+else
+	$(LD) $(LDFLAGS)  ortdrun.o -L. -lortd `cat tmp/LDFALGS.list`  $(LD_LIBRARIES) -o bin/ortdrun  -Wl,-R,'$$ORIGIN/:$$ORIGIN/lib'
+endif
+	
+ortdrun.o: ortdrun.cpp lib IncompiledVariables.h
+	$(CPP) -I.. -L. $(CFLAGS) -c ortdrun.cpp
+	
+
+#
+# Build old version of the interpreter command
+#
+	
+ifeq ($(target),MACOSX)	
+# dummy for macos as not supported
+bin/ortd_static: 
+	echo ""
+	
+bin/ortd:
+	echo ""
+
+libdyn_generic_exec_static:
+	echo ""
+	
+libdyn_generic_exec:
+	echo ""
+	
+	
+	
+else
 bin/ortd_static: libdyn_generic_exec_static
 	cp bin/libdyn_generic_exec_static bin/ortd_static
 
@@ -248,7 +329,14 @@ libdyn_generic_exec: lib libdyn_generic_exec.o
  
 libdyn_generic_exec.o: libdyn_generic_exec.cpp lib IncompiledVariables.h
 	$(CPP) -I.. -L. $(CFLAGS) -c libdyn_generic_exec.cpp
-
+endif	
+	
+	
+	
+#
+# Build the shared libraries
+#
+	
 lib: $(MODULES) module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o io.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o
 	$(LD) -shared $(LDFLAGS)      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o io.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o         all_Targets/*.o `cat tmp/LDFALGS.list` $(LD_LIBRARIES) -o libortd.so
 	ar rvs libortd.a      module_list__.o libdyn.o libdyn_blocks.o libdyn_cpp.o io.o block_lookup.o plugin_loader.o irpar.o log.o realtime.o libilc.o ORTDToolbox.o                 all_Targets/*.o
@@ -267,8 +355,19 @@ scilab/ORTDToolbox.sce: $(MODULES) scilab/ld_toolbox/initialrun/irpar.sci scilab
 # Embed the Source-code of the ORTD-Scilab Toolbox into the ORTD-binaries 
 # This is e.g. used by modules/scilab
 ORTDToolbox.o: scilab/ORTDToolbox.sce
-	ld -r -b binary -o ORTDToolbox.o scilab/ORTDToolbox.sce
+ifeq ($(target),MACOSX)	
+	# LDFLAGS is used instead on macosx to inlcude the File scilab/ORTDToolbox.sce
 
+	$(CC) $(CFLAGS) -c dummy.c
+	cp dummy.o ORTDToolbox.o # 
+	#echo "*****************************************************************"
+	#gcc -sectcreate __DATA __ORTDToolbox_sce scilab/ORTDToolbox.sce -c -o ORTDToolbox.o dummy.c
+else
+	# Linux version (does not work on mac)
+	ld -r -b binary -o ORTDToolbox.o scilab/ORTDToolbox.sce
+endif
+	
+	
 	
 scilabhelp:
 	(cd scilab; ./build_toolbox.sh)
@@ -460,14 +559,25 @@ update:
 install: all
 	sudo cp libortd.so $(SYSTEM_LIBRARY_FOLDER)
 	sudo cp libortd.a $(SYSTEM_LIBRARY_FOLDER)
-	sudo ldconfig
+	sudo cp bin/ortdrun  $(SYSTEM_BINARY_FOLDER)/ortdrun	
+	sudo cp bin/ortdrun_static  $(SYSTEM_BINARY_FOLDER)/ortdrun_static
+	
+	sudo chmod 755 $(SYSTEM_BINARY_FOLDER)/ortdrun
+
+	chmod +x bin/ortdrun_scilab
+	sudo cp bin/ortdrun_scilab $(SYSTEM_BINARY_FOLDER)
+	
+ifeq ($(systemAPI),LINUX)	
+	chmod +x bin/libdyn_generic_exec_scilab
+	chmod +x bin/libdyn_generic_exec_static_scilab
+	
 	sudo cp bin/libdyn_generic_exec $(SYSTEM_BINARY_FOLDER)
 	sudo cp bin/libdyn_generic_exec_scilab $(SYSTEM_BINARY_FOLDER)
 	sudo cp bin/ortd  $(SYSTEM_BINARY_FOLDER)/$(ORTD_INTERPRETERNAME)
 	sudo cp bin/ortd_static  $(SYSTEM_BINARY_FOLDER)/$(ORTD_INTERPRETERNAME)_static
 	sudo chmod +x  $(SYSTEM_BINARY_FOLDER)/libdyn_generic_exec_scilab
-	chmod +x bin/libdyn_generic_exec_scilab
-	chmod +x bin/libdyn_generic_exec_static_scilab
+	sudo ldconfig
+endif
 
 homeinstall: all
 	mkdir -p ~/bin

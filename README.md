@@ -57,6 +57,10 @@ library.
 IMPORTANT NEWS and NOTES
 ========================
 
+- Rev 519: A new command "ortdrun" has been introduced that starts the 
+  ortd-interpreter. The old command ortd becomes obsolete. However, most
+  examples still use the old command in their shell scripts.
+
 - Rev 495: A new framework for remote control / communication has been integrated
   called Packet Framework. This renders the old rt_server module obsolete (c.f. Sec.
   REMOTE CONTROL INTERFACE). Build e.g. web interfaces to your ORTD implementation!
@@ -347,6 +351,11 @@ Then proceed using:
 
 1. Make sure you have the gnu compilers, perl and make on your target system (should be the case)
 2. Download the default package from <http://sourceforge.net/projects/openrtdynamics/files/> named OpenRTDynamics_source_revXXX.sh; XXX stands for the current revision number.
+(e.g. execute
+
+          wget http://sourceforge.net/projects/openrtdynamics/files/latest/download?source=navbar -O OpenRTDynamics.sh
+
+on the target device.
 3. Transfer this file to your BB and place it into a folder in which you would like to install the framework. A subdirectory will be created within this folder.
 
           scp OpenRTDynamics_source_revXXX.sh debian@192.168.7.2:/home/debian
@@ -402,9 +411,9 @@ TARGET CONFIGURATION (to adjust the target system for the interpreter)
 
 The following targets can be choosen in target.conf:
 
-* RTAI_COMPATIBLE (runs within RTAI; Plugins are disabled because shared libraries
-                    are not supported in RTAI, NOTE: This has not been tested for a long time)
 * LINUX (Default, includes support for RT-Preemption if available)
+* MACOSX Uses the timers and real-time support of the Mach kernel as present in Mac os X
+
 * LINUX_DEBUG   (Like LINUX but debugger information is included)
 * CYGWIN (not functional up to now, to run ORTD-simulations on Windows)
 * ANDROID_ARM (Android using Android NDK cross compile toolchain, see the android section in
@@ -413,8 +422,34 @@ The following targets can be choosen in target.conf:
 * LINUX_x86_32 Generates a 32Bit-build of openrtdynamics on an x86_64 Linux operating system.
                 On Ubuntu installing "gcc-multilib", "ia32-libs" and "g++-multilib" is required.
 * XCOS_RTAI_COMPATIBLE For including ORTD into Scicos/Xcos. Possibly including RTAI-Code generation.
+* RTAI_COMPATIBLE (runs within RTAI; Plugins are disabled because shared libraries
+                    are not supported in RTAI, NOTE: This has not been tested for a long time)
        
-                
+INSTALLATION ON MACOS X
+=======================
+
+Note: Currently the graphical installer does not work on Mac. You need to do the manual installation:
+
+0) If you like, install Scilab and create a link named "scilab" that is e.g. stored in /usr/local/bin
+   to the binary of Scilab, such that a command "scilab" is available in the command line.
+   e.g.:
+   
+    $ ln-s /Applications/scilab-5.5.0.app/Contents/MacOS/bin/scilab /usr/local/bin/scilab 
+
+In the main directory of ORTD do:
+
+    1) $ echo "MACOSX" > target.conf
+    2) $ make config
+    3) $ make ; make install
+
+Create a link in the subfolder share/scilab/contrib/ of the Scilab installation that points to 
+the subfolder scilab/ld_toolbox of ORTD, e.g.:
+
+    ln -s /Users/chr/svn/openrtdynamics/trunk/scilab/ld_toolbox  /Applications/scilab-5.5.0.app/Contents/MacOS/share/scilab/contrib
+    
+Note: On Mac, only the new interpreter command "ortdrun" is supported but the shell scripts (*.sh) in most examples still use the 
+old command "ortd" instead!
+
                 
 ANDROID (ANDROID_ARM-target)
 ============================
@@ -1036,5 +1071,6 @@ By date as there will only be the svn-version
   - 27.8.14:  Fixed many memory leaks that were detected by valgrind
   -  7.9.13:  More memory leaks were fixed.
               Introduced io.h / io.cpp. Currently used to output the output of the Scilab-module's Scilab instance
+  - 24.9.14:  New target MACOSX, Bug fixes, new command ortdrun
 
 

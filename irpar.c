@@ -18,11 +18,14 @@
 */
 
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include <malloc.h>
+
+#include <stdlib.h>
+#ifndef __APPLE__
+  #include <malloc.h>
+#endif
 
 #include "irpar.h"
 
