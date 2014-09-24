@@ -1,5 +1,6 @@
 #!/bin/sh
 
+svn upgrade
 svn up
 make clean
 make
