@@ -44,7 +44,7 @@ clean:
 # FIXME: This required GNU's readlink implementation ?
 .PHONY: scilabconfig
 scilabconfig:
-	./config_scilab.sh
+	sh ./config_scilab.sh
 
 
 

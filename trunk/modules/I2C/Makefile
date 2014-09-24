@@ -52,13 +52,17 @@ scilab_loader.sce: scilab_loader_Prototype.sce
 clean:
 	rm -f *.o module.a module_Linux.a ortd_plugin.so blockid_start.conf.tmp scilab_loader.sce
 
-
+ifeq ($(systemAPI),LINUX)
 I2C_blocks.o: config I2C_blocks.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c I2C_blocks.cpp
-
-#Template_SharedObjects.o: Template_SharedObjects.cpp	
-#	$(CC) $(CFLAGS) $(INCLUDE) -c Template_SharedObjects.cpp
 	
 pluginLoader.o: pluginLoader.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c pluginLoader.cpp
+else
+I2C_blocks.o: config I2C_blocks.cpp
+	echo "Compiling dummy"
+	echo "extern \"C\" { int libdyn_module_I2C_siminit(struct dynlib_simulation_t *sim, int bid_ofs) {  } }" > dummy.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c dummy.cpp -o I2C_blocks.o
+	
+endif
 

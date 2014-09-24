@@ -19,7 +19,7 @@
   USAGE: ./ortd_client setpar stim_v1 0.12
 */
 
-main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
   rt_server_decoder *rd;
   

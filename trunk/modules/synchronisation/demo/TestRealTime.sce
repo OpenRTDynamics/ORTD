@@ -1,7 +1,7 @@
 //
 //    Copyright (C) 2010, 2011, 2012, 2013  Christian Klauer
 //
-//    This file is part of OpenRTDynamics, the Real Time Dynamics Framework
+//    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 //
 //    OpenRTDynamics is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Lesser General Public License as published by
@@ -172,17 +172,30 @@ par.rpar = [];
 
 // eval
 try
-  t_rt = fscanfMat('time500_rt.dat');
-  t_nonrt = fscanfMat('time500_nonrt.dat');
+  t_rt = fscanfMat('time500_rt.dat.finished');
+  t_nonrt = fscanfMat('time500_nonrt.dat.finished');
+//  t_rt = fscanfMat('time500_rt.dat');
+//  t_nonrt = fscanfMat('time500_nonrt.dat');
 
-  Dt_rt = diff(t_rt);
-  Dt_nonrt = diff(t_nonrt);
+  Dt_rt = diff(t_rt) * 1000;
+  Dt_nonrt = diff(t_nonrt) * 1000;
+
+  std_rt = stdev(Dt_rt);
+  std_nonrt = stdev(Dt_nonrt);
 
   scf(1); clf;
-  subplot(211); plot(Dt_rt, 'k'); legend('rt [s]');
-  subplot(212); plot(Dt_nonrt, 'r'); legend('no-rt [s]');
+  subplot(211); plot(Dt_rt, 'k'); plot(0,0,'+');    xtitle('stdev='+string(std_rt) +' [ms]', '', 'Sample Time rt - [ms]');
+  subplot(212); plot(Dt_nonrt, 'k'); plot(0,0,'+');  xtitle('stdev='+string(std_nonrt) +' [ms]', '', 'Sample Time no rt - [ms]');
 
-  xs2pdf(1, 'Result.pdf');
+  xs2pdf(1, 'Result_intervals.pdf');
+  
+  
+  scf(2); clf;  x=linspace(1, 3, 300);
+  subplot(211); histplot(x, Dt_rt);   xtitle('', '[ms]', 'occurrences rt; normalised');
+  subplot(212); histplot(x, Dt_nonrt);  xtitle('', '[ms]', 'occurrences no rt; normalised');
+  
+  xs2pdf(2, 'Result_histplot.pdf');
+  
 catch
   printf("Run the test with # sudo sh TestRealTime.sh and abort after some time using Cntrl-C\nThen run this script again.");
 end

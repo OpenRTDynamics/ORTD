@@ -2,7 +2,11 @@
 
 if [ -f ../../scilabdir.conf ] 
 then 
-  scilabexec=$(readlink -m  `cat ../../scilabdir.conf`/bin/scilab)
+  { # try
+    scilabexec=$(readlink -m  `cat ../../scilabdir.conf`/bin/scilab)
+  } || { # catch
+    scilabexec=$(echo `cat ../../scilabdir.conf`/bin/scilab)
+  }
   echo scilab exec path is $scilabexec 
   echo '#define SCILAB_EXEC ''"'$scilabexec'"'  > scilabconf.h 
 else 
