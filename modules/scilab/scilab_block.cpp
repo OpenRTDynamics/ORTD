@@ -29,6 +29,7 @@ extern "C" {
 }
 
 
+
 #include "io.h"
 
 
@@ -58,9 +59,53 @@ compu_func_scilab_class::compu_func_scilab_class(dynlib_block_t* block)
     this->block = block;
 }
 
+
+
+
+
+// #ifdef __APPLE__
+// #include <mach-o/getsect.h>
+// 
+// #define EXTLD(NAME) \
+//   extern const unsigned char _section$__DATA__ ## NAME [];
+// #define LDVAR(NAME) _section$__DATA__ ## NAME
+// #define LDLEN(NAME) (getsectbyname("__DATA", "__" #NAME)->size)
+// 
+// #elif (defined __WIN32__)  /* mingw */
+// 
+// #define EXTLD(NAME) \
+//   extern const unsigned char binary_ ## NAME ## _start[]; \
+//   extern const unsigned char binary_ ## NAME ## _end[];
+// #define LDVAR(NAME) \
+//   binary_ ## NAME ## _start
+// #define LDLEN(NAME) \
+//   ((binary_ ## NAME ## _end) - (binary_ ## NAME ## _start))
+// 
+// #else /* gnu/linux ld */
+// 
+// #define EXTLD(NAME) \
+//   extern const unsigned char _binary_ ## NAME ## _start[]; \
+//   extern const unsigned char _binary_ ## NAME ## _end[];
+// #define LDVAR(NAME) \
+//   _binary_ ## NAME ## _start
+// #define LDLEN(NAME) \
+//   ((_binary_ ## NAME ## _end) - (_binary_ ## NAME ## _start))
+// #endif
+
+
+#ifdef __SYSTEMAPI_MACOSX
+
+#include <mach-o/getsect.h>
+#include <mach-o/dyld.h>
+// EXTLD(ORTDToolbox_sce)
+
+#endif
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
 extern char _binary_scilab_ORTDToolbox_sce_start[];
 extern uint _binary_scilab_ORTDToolbox_sce_size;
 extern char _binary_scilab_ORTDToolbox_sce_end[];
+#endif
+
 
 int compu_func_scilab_class::init()
 {
@@ -91,9 +136,22 @@ int compu_func_scilab_class::init()
     scilab_calc = new scilab_calculation(block, scilab_path, init_cmd, destruct_cmd, calc_cmd);
 
     // Load the ORTD-Scilab Toolbox that was compiled into the ortd executables into the Scilab instance
-//     scilab_calc->send_buffer( _binary_scilab_ORTDToolbox_sce_start, _binary_scilab_ORTDToolbox_sce_size );
-    scilab_calc->send_buffer( _binary_scilab_ORTDToolbox_sce_start, _binary_scilab_ORTDToolbox_sce_end - _binary_scilab_ORTDToolbox_sce_start );
-
+//#ifdef __ORTD_TARGET_MACOSX
+#ifdef __SYSTEMAPI_MACOSX
+    // compare: https://gist.github.com/sciolist/5178962
+    size_t size;
+    size_t slide = _dyld_get_image_vmaddr_slide(0);
+    const char *data = getsectdata("__DATA", "ORTDToolbox_sce", &size);
+    
+//     printf("%.*s", (int) size, data + slide);
+    
+    scilab_calc->send_buffer( (char*) data + slide, size );    
+//     scilab_calc->send_buffer( (char*) LDVAR(ORTDToolbox_sce) , LDLEN(ORTDToolbox_sce) );
+#endif
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
+    scilab_calc->send_buffer( (char*) _binary_scilab_ORTDToolbox_sce_start, _binary_scilab_ORTDToolbox_sce_end - _binary_scilab_ORTDToolbox_sce_start );    
+#endif
+    
     scilab_calc->init(); // send init_cmd to scilab
 
     return 0;

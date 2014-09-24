@@ -33,6 +33,13 @@
 #include <pthread.h>
 //#include <sys/io.h>
 
+#ifdef __ORTD_TARGET_MACOSX
+// include Mach-kernel timers
+// Compare https://developer.apple.com/library/ios/technotes/tn2169/_index.html
+
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#endif
 
 extern "C" {
 #include "libdyn.h"
@@ -78,18 +85,20 @@ private:
 
     int real_sync_callback(struct dynlib_simulation_t * sim );
 
-    void initclock();
-    void wait(double Tsamp);
+//     void initclock();
+//     void wait(double Tsamp);
 
 
-    struct timespec t, interval, curtime, T0;
-    double T;
+//     struct timespec t, interval, curtime, T0;
+//     double T;
 
 
 };
 
 #define NSEC_PER_SEC    1000000000
 #define USEC_PER_SEC	1000000
+
+#ifdef __SYSTEMAPI_LINUX
 
 static inline void tsnorm(struct timespec *ts)
 {
@@ -106,70 +115,36 @@ static inline double calcdiff(struct timespec t1, struct timespec t2)
     return (1e-6*diff);
 }
 
-void compu_func_synctimer_class::initclock()
-{
-    double Tsamp = 0.0;
+#endif
 
-    interval.tv_sec =  0L;
-    interval.tv_nsec = (long)1e9*Tsamp;
-    tsnorm(&interval);
-
-    /* get current time */
-    clock_gettime(CLOCK_MONOTONIC,&t);
-
-    /* start after one Tsamp */
-    t.tv_sec+=interval.tv_sec;
-    t.tv_nsec+=interval.tv_nsec;
-    tsnorm(&t);
-
-    T0 = t;
-    T = 0.0;
-
-}
-
-
-void compu_func_synctimer_class::wait(double Tsamp)
-{
-//   double Tsamp;
-
-    if (magic != 18454) {
-        printf("wrong place\n");
-        exit(-1);
-    }
-
-    interval.tv_sec =  0L;
-    interval.tv_nsec = (long)1e9*Tsamp;
-    tsnorm(&interval);
-
-//         /* calculate next shot */
+// void compu_func_synctimer_class::initclock()
+// {
+//     double Tsamp = 0.0;
+// 
+//     interval.tv_sec =  0L;
+//     interval.tv_nsec = (long)1e9*Tsamp;
+//     tsnorm(&interval);
+// 
+//     /* get current time */
+//     clock_gettime(CLOCK_MONOTONIC,&t);
+// 
+//     /* start after one Tsamp */
 //     t.tv_sec+=interval.tv_sec;
 //     t.tv_nsec+=interval.tv_nsec;
 //     tsnorm(&t);
-//
-//      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+// 
+//     T0 = t;
+//     T = 0.0;
+// }
 
-    // OR
-
-
-    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
-
-
-// 	sleep(1);
-
-
-//         /* Task time T */
-//         clock_gettime(CLOCK_MONOTONIC,&curtime);
-//         T = calcdiff(curtime,T0);
-
-    /* periodic task */
-    //  NAME(MODEL,_isr)(T);
-
-
-//         t.tv_sec+=interval.tv_sec;
-//         t.tv_nsec+=interval.tv_nsec;
-//         tsnorm(&t);
-
-}
+// void compu_func_synctimer_class::wait(double Tsamp)
+// {
+//     interval.tv_sec =  0L;
+//     interval.tv_nsec = (long)1e9*Tsamp;
+//     tsnorm(&interval);
+// 
+//     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &interval, NULL);
+// }
 
 
 compu_func_synctimer_class::compu_func_synctimer_class(dynlib_block_t* block)
@@ -187,7 +162,7 @@ int compu_func_synctimer_class::init()
     double Nin = ipar[0];
     double Nout = ipar[1];
 
-    initclock();
+//     initclock();
 
     libdyn_simulation_setSyncCallback(block->sim, &compu_func_synctimer_class::sync_callback , this);
 
@@ -213,12 +188,25 @@ int compu_func_synctimer_class::real_sync_callback( struct dynlib_simulation_t *
 
     if (true) { // Loop with absolute times
 
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
+
         // time for execution t and the interval
         struct timespec t, interval;
 
         // measure the current time
         clock_gettime(CLOCK_MONOTONIC,&t);
-
+#endif
+#ifdef __SYSTEMAPI_MACOSX
+	static const uint64_t NANOS_PER_USEC = 1000ULL;
+	static const uint64_t NANOS_PER_MILLISEC = 1000ULL * NANOS_PER_USEC;
+	static const uint64_t NANOS_PER_SEC = 1000ULL * NANOS_PER_MILLISEC;
+	
+	mach_timebase_info_data_t timebase_info;
+	
+	mach_timebase_info(&timebase_info);
+#endif	
+	
+	
 
 
         do { // Main loop is now here
@@ -250,35 +238,41 @@ int compu_func_synctimer_class::real_sync_callback( struct dynlib_simulation_t *
             fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
 #endif
 
-            // calc time to wait
+	    
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
+
+	    // calc time to wait
             interval.tv_sec =  0L;
             interval.tv_nsec = (long)1e9* (*T_pause);
             tsnorm(&interval);
 
-
-
-//            // Task time T
-//            clock_gettime(CLOCK_MONOTONIC,&curtime);
-//            T = calcdiff(curtime,T0);
-
-
-            // calculate time for the next execution
+            // calculate time-instance for the next executio	    
             t.tv_sec+=interval.tv_sec;
             t.tv_nsec+=interval.tv_nsec;
             tsnorm(&t);
 
             // wait
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+#endif
+#ifdef __SYSTEMAPI_MACOSX
+	    
+#define nanos_to_abs(nanos) ( (nanos) * timebase_info.denom / timebase_info.numer )
+    uint64_t time_to_wait = nanos_to_abs( (*T_pause) * NANOS_PER_SEC);
+    uint64_t now = mach_absolute_time();
+    mach_wait_until(now + time_to_wait);
+	    
+#endif
+
+    
+	
 
 
-            // Wait for the next simulation step
-//   wait(*T_pause);
 
         } while (true);
 
     }
 
-
+/*
     if (false) {
 
         // run the simulation
@@ -312,7 +306,7 @@ int compu_func_synctimer_class::real_sync_callback( struct dynlib_simulation_t *
         // Wait for the next simulation step
         wait(*T_pause);
 
-    }
+    }*/
 
 
     return 0; // return zero means that this callback is called again
@@ -502,11 +496,28 @@ public:
 //     // wait until the callback function  real_syncDestructor_callback is called
 //     pthread_mutex_lock(&ExitMutex);
 //
+	
+	
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
         // time for execution t and the interval
         struct timespec t, interval;
 
         // measure the current time
         clock_gettime(CLOCK_MONOTONIC,&t);
+#endif
+#ifdef __SYSTEMAPI_MACOSX
+	static const uint64_t NANOS_PER_USEC = 1000ULL;
+	static const uint64_t NANOS_PER_MILLISEC = 1000ULL * NANOS_PER_USEC;
+	static const uint64_t NANOS_PER_SEC = 1000ULL * NANOS_PER_MILLISEC;
+	
+	mach_timebase_info_data_t timebase_info;	
+	mach_timebase_info(&timebase_info);
+
+    uint64_t t = mach_absolute_time();
+	
+#endif	    
+
+	
 
 
 
@@ -537,6 +548,8 @@ public:
             fprintf(stderr, "Pausing simulation for %f\n", *T_pause);
 #endif
 
+	    
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
             // calc time to wait
             interval.tv_sec =  0L;
             interval.tv_nsec = (long)1e9* (*T_pause);
@@ -549,6 +562,20 @@ public:
 
             // wait
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL);
+#endif
+#ifdef __SYSTEMAPI_MACOSX
+	    
+#define nanos_to_abs(nanos) ( (nanos) * timebase_info.denom / timebase_info.numer )
+//     uint64_t time_to_wait = nanos_to_abs( (*T_pause) * NANOS_PER_SEC);
+//     uint64_t now = mach_absolute_time();
+//     mach_wait_until(now + time_to_wait);
+    
+    
+    uint64_t interval = nanos_to_abs( (*T_pause) * NANOS_PER_SEC);
+    t += interval;
+    mach_wait_until(t);
+    
+#endif	    
 
         }
 

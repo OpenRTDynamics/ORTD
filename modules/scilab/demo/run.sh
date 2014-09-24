@@ -1,1 +1,1 @@
-linux32 libdyn_generic_exec -s scilab_demo -i 901 -l 300
+ortdrun -s scilab_demo -l 300
