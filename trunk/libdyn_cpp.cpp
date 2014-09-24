@@ -1824,7 +1824,7 @@ double * libdyn::get_vec_out(int out)
 
 void libdyn::libdyn_internal_constructor(int Nin, const int* insizes_, int Nout, const int* outsizes_)
 {
-    fprintf(stderr, "--- Setting up new simulation ---\n");
+    fprintf(stderr, "Setting up new a simulation\n");
 
 
     error = 0;
@@ -1949,7 +1949,7 @@ libdyn_master::libdyn_master()
     this->realtime_environment = RTENV_UNDECIDED;
 
     global_comp_func_list = libdyn_new_compfnlist();
-    fprintf(stderr, "Created new libdyn master; ptr=%p\n", this);
+//     fprintf(stderr, "Created new libdyn master; ptr=%p\n", this);
 
 #ifdef REMOTE
     // Initial subsystems (not available)
@@ -1971,7 +1971,7 @@ libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
     this->realtime_environment = realtime_env;
 
     global_comp_func_list = libdyn_new_compfnlist();
-    fprintf(stderr, "Created new libdyn master; ptr=%p; tcpport = %d \n", this, remote_control_tcpport);
+//     fprintf(stderr, "Created new libdyn master; ptr=%p; tcpport = %d \n", this, remote_control_tcpport);
 
 
 #ifdef REMOTE

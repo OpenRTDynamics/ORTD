@@ -83,6 +83,10 @@
 //  Headers for the individual target systems
 //
 
+
+// 
+// lINUX
+// 
 #if defined(__ORTD_TARGET_LINUX) || defined(__ORTD_TARGET_ANDROID)
 // normal linux with optional rt_preempt
 #define _GNU_SOURCE
@@ -103,11 +107,15 @@
 #include <sys/sysinfo.h>
 #include <signal.h>
 
-
 #endif
 
-#ifdef __ORTD_TARGET_RTAI
+
+
+
+// 
 // RTAI.
+// 
+#ifdef __ORTD_TARGET_RTAI
 #define _GNU_SOURCE
 
 #include <sched.h>
@@ -128,6 +136,30 @@
 
 #endif
 
+
+// 
+// MACOSX
+// 
+#ifdef __ORTD_TARGET_MACOSX
+
+#include <sched.h>
+
+#include <time.h>
+#include <sys/time.h>
+
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+
+#include <sys/mman.h>
+#include <pthread.h>
+#include <signal.h>
+
+#endif
+
+
 // Add other targets
 // as needed here
 
@@ -142,12 +174,15 @@
 // #endif
 
 #include "realtime.h"
+//#include <binders.h>
 
 
 
 
 
-#if defined(__ORTD_TARGET_LINUX) || defined(__ORTD_TARGET_ANDROID)
+//#if defined(__ORTD_TARGET_LINUX) || defined(__ORTD_TARGET_ANDROID)
+#if defined(__SYSTEMAPI_LINUX) || defined(__SYSTEMAPI_ANDROID)	    
+
 // normal linux with optional rt_preempt OR ANDROID
 
 
@@ -239,7 +274,9 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
 int ortd_rt_SetCore(int core_id) {
 
 
-#ifdef __ORTD_TARGET_ANDROID
+// #ifdef __ORTD_TARGET_ANDROID
+#ifdef __SYSTEMAPI_ANDROID
+
 
 // http://stackoverflow.com/questions/16319725/android-set-thread-affinity
 
@@ -311,7 +348,8 @@ int ortd_rt_ChangePriority(unsigned int flags, int priority)
 
 
         /* Lock memory */
-#ifdef __ORTD_TARGET_ANDROID
+//#ifdef __ORTD_TARGET_ANDROID
+#ifdef __SYSTEMAPI_ANDROID
         fprintf(stderr, "WARNING: mlockall is not provided by Android\n"); // Android does not provide mlockall
 #else
         if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
@@ -348,7 +386,9 @@ int ortd_rt_ChangePriority(unsigned int flags, int priority)
 
 int ortd_pthread_cancel(pthread_t thread) {
 
-#ifdef __ORTD_TARGET_ANDROID
+// #ifdef __ORTD_TARGET_ANDROID
+#ifdef __SYSTEMAPI_ANDROID
+
     int status;
 
     // workaround for the missing pthread_cancel in the android NDK
@@ -385,6 +425,11 @@ int ortd_rt_ChangePriority(unsigned int flags, int priority)
     printf("realtime.c: ortd_rt_ChangePriority not implemented by now for this target\n");
 }
 
+int ortd_rt_SetThreadProperties2(struct TaskPriority_t TaskPriority)
+{
+    return ortd_rt_SetThreadProperties(TaskPriority.par, TaskPriority.Npar);
+}
+
 int ortd_rt_SetThreadProperties(int *par, int Npar)
 {
     printf("realtime.c: ortd_rt_SetThreadProperties not implemented by now for this target\n");
@@ -412,3 +457,127 @@ long int ortd_mu_time()
 
 #endif
 
+
+
+
+// #ifdef __ORTD_TARGET_MACOSX
+#ifdef __SYSTEMAPI_MACOSX
+
+
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
+
+int move_pthread_to_realtime_scheduling_class(double Tcomputation, double Tconstraint)
+{
+    mach_timebase_info_data_t timebase_info;
+    mach_timebase_info(&timebase_info);
+ 
+    const uint64_t NANOS_PER_MSEC = 1000000ULL;
+    double clock2abs = ((double)timebase_info.denom / (double)timebase_info.numer) * NANOS_PER_MSEC;
+ 
+    thread_time_constraint_policy_data_t policy;
+    policy.period      = 0;
+    policy.computation = (uint32_t)(Tcomputation * clock2abs); // 5 ms of work
+    policy.constraint  = (uint32_t)(Tconstraint * clock2abs);
+    policy.preemptible = FALSE;
+ 
+    int kr = thread_policy_set(pthread_mach_thread_np(pthread_self()),
+                   THREAD_TIME_CONSTRAINT_POLICY,
+                   (thread_policy_t)&policy,
+                   THREAD_TIME_CONSTRAINT_POLICY_COUNT);
+    
+    if (kr != KERN_SUCCESS) {
+        mach_error("thread_policy_set:", kr);
+	fprintf(stderr, "failed to enter Mach real-time scheduling class\n");
+
+        return -1;
+    }
+    
+    fprintf(stderr, "Entered Mach real-time scheduling class\n");
+    
+    return 0;
+}
+
+// The signal handler for the threads
+void ortd_thread_exit_handler(int sig)
+{
+    printf("ortd_thread_exit_handler: this signal is %d \n", sig);
+    pthread_exit(0);
+}
+
+void ortd_InstallThreadSignalHandler() {
+    struct sigaction actions;
+    memset(&actions, 0, sizeof(actions));
+    sigemptyset(&actions.sa_mask);
+    actions.sa_flags = 0;
+    actions.sa_handler = ortd_thread_exit_handler;
+    int rc = sigaction(SIGUSR1,&actions,NULL);
+}
+
+// These are dummy entries by now
+int ortd_rt_ChangePriority(unsigned int flags, int priority)
+{
+   // printf("realtime.c: ortd_rt_ChangePriority not implemented by now for this target\n");
+    if (flags & ORTD_RT_REALTIMETASK) {
+      return move_pthread_to_realtime_scheduling_class(5.0, 10.0); // TODO variable params here
+    } else {
+      // normal user task 
+      return 0;
+    }
+}
+
+int ortd_rt_SetThreadProperties2(struct TaskPriority_t TaskPriority)
+{
+    return ortd_rt_SetThreadProperties(TaskPriority.par, TaskPriority.Npar);
+}
+
+int ortd_rt_SetThreadProperties(int *par, int Npar)
+{
+//     printf("realtime.c: ortd_rt_SetThreadProperties not implemented by now for this target\n");
+    
+    // set signal handlers
+    ortd_InstallThreadSignalHandler();
+
+    // set priorities and cpu affinity
+    if (Npar >= 3) {
+        // ok got prio
+        fprintf(stderr, "Task Prio1 (flags) would be %d (1 means ORTD_RT_REALTIMETASK)\n", par[0]);
+        fprintf(stderr, "Task Prio2 would be %d\n", par[1]);
+        fprintf(stderr, "Task CPU would be %d\n", par[2]);
+
+        // Set CPU
+//         ortd_rt_SetCore(par[2]);
+
+        // set the tasks priority
+        ortd_rt_ChangePriority(par[0], par[1]);
+
+//         ortd_rt_stack_prefault();
+
+        fprintf(stderr, "realtime.c: Successfully set the task properties\n");
+
+        return 0;
+    }
+
+    fprintf(stderr, "realtime.c: no task properties were given\n");
+    return -1;    
+}
+
+
+
+int ortd_pthread_cancel(pthread_t thread) {
+    return pthread_cancel(thread);
+}
+
+long int ortd_mu_time()
+{
+
+    struct timeval mytime;
+    struct timezone myzone;
+
+    gettimeofday(&mytime, &myzone);
+    return (1000000*mytime.tv_sec+mytime.tv_usec);
+
+} /* mu_time */
+
+#endif

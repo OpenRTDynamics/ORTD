@@ -146,8 +146,8 @@ int siminit(struct global_t *global_p)
     if (err == -1) {
         // There may be some problems during compilation.
         // Errors are reported on stdout
-        free(global_p->ipar_cpy);
-	free(global_p->rpar_cpy);
+//         free(global_p->ipar_cpy);
+// 	free(global_p->rpar_cpy);
 
 	printf("Error in libdyn\n");
         exit(1);

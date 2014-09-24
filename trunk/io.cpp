@@ -4,7 +4,7 @@
 
 ortd_io_internal::ortd_io_internal()
 {
-  fprintf(stderr, "New ortd_io_internal interface\n");
+//   fprintf(stderr, "New ortd_io_internal interface\n");
 }
 
 void ortd_io_internal::PutString(char* s)
