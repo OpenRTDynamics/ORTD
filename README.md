@@ -430,15 +430,31 @@ INSTALLATION ON MACOS X
 
 Note: Currently the graphical installer does not work on Mac. You need to do the manual installation:
 
+0) Configure the ortd-target
+
+     $ echo "MACOSX" > target.conf
+
+1) Install Scilab such that it will be stored in /Applications
+2) make config (this will check e.g. for libgsl and libblas)
+3) make install_toolbox (answer to the questions; The corresponding Scilab-binary will be used by the ortd-module "scilab" )
+4) make ; make install
+5) make scilabhelp
+
+Note: On Mac, only the new interpreter command "ortdrun" is supported but the shell scripts (*.sh) in most examples still use the 
+old command "ortd" instead!
+
+
+
+
+
 0) If you like, install Scilab and create a link named "scilab" that is e.g. stored in /usr/local/bin
    to the binary of Scilab, such that a command "scilab" is available in the command line.
    e.g.:
    
-    $ ln-s /Applications/scilab-5.5.0.app/Contents/MacOS/bin/scilab /usr/local/bin/scilab 
+    $ ln -s /Applications/scilab-5.5.0.app/Contents/MacOS/bin/scilab /usr/local/bin/scilab 
 
 In the main directory of ORTD do:
 
-    1) $ echo "MACOSX" > target.conf
     2) $ make config
     3) $ make ; make install
 
@@ -447,8 +463,6 @@ the subfolder scilab/ld_toolbox of ORTD, e.g.:
 
     ln -s /Users/chr/svn/openrtdynamics/trunk/scilab/ld_toolbox  /Applications/scilab-5.5.0.app/Contents/MacOS/share/scilab/contrib
     
-Note: On Mac, only the new interpreter command "ortdrun" is supported but the shell scripts (*.sh) in most examples still use the 
-old command "ortd" instead!
 
                 
 ANDROID (ANDROID_ARM-target)
@@ -601,6 +615,18 @@ following:
 - template: A module template for creating your own blocks
 - ...
 - ... (Need to update this list)
+
+Embedded Scilab
+----------------
+
+During compilation, the ortd-Makefiles search for a Scilab-binary in the following order:
+
+1) use the binary provided by the path in "scilabdir.conf", that was generated during make install_toolbox
+2) Check for a command "scilab"
+
+To check which Scilab-binary is actually used by the ortd interpreter:
+
+    $ cat modules/scilab/scilabconf.h
 
 
 DEVELOPING MODULES & BLOCKS
