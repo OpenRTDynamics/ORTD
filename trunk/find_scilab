@@ -87,7 +87,7 @@ else
 
 
 
-    ./bin/scilab -nogui -e quit | grep -i scilab && success=yes
+    ./bin/scilab -nwni -e quit | grep -i scilab && success=yes
 
     echo $success
 
