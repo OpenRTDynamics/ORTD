@@ -370,8 +370,11 @@ endif
 	
 	
 scilabhelp:
-	(cd scilab; ./build_toolbox.sh)
+	(cd scilab; $(SH) build_toolbox.sh)
 
+cleanscilabhelp:
+	(cd scilab; $(SH) clearHelpfiles.sh)
+	
 cleanBuildFiles:
 	rm -f *.o Linux_Target/* all_Targets/* 
 	rm -f module_list module_list__.c module_list__.h
@@ -382,7 +385,7 @@ cleanBuildFiles:
 
 clean: cleanBuildFiles
 	rm -f *.so *.a
-	rm -f bin/libdyn_generic_exec bin/libdyn_generic_exec_static bin/ortd bin/ortd_static
+	rm -f bin/libdyn_generic_exec bin/libdyn_generic_exec_static bin/ortd bin/ortd_static bin/ortdrun bin/ortdrun_static
 	rm -f scilab/ORTDToolbox.sce
 
 superclean: clean
@@ -546,7 +549,7 @@ io.o: io.cpp
 
 # Do an update update
 .PHONY: update
-update: 
+update:
 	sh update.sh
 
 
@@ -566,8 +569,8 @@ install: all
 
 	chmod +x bin/ortdrun_scilab
 	sudo cp bin/ortdrun_scilab $(SYSTEM_BINARY_FOLDER)
-	
-ifeq ($(systemAPI),LINUX)	
+		
+ifeq ($(target),LINUX)
 	chmod +x bin/libdyn_generic_exec_scilab
 	chmod +x bin/libdyn_generic_exec_static_scilab
 	
@@ -601,6 +604,10 @@ install_toolbox: scilabdir.conf
 
 .PHONY: scilabdir.conf
 scilabdir.conf:
+ifeq ($(target),LINUX)
 	$(SH) find_scilab
-
-
+endif
+ifeq ($(target),MACOSX)
+	#echo "A manual installation of the Scilab toolbox is required:"
+	$(SH) find_scilabMAC
+endif
