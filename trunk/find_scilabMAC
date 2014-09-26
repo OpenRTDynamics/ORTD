@@ -1,0 +1,128 @@
+#!/bin/bash
+
+ortddir=`pwd`
+
+installed_scilab="no"
+
+
+
+
+success=no # initially scilab was not found
+
+if [ "yes" = $installed_scilab  ]
+then
+  echo ok
+  success="yes"
+else
+
+  ask_again="yes"
+  while [ "yes" = $ask_again ]; do
+    echo "while"
+
+    # ask user for scilab5
+
+    echo "*****************************************"
+    echo "   installation of the Scilab-Toolbox    "
+    echo "*****************************************"
+    echo
+    echo
+    echo "Please enter the path to your Scilab 5.x.x directory (it is assumed that Scilab is already installed!)"
+    echo
+    echo "Potential candidates are (If Scilab was put into the /Applications - folder)"
+    echo
+    echo ".... Begin of list ....."
+    echo
+    ls -d /Applications/scilab*.app/Contents/MacOS/
+    echo
+    echo ".... End of list ....."
+    echo
+    echo "Just copy and past one of the lines above.."
+
+    #    zenity --info --text "Tell me your Scilab 5 directory (installation from the archive available at the Scilab webpage)"
+    #echo "/Applications/scilab-5.5.0.app/Contents/MacOS/"
+
+    read scilabdir
+
+#    scilabdir=`zenity --title "Select Scilab 5 directory" --file-selection --directory`
+
+     if [ "" = $scilabdir ]; then
+       echo "user abort"
+       exit 0
+     fi
+
+
+    cd $scilabdir
+    pwd
+
+
+
+    ./bin/scilab -nwni -e quit | grep -i scilab && success=yes
+
+    echo $success
+
+    if [ "yes" = $success ]; then
+      echo "scilab was found within $scilabdir"
+#      zenity --info --text "Scilab was found within $scilabdir"
+      ask_again="no"
+#      cd $ortddir
+     
+     # echo $scilabdir > scilabdir.conf
+      cd $scilabdir
+      scilabdir_wiout_slash=`pwd`
+ 
+      cd $ortddir
+      echo $scilabdir_wiout_slash > scilabdir.conf 
+        
+    else
+      echo "Scilab was not found within $scilabdir"
+#      zenity --info --text "Scilab was NOT found within $scilabdir"
+
+      ask_again="no"
+#      if zenity --question --text "Scilab was NOT found within $scilabdir. Try again?"
+#      then
+#        ask_again="yes"
+#      fi
+
+      #exit -1
+    fi
+
+  done
+
+
+fi
+
+
+
+
+
+
+
+if [ "yes" = $success ]; then
+
+  ortddir=`pwd`
+  scilabdir=`cat scilabdir.conf`
+
+  cd $scilabdir
+  cd share/scilab/contrib
+
+  if [ -e ld_toolbox ]
+  then
+    echo "Toolbox already exists, removing the old entry (works only if there was a link)!"
+    rm ld_toolbox
+    #zenity --question --text "Toolbox seems to be already installed. Shall I replace the installation?" && ( rm ld_toolbox )
+  fi
+
+  if [ -e ld_toolbox ]
+  then
+    echo "Could not remove the file ld_toolbox in "
+    pwd
+    exit 0
+  fi
+
+  # create the link
+  ln -s $ortddir/scilab/ld_toolbox . && ( echo "A new link named ld_toolbox was created within `pwd`."; ls -l )
+
+  # write the configuration file
+  echo "$ortddir" > "$ortddir/scilab/ld_toolbox/etc/ortd_path.conf"
+
+fi
