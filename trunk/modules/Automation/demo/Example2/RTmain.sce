@@ -121,8 +121,10 @@ function [sim] = AutoCalibration(sim, Signal)
 
       //
       // Here a state-machine is implemented that may be used to implement some automation
-      // logic, e.g. a calibration run in a first step and a successive compilation of a control-
-      // system that is loaded at runtime.
+      // logic that is executed during runtime using the embedded Scilab interpreter.
+      // In this example, a calibration run succeeded by the design/compilation/execution 
+      // of a control-system is implemented. The schematics defined in each state are loaded
+      // at runtime.
       // 
       select userdata.State
         case "calibration"  // define a controller to perform a calibration experiment
@@ -130,7 +132,7 @@ function [sim] = AutoCalibration(sim, Signal)
           Signal = inlist(1);
           [sim] = ld_printf(sim, 0, Signal, "Calibration active; collecting data: ", 2);
 
-          // Store the sensor data into a shared memory
+          // Store the sensor data into a shared memory.
           [sim, Data_vecsize__] = ld_const(sim, ev, Data_vecsize);
           [sim, zero] = ld_const(sim, ev, 0);
           [sim, writeI] = ld_counter(sim, 0, count=Data_vecsize__, reset=zero, resetto=zero, initial=1);
@@ -139,12 +141,9 @@ function [sim] = AutoCalibration(sim, Signal)
                                          ident_str="CalibrationData", datatype=ORTD.DATATYPE_FLOAT, ...
                                          ElementsToWrite=Data_vecsize);
 
-          // wait until a number of time steps to be passed, then tell that
+          // Wait until a number of time steps has passed, then notify that
           // the experiment has finished by setting "finished" to 1.
           [sim, finished] = ld_steps2(sim, ev, activation_simsteps=NcalibSamples, values=[0,1] );
-
-
-          //[sim] = ld_printf(sim, 0, finished, "Collecting data ..., finished? " , 1);
 
           [sim, out] = ld_const(sim, ev, 0);
           outlist=list(out);
@@ -154,8 +153,8 @@ function [sim] = AutoCalibration(sim, Signal)
 
         case "control" // design a controller based on the parameters obtained during the calibration
 
-          // use the data collected during the experiment that was defined by state "init"
-          // data comming out of userdata.InputData is the output ToScilab of "PreScilabRun"
+          // Use the data collected during the experiment that was defined by state "calibration".
+          // Data comming out of userdata.InputData is the output ToScilab of "PreScilabRun".
           data = userdata.InputData;
           A=matrix( userdata.InputData , Data_vecsize, NcalibSamples )';
           printf("Got the following data for iteration %d:\n", userdata.Acounter);  disp(A);
@@ -172,7 +171,7 @@ function [sim] = AutoCalibration(sim, Signal)
           [sim, S1_minus_ofs] = ld_add_ofs(sim, 0, S1(1), -mean_S1);
           [sim] = ld_printf(sim, 0, S1_minus_ofs, "The offset compensated input signal:" , 1);
           
-          // wait until a number of time steps to be passed, then tell that
+          // Wait until a number of time steps has passed, then notify that
           // the experiment (control system in this case) has finished.
           [sim, finished] = ld_steps2(sim, 0, activation_simsteps=50-1, values=[0,1] );
 
