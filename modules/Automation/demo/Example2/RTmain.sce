@@ -271,22 +271,22 @@ endfunction
 
 // The main real-time thread
 function [sim, outlist, userdata] = Thread_MainRT(sim, inlist, userdata)
-  // This will run in a thread
-  [sim, Tpause] = ld_const(sim, ev, 1/4);  // The sampling time that is constant at 7 Hz in this example
+  // This will become a main-loop running in a thread
+  [sim, Tpause] = ld_const(sim, ev, 1/4);  // The sampling time that is constant at 4 Hz in this example
   [sim, out] = ld_ClockSync(sim, ev, in=Tpause); // synchronise this simulation
 
   // print the time interval
-//   [sim] = ld_printf(sim, ev, Tpause, "Time interval [s]", 1);
+  // [sim] = ld_printf(sim, ev, Tpause, "Time interval [s]", 1);
 
   // save the absolute time into a file
   [sim, time] = ld_clock(sim, ev);
-//   [sim] = ld_savefile(sim, ev, fname="AbsoluteTime.dat", source=time, vlen=1);
+  // [sim] = ld_savefile(sim, ev, fname="AbsoluteTime.dat", source=time, vlen=1);
 
   //
-  // Add you own control system here
+  // Add your own control system here
   //
 
-rand('seed',0);
+  rand('seed',0);
 
   [sim,S1] = ld_play_simple(sim, 0, r=rand(1000,1) ); // some noise signal
   [sim,S2] = ld_play_simple(sim, 0, r=1+sin(1:0.1:100) );
