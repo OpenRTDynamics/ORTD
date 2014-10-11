@@ -89,14 +89,16 @@ function [sim] = AutoCalibration(sim, Signal)
       // Please note: Since this code is only executed on-line, most potential errors 
       // occuring in this part become only visible during runtime.
 
+      printf("Compiling a new control system\n");
+
       if userdata.isInitialised == %f then
         //
         // State variables can be initialise at this place
         //
-	userdata.Acounter = 0;
-        userdata.State = "init";
+        userdata.Acounter = 0;
+        userdata.State = "calibration";
     
-	userdata.isInitialised = %t; // prevent from initialising the variables once again
+        userdata.isInitialised = %t; // prevent from initialising the variables once again
       end
 
       // 
@@ -111,9 +113,11 @@ function [sim] = AutoCalibration(sim, Signal)
       // Define a new experiment controller schematic depending on the currently active state
       // 
 
+      [sim, zero] = ld_const(sim, ev, 0);
+      [sim, one] = ld_const(sim, 0, 1);
+
       // default output (dummy)
-      [sim, out] = ld_const(sim, ev, 0);
-      outlist=list(out);
+      outlist=list(zero);
 
       //
       // Here a state-machine is implemented that may be used to implement some automation
@@ -121,59 +125,65 @@ function [sim] = AutoCalibration(sim, Signal)
       // system that is loaded at runtime.
       // 
       select userdata.State
-	case "init"  // define a controller to perform a calibration experiment
+        case "calibration"  // define a controller to perform a calibration experiment
 
-	  Signal = inlist(1);
-	  [sim] = ld_printf(sim, 0, Signal, "Collecting data ... " + SchematicInfo, 2);
+          Signal = inlist(1);
+          [sim] = ld_printf(sim, 0, Signal, "Calibration active; collecting data: ", 2);
 
-	  // Store the sensor data into a shared memory
-	  [sim, Data_vecsize__] = ld_const(sim, ev, Data_vecsize);
-	  [sim, zero] = ld_const(sim, ev, 0);
-	  [sim, writeI] = ld_counter(sim, 0, count=Data_vecsize__, reset=zero, resetto=zero, initial=1);
+          // Store the sensor data into a shared memory
+          [sim, Data_vecsize__] = ld_const(sim, ev, Data_vecsize);
+          [sim, zero] = ld_const(sim, ev, 0);
+          [sim, writeI] = ld_counter(sim, 0, count=Data_vecsize__, reset=zero, resetto=zero, initial=1);
 
-	  [sim] = ld_write_global_memory(sim, 0, data=Signal, index=writeI, ...
-					ident_str="CalibrationData", datatype=ORTD.DATATYPE_FLOAT, ...
-					ElementsToWrite=Data_vecsize);
+          [sim] = ld_write_global_memory(sim, 0, data=Signal, index=writeI, ...
+                                         ident_str="CalibrationData", datatype=ORTD.DATATYPE_FLOAT, ...
+                                         ElementsToWrite=Data_vecsize);
 
-	  // wait until a number of time steps to be passed, then tell that
-	  // the experiment has finished by setting "finished" to 1.
-	  [sim, finished] = ld_steps2(sim, ev, activation_simsteps=NcalibSamples, values=[0,1] );
+          // wait until a number of time steps to be passed, then tell that
+          // the experiment has finished by setting "finished" to 1.
+          [sim, finished] = ld_steps2(sim, ev, activation_simsteps=NcalibSamples, values=[0,1] );
 
 
-	  [sim] = ld_printf(sim, 0, finished, "Collecting data ..., finished? " , 1);
+          //[sim] = ld_printf(sim, 0, finished, "Collecting data ..., finished? " , 1);
 
-	  [sim, out] = ld_const(sim, ev, 0);
-	  outlist=list(out);
+          [sim, out] = ld_const(sim, ev, 0);
+          outlist=list(out);
 
           // chose the next state to enter when the calibration experiment controller has finished
-	  userdata.State = "control";
+          userdata.State = "control";
 
-	case "control" // define a new schematic based on the parameters obtained during the calibration
+        case "control" // design a controller based on the parameters obtained during the calibration
 
           // use the data collected during the experiment that was defined by state "init"
           // data comming out of userdata.InputData is the output ToScilab of "PreScilabRun"
-	  data = userdata.InputData;
-	  A=matrix( userdata.InputData , Data_vecsize, NcalibSamples )';
-	  printf("Got the following data for iteration %d:\n", userdata.Acounter);  disp(A);
+          data = userdata.InputData;
+          A=matrix( userdata.InputData , Data_vecsize, NcalibSamples )';
+          printf("Got the following data for iteration %d:\n", userdata.Acounter);  disp(A);
 
           // Perform some calibration tasks...
-          Signal1 = A(:,1); mean_S1 = mean(Signal1);
-
-	  // wait until a number of time steps to be passed, then tell that
-	  // the experiment (control system in this case) has finished.
-	  [sim, finished] = ld_steps2(sim, ev, activation_simsteps=50, values=[0,1] );
+          Signal1 = A(:,1); mean_S1 = mean(Signal1); stdev_S1 = stdev(Signal1);
 
           // No real control system at this place -- just one printf to show the current parameters.
-	  [sim] = ld_printf(sim, 0, finished, "Some calibrated control system is active. The previously obtained parameters are: mean_S1="+string(mean_S1) , 1);
+          [sim] = ld_printf(sim, 0, zero, "The control system was compiled and is active now. Parameters are: mean_S1="+string(mean_S1)+" stdev_S1="+string(stdev_S1), 1);
 
           // Do something useful in this demo: subtract to obtained mean values from the Signal
           // S1
-	  Signal = inlist(1);  [sim, S1] = ld_demux(sim, 0, 2, Signal);
+          Signal = inlist(1);  [sim, S1] = ld_demux(sim, 0, 2, Signal);
           [sim, S1_minus_ofs] = ld_add_ofs(sim, 0, S1(1), -mean_S1);
-	  [sim] = ld_printf(sim, 0, S1_minus_ofs, "The offset compensated input signal" , 1);
+          [sim] = ld_printf(sim, 0, S1_minus_ofs, "The offset compensated input signal:" , 1);
+          
+          // wait until a number of time steps to be passed, then tell that
+          // the experiment (control system in this case) has finished.
+          [sim, finished] = ld_steps2(sim, 0, activation_simsteps=50-1, values=[0,1] );
+
+          [sim, MaxCount] = ld_const(sim, 0, 50);
+          [sim, Counter] = ld_modcounter(sim, 0, in=one, initial_count=0, mod=50+1);
+          [sim, CountDown] = ld_add(sim, 0, list(Counter, MaxCount), [ -1, 1 ] );
+          [sim] = ld_printf(sim, 0, CountDown, "Recalibration after time-steps:" , 1);
 
           // next state: recalibrate by going to "init" again after "finished" is set to 1
-	  userdata.State = "init";
+          userdata.State = "calibration";
+
       end
     end // CalledOnline == %t
 
@@ -183,10 +193,11 @@ function [sim] = AutoCalibration(sim, Signal)
       SchematicInfo = "Off-line compiled";
 
       // default output (dummy)
-      [sim, out] = ld_const(sim, ev, 0);
+      [sim, out] = ld_const(sim, 0, 0);
       outlist=list(out);
-      [sim, finished] = ld_steps2(sim, ev, activation_simsteps=10, values=[0,1] );
+      [sim, finished] = ld_steps2(sim, 0, activation_simsteps=10, values=[0,1] );
     end
+    
   endfunction
 
 
@@ -210,8 +221,8 @@ function [sim] = AutoCalibration(sim, Signal)
 	// get the stored sensor data
 	[sim, readI] = ld_const(sim, 0, 1); // start at index 1
 	[sim, ToScilab] = ld_read_global_memory(sim, 0, index=readI, ident_str="CalibrationData", ...
-						    datatype=ORTD.DATATYPE_FLOAT, ...
-						    ElementsToRead=NcalibSamples*Data_vecsize);
+                                            datatype=ORTD.DATATYPE_FLOAT, ...
+                                            ElementsToRead=NcalibSamples*Data_vecsize);
   endfunction
 
 
@@ -261,7 +272,7 @@ endfunction
 // The main real-time thread
 function [sim, outlist, userdata] = Thread_MainRT(sim, inlist, userdata)
   // This will run in a thread
-  [sim, Tpause] = ld_const(sim, ev, 1/7);  // The sampling time that is constant at 7 Hz in this example
+  [sim, Tpause] = ld_const(sim, ev, 1/4);  // The sampling time that is constant at 7 Hz in this example
   [sim, out] = ld_ClockSync(sim, ev, in=Tpause); // synchronise this simulation
 
   // print the time interval
