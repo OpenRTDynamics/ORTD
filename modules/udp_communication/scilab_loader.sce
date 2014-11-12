@@ -410,7 +410,7 @@ endfunction
 //   nodejs. 
 //   webappUDP.js is the counterpart that provides a web-interface 
 // 
-// Current Rev: 7
+// Current Rev: 8
 // 
 // Revisions:
 // 
@@ -633,7 +633,7 @@ function [sim] = ld_PF_SendGroupFinshUDP(sim, PacketFramework, GroupID)
 			      insize=NBytes);
 
 
-  [sim] = ld_printf(sim, ev, GroupID_, "Sent finish packet ", 1);
+  // [sim] = ld_printf(sim, ev, GroupID_, "Sent finish packet ", 1);
 endfunction
 
 function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOCU_BLOCK
