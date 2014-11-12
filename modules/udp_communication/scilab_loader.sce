@@ -410,15 +410,16 @@ endfunction
 //   nodejs. 
 //   webappUDP.js is the counterpart that provides a web-interface 
 // 
-// Current R0: 6
+// Current Rev: 7
 // 
-// Versions:
+// Revisions:
 // 
 // 27.3.14 - possibility to reservate sources
 // 3.4.14  - small re-arrangements
 // 4.4.14  - Bugfixes
 // 7.4.14  - Bugfix
 // 12.6.14 - Bugfix
+// 2.11.14 - Added group finalising packet
 // 
 
 
@@ -494,7 +495,7 @@ function [sim] = ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, data
   [sim, SourceID_int32] = ld_ceilInt32(sim, 0, SourceID);
 
   // Sender ID
-  [sim, SenderID] = ld_const(sim, 0, 1295793); // random number
+  [sim, SenderID] = ld_const(sim, 0, PacketFramework.SenderID); // random number
   [sim, SenderID_int32] = ld_ceilInt32(sim, 0, SenderID);
 
   // make a binary structure
@@ -512,6 +513,9 @@ function [sim] = ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, data
 			      insize=NBytes);
 
 endfunction
+
+
+
 
 function [sim, PacketFramework] = ld_SendPacket(sim, PacketFramework, Signal, NValues_send, datatype, SourceName) // PARSEDOCU_BLOCK // PARSEDOCU_BLOCK
 // 
@@ -588,6 +592,48 @@ function [sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName, Configur
   PacketFramework.Parameterid_counter = 0;
   PacketFramework.ParameterMemOfs_counter = 1; // start at the first index in the memory
   PacketFramework.Parameters = list();
+  
+  PacketFramework.SenderID = 1295793;
+endfunction
+
+
+// Send a signal via UDP, a simple protocoll is defined, internal function
+function [sim] = ld_PF_SendGroupFinshUDP(sim, PacketFramework, GroupID)
+  InstanceName = PacketFramework.InstanceName;
+  [sim,one] = ld_const(sim, 0, 1);
+
+  // Packet counter, so the order of the network packages can be determined
+  [sim, Counter] = ld_modcounter(sim, 0, in=one, initial_count=0, mod=100000);
+  [sim, Counter_int32] = ld_ceilInt32(sim, 0, Counter);
+
+  // Source ID
+  [sim, SourceID] = ld_const(sim, 0, -1);                   // -1 means finish a group of sources
+  [sim, SourceID_int32] = ld_ceilInt32(sim, 0, SourceID);
+
+  // Group ID
+  [sim, GroupID_] = ld_const(sim, 0, GroupID);                   // -1 means finish a group of sources
+  [sim, GroupID_int32] = ld_ceilInt32(sim, 0, GroupID_);
+
+  // Sender ID
+  [sim, SenderID] = ld_const(sim, 0, PacketFramework.SenderID); // random number
+  [sim, SenderID_int32] = ld_ceilInt32(sim, 0, SenderID);
+
+  // make a binary structure
+  [sim, Data, NBytes] = ld_ConcateData(sim, 0, ...
+			inlist=list(SenderID_int32, Counter_int32, SourceID_int32, GroupID_int32 ), insizes=[1,1,1,1], ...
+			intypes=[ ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32 ] );
+
+//  printf("The size of the UDP-packets will be %d bytes.\n", NBytes);
+
+  // send to the network 
+  [sim, NBytes__] = ld_constvecInt32(sim, 0, vec=NBytes); // the number of bytes that are actually send is dynamic, but must be smaller or equal to 
+  [sim] = ld_UDPSocket_SendTo(sim, 0, SendSize=NBytes__, ObjectIdentifyer=InstanceName+"aSocket", ...
+			      hostname=PacketFramework.Configuration.DestHost, ...
+                              UDPPort=PacketFramework.Configuration.DestPort, in=Data, ...
+			      insize=NBytes);
+
+
+  [sim] = ld_printf(sim, ev, GroupID_, "Sent finish packet ", 1);
 endfunction
 
 function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOCU_BLOCK
@@ -702,6 +748,10 @@ function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOC
 
   // udp
   [sim] = ld_PF_InitUDP(sim, PacketFramework.InstanceName, PacketFramework.ParameterMemory);
+  
+  // Send to group update notifications for each group (currently only one possible)
+  [sim] = ld_PF_SendGroupFinshUDP(sim, PacketFramework, GroupID=0);
+  
 endfunction
 
 function ld_PF_Export_js(PacketFramework, fname) // PARSEDOCU_BLOCK
@@ -838,6 +888,4 @@ function [sim, PacketFramework, Parameter]=ld_PF_Parameter2(sim, PacketFramework
   [sim, Parameter] = ld_read_global_memory(sim, 0, index=readI, ident_str=PacketFramework.InstanceName+"Memory", ...
                                            P.datatype, P.NValues);
 endfunction
-
-
 
