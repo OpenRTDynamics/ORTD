@@ -16,7 +16,10 @@ cp Makefile Makefile.tmp
 cat Makefile.tmp | sed s/TemplateModule_V2/$ModuleName/g > Makefile
 rm Makefile.tmp
 
-cat pluginLoader.cpp | sed s/TemplateModule_V2/$ModuleName/g  > pluginLoader.cpp
+cp pluginLoader.cpp pluginLoader.cpp.tmp
+cat pluginLoader.cpp.tmp | sed s/TemplateModule_V2/$ModuleName/g  > pluginLoader.cpp
+rm pluginLoader.cpp.tmp
+
 ) || (
   echo "Something failed!"
 )
