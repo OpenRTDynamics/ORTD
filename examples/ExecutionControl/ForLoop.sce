@@ -17,18 +17,19 @@
 //    along with OpenRTDynamics.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+// NOTE: CURRENTLY UNDER DEVELOPMENT
 
 
 //
-// This is an example for setting up a select/case-structure
+// This is an example for "for-loops"
 // using the nested module.
 // After running this file, have a look into the variable "messages" to
 // observed what happened.
 //
-// To run from a terminal:   $ ortdrun -s SelectCase -l 1
+// To run from a terminal:   $ ortdrun -s ForLoop -l 1
+//
 
-
-SchematicName = 'SelectCase'; // must be the filename without .sce
+SchematicName = 'ForLoop'; // must be the filename without .sce
 thispath = get_absolute_file_path(SchematicName+'.sce');
 cd(thispath);
 
@@ -45,12 +46,10 @@ z = poly(0,'z');
 //[sim, outlist_inner, userdata] = fn(sim, inlist_inner, Ncase, casename, userdata_nested);
 
 
-function [sim, outlist, userdata] = SelectCaseFn(sim, inlist, Ncase, casename, userdata)
+function [sim, outlist, userdata] = ForLoopFn(sim, inlist, LoopCounter, userdata)
   // This function is called multiple times -- once to define each case
   // At runtime, all cases will become different nested simulations of 
   // which only one is active a a time. 
-  
-  printf("Defining case %s (#%d) ...\n", casename, Ncase );
   
   // define names for the first event in the simulation
   events = 0;
@@ -65,27 +64,10 @@ function [sim, outlist, userdata] = SelectCaseFn(sim, inlist, Ncase, casename, u
 //  [sim] = ld_printf(sim, events, in=inlist(1), str="case"+string(casename)+": indata(1)", insize=1);
 
   // sample data for the output
-  [sim, outdata1] = ld_constvec(sim, events, vec=[1200]);
+  [sim, outdata1] = ld_constvec(sim, 0, vec=[1200]);
 
-  // The signals "active_state" is used to indicate state switching: A value > 0 means the 
-  // the state enumed by "active_state" shall be activated in the next time step.
-  // A value less or equal to zero causes the statemachine to stay in its currently active
-  // state
-
-  select Ncase
-    case 1 // case 1
-      [sim] = ld_printf(sim, 0, in1, "Case 1 active: ", 1);
-      [sim, outdata1] = ld_const(sim, 0, 11);
-
-    case 2 // case 2
-      [sim] = ld_printf(sim, 0, in1, "Case 2 active: ", 1);
-      [sim, outdata1] = ld_const(sim, 0, 22);
-
-    case 3 // case 3
-      [sim] = ld_printf(sim, 0, in1, "Case 3 active: ", 1);
-      [sim, outdata1] = ld_const(sim, 0, 33);
-
-  end
+  [sim, LoopCounter] = ld_Int32ToFloat(sim, 0, LoopCounter);
+  [sim] = ld_printf(sim, 0, LoopCounter, "Loop count active: ", 1);
 
   // the user defined output signals of this nested simulation
   outlist = list(outdata1);
@@ -104,16 +86,16 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   [sim, ActiveSim] = ld_modcounter(sim, 0, in=one, initial_count=1, mod=3);
   [sim, ActiveSim] = ld_add_ofs(sim, 0, ActiveSim, 1);
   
-  [sim] = ld_printf(sim, 0,  ActiveSim  , "active case/simulation", 1);
+  [sim] = ld_printf(sim, 0,  ActiveSim  , "Number of iterations of the nested simulation", 1);
     
   [sim, ActiveSim] = ld_ceilInt32(sim, 0, ActiveSim);
 
   // set-up three states represented by three nested simulations
-  [sim, outlist, userdata] = ld_CaseSwitchNest(sim, 0, ...
+  [sim, outlist, userdata] = ld_ForLoopNest(sim, 0, ...
       inlist=list(data1, data2), ..
       insizes=[1,2], outsizes=[1], ... 
       intypes=[ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT], ...
-      CaseSwitch_fn=SelectCaseFn, SimnestName="SwitchSelectTest", DirectFeedthrough=%t, SelectSignal=ActiveSim, list("Case1", "Case2", "Case3"), list("UserdataTest")  );
+      ForLoop_fn=ForLoopFn, SimnestName="ForLoopTest", NitSignal=ActiveSim, list("UserdataTest")  );
 
   
 

@@ -299,14 +299,14 @@ endfunction
 // Use this as a template for nesting simulations
 // 
 
-function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, CaseSwitch_fn, SimnestName, DirectFeedthrough, SelectSignal, CaseNameList, userdata) 
+function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, CaseSwitch_fn, SimnestName, DirectFeedthrough, SelectSignal, CaseNameList, userdata) // PARSEDOCU_BLOCK
     // 
     // %PURPOSE: Switch mechanism for multiple nested simulations 
     //
     // INPUT Signals: 
     //
     // inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
-    // switch - * swicht signal of type ORTD.DATATYPE_INT32
+    // SelectSignal - * swicht signal of type ORTD.DATATYPE_INT32
     //
     // PARAMETERS:
     // 
@@ -314,8 +314,8 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
     // outsizes - output ports configuration
     // intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
     // outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
-    // nested_fn - scilab function defining the sub-schematics
-    //             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)
+    // CaseSwitch_fn - scilab function defining the sub-schematics
+    //             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, Ncase, casename, userdata)
     // 
     // SimnestName (string) - the name of the nested simulation
     // DirectFeedthrough - %t or %f
@@ -487,6 +487,192 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
 endfunction
 
 
+
+function [sim, outlist, userdata] = ld_ForLoopNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ForLoop_fn, SimnestName, NitSignal, userdata) 
+    // PARSEDOCU_BLOCK
+    // 
+    // %PURPOSE: Switch mechanism for multiple nested simulations 
+    //
+    // INPUT Signals: 
+    //
+    // inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+    // SelectSignal - * swicht signal of type ORTD.DATATYPE_INT32
+    //
+    // PARAMETERS:
+    // 
+    // insizes - input ports configuration
+    // outsizes - output ports configuration
+    // intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+    // outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+    // ForLoop_fn - scilab function defining the sub-schematics
+    //             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, CounterSignal, userdata)
+    // 
+    // SimnestName (string) - the name of the nested simulation
+    // NitSignal * - int32 The number of simulation steps to be performed by the nested simulation
+    // 
+    // userdata - A Scilab variable that will be forwarded to the function nested_fn
+    // 
+    // OUTPUTS:
+    // 
+    // outlist - list( ) of output signals
+    // 
+
+
+    function [sim, outlist, userdata ] = WrapForLoop(sim, inlist, userdata)
+        userdata_nested = userdata(2);
+        fn = userdata(2);
+        Nin_usersignals = userdata(3);
+        Nout_usersignals = userdata(4);
+
+//        printf("ld_CaseSwitchNest: case=%s (#%d)\n", casename, Ncase );
+
+        // make a list containing only the input signals forwarded to the nested simulation(s)
+        inlist_inner = list();     
+        for i = 1:Nin_usersignals
+            inlist_inner($+1) = inlist(i);
+        end
+
+        // additional input signals to the nested simulation
+        CounterSignal = inlist(Nin_usersignals+1);
+
+
+        // call the actual function
+        [sim, outlist_inner, userdata_nested] = fn(sim, inlist_inner, CounterSignal, userdata_nested);
+
+        if length(outlist_inner) ~= Nout_usersignals then
+            printf("ld_ForLoopNest: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+            error(".");
+        end
+
+        // make a list containing only the output signals comming form the nested simulation(s)
+        outlist = list();
+        N = length(outlist_inner);
+        for i = 1:N
+            outlist($+1) = outlist_inner(i);
+        end
+        // additional outputs
+        //     outlist($+1) = active_state;
+
+        userdata = list( userdata_nested ); // additional data that should be returned can be added here
+    endfunction
+
+    Nsimulations = 1; //
+
+    // check for sizes
+    N1 = length(insizes);
+    N2 = length(outsizes);
+    N3 = length(intypes);
+    N4 = length(outtypes);
+    // ...
+    if (length(inlist) ~= N1) then
+        error("length inlist invalid or length of insizes invalid\n");
+    end
+
+    if N4 ~= N2 then
+        error("length of outsizes invalid\n");
+    end
+
+    if N1 ~= N3 then
+        error("length of intypes invalid\n");
+    end
+
+    Noutp = length(outsizes);
+
+    // pack all parameters into a structure "parlist"
+    parlist = new_irparam_set();
+
+    // Create parameters
+
+
+    parlist = new_irparam_elemet_ivec(parlist, [0 ], 1); // general parameters in a list
+    parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
+    parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
+    parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
+    parlist = new_irparam_elemet_ivec(parlist, outtypes, 13); 
+
+    //    parlist = new_irparam_elemet_ivec(parlist, [0, 0], 20); 
+    parlist = new_irparam_elemet_ivec(parlist, ascii(SimnestName), 21); 
+
+
+    // add additional inputs to the nested simulation
+    insizes_ToNest = [insizes(:); 1]; // one additional input for the loop counter
+    intypes_ToNest = [intypes(:); ORTD.DATATYPE_INT32 ];
+
+    // add additional outputs comming from the nested simulations
+//    outsizes_FromNest = [outsizes(:); 1]; // one additional output for ...
+//    outtypes_FromNest = [outtypes(:); ORTD.DATATYPE_INT32 ];
+    outsizes_FromNest = [outsizes(:)  ]; 
+    outtypes_FromNest = [outtypes(:)  ];
+    
+
+    irpar_sim_idcounter = 900;
+    for i = 1:Nsimulations
+        
+        userdata__ = list( userdata, ForLoop_fn, length(insizes), length(outsizes) )
+
+        // define schematic
+        nested_fn__ = WrapForLoop; // nested_fn -  the function to call for defining the schematic
+        [sim_container_irpar, nested_sim, TMPuserdata] = libdyn_setup_sch2(nested_fn__, insizes_ToNest, outsizes_FromNest, insizes_ToNest, outtypes_FromNest, userdata__);
+        userdata = TMPuserdata(1);
+
+        // pack simulations into irpar container with id = 901
+        parlist = new_irparam_container(parlist, sim_container_irpar, irpar_sim_idcounter);
+
+        // increase irpar_sim_idcounter so the next simulation gets another id
+        irpar_sim_idcounter = irpar_sim_idcounter + 1;
+    end
+
+
+    // combine parameters  
+    p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+    // Set-up the block parameters and I/O ports
+    Uipar = [ p.ipar ];  Urpar = [ p.rpar ];
+    dfeed = 1;
+    btype = 15001 + 13; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+    // add additional input(s) to the block containing the nested simulation(s)
+    insizes=[insizes(:)', 1];
+    intypes=[intypes(:)', ORTD.DATATYPE_INT32]; // the additional switch input signal
+    // 
+    //   // add additional outputs
+    //   outsizes=[outsizes(:)', 1];
+    //   outtypes=[outtypes(:)', ORTD.DATATYPE_FLOAT]; // the addotional comp finished output signal
+
+    //   disp(outsizes);
+
+
+    blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+    // Create the block
+    [sim, blk] = libdyn_CreateBlockAutoConfig(sim, ev, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+
+    // make a list of input signals to the block containing the nested simulation(s)
+    blocks_inlist = inlist;
+
+    // add an additional input signal
+    blocks_inlist($+1) = NitSignal; 
+
+    // connect all inputs
+    [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
+
+    // connect all outputs and put them into the outlist-list
+    outlist = list();
+    if Noutp ~= 0 then
+        for i = 0:(Noutp-1)
+            [sim,out] = libdyn_new_oport_hint(sim, blk, i);   // ith port
+            outlist(i+1) = out;
+        end
+    else
+        null;
+        //      printf("ld_simnest: No outputs to connect\n");
+    end
+
+    // connect additional outputs
+    //   [sim,computation_finished] = libdyn_new_oport_hint(sim, blk, Noutp+0);   // the last port
+
+
+endfunction
 
 
 
