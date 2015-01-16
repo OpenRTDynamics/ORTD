@@ -465,6 +465,7 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
     // add an additional input signal
     blocks_inlist($+1) = SelectSignal; 
 
+
     // connect all inputs
     [sim,blk] = libdyn_conn_equation(sim, blk, blocks_inlist );
 
