@@ -83,7 +83,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
   // create a modulo counter to repeatedly shift the currently active simulation
   [sim, one] = ld_const(sim, 0, 1);
-  [sim, ActiveSim] = ld_modcounter(sim, 0, in=one, initial_count=1, mod=3);
+  [sim, ActiveSim] = ld_modcounter(sim, 0, in=one, initial_count=1, mod=10);
   [sim, ActiveSim] = ld_add_ofs(sim, 0, ActiveSim, 1);
   
   [sim] = ld_printf(sim, 0,  ActiveSim  , "Number of iterations of the nested simulation", 1);
