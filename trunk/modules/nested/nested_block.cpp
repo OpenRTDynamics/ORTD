@@ -2385,11 +2385,10 @@ public:
 
     inline void updateStates()
     {
-        int eventmask = 1; // __libdyn_event_get_block_events(block);
-        simnest->event_trigger_mask(eventmask);
+       // int eventmask = 1; // __libdyn_event_get_block_events(block);
 
         // run state update of nested simulation
-        simnest->simulation_step(1);
+//        simnest->simulation_step(1);
     }
 
     inline void calcOutputs()
@@ -2399,7 +2398,7 @@ public:
         //
 
 //         uint32_t *SelectSignal = (uint32_t*) libdyn_get_output_ptr(block, Nin_nested); // the first addiotnonal input to this block
-        uint32_t *SelectSignal = (uint32_t*) libdyn_get_input_ptr(block, Nin_nested ); // the first addiotnonal input to this block
+        uint32_t *SelectSignal = (uint32_t*) libdyn_get_input_ptr(block, Nin_nested + 0 ); // the first addiotnonal input to this block
       
 //         double *test = (double*) libdyn_get_input_ptr(block, 0 ); // the first addiotnonal input to this block
 // 	printf("SelectSignal = %d , in1=%f\n", *SelectSignal, *test);
@@ -2407,6 +2406,7 @@ public:
 	simnest->set_current_simulation( *SelectSignal - 1 ); // "-1": shift counter start from 1 to 0
 	
         // calc one simulation step
+        simnest->event_trigger_mask(1);
         simnest->simulation_step(0);
         simnest->simulation_step(1);
 
@@ -2430,6 +2430,7 @@ public:
 
         // forward reset events
 //          simnest->forward_reset();
+      simnest->reset_blocks();
 
     }
 
@@ -2455,6 +2456,269 @@ public:
     // The data for this block managed by the simulator
     struct dynlib_block_t *block;
 };
+
+
+
+
+
+class ld_ForLoopNest {
+public:
+    ld_ForLoopNest(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~ld_ForLoopNest()
+    {
+        destruct();
+    }
+
+
+    //
+    // define states or other variables
+    //
+
+    irpar *param;
+
+    // variables for nesting schematics
+    libdyn_nested2 * simnest;
+    irpar_string *SimnestName;
+
+    int Nsimulations;
+    int Nin_nested;
+    int Nout_nested;
+    int *insizes_nested, *outsizes_nested;
+    int *intypes_nested, *outtypes_nested;
+
+	// For Loop Counter
+	int32_t LoopCounter;
+
+    //
+    // initialise the block
+    //
+
+    int init() {
+        fprintf(stderr, "ld_ForLoopNest: Creating\n");
+
+        // Every pointer that refers to memory allocated during init is initialiased
+        // with NULL at this place. Potential memory refered by these pointers will be
+        // de-allocated in destruct().
+        simnest = NULL;
+        SimnestName = NULL;
+
+        // user parameters
+        int *Uipar;
+        double *Urpar;
+
+        // The number of nested simulations
+	int Nsimulations;
+	
+	//
+	int dfeed;
+	
+
+        try { // check for errors during the configuration
+
+            // Get the irpar parameters Uipar, Urpar
+            if (libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar) < 0) throw 1;
+
+
+	    
+	    // extract gene+ parameters
+	    irpar_ivec Par(Uipar, Urpar, 1); // then use:  veccpp.n; veccpp.v;
+//             printf("veccpp[0] = %d\n", Par.v[0]); // print the first element
+
+	    Nsimulations = 1;
+	    dfeed = Par.v[0];
+	    
+	    if (dfeed != 1) {
+	      fprintf(stderr, "ld_ForLoopNest: dfeed != %t not supported by now...\n");
+	      
+	      throw 1;
+	    }
+	    
+            // fetch parameters from Uipar, Urpar, throw an exception if something goes wrong
+            struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, param;
+
+	    
+	    if ( irpar_get_ivec(&insizes_irp, Uipar, Urpar, 10) < 0 ) throw 1;
+            if ( irpar_get_ivec(&outsizes_irp, Uipar, Urpar, 11) < 0 ) throw 1;
+            if ( irpar_get_ivec(&intypes_irp, Uipar, Urpar, 12) < 0 ) throw 1;
+            if ( irpar_get_ivec(&outtypes_irp, Uipar, Urpar, 13) < 0 ) throw 1;
+//     if ( irpar_get_ivec(&param, Uipar, Urpar, 20) < 0 ) error = 1 ;
+
+            // The I/O configuration of the nested simulation
+            insizes_nested = insizes_irp.v;
+            outsizes_nested = outsizes_irp.v;
+            intypes_nested = intypes_irp.v;
+            outtypes_nested = outtypes_irp.v;
+
+            Nin_nested = insizes_irp.n;
+            Nout_nested = outsizes_irp.n;
+
+            // fetch some strings. Memory will be allocated here
+            SimnestName = new irpar_string(Uipar, Urpar, 21); // SimnestName->s->c_str() is the string
+
+            // create a new container for multiple simulations
+            simnest = new libdyn_nested2(Nin_nested + 1, Nout_nested, false); // +1: one additional input to the nested simulation for the loop counter
+            simnest->set_parent_simulation( block->sim ); // set a parent simulation
+            simnest->allocate_slots(Nsimulations);  // tell the expected number of nested simulations
+
+            //
+            // set the nested simulations's input signal
+            // pointers to the input ports of this block
+            //
+            {
+                int i;
+                for (i = 0; i < Nin_nested; ++i) {
+                    void *in_p = (void*) libdyn_get_input_ptr(block, i);
+                    simnest->cfg_inptr(i, (void*) in_p, insizes_nested[i], intypes_nested[i] );
+                }
+
+                // configure the output sizes
+                for (i = 0; i < Nout_nested; ++i) {
+                    simnest->cfg_output(i, outsizes_nested[i], outtypes_nested[i] );
+                }
+            }
+
+            // Add the input for the counter variable forwarded to the nested simulation
+            simnest->cfg_inptr(Nin_nested + 0, (void*) &LoopCounter, 1, DATATYPE_INT32 );
+            
+
+            // Finished in seting up the nested simulations
+            // This must be called before adding any simulation
+            simnest->FinishConfiguration();
+
+            // load all schematics/simulations from the given parameter sets
+            {
+                int i;
+                for (i = 0; i < Nsimulations; ++i) {
+                    int shematic_id = 900 + i;
+
+                    fprintf(stderr, "ld_ForLoopNest: loading shematic id %d\n", shematic_id);
+                    if (simnest->add_simulation(-1, Uipar, Urpar, shematic_id) < 0) {
+                        throw 4;
+                    }
+                }
+            }
+
+            // set the initial states
+            resetStates();
+
+        } catch(int e) { // check if initialisation went fine
+            // deallocate all previously allocated memeory in case something went wrong
+            fprintf(stderr, "ld_ForLoopNest: something went wrong. Exception = %d\n", e);
+            destruct();
+            return -1; // indicate an error
+        }
+
+        return 0; // all went fine
+    }
+
+
+    void destruct()
+    {
+        // free your allocated memory, ...
+//         printf("ld_ForLoopNest: destructing\n");
+
+        // destruct the simulation
+        if (simnest != NULL) {
+            simnest->destruct();
+            delete simnest;
+        }
+
+        // free allocated parameters
+        if (SimnestName != NULL)
+            delete SimnestName;
+    }
+
+    inline void updateStates()
+    {
+        int eventmask = 1; // __libdyn_event_get_block_events(block);
+//        simnest->event_trigger_mask(eventmask);
+
+        // run state update of nested simulation
+   //     simnest->simulation_step(1);
+    }
+
+    inline void calcOutputs()
+    {
+        //
+        // calc outputs
+        //
+
+//         uint32_t *SelectSignal = (uint32_t*) libdyn_get_output_ptr(block, Nin_nested); // the first addiotnonal input to this block
+        uint32_t *NitSignal = (uint32_t*) libdyn_get_input_ptr(block, Nin_nested+0 ); // the first addiotnonal input to this block
+      
+//         double *test = (double*) libdyn_get_input_ptr(block, 0 ); // the first addiotnonal input to this block
+// 	printf("SelectSignal = %d , in1=%f\n", *SelectSignal, *test);
+      
+	// simnest->set_current_simulation( *SelectSignal - 1 ); // "-1": shift counter start from 1 to 0
+	
+	{ // The For-Loop
+	
+//  printf("Iterations: %d \n", *NitSignal);
+	  
+	for (LoopCounter = 0; LoopCounter < *NitSignal; ++LoopCounter) {
+	  
+	//  printf("loop\n");
+	  
+          // calc one simulation step
+          simnest->event_trigger_mask(1);
+          simnest->simulation_step(0);
+          simnest->simulation_step(1);
+	}
+	}
+
+	{
+        // copy the output buffers from the nested simulation to the block's outputs
+        int i;
+        for (i=0; i< Nout_nested ; ++i) {
+            void *out_p = (void*) libdyn_get_output_ptr(block, i);
+            simnest->copy_outport_vec(i, out_p);
+        }
+	}
+
+    }
+
+    inline void resetStates()
+    {
+        // sim->get_C_SimulationObject()->NestedLevel;
+        // Get the simulation nest class instance that contains the simulation containing this block
+//         class libdyn_nested2* OuterSimnest = libdyn_nested2::GetSimnestClassPtrFromC(block->sim);
+
+            // increases reset-level counter of the simulation in which this block is contained
+            // and forwards the reset event to the nested simulation
+
+        // forward reset events
+//          simnest->forward_reset();
+      simnest->reset_blocks();
+
+    }
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ld_ForLoopNest block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // that distributes execution to the various functions contained
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        // printf("CompFn was called, flag = %d\n", flag); // uncomment to print the currently called flag
+        // this expands a template for a C-based computitional function
+        return LibdynCompFnTempate<ld_ForLoopNest>( flag, block );
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
 
 
 
@@ -2507,7 +2771,7 @@ int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+10, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &async_simulationBlock::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+11, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ld_NoResetNest::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+12, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ld_CaseSwitchNest::CompFn);
-
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+13, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ld_ForLoopNest::CompFn);
 
 
 

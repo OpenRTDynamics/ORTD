@@ -584,8 +584,9 @@ function [sim, outlist, userdata] = ld_ForLoopNest(sim, ev, inlist, insizes, out
 
     // Create parameters
 
+dfeed = 1;
 
-    parlist = new_irparam_elemet_ivec(parlist, [0 ], 1); // general parameters in a list
+    parlist = new_irparam_elemet_ivec(parlist, [dfeed ], 1); // general parameters in a list
     parlist = new_irparam_elemet_ivec(parlist, insizes, 10); 
     parlist = new_irparam_elemet_ivec(parlist, outsizes, 11); 
     parlist = new_irparam_elemet_ivec(parlist, intypes, 12); 
