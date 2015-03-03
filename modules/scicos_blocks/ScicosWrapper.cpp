@@ -7,7 +7,7 @@
 #include <sys/time.h>
 
 
-
+#define DEBUG
 
 //#define SCICOS_WRAPPER_INCLUDESCICOSFN 1
 
@@ -255,6 +255,11 @@ int ScicosWrapper::Cinit()
 //    printf("this ptr %p\n", (void*) this);
    
   (*compfn)(&cosblock, 4);
+
+#ifdef DEBUG
+   printf("scicoswrap: init done\n");
+#endif;
+
 }
 
 int ScicosWrapper::CCalcOutputs()
