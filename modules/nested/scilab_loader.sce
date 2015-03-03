@@ -327,6 +327,10 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
     // OUTPUTS:
     // 
     // outlist - list( ) of output signals
+    //
+    // PLEASE NOTE: For ld_CaseSwitchNest at least one output must be defined such that
+    //              the nested simulations are executed at the right time instances.
+    //              Otherwise a delayed execution of the nested simulations has been oberserved.
     // 
 
 
