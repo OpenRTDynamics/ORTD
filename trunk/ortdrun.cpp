@@ -465,6 +465,10 @@ out:
 //         pthread_join(thrd,NULL);
     } else {
         // run as fast as possible (simulation mode)
+      
+        fprintf(stderr, "ortdrun: Entering simulation mode\n");
+	
+      
         siminit(global_p);
         if (global_p->args.simlen != 0) {
             int i;

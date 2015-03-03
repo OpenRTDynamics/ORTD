@@ -29,6 +29,7 @@ extern "C" {
 #include "ScicosWrapper.h"
 #include "scicos_compfn_list.h"
 
+#define DEBUG
 
 
 
@@ -166,6 +167,9 @@ int error = 0;
 //     printf("cos ptr %p\n", (void*) &cos);
     
     cos.Cinit();
+#ifdef DEBUG
+       printf("Block init was called.\n");
+#endif;
 
     // Return -1 to indicate an error, so the simulation will be destructed
   
