@@ -26,6 +26,12 @@
 // observed what happened.
 //
 // To run from a terminal:   $ ortdrun -s SelectCase -l 1
+// 
+// PLEASE NOTE: For ld_CaseSwitchNest at least one output must be defined such that
+//              the nested simulations are executed at the right time instances.
+//              Otherwise a delayed execution of the nested simulations has been oberserved.
+// 
+// 
 
 
 SchematicName = 'SelectCase'; // must be the filename without .sce
