@@ -26,6 +26,7 @@ extern "C" {
 
 #include "libdyn_cpp.h"
 
+#include <cstring>
 
 
 /*
@@ -612,9 +613,89 @@ public:
 };
 
 
+class ConstBinBlock {
+public:
+    ConstBinBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~ConstBinBlock()
+    {
+        // free your allocated memory, ...
+    }
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+        int error = 0;
+
+        irpar_ivec veccpp(Uipar, Urpar, 10);
+        int insize = veccpp.v[0];
+//        printf("Insize = %d\n", insize);
+
+        irpar_string s(Uipar, Urpar, 11);
+        const char *input  = s.s->c_str() ;
+//        printf("Binary = %s\n", input);
+
+        char *output = (char*) libdyn_get_output_ptr(block, 0); // the first output port
+
+//  	  printf("copy %d bytes\n", insize );
+        std::strcpy( output, input);
+
+//        printf("Output = %s\n", output);
+
+        // set the initial states
+        resetStates();
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return error;
+    }
 
 
+    inline void updateStates()
+    {
 
+    }
+
+
+    inline void calcOutputs()
+    {
+
+    }
+
+
+    inline void resetStates()    {    }
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ConstBin block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<ConstBinBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
 
 //
 // Export to C so the libdyn simulator finds this function
@@ -641,7 +722,7 @@ extern "C" {
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+302, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RTShapeCompareBlock::CompFn);
 	
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+303, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ArrayInt32Block::CompFn);
-	
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+304, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ConstBinBlock::CompFn);
     }
 
 

@@ -2703,10 +2703,6 @@ int compu_func_ld_CompareEqInt32(int flag, struct dynlib_block_t *block)
 
 
 
-
-
-
-
 /*
   Vector functions
 */
@@ -4551,7 +4547,6 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 42, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_CompareEqInt32);
-    
 
 
     

@@ -677,6 +677,41 @@ function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_const_bin(sim, events, in) // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: a constant vector of ORTD.DATATYPE_BINARY
+// 
+// out *+ - the vector of binary
+// 
+
+  // pack all parameters into a structure "parlist"
+  parlist = new_irparam_set();
+  insize = length(in);
+  parlist = new_irparam_elemet_ivec(parlist, insize, 10); // id = 10
+  parlist = new_irparam_elemet_ivec(parlist, in, 11); // id = 11
+  
+  p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+  // Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];
+  Urpar = [ p.rpar ];
+  btype = 60001 + 304; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+  insizes=[];
+  outsizes=[ insize ]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[];
+  outtypes=[ ORTD.DATATYPE_BINARY  ]; // datatype for each output port
+
+  blocktype = 2; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+
+  // connect the ouputs
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) // PARSEDOCU_BLOCK
 // 
