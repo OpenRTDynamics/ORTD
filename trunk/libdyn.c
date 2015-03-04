@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamics Framework
 
