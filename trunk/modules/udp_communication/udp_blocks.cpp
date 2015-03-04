@@ -607,22 +607,23 @@ public:
 
     inline void updateStates()
     {
-    }
-
-
-    inline void calcOutputs()
-    {
         void *in1 = (void *) libdyn_get_input_ptr(block,0); // the first input port
         uint32_t *Nb = (uint32_t *) libdyn_get_input_ptr(block,1); 
 	
 	if (*Nb <= NCopyBytes) {
-//          printf("Sending %d Bytes\n", *Nb);
+          printf("UDP ***** Sending %d Bytes\n", *Nb);
 
         // call a function of the shared object
         IShObj->sendTo(DestAddr, in1, *Nb);
 	} else {
 	  fprintf(stderr, "UDPSendTo: ERROR: The Number of bytes to send is too big!\n");
 	}
+    }
+
+
+    inline void calcOutputs()
+    {
+
     }
 
 
@@ -743,7 +744,9 @@ public:
         for (i=0; i<Ninports; ++i) {
 	  void *in = (void*) libdyn_get_input_ptr(block, i);
 
-//  	  printf("copy %d bytes\n", SizesList[i] );
+#ifdef DEBUG
+  	  fprintf(stderr, "ConcateDataBlock: copy %d bytes\n", SizesList[i] );
+#endif
 	  memcpy( output + outPtr, in, SizesList[i]  );
 	  
 	  outPtr += SizesList[i];

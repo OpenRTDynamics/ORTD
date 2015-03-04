@@ -320,14 +320,14 @@ void libdyn_del_simulation(struct dynlib_simulation_t *sim)
 // Print all Blocks to stdout
 void libdyn_dump_all_blocks(struct dynlib_simulation_t *sim)
 {
-  fprintf(stderr, "\nDump of all Blocks:\n\n");
+  fprintf(stderr, "\n*************** Dump of all Blocks in order of creation for simulation %p *************** \n\n", (void*) sim );
   mydebug(2) fprintf(stderr, "Traversing through allblock list:\n");
   struct dynlib_block_t *current = sim->allblocks_list_head;
 
   
   // was wenn current = 0, ist das initialisiert? - Ja
   if (current != 0) {
-    do { // Destroy all blocks
+    do { //
       mydebug(1) fprintf(stderr, "#%d - \n", current->numID);
  
       struct dynlib_block_t *tmp = current;
@@ -339,8 +339,66 @@ void libdyn_dump_all_blocks(struct dynlib_simulation_t *sim)
     } while (current != 0); // while there is a next block in this list
   }
   
-  fprintf(stderr, "----------\n");
+  fprintf(stderr, "----------\n\n");
 }
+
+// Print all Blocks to stdout
+void libdyn_dump_executionLists(struct dynlib_simulation_t *simulation)
+{
+ 
+  
+  
+  
+  if (simulation->execution_sup_list_head == 0) { // there is no list
+     fprintf(stderr, "NOTE: There are no dynamic blocks on the sup execution list!\n");
+     fprintf(stderr, "      This mode of libdyn not well tested for now - You are on your own\n");
+  } else {
+  
+    //
+    // Dump the SUP Exec Liste
+    //
+    
+  
+  
+  
+  
+    //
+    // Dump the SUP Exec Liste
+    //
+  
+  struct dynlib_block_t * current;
+    
+      fprintf(stderr, "\n\n******** List of all sup executed blocks in execution order for state update for simulation %p ******** \n\n", simulation);
+      current = simulation->execution_sup_list_head;
+      do {
+	mydebug(0) fprintf(stderr, "list element: %p\n", current);
+	libdyn_block_dumpinfo(current);
+	mydebug(0) fprintf(stderr, "*\n");
+	
+	current = current->exec_sup_list_next; // step to the next block in list
+      } while (current != 0); // while there is a next block in this list
+
+      fprintf(stderr, "\n++++++++++++++++++++++++++++++++++++++++++\n\n");
+    
+    
+      fprintf(stderr, "\n\n******** List of all executed blocks in execution order for output calculation******** \n\n");
+      current = simulation->execution_list_head;
+      do {
+	libdyn_block_dumpinfo(current);
+
+	current = current->exec_list_next; // step to the next block in list
+      } while (current != 0); // while there is a next block in this list
+
+    
+    
+      fprintf(stderr, "\n++++++++++++++++++++++++++++++++++++++++++\n\n");
+    
+
+    }
+  
+    
+  }
+
 
 
 // The allblocks list contains a list of all created blocks in the simulation
@@ -1566,45 +1624,9 @@ mydebug(1) fprintf(stderr, "Yeah 2\n");
 
   
   mydebug(2) fprintf(stderr, "++++++++++ Set-up finished +++++++\n");
-
-
-  if (simulation->execution_sup_list_head == 0) { // there is no list
-//     fprintf(stderr, "NOTE: There are no dynamic blocks on the sup execution list!\n");
-//     fprintf(stderr, "      This mode of libdyn not well tested for now - You are on your own\n");
-  } else {
   
-    //
-    // Dump the SUP Exec Liste
-    //
-    
-    mydebug(8) {
-      fprintf(stderr, "List of all sup executed block in execution order %p\n\n", simulation);
-      current = simulation->execution_sup_list_head;
-      do {
-	mydebug(0) fprintf(stderr, "list element: %p\n", current);
-	libdyn_block_dumpinfo(current);
-	mydebug(0) fprintf(stderr, "*\n");
-	
-	current = current->exec_sup_list_next; // step to the next block in list
-      } while (current != 0); // while there is a next block in this list
+libdyn_dump_executionLists(simulation);
 
-      fprintf(stderr, "\n++++++++++++++++++++++++++++++++++++++++++\n\n");
-    
-    
-      fprintf(stderr, "List of all executed block in execution order\n\n");
-      current = simulation->execution_list_head;
-      do {
-	libdyn_block_dumpinfo(current);
-
-	current = current->exec_list_next; // step to the next block in list
-      } while (current != 0); // while there is a next block in this list
-
-    
-    
-      fprintf(stderr, "\n++++++++++++++++++++++++++++++++++++++++++\n\n");
-    }
-  
-  }
   
   fprintf(stderr, "--- libdyn: successfully loaded schematic; sim=%p ---\n", simulation);
   
@@ -2823,6 +2845,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
  
 #ifdef DEBUG
   libdyn_dump_all_blocks(*sim);
+  libdyn_dump_executionLists(*sim);
 #endif
   
   return 0;
