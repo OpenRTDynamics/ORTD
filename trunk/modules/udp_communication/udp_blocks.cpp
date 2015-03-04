@@ -158,7 +158,7 @@ public:
     }
 
     ~UDPSocket_SharedObject() {
-
+      delete socket;
     }
 
     int init() {
