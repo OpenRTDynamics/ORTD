@@ -2401,8 +2401,11 @@ public:
         uint32_t *SelectSignal = (uint32_t*) libdyn_get_input_ptr(block, Nin_nested + 0 ); // the first addiotnonal input to this block
       
 //         double *test = (double*) libdyn_get_input_ptr(block, 0 ); // the first addiotnonal input to this block
-// 	printf("SelectSignal = %d , in1=%f\n", *SelectSignal, *test);
-      
+
+#ifdef DEBUG
+	printf("ld_CaseSwitchNest: Running nested simulation: SelectSignal = %d\n", *SelectSignal);
+#endif
+	
 	simnest->set_current_simulation( *SelectSignal - 1 ); // "-1": shift counter start from 1 to 0
 	
         // calc one simulation step
@@ -2410,6 +2413,10 @@ public:
         simnest->simulation_step(0);
         simnest->simulation_step(1);
 
+#ifdef DEBUG
+	printf("ld_CaseSwitchNest: Nested simulation was executed\n" );
+#endif
+	
         // copy the output buffers from the nested simulation to the block's outputs
         int i;
         for (i=0; i< Nout_nested ; ++i) {
