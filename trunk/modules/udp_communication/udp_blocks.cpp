@@ -611,7 +611,7 @@ public:
         uint32_t *Nb = (uint32_t *) libdyn_get_input_ptr(block,1); 
 	
 	if (*Nb <= NCopyBytes) {
-          printf("UDP ***** Sending %d Bytes\n", *Nb);
+//           printf("UDP ***** Sending %d Bytes\n", *Nb);
 
         // call a function of the shared object
         IShObj->sendTo(DestAddr, in1, *Nb);

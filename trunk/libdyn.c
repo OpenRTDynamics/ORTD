@@ -321,14 +321,13 @@ void libdyn_del_simulation(struct dynlib_simulation_t *sim)
 void libdyn_dump_all_blocks(struct dynlib_simulation_t *sim)
 {
   fprintf(stderr, "\n*************** Dump of all Blocks in order of creation for simulation %p *************** \n\n", (void*) sim );
-  mydebug(2) fprintf(stderr, "Traversing through allblock list:\n");
   struct dynlib_block_t *current = sim->allblocks_list_head;
 
   
   // was wenn current = 0, ist das initialisiert? - Ja
   if (current != 0) {
     do { //
-      mydebug(1) fprintf(stderr, "#%d - \n", current->numID);
+      
  
       struct dynlib_block_t *tmp = current;
       current = current->allblocks_list_next; // step to the next block in list
