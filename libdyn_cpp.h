@@ -999,6 +999,13 @@ inline int LibdynCompFnTempate_PreInit(int flag, struct dynlib_block_t *block) {
         }
         return 0;
         break;
+        case COMPF_FLAG_DESTUCTOR: // destroy instance
+        {
+            T *worker = (T *) libdyn_get_work_ptr(block);
+            delete worker;
+        }
+        return 0;
+        break;	
         case COMPF_FLAG_PRINTINFO:
         {
             T *worker = (T *) libdyn_get_work_ptr(block);

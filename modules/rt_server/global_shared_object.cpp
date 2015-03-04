@@ -86,6 +86,8 @@ ortd_global_shared_object::~ortd_global_shared_object()
     //assert();
   }
   
+  fprintf(stderr, "ortd_global_shared_object: Removing the shared object %s\n", identName_.c_str() );
+  
   // remove the directory entry
   directory_tree *dtree = ldmaster->dtree;
   dtree->delete_entry((char*) identName_.c_str());
