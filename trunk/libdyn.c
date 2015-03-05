@@ -344,9 +344,6 @@ void libdyn_dump_all_blocks(struct dynlib_simulation_t *sim)
 // Print all Blocks to stdout
 void libdyn_dump_executionLists(struct dynlib_simulation_t *simulation)
 {
- 
-  
-  
   
   if (simulation->execution_sup_list_head == 0) { // there is no list
      fprintf(stderr, "NOTE: There are no dynamic blocks on the sup execution list!\n");
@@ -393,10 +390,10 @@ void libdyn_dump_executionLists(struct dynlib_simulation_t *simulation)
       fprintf(stderr, "\n++++++++++++++++++++++++++++++++++++++++++\n\n");
     
 
-    }
+  }
   
     
-  }
+}
 
 
 
@@ -1624,7 +1621,7 @@ mydebug(1) fprintf(stderr, "Yeah 2\n");
   
   mydebug(2) fprintf(stderr, "++++++++++ Set-up finished +++++++\n");
   
-libdyn_dump_executionLists(simulation);
+//   libdyn_dump_executionLists(simulation);
 
   
   fprintf(stderr, "--- libdyn: successfully loaded schematic; sim=%p ---\n", simulation);
