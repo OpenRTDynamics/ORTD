@@ -29,7 +29,7 @@ extern "C" {
 #include "ScicosWrapper.h"
 #include "scicos_compfn_list.h"
 
-#define DEBUG
+//#define DEBUG
 
 
 

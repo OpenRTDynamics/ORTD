@@ -7,7 +7,7 @@
 #include <sys/time.h>
 
 
-#define DEBUG
+// #define DEBUG
 
 //#define SCICOS_WRAPPER_INCLUDESCICOSFN 1
 
