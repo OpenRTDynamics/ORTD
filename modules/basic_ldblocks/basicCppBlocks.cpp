@@ -641,16 +641,28 @@ public:
 
         irpar_ivec veccpp(Uipar, Urpar, 10);
         int insize = veccpp.v[0];
-//        printf("Insize = %d\n", insize);
 
-        irpar_string s(Uipar, Urpar, 11);
-        const char *input  = s.s->c_str() ;
+	//        printf("Insize = %d\n", insize);
+
+//         irpar_string s(Uipar, Urpar, 11);
+//         const char *input  = s.s->c_str() ;
 //        printf("Binary = %s\n", input);
+	
+        irpar_ivec binary(Uipar, Urpar, 11);
+        //int insize = binary.v[0];
+	
+	
 
         char *output = (char*) libdyn_get_output_ptr(block, 0); // the first output port
 
 //  	  printf("copy %d bytes\n", insize );
-        std::strcpy( output, input);
+//         std::strcpy( output, input);
+	int i;
+	for (i=0; i<binary.n; ++i) {
+	  output[i] = (char) binary.v[i];
+	}
+	  
+	// memcpy((void*) output, (void*) , s);
 
 //        printf("Output = %s\n", output);
 
