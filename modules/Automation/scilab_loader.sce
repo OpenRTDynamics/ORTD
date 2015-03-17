@@ -200,8 +200,8 @@ function [sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist
 
 //           [sim, NotCalibrationOk_ ] = ld_not(sim, 0, CalibrationOk_);
 // 
- 	  [sim] = ld_printf(sim, ev, in=computation_finished, str="computation_finished", insize=1);
-          [sim] = ld_printf(sim, ev, in=NotFinished, str="computation_Notfinished", insize=1);// 
+// 	  [sim] = ld_printf(sim, ev, in=computation_finished, str="computation_finished", insize=1);
+//          [sim] = ld_printf(sim, ev, in=NotFinished, str="computation_Notfinished", insize=1);// 
 
 //           [sim, FinshedOk   ] = ld_and(sim, 0, list(    CalibrationOk_ , computation_finished ));
 //           [sim, FinshedButNotOk] = ld_and(sim, 0, list( NotCalibrationOk_ , computation_finished ));
@@ -454,6 +454,8 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
 
 	select flag
 	  case 1 // output
+            tic();
+    
             // split the sensor data
             data = block.inptr(1);
 
@@ -528,7 +530,12 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
 
 	    block.outptr(1) = outvec;
 
+          ElapsedTime = toc();
+          printf("Time to run the embedded Scilab Code %f sec.\n", ElapsedTime);
+
 	  case 4 // init
+            // printf("Setting funcproc(0), which has been of value %d before\n", funcprot());
+            //funcproc(0);
             block.states.ExecCounter = 0;
 
 	  case 5 // terminate
