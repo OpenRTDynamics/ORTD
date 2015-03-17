@@ -2624,6 +2624,27 @@ function [sim, reached] = ld_belowEpsForNSteps(sim, ev, in, thr, N) // PARSEDOCU
 endfunction
 
 
+function [sim, reached, count, countup, reset] = ld_belowEpsForNStepsAdvanced(sim, ev, in, thr, N) // PARSEDOCU_BLOCK
+    //
+    // %PURPOSE: return true, when input is below a constant for more than N sampling steps
+    //
+    // in * - input signal
+    // thr - threshold constant
+    // N - integer
+    //
+    // If in is below thr for N time steps, reached = 1;
+    // Otherwise reached is set to 0.
+    
+  [sim, reset] = ld_compare_01(sim, ev, in,  thr);
+  [sim, countup] = ld_not(sim, ev, in=reset);
+  
+  [sim, resetto] = ld_const(sim, ev, 0);
+  [sim, count] = ld_counter(sim, ev, countup, reset, resetto, initial=0);
+
+  [sim, reached] = ld_compare_01(sim, ev, in=count,  thr=N-1);
+    
+endfunction
+
 function [sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Start and stop saving of data to files
