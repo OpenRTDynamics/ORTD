@@ -822,19 +822,19 @@ endfunction
 function [sim] = ld_PF_SendConfigUDP(sim, PacketFramework)
   InstanceName = PacketFramework.InstanceName;
   
-  str_PF_Export1 = ld_PF_Export_str(PacketFramework);
+  str_PF_Export = ld_PF_Export_str(PacketFramework);
 //  fd = mopen("ExportStr.json",'wt');
 //  mfprintf(fd,'%s', str_PF_Export_);
 //  mclose(fd);
-  str_PF_Export2 = strsubst(str_PF_Export1, char(10), "");
-  str_PF_Export3 = strsubst(str_PF_Export2, " ", "");
-  str_PF_Export_ = strsubst(str_PF_Export3, "$", " ");
-  str_PF_Export = " " + str_PF_Export_;
+//  str_PF_Export2 = strsubst(str_PF_Export1, char(10), "");
+//  str_PF_Export3 = strsubst(str_PF_Export2, " ", "");
+//  str_PF_Export_ = strsubst(str_PF_Export3, "$", " ");
+//  str_PF_Export = " " + str_PF_Export_;
 //  fd = mopen("testExportStr.json",'wt');
 //  mfprintf(fd,'%s', str_PF_Export);
 //  mclose(fd);
   strLength = length(str_PF_Export);
-  maxPacketLength = 2800;
+  maxPacketLength = 3500;
   maxPacketStrLength = maxPacketLength - 4*4;
   nPackets = ceil(strLength/maxPacketStrLength);
   
