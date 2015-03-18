@@ -439,6 +439,52 @@ function [PacketFramework, PluginUname] = ld_PF_addplugin(PacketFramework, Plugi
   
 endfunction
 
+function [PacketFramework, PluginUname] = ld_PF_addpluginToTab(PacketFramework, PluginType, PluginName, PluginSize, PluginPos, TabName)
+  // inc counter
+  PacketFramework.PluginID_counter = PacketFramework.PluginID_counter + 1;
+
+  PluginUname = "Plugin" + string(PacketFramework.PluginID_counter);
+
+  
+  // Add new plugin to the struct
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).identifier.value =  PluginType;
+  
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.name.value = PluginName;
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.size.value = PluginSize;
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.position.value = PluginPos;
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.tab.value = TabName;
+  
+endfunction
+
+function [PacketFramework] = ld_PF_changePluginSetting(PacketFramework, PluginUname, PluginSetting, PluginSettingValue)
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config(PluginSetting).value = PluginSettingValue;
+endfunction
+
+function [PacketFramework] = ld_PF_changePluginConfig(PacketFramework, PluginUname, PluginSettingsList)
+    for iSetting=PluginSettingsList
+        PacketFramework = ld_PF_changePluginSetting(PacketFramework, PluginUname, iSetting(1), iSetting(2));
+    end
+endfunction
+
+function [PacketFramework, PluginUname] = ld_PF_addpluginAdvanced(PacketFramework, PluginType, PluginName, PluginSize, PluginPos, TabName, PluginSettingsList)
+  // inc counter
+  PacketFramework.PluginID_counter = PacketFramework.PluginID_counter + 1;
+
+  PluginUname = "Plugin" + string(PacketFramework.PluginID_counter);
+
+  
+  // Add new plugin to the struct
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).identifier.value =  PluginType;
+  
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.name.value = PluginName;
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.size.value = PluginSize;
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.position.value = PluginPos;
+  PacketFramework.PaPIConfig.ToCreate(PluginUname).config.tab.value = TabName;
+  
+  PacketFramework = ld_PF_changePluginConfig(PacketFramework, PluginUname, PluginSettingsList);
+  
+endfunction
+
 function [PacketFramework] = ld_PF_addsubs(PacketFramework, SubPluginUname, SubBlock, SubSignals)
     if (isfield(PacketFramework.PaPIConfig, "ToSub"))
         if (isfield(PacketFramework.PaPIConfig.ToSub, SubPluginUname))
