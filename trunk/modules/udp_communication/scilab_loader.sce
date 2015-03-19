@@ -890,111 +890,9 @@ function [sim] = ld_PF_SendConfigUDP(sim, PacketFramework)
 
 endfunction
 
-// select case function for the different received PaPi Commands (SenderID)
-function [sim, outlist, userdata] = SelectCasePaPiCmd(sim, inlist, Ncase, casename, userdata)
-    // This function is called multiple times -- once to define each case
-    // At runtime, all cases will become different nested simulations of 
-    // which only one is active a a time. 
 
-    printf("Defining case %s (#%d) ...\n", casename, Ncase );
 
-    // define names for the first event in the simulation
-    events = 0;
 
-    DisAsm_ = list();
-    DisAsm_(4) = inlist(4);
-    [sim, DisAsm_(1)] = ld_Int32ToFloat(sim, 0, inlist(1) );
-    [sim, DisAsm_(2)] = ld_Int32ToFloat(sim, 0, inlist(2) );
-    [sim, DisAsm_(3)] = ld_Int32ToFloat(sim, 0, inlist(3) );
-    PacketFramework = userdata(1);
-    ParameterMemory = PacketFramework.ParameterMemory;
-    TotalElemetsPerPacket = PacketFramework.TotalElemetsPerPacket; // number of doubles values that fit into one UDP-packet with maximal size of 1400 bytes
-    InstanceName = PacketFramework.InstanceName;
-    // print out some state information
-    //[sim] = ld_printf(sim, events, in=DisAsm_(3), str="case "+string(casename)+" with Ncase = "+string(Ncase)+" : SourceID", insize=1);
-
-    // sample data for the output
-    [sim, dummy] = ld_const(sim, 0, 9999);
-
-    // The signals "active_state" is used to indicate state switching: A value > 0 means the 
-    // the state enumed by "active_state" shall be activated in the next time step.
-    // A value less or equal to zero causes the statemachine to stay in its currently active
-    // state
-    select Ncase
-    case 1
-        [sim, memofs] = ld_ArrayInt32(sim, 0, array=ParameterMemory.MemoryOfs, in=inlist(3) );
-        [sim, Nelements] = ld_ArrayInt32(sim, 0, array=ParameterMemory.Sizes, in=inlist(3) );
-
-        [sim, memofs_] = ld_Int32ToFloat(sim, 0, memofs );
-        [sim, Nelements_] = ld_Int32ToFloat(sim, 0, Nelements );
-
-        if PacketFramework.Configuration.debugmode then 
-            // print the contents of the packet
-            [sim] = ld_printf(sim, 0, DisAsm_(1), "DisAsm(1) (SenderID)       = ", 1);
-            [sim] = ld_printf(sim, 0, DisAsm_(2), "DisAsm(2) (Packet Counter) = ", 1);
-            [sim] = ld_printf(sim, 0, DisAsm_(3), "DisAsm(3) (SourceID)       = ", 1);
-            [sim] = ld_printf(sim, 0, DisAsm_(4), "DisAsm(4) (Signal)         = ", TotalElemetsPerPacket);
-
-            [sim] = ld_printf(sim, 0, memofs_ ,  "memofs                    = ", 1);
-            [sim] = ld_printf(sim, 0, memofs_ ,  "Nelements                 = ", 1);
-        end
-
-        // Store the input data into a shared memory
-        [sim] = ld_WriteMemory2(sim, 0, data=inlist(4), index=memofs, ElementsToWrite=Nelements, ...
-        ident_str=InstanceName+"Memory", datatype=ORTD.DATATYPE_FLOAT, MaxElements=TotalElemetsPerPacket );
-
-    case 2
-        [sim] = ld_printf(sim, 0, DisAsm_(3), "Give Config (SourceID)       = ", 1);
-        [sim] = ld_PF_SendConfigUDP(sim, PacketFramework);
-
-    case 3
-        [sim] = ld_printf(sim, events, in=DisAsm_(3), str="case "+string(casename)+" : Wrong SourceID", insize=1);
-    end
-
-    // the user defined output signals of this nested simulation
-    outlist = list(dummy);
-    userdata(1) = PacketFramework;
-endfunction
-
-function [sim, outlist, userdata] = SelectCaseSendNewConfigAvailable(sim, inlist, Ncase, casename, userdata)
-    // This function is called multiple times -- once to define each case
-    // At runtime, all cases will become different nested simulations of 
-    // which only one is active a a time. 
-
-    printf("Defining case %s (#%d) ...\n", casename, Ncase );
-
-    // define names for the first event in the simulation
-    events = 0;
-
-    //  pause;
-
-    PacketFramework = userdata(1);
-
-    // print out some state information
-    //  [sim] = ld_printf(sim, events, in=in1, str="case"+string(casename)+": in1", insize=1);
-
-    // sample data for the output
-    [sim, dummy] = ld_const(sim, 0, 999);
-
-    // The signals "active_state" is used to indicate state switching: A value > 0 means the 
-    // the state enumed by "active_state" shall be activated in the next time step.
-    // A value less or equal to zero causes the statemachine to stay in its currently active
-    // state
-
-    select Ncase
-    case 1 // Finished
-        //[sim] = ld_printf(sim, events, dummy, "case "+string(casename)+" : Config already sent ", 1);
-
-    case 2 // Send
-        //[sim] = ld_printf(sim, events, dummy, "case "+string(casename)+" : Config is sent to PaPi ", 1);
-        [sim] = ld_PF_SendNewConfigAvailableUDP(sim, PacketFramework);
-
-    end
-
-    // the user defined output signals of this nested simulation
-    outlist = list(dummy);
-    userdata(1) = PacketFramework;
-endfunction
 
 
 function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOCU_BLOCK
@@ -1003,6 +901,47 @@ function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOC
     // 
     // 
 
+
+    function [sim, outlist, userdata] = SelectCaseSendNewConfigAvailable(sim, inlist, Ncase, casename, userdata)
+        // This function is called multiple times -- once to define each case
+        // At runtime, all cases will become different nested simulations of 
+        // which only one is active a a time. 
+
+        printf("Defining case %s (#%d) ...\n", casename, Ncase );
+
+        // define names for the first event in the simulation
+        events = 0;
+
+        //  pause;
+
+        PacketFramework = userdata(1);
+
+        // print out some state information
+        //  [sim] = ld_printf(sim, events, in=in1, str="case"+string(casename)+": in1", insize=1);
+
+        // sample data for the output
+        [sim, dummy] = ld_const(sim, 0, 999);
+
+        // The signals "active_state" is used to indicate state switching: A value > 0 means the 
+        // the state enumed by "active_state" shall be activated in the next time step.
+        // A value less or equal to zero causes the statemachine to stay in its currently active
+        // state
+
+        select Ncase
+        case 1 // Finished
+            //[sim] = ld_printf(sim, events, dummy, "case "+string(casename)+" : Config already sent ", 1);
+
+        case 2 // Send
+            //[sim] = ld_printf(sim, events, dummy, "case "+string(casename)+" : Config is sent to PaPi ", 1);
+            [sim] = ld_PF_SendNewConfigAvailableUDP(sim, PacketFramework);
+
+        end
+
+        // the user defined output signals of this nested simulation
+        outlist = list(dummy);
+        userdata(1) = PacketFramework;
+    endfunction
+
     // The main real-time thread
     function [sim,PacketFramework] = ld_PF_InitUDP(sim, PacketFramework)
 
@@ -1010,6 +949,74 @@ function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOC
             // This will run in a thread. Each time a UDP-packet is received 
             // one simulation step is performed. Herein, the packet is parsed
             // and the contained parameters are stored into a memory.
+
+
+            // select case function for the different received PaPi Commands (SenderID)
+            function [sim, outlist, userdata] = SelectCasePaPiCmd(sim, inlist, Ncase, casename, userdata)
+                // This function is called multiple times -- once to define each case
+                // At runtime, all cases will become different nested simulations of 
+                // which only one is active a a time. 
+
+                printf("Defining case %s (#%d) ...\n", casename, Ncase );
+
+                // define names for the first event in the simulation
+                events = 0;
+
+                DisAsm_ = list();
+                DisAsm_(4) = inlist(4);
+                [sim, DisAsm_(1)] = ld_Int32ToFloat(sim, 0, inlist(1) );
+                [sim, DisAsm_(2)] = ld_Int32ToFloat(sim, 0, inlist(2) );
+                [sim, DisAsm_(3)] = ld_Int32ToFloat(sim, 0, inlist(3) );
+                PacketFramework = userdata(1);
+                ParameterMemory = PacketFramework.ParameterMemory;
+                TotalElemetsPerPacket = PacketFramework.TotalElemetsPerPacket; // number of doubles values that fit into one UDP-packet with maximal size of 1400 bytes
+                InstanceName = PacketFramework.InstanceName;
+                // print out some state information
+                //[sim] = ld_printf(sim, events, in=DisAsm_(3), str="case "+string(casename)+" with Ncase = "+string(Ncase)+" : SourceID", insize=1);
+
+                // sample data for the output
+                [sim, dummy] = ld_const(sim, 0, 9999);
+
+                // The signals "active_state" is used to indicate state switching: A value > 0 means the 
+                // the state enumed by "active_state" shall be activated in the next time step.
+                // A value less or equal to zero causes the statemachine to stay in its currently active
+                // state
+                select Ncase
+                case 1
+                    [sim, memofs] = ld_ArrayInt32(sim, 0, array=ParameterMemory.MemoryOfs, in=inlist(3) );
+                    [sim, Nelements] = ld_ArrayInt32(sim, 0, array=ParameterMemory.Sizes, in=inlist(3) );
+
+                    [sim, memofs_] = ld_Int32ToFloat(sim, 0, memofs );
+                    [sim, Nelements_] = ld_Int32ToFloat(sim, 0, Nelements );
+
+                    if PacketFramework.Configuration.debugmode then 
+                        // print the contents of the packet
+                        [sim] = ld_printf(sim, 0, DisAsm_(1), "DisAsm(1) (SenderID)       = ", 1);
+                        [sim] = ld_printf(sim, 0, DisAsm_(2), "DisAsm(2) (Packet Counter) = ", 1);
+                        [sim] = ld_printf(sim, 0, DisAsm_(3), "DisAsm(3) (SourceID)       = ", 1);
+                        [sim] = ld_printf(sim, 0, DisAsm_(4), "DisAsm(4) (Signal)         = ", TotalElemetsPerPacket);
+
+                        [sim] = ld_printf(sim, 0, memofs_ ,  "memofs                    = ", 1);
+                        [sim] = ld_printf(sim, 0, memofs_ ,  "Nelements                 = ", 1);
+                    end
+
+                    // Store the input data into a shared memory
+                    [sim] = ld_WriteMemory2(sim, 0, data=inlist(4), index=memofs, ElementsToWrite=Nelements, ...
+                    ident_str=InstanceName+"Memory", datatype=ORTD.DATATYPE_FLOAT, MaxElements=TotalElemetsPerPacket );
+
+                case 2
+                    [sim] = ld_printf(sim, 0, DisAsm_(3), "Give Config (SourceID)       = ", 1);
+                    [sim] = ld_PF_SendConfigUDP(sim, PacketFramework);
+
+                case 3
+                    [sim] = ld_printf(sim, events, in=DisAsm_(3), str="case "+string(casename)+" : Wrong SourceID", insize=1);
+                end
+
+                // the user defined output signals of this nested simulation
+                outlist = list(dummy);
+                userdata(1) = PacketFramework;
+            endfunction
+
 
             PacketFramework = userdata(1);
 
