@@ -331,7 +331,7 @@ function [sim] = ld_file_save_machine2(sim, ev, inlist, cntrl, FileNamesList) //
   DataLength = sizes;
 
   // set-up two states represented by two nested simulations
-  [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=defaultevents, ...
+  [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=0, ...
       inlist=Cinlist, ..
       insizes=[sizes(:)' ], outsizes=[], ... 
       intypes=[types(:)' ], outtypes=[], ...
@@ -2473,8 +2473,7 @@ function [sim, outvec, Nvecplay] = ld_vector_play(sim, ev, A, special) // PARSED
   [sim,vector] = ld_constvec(sim, ev, data );
   
   // vector extract test
-//  [sim,index] = ld_const(sim, defaultevents, 2);  // max is Nsamples
-
+  
   if special == "repeate" then
     [sim,one] = ld_const(sim, ev, 1);
     [sim, index] = ld_modcounter(sim, ev, in=one, initial_count=0, mod=Nsamples);
@@ -2715,7 +2714,7 @@ function [sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname)
 
 
   // set-up two states represented by two nested simulations
-  [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=defaultevents, ...
+  [sim, outlist, x_global, active_state,userdata] = ld_statemachine(sim, ev=0, ...
       inlist=list(in, cntrl), ..
       insizes=[insize,1], outsizes=[], ... 
       intypes=[intype ,ORTD.DATATYPE_FLOAT  ], outtypes=[], ...
