@@ -1233,9 +1233,11 @@ function str=ld_PF_Export_str(PacketFramework)
         PaPIConfigstr = '{}';
     end
 
+    
+    LineBreakChar = ''; // char(10);
 
 
-    str=' {""SourcesConfig"" : {'+char(10);
+    str=' {""SourcesConfig"" : {'+LineBreakChar;
 
     for i=1:length(PacketFramework.Sources)
 
@@ -1256,10 +1258,10 @@ function str=ld_PF_Export_str(PacketFramework)
         if i==length(PacketFramework.Sources)
             // finalise the last entry without ","
             printf('%s' , line);
-            str=str+line + char(10);
+            str=str+line + LineBreakChar;
         else
             printf('%s,' , line);
-            str=str+line+',' + char(10);
+            str=str+line+',' + LineBreakChar;
         end
 
 
@@ -1267,7 +1269,7 @@ function str=ld_PF_Export_str(PacketFramework)
 
 
 
-    str=str+'} , ' + char(10) + ' ""ParametersConfig"" : {' + char(10);
+    str=str+'} , ' + LineBreakChar + ' ""ParametersConfig"" : {' + LineBreakChar;
 
     // go through all parameters and create memories for all
     for i=1:length(PacketFramework.Parameters)
@@ -1284,15 +1286,15 @@ function str=ld_PF_Export_str(PacketFramework)
         if i==length(PacketFramework.Parameters) 
             // finalise the last entry without ","
             printf('%s' , line);
-            str=str+line + char(10);
+            str=str+line + LineBreakChar;
         else
             printf('%s,' , line);
-            str=str+line+',' + char(10);
+            str=str+line+',' + LineBreakChar;
         end
 
 
     end  
-    str=str+'}, '+char(10)+ """" + 'PaPIConfig' + """" + ' : ' + PaPIConfigstr + char(10) +  '}'; // 
+    str=str+'}, '+LineBreakChar+ """" + 'PaPIConfig' + """" + ' : ' + PaPIConfigstr + LineBreakChar +  '}'; // 
 
     // print the configuration to be send to Papi
     disp(str);
