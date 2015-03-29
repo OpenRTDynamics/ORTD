@@ -897,6 +897,7 @@ DEFINED BLOCK ID REGIONS
   15400    | piplines
   15500    | android
   15800    | EDF
+  15900    | Random
   22000    | scilab
   39001    | udp_blocks
   39101    | Visualisation
@@ -1098,5 +1099,8 @@ By date as there will only be the svn-version
   -  7.9.13:  More memory leaks were fixed.
               Introduced io.h / io.cpp. Currently used to output the output of the Scilab-module's Scilab instance
   - 24.9.14:  New target MACOSX, Bug fixes, new command ortdrun
+  - 4.3.15:   Bug fixes: Shared Objects were not destructed; fixed UDPSendTo to
+              send UDP-data when state update is called: Fixes delayed transmission
+  - 29.3.15:  Added Random module
 
 
