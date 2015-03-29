@@ -1,5 +1,5 @@
 MODULENAME := Random
-blockid_start := 999911111
+blockid_start := 15900
 
 
 # Get the include path to the ORTD framework

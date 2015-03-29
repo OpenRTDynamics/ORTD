@@ -44,16 +44,6 @@ public:
         destruct();
     }
 
-
-    //
-    // define states or other variables
-    //
-
-    //
-    // initialise your block
-    //
-
-
     // variables that point to allocated memot
     irpar_ivec *Array;
     
@@ -86,16 +76,11 @@ public:
             // of the vector that is of size veccpp.n
 	    
 	      r.Reseed();                   // and give it a unique seed
-  std::cout << "Using " << r.Name() << "\n"
-            << "with seed " << r.SeedString() << "\n";
-
-
-
+//   std::cout << "Using " << r.Name() << "\n"
+//             << "with seed " << r.SeedString() << "\n";
 
             // set the initial states
             resetStates();
-
-
         } catch(int e) { // check if initialisation went fine
             // deallocate all previously allocated memeory in case something went wrong
             fprintf(stderr, "RandomBlock: something went wrong. Exception = %d\n", e);
@@ -107,25 +92,22 @@ public:
         return 0;
     }
 
-
     inline void updateStates()
     {
-
     }
-
 
     inline void calcOutputs()
     {
         double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
 	
 	*output = NormalDistribution(r);
+// 	printf("Random: %f\n", *output );      
     }
 
 
     inline void resetStates()
     {
     }
-
 
 
     void printInfo() {
