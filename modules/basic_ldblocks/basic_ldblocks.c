@@ -1272,7 +1272,7 @@ int ortd_compu_func_steps(int flag, struct dynlib_block_t *block)
 // 	printf("steps #%d state %d nexttimestep=%d\n", block->sim->stepcounter, *state, times[*state]);
 	
         if (times[*state] <= block->sim->stepcounter) { 
-	  if (*state < numsteps) {
+	  if (*state < (numsteps-1)) {
 // 	    printf("sw on\n");
               (*state)++;
 	  }
@@ -1914,7 +1914,7 @@ int ortd_compu_func_steps2(int flag, struct dynlib_block_t *block)
 // 	printf("steps #%d state %d nexttimestep=%d\n", block->sim->stepcounter, *state, times[*state]);
 	
         if (times[*state] <= *counter) { 
-	  if (*state < numsteps) {
+	  if (*state < (numsteps-1)) {
 // 	    printf("sw on\n");
               (*state)++;
 	  }
