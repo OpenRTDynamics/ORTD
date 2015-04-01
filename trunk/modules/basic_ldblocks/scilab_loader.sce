@@ -857,7 +857,6 @@ function [sim, out] = ld_or(sim, events, inlist) // PARSEDOCU_BLOCK
 // 
 // 
 // 
-  ortd_checkpar(sim, list('Signal', 'in', in) );
 
 
   Nin=length(inlist);
