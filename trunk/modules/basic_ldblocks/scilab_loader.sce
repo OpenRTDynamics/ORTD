@@ -1186,7 +1186,6 @@ endfunction
 function [sim, out] = ld_steps2(sim, events, activation_simsteps, values) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: steps, counter is increased on event, which is different to ld_steps
-// (EXPERIMENTAL because not tested for now)
 //
 // out * - output
 // 
