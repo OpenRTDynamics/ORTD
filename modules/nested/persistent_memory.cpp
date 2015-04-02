@@ -73,12 +73,12 @@ public:
         this->data_element_size = libdyn_config_get_datatype_len(datatype);
         this->memsize = this->data_element_size*this->data_num_elements;
 
-//         printf("init persistent_memory. Memsize = %d\n", memsize);
+        // printf("init persistent_memory. Memsize = %d\n", memsize);
 
         // allocate data
         data = malloc(memsize);
 
-        if (initial_data != NULL)
+        if ((initial_data != NULL) && (datatype == DATATYPE_FLOAT))
             memcpy(data, initial_data, memsize);
         else
             memset(data, 0, memsize);
@@ -161,6 +161,8 @@ public:
         this->datatype = ipar[1];
         this->size = ipar[2];
         this->useMutex = ipar[3];
+	
+	double *initial_data_vec = &rpar[0];
 
         int len_ident_str = ipar[10];
         irpar_getstr(&this->directory_entry_fname, ipar, 11, len_ident_str);
@@ -172,7 +174,7 @@ public:
         libdyn_master *master = (libdyn_master *) block->sim->master;
 	
 	// FIXME: catch exception herer
-        pmem = new persistent_memory_shobj( directory_entry_fname, master, this->datatype, this->size, NULL, this->useMutex );
+        pmem = new persistent_memory_shobj( directory_entry_fname, master, this->datatype, this->size, initial_data_vec, this->useMutex );
 	
 	// if error return -1;!!!!
 
