@@ -1142,90 +1142,118 @@ endfunction
 
 function str=ld_PF_Export_str(PacketFramework)
     //     Added possibility to add GUI-configurations on 5.3.15
+
+    
+    
+    
     function jsonstr = struct2json(a)
-        //
-        // Copyright 2015 Christian Klauer, klauer@control.tu-berlin.de, Licensed under BSD-License
-        //
-        // Rev 1 as of 4.3.15: Initial version
-        // Rev 2 as of 4.3.15: added arrays of strings that are defined by e.g. list('str1', 'str2')
-        // Rev 3 as of 17.3.15: added support for vectors
-        //
-        // Example usage:
-        //
-        // clear a;
-        // a.Field1 = 2;
-        // a.Field2 = "jkh";
-        // a.Field3 = 1.2;
-        // a.F3.name = "Joe";
-        // a.F3.age = 32;
-        // //a.F3.data = [1,2];
-        // a.vector = [1,2,3,4.5];
-        // jsonstr = struct2json(a);
-        // disp(jsonstr);
-        //    
-        //     Warning: For strings make sure you escape the special characters that are used by the JSON-format!
-        // 
-        // Maybe the precision of float values can be adjusted by the command "format"
-        //
+    //
+    // Copyright 2015 Christian Klauer, klauer@control.tu-berlin.de, Licensed under BSD-License
+    //
+    // Rev 1 as of 4.3.15: Initial version
+    // Rev 2 as of 4.3.15: added arrays of strings that are defined by e.g. list('str1', 'str2')
+    // Rev 3 as of 17.3.15: added support for vectors
+    // Rev 4 as of 6.4.15: support for general list() structures and matrices; optimized the code 
+    //
+    // Example usage:
+    //
+    //    clear a;
+    //    a.Field1 = 2;
+    //    a.Field2 = "jkh";
+    //    a.Field3 = 1.2;
+    //    a.F3.name = "Joe";
+    //    a.F3.age = 32;
+    //    a.strArray =  list( 'V1', 'Xn' );
+    //    a.vector = [1,2,3,4.5535894379345];
+    //    a.Matrix = diag([1,2,3]);
+    //
+    //    struc.e = 2;
+    //    struc.f = 3;
+    //    a.list = list( 1, "Test", struc );
+    //
+    //    jsonstr = struct2json(a);
+    //    disp(jsonstr);
+    //    
+    //     Warning: For strings make sure you escape the special characters that are used by the JSON-format!
+    // 
+    // The precision of float values can be adjusted by previously using the command "format".
+    //
 
-        function valstr=val2str(val)
-            select typeof(val)
+    function valstr=val2str(val)
+        select typeof(val)
 
-            case "string"
-                if length(length(val)) == 1 then
-                    valstr = """" + string(val) + """";
-                end
+        case "string" // export a string
+            if length(length(val)) == 1 then
+                valstr = """" + string(val) + """";
+            end
 
-            case "list" // convert to array of strings
-                valstr = '[';
+        case "list" // convert Scilab list()s to arrays
+            valstr = '[';
 
-                N = length(val);
-                for i=1:(N-1)
-                    valstr = valstr + """" + string( val(i) ) + """" + ',';
-                end
-                valstr = valstr + """" + string( val(N) ) + """" + ']';
+            N = length(val);
+            for i=1:(N-1)
+                valstr = valstr + val2str( val(i) ) + ',';
+            end
+            valstr = valstr +  val2str( val(N) )   + ']';
 
+        case "constant" // export numerical values in form of vectors, matrices or single values
+            [n,m] = size(val);
 
-            case "constant"
-                if length(val) == 1 then
+            if n == 1 & m == 1 then // single value
+                if isnan(val) then
+                    valstr = '""NaN""';
+                else                
                     valstr = string(val);
-                else
-                    //                valstr = """" + "** Matrix not supported **" + """";
+                end
+            else
+                if n == 1 then // row vector
                     valstr = sci2exp(val(:)');
                 end
-
-            case "st"
-                valstr = struct2json(val);
-
-            else
-                valstr = """" + "**Datatype " + typeof(val) + " not supported **" + """";
             end
-        endfunction
 
-        if isstruct(a) then
+            if n > 1 then // a matrix or multiple columns
+                valstr = '[';
+                // for all lines
+                for i=1:(n-1)
+                    mline = val(i,:);
+                    valstr = valstr + sci2exp(mline) + ',';
+                end                  
+                mline = val(n,:);
+                valstr = valstr + sci2exp(mline) ;                  
+                valstr = valstr + ']';
+            end
+
+        case "st" // export a structure
+            a=val;
             F = fieldnames(a);
-            str = "{ ";
+
+            valstr = "{";
             N = length(length(F));
 
-            for i = 1:(N-1)
+            for i = 1:(N-1) // iterate through all fields
                 f = F(i);
-                val = eval('a.'+f);
-                valstr = val2str(val);
-                str = str + """" + f + """" + ' : ' + valstr + ' , ';
+                val = eval('a.'+f); // extract an element of the struct
+                valstrIT = val2str(val);
+                valstr = valstr + """" + f + """" + ':' + valstrIT + ',';
             end
 
             f = F(N);
             val = eval('a.'+f);
-            valstr = val2str(val);
-            str = str + """" + f + """" + ' : ' + valstr + ' } ';
+            valstrIT = val2str(val);
+            valstr = valstr + """" + f + """" + ':' + valstrIT + '}';
 
         else
-            error("Not a structure")
+            valstr = """" + "Datatype " + typeof(val) + " not supported" + """";
         end
 
-        jsonstr = str;
     endfunction
 
+    jsonstr=val2str(a);
+endfunction
+    
+    
+    
+    
     // check if there is a GUI to be set-up in Papi
     if  isfield(PacketFramework, 'PaPIConfig') then
         PaPIConfigstr = struct2json(PacketFramework.PaPIConfig)
