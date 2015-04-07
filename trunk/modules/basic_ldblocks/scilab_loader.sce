@@ -1,8 +1,3 @@
-// 
-// Terminal Codes
-// 
-
-ORTD.termcode.clearscreen = ascii(27) + '[2J';
 
 
 
@@ -235,17 +230,19 @@ function [sim] = ld_file_save_machine2(sim, ev, inlist, cntrl, FileNamesList) //
 // 
 //       TriggerSave = ...
 // 
-//       SaveSignals=list();				FileNamesList=list();
-//       SaveSignals($+1) = Signal1; 			FileNamesList($+1) = "measurements/Signal1.dat";
-//       SaveSignals($+1) = Signal2; 			FileNamesList($+1) = "measurements/Signal2.dat";
+//       SaveSignals=list();        FileNamesList=list();
+//       SaveSignals($+1) = Signal1;      FileNamesList($+1) = "measurements/Signal1.dat";
+//       SaveSignals($+1) = Signal2;      FileNamesList($+1) = "measurements/Signal2.dat";
 // 
 //       [sim] = ld_file_save_machine2(sim, ev, ...
 //                          inlist=SaveSignals, ...
 //                          cntrl=TriggerSave, FileNamesList          );
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'cntrl', cntrl) );
   ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+end
 
 
     function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim, inlist, x_global, state, statename, userdata)
@@ -275,18 +272,18 @@ function [sim] = ld_file_save_machine2(sim, ev, inlist, cntrl, FileNamesList) //
       // state
 
       select state
-	case 1 // state 1
-	  active_state = switch;
-//	  [sim] = ld_printf(sim, ev, in=dataToSave, str="Pauseing Save", insize=DataLen);
+  case 1 // state 1
+    active_state = switch;
+//    [sim] = ld_printf(sim, ev, in=dataToSave, str="Pauseing Save", insize=DataLen);
 
-	case 2 // state 2
+  case 2 // state 2
       for i=1:NumPorts  // for each port a write to file block
         dataToSave = inlist(i);
-	    [sim] = ld_savefile(sim, ev, FileNames(i), source=dataToSave, vlen=DataLength(i) );
-	   // [sim] = ld_printf(sim, ev, in=dataToSave, str="Saveing port "+string(i)+" ", insize=DataLength(i) );
+      [sim] = ld_savefile(sim, ev, FileNames(i), source=dataToSave, vlen=DataLength(i) );
+     // [sim] = ld_printf(sim, ev, in=dataToSave, str="Saveing port "+string(i)+" ", insize=DataLength(i) );
       end
 
-	  active_state = switch;
+    active_state = switch;
       end
 
       // multiplex the new global states
@@ -355,10 +352,11 @@ function [sim] = ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOC
 // 
 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'source', source) );
   ortd_checkpar(sim, list('SingleValue', 'vlen', vlen) );
   ortd_checkpar(sim, list('String', 'fname', fname) );
-
+end
 
   [inp] = libdyn_extrakt_obj( source ); // compatibility
 
@@ -369,8 +367,8 @@ function [sim] = ld_savefile(sim, events, fname, source, vlen) // PARSEDOCU_BLOC
   btype = 130;
 
   [sim,blk] = libdyn_new_block(sim, events, btype, [maxlen, autostart, vlen, length(fname), fname(:)'], [],  ...
-					insizes=[ vlen ], outsizes=[], ...
-					intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
+          insizes=[ vlen ], outsizes=[], ...
+          intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
   
   [sim,save_] = libdyn_conn_equation(sim, blk, list(source) );
 endfunction
@@ -389,9 +387,11 @@ function [sim, out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_B
 // if cntrl < 0 : out = in2
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'cntrl', cntrl) );
   ortd_checkpar(sim, list('Signal', 'in1', in1) );
   ortd_checkpar(sim, list('Signal', 'in2', in2) );
+end
 
 
   btype = 60001;
@@ -423,12 +423,12 @@ function [sim, outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLO
 //  ....
 //    
 
-
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'invec', invec) );
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
 
-
-  btype = 60001 + 1;	
+  btype = 60001 + 1;  
   ipar = [vecsize, 0]; rpar = [];
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                        insizes=[vecsize], outsizes=[ones(vecsize,1)], ...
@@ -458,11 +458,12 @@ function [sim, out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 // to a vector signal "out" of size "vecsize", whereby each inlist(i) is of size 1
 //    
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
 
-
-  btype = 60001 + 2;	
+  btype = 60001 + 2;  
   ipar = [vecsize; 0]; rpar = [];
 
   if (length(inlist) ~= vecsize) then
@@ -492,12 +493,13 @@ function [sim, out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off
 //
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'switch_off_level', switch_off_level) );
   ortd_checkpar(sim, list('SingleValue', 'switch_on_level', switch_on_level) );
   ortd_checkpar(sim, list('SingleValue', 'onout', onout) );
   ortd_checkpar(sim, list('SingleValue', 'offout', offout) );
-
+end
 
   if (switch_off_level > switch_on_level) then
     error("ld_hysteresis: setting switch_off_level > switch_on_level makes no sense\n");
@@ -524,9 +526,11 @@ function [sim, out] = ld_modcounter(sim, events, in, initial_count, mod) // PARS
 //
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'initial_count', initial_count) );
   ortd_checkpar(sim, list('SingleValue', 'mod', mod) );
+end
 
   if (mod < 0) then
     error("ld_modcounter: mod is less than zero\n");
@@ -554,8 +558,10 @@ function [sim, out] = ld_jumper(sim, events, in, steps) // PARSEDOCU_BLOCK
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'steps', steps) );
+end
 
   if (steps <= 0) then
     error("ld_jumper: steps must be greater than zero\n");
@@ -584,10 +590,11 @@ function [sim, out] = ld_memory(sim, events, in, rememberin, initial_state) // P
 // initial output out = initial_state
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('Signal', 'rememberin', rememberin) );
   ortd_checkpar(sim, list('SingleValue', 'initial_state', initial_state) );
-
+end
 
 
   memsize = length(initial_state);
@@ -612,8 +619,9 @@ function [sim, out] = ld_abs(sim, events, in) // PARSEDOCU_BLOCK
 // 
 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
-
+end
 
   btype = 60001 + 7;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -636,13 +644,13 @@ function [sim, out] = ld_extract_element(sim, events, invec, pointer, vecsize ) 
   // out = invec[pointer], the first element is at pointer = 1
   //
 
-
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'invec', invec) );
   ortd_checkpar(sim, list('Signal', 'pointer', pointer) );
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
 
-
-  btype = 60001 + 8;	
+  btype = 60001 + 8;  
   ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -667,7 +675,7 @@ function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 
 
-  btype = 60001 + 9;	
+  btype = 60001 + 9;  
   ipar = [length(vec); 0]; rpar = [vec];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -736,12 +744,12 @@ function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) //
 // 
 // 
 
-
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'count', count) );
   ortd_checkpar(sim, list('Signal', 'reset', reset) );  
   ortd_checkpar(sim, list('Signal', 'resetto', resetto) );
   ortd_checkpar(sim, list('SingleValue', 'initial', initial) );
-
+end
 
   btype = 60001 + 10;
   ipar = [  ]; rpar = [ initial ];
@@ -765,8 +773,10 @@ function [sim, out] = ld_shift_register(sim, events, in, len) // FIXME TODO
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'len', len) );
+end
 
   btype = 60001 + 11;
   ipar = [vecsize]; rpar = [];
@@ -811,12 +821,13 @@ function [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpo
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'u', u) );
   ortd_checkpar(sim, list('SingleValue', 'lower_b', lower_b) );
   ortd_checkpar(sim, list('SingleValue', 'upper_b', upper_b) );
 
   ortd_checkpar(sim, list('SingleValue', 'interpolation', interpolation) );
-
+end
 
   btype = 60001 + 12;
   [sim,blk] = libdyn_new_block(sim, events, btype, [length(table), interpolation ], [ lower_b, upper_b, table(:)' ], ...
@@ -836,8 +847,9 @@ function [sim, out] = ld_not(sim, events, in) // PARSEDOCU_BLOCK
 // out = 0, if in > 0.5  OR  out = 1, if in < 0.5
 // 
 
-
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
+end
 
   btype = 60001 + 13;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -858,6 +870,9 @@ function [sim, out] = ld_or(sim, events, inlist) // PARSEDOCU_BLOCK
 // 
 // 
 
+//if ORTD.FASTCOMPILE==%f then
+//  ortd_checkpar(sim, list('Signal', 'in', in) );
+//end
 
   Nin=length(inlist);
 
@@ -887,9 +902,10 @@ function [sim, out] = ld_iszero(sim, events, in, eps) // PARSEDOCU_BLOCK
 // out = 1, if in between -eps and eps, othwewise out = 0
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'eps', eps) );
-
+end
 
   btype = 60001 + 15;
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[ eps ], ...
@@ -919,6 +935,7 @@ function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, init
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'count', count) );
   ortd_checkpar(sim, list('Signal', 'reset', reset) );
   ortd_checkpar(sim, list('Signal', 'resetto', resetto) );
@@ -926,6 +943,7 @@ function [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, init
   ortd_checkpar(sim, list('SingleValue', 'initial', initial) );
   ortd_checkpar(sim, list('SingleValue', 'lower_b', lower_b) );
   ortd_checkpar(sim, list('SingleValue', 'upper_b', upper_b) );
+end
 
   if (lower_b > upper_b) then
     error("lower_b is greater than upper_b");
@@ -956,11 +974,11 @@ function [sim, out] = ld_memorydel(sim, events, in, rememberin, initial_state) /
 // initial output out = initial_state
 // 
 
-
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('Signal', 'rememberin', rememberin) );
   ortd_checkpar(sim, list('SingleValue', 'initial_state', initial_state) );
-
+end
 
 
   memsize = length(initial_state);
@@ -1011,10 +1029,11 @@ function [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto) // PA
 // out = setto, otherwise
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'setto', setto) );
   ortd_checkpar(sim, list('Signal', 'condition', condition) );
-
+end
 
   btype = 60001 + 19;
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[ setto ], ...
@@ -1036,10 +1055,11 @@ function [sim, out] = ld_ramp(sim, events, in_from, in_to, start, reset, ramp_du
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'start', start) );
   ortd_checkpar(sim, list('Signal', 'reset', reset) );
   ortd_checkpar(sim, list('Signal', 'increase', increase) );
-
+end
 
   btype = 60001 + 20;
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[  ], ...
@@ -1058,7 +1078,9 @@ function [sim, out] = ld_and(sim, events, inlist) // PARSEDOCU_BLOCK
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+end
 
   Nin=length(inlist);
 
@@ -1108,10 +1130,11 @@ function [sim] = ld_printfstderr(sim, events, in, str, insize) // PARSEDOCU_BLOC
 //
   //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('String', 'str', str) );
   ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
-
+end
 
   btype = 60001 + 23;;
   str = ascii(str);
@@ -1133,9 +1156,10 @@ function [sim] = ld_printfbar(sim, events, in, str) // PARSEDOCU_BLOCK
 // str is a string that is printed followed by a bar whose length depends on in
 //
   
-
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('String', 'str', str) );
+end
 
   btype = 60001 + 29;
   str = ascii(str);
@@ -1160,8 +1184,10 @@ function [sim, out] = ld_delay(sim, events, u, N) // PARSEDOCU_BLOCK
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'u', u) );
   ortd_checkpar(sim, list('SingleValue', 'N', N) );
+end
 
   if length(N) ~= 1 then
     error("N is not a scalar\n");
@@ -1236,12 +1262,13 @@ function [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize ) // P
   // out[pointer] = in, the first element is at pointer = 1
   //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('Signal', 'pointer', pointer) );
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
 
-
-  btype = 60001 + 27;	
+  btype = 60001 + 27; 
   ipar = [ vecsize, ORTD.DATATYPE_FLOAT ]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1264,10 +1291,11 @@ function [sim] = ld_FlagProbe(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 // of size insize
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('String', 'str', str) );
   ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
-
+end
 
   //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
   btype = 60001 + 28;
@@ -1288,7 +1316,9 @@ function [sim,out] = ld_ceilInt32(sim, events, in) // PARSEDOCU_BLOCK
 // return value is of type ORTD.DATATYPE_INT32
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
+end
 
   btype = 60001 + 30;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1306,7 +1336,9 @@ function [sim,out] = ld_Int32ToFloat(sim, events, in) // PARSEDOCU_BLOCK
 // ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
+end
 
   btype = 60001 + 31;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1324,7 +1356,9 @@ function [sim,out] = ld_floorInt32(sim, events, in) // PARSEDOCU_BLOCK
 // return value is of type ORTD.DATATYPE_INT32
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
+end
 
   btype = 60001 + 32;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1342,7 +1376,9 @@ function [sim,out] = ld_roundInt32(sim, events, in) // PARSEDOCU_BLOCK
 // return value is of type ORTD.DATATYPE_INT32
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
+end
 
   btype = 60001 + 33;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1359,7 +1395,7 @@ function [sim, out] = ld_constvecInt32(sim, events, vec) // PARSEDOCU_BLOCK
 // 
 // out *+ - the vector of int32
 // 
-  btype = 60001 + 34;	
+  btype = 60001 + 34; 
   ipar = [length(vec); 0; vec]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1377,8 +1413,10 @@ function [sim,out] = ld_sumInt32(sim, events, in1, in2) // PARSEDOCU_BLOCK
 // TODO
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in1', in1) );
   ortd_checkpar(sim, list('Signal', 'in2', in2) );
+end
 
   btype = 60001 + 35;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1395,7 +1433,9 @@ function [sim,out] = ld_getsign(sim, events, in) // PARSEDOCU_BLOCK
 // TODO
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
+end
 
   btype = 60001 + 37;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1412,8 +1452,10 @@ function [sim,out] = ld_OneStepDelInt32(sim, events, in, init_state) // PARSEDOC
 // TODO
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'init_state', init_state) );
+end
 
   btype = 60001 + 38;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ init_state ], [  ], ...
@@ -1430,8 +1472,10 @@ function [sim,out] = ld_MulInt32(sim, ev, in1, in2) // PARSEDOCU_BLOCK
 // TODO
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in1', in1) );
   ortd_checkpar(sim, list('Signal', 'in2', in2) );
+end
 
   btype = 60001 + 39;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1448,9 +1492,10 @@ function [sim,out] = ld_DivInt32(sim, ev, num, den) // PARSEDOCU_BLOCK
 // TODO. not implemented by now
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'num', num) );
   ortd_checkpar(sim, list('Signal', 'den', den) );
-
+end
 
   btype = 60001 + 40;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1467,8 +1512,10 @@ function [sim,out] = ld_ModInt32(sim, ev, num, den) // PARSEDOCU_BLOCK
 // TODO: not implemented by now
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'num', num) );
   ortd_checkpar(sim, list('Signal', 'den', den) );
+end
 
   btype = 60001 + 41;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
@@ -1487,8 +1534,10 @@ function [sim,out] = ld_CompareEqInt32(sim, events, in, CompVal) // PARSEDOCU_BL
 // out*, int32 - 0 if (in == CompVal); 1 if (in != CompVal);
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'CompVal', CompVal) );
+end
 
   btype = 60001 + 42;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ CompVal ], [  ], ...
@@ -1544,8 +1593,10 @@ function [sim, out] = ld_vector_delay(sim, events, in, vecsize) // PARSEDOCU_BLO
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
 
   btype = 60001 + 65;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [ ], ...
@@ -1567,10 +1618,12 @@ function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOC
 // Equivalent to Scilab 'diff' function
 //    
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
 
-  btype = 60001 + 50;	
+  btype = 60001 + 50; 
   ipar = [vecsize]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1595,7 +1648,7 @@ function [sim, index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize
 // 
 //
 //    
-  btype = 60001 + 51;	
+  btype = 60001 + 51; 
   ipar = [vecsize; greater]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1615,7 +1668,7 @@ function [sim, out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 // out *+(vecsize) - output
 // 
 //    
-  btype = 60001 + 52;	
+  btype = 60001 + 52; 
   ipar = [vecsize; 0]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1634,7 +1687,7 @@ function [sim, out] = ld_vector_gain(sim, events, in, gain, vecsize) // PARSEDOC
 // in *+(vecsize) - input
 // out *+(vecsize) - output
 //    
-  btype = 60001 + 53;	
+  btype = 60001 + 53; 
   ipar = [vecsize]; rpar = [gain];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1656,7 +1709,7 @@ function [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsi
 //  out *+(window_len) - output signal
 //
 //    
-  btype = 60001 + 54;	
+  btype = 60001 + 54; 
   ipar = [vecsize; window_len]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1682,7 +1735,7 @@ function [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsiz
 // index * - the index starting at 1, where the max / min was found
 // value * - min/max value
 //    
-  btype = 60001 + 55;	
+  btype = 60001 + 55; 
   ipar = [vecsize; findmax]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1737,7 +1790,7 @@ function [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize) // PARS
 //  add * - signal
 //  in *+(vecsize) - vector signal
 //    
-  btype = 60001 + 56;	
+  btype = 60001 + 56; 
   ipar = [vecsize]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1756,7 +1809,7 @@ function [sim, out] = ld_vector_add(sim, events, in1, in2, vecsize) // PARSEDOCU
 //  in1 *+(vecsize) - vector signal1
 //  in2 *+(vecsize) - vector signal2
 //    
-  btype = 60001 + 66;	
+  btype = 60001 + 66; 
   ipar = [vecsize]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1932,7 +1985,7 @@ function [sim, out] = ld_vector_mute(sim, events, in, from, len, setto, vecsize)
 //
 //
 
-  btype = 60001 + 63;	
+  btype = 60001 + 63; 
   ipar = [vecsize]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -1954,7 +2007,7 @@ function [sim, out] = ld_vector_NaNtoVal(sim, events, in, Val, vecsize) // PARSE
 // out *+(vecsize) - output
 // Val - numeric parameter
 //    
-  btype = 60001 + 67;	
+  btype = 60001 + 67; 
   ipar = [vecsize]; rpar = [Val];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -2048,13 +2101,14 @@ function [sim, out] = ld_vector_concate(sim, events, in1, in2, size1, size2) // 
   // 
   //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in1', in1) );
   ortd_checkpar(sim, list('Signal', 'in2', in2) );
   ortd_checkpar(sim, list('SingleValue', 'size1', size1) );
   ortd_checkpar(sim, list('SingleValue', 'size2', size2) );
+end
 
-
-  btype = 60001 + 70;	
+  btype = 60001 + 70; 
   ipar = [ size1, size2 ]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -2183,9 +2237,10 @@ function [sim, out] = ld_ArrayInt32(sim, events, array, in) // PARSEDOCU_BLOCK
 // out = array[in]
 // 
 
-   // check the input parameters
+if ORTD.FASTCOMPILE==%f then
    ortd_checkpar(sim, list('Signal', 'in', in) );
   //FIXME check array
+end
 
 // introduce some parameters that are refered to by id's
 
@@ -2244,7 +2299,7 @@ function [sim, out] = ld_interface(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 // in *+(vecsize) - input
 // out *+(vecsize) - output
 //    
-  btype = 60001 + 1000;	
+  btype = 60001 + 1000; 
   ipar = [vecsize]; rpar = [];
 
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
@@ -2272,9 +2327,10 @@ function [sim,y] = ld_add_ofs(sim, events, u, ofs) // PARSEDOCU_BLOCK
 // %PURPOSE: Add a constant "ofs" to the signal u; y = u + const(ofs)
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'u', u) );
   ortd_checkpar(sim, list('SingleValue', 'ofs', ofs) );
-
+end
 
   [sim,ofs_const] = libdyn_new_blk_const(sim, events, ofs);
   
@@ -2326,9 +2382,9 @@ function [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta) // PARSE
     
     [sim,z_fb] = libdyn_new_feedback(sim);
     
-	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-	[sim, tmp] = ld_ztf(sim, ev, sum_, 1/z);
-	[sim, y] = ld_sat(sim, ev, tmp, min__, max__);
+  [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+  [sim, tmp] = ld_ztf(sim, ev, sum_, 1/z);
+  [sim, y] = ld_sat(sim, ev, tmp, min__, max__);
     
     [sim] = libdyn_close_loop(sim, y, z_fb);    
 endfunction
@@ -2347,11 +2403,11 @@ function [sim, y] = ld_limited_integrator2(sim, ev, u, min__, max__, Ta) // PARS
     
     [sim,z_fb] = libdyn_new_feedback(sim);
     
-	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-	[sim, y] = ld_sat(sim, ev, sum_, min__, max__);
+  [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+  [sim, y] = ld_sat(sim, ev, sum_, min__, max__);
 
 
-	[sim, y_] = ld_ztf(sim, ev, y, 1/z);
+  [sim, y_] = ld_ztf(sim, ev, y, 1/z);
     
     [sim] = libdyn_close_loop(sim, y_, z_fb);    
 
@@ -2372,10 +2428,10 @@ function [sim, y] = ld_limited_integrator3(sim, ev, u, min__, max__, Ta) // PARS
     
     [sim,z_fb] = libdyn_new_feedback(sim);
     
-	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-	[sim, y] = ld_sat(sim, ev, sum_, min__, max__);
+  [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+  [sim, y] = ld_sat(sim, ev, sum_, min__, max__);
 
-	[sim, y_] = ld_ztf(sim, ev, y, 1/z);
+  [sim, y_] = ld_ztf(sim, ev, y, 1/z);
     
     [sim] = libdyn_close_loop(sim, y_, z_fb);    
 endfunction
@@ -2395,15 +2451,15 @@ function [sim, y] = ld_limited_integrator4(sim, ev, u, min__, max__, Ta) // PARS
     
     [sim,z_fb] = libdyn_new_feedback(sim);
     
-	[sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
-	[sim, y_sat] = ld_sat(sim, ev, sum_, 0, max__);
-	
-	[sim, y_missing] = ld_add(sim, ev, list(min__, y_sat), [1,-1]);
-	[sim, is_missing] = ld_compare_01(sim, ev, in=y_missing,  thr=0);
-	[sim, y_add] = ld_mult(sim, ev, inp_list=list(y_missing, is_missing), muldiv1_list=[0, 0]);
-	[sim, y] = ld_add(sim, ev, list(y_sat, y_add), [1,1]);
+  [sim, sum_] = ld_sum(sim, ev, list(u__, z_fb), 1, 1);
+  [sim, y_sat] = ld_sat(sim, ev, sum_, 0, max__);
+  
+  [sim, y_missing] = ld_add(sim, ev, list(min__, y_sat), [1,-1]);
+  [sim, is_missing] = ld_compare_01(sim, ev, in=y_missing,  thr=0);
+  [sim, y_add] = ld_mult(sim, ev, inp_list=list(y_missing, is_missing), muldiv1_list=[0, 0]);
+  [sim, y] = ld_add(sim, ev, list(y_sat, y_add), [1,1]);
 
-	[sim, y_] = ld_ztf(sim, ev, y, 1/z);
+  [sim, y_] = ld_ztf(sim, ev, y, 1/z);
     
     [sim] = libdyn_close_loop(sim, y_, z_fb);    
 
@@ -2683,15 +2739,15 @@ function [sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname)
       // state
 
       select state
-	case 1 // state 1
-	  active_state = switch;
-	  [sim] = ld_printf(sim, ev, in=dataToSave, str="Pauseing Save", insize=DataLen);
+  case 1 // state 1
+    active_state = switch;
+    [sim] = ld_printf(sim, ev, in=dataToSave, str="Pauseing Save", insize=DataLen);
 
-	case 2 // state 2
-	  [sim] = ld_savefile(sim, ev, fname, source=dataToSave, vlen=DataLen);
-	  [sim] = ld_printf(sim, ev, in=dataToSave, str="Saveing", insize=DataLen);
+  case 2 // state 2
+    [sim] = ld_savefile(sim, ev, fname, source=dataToSave, vlen=DataLen);
+    [sim] = ld_printf(sim, ev, in=dataToSave, str="Saveing", insize=DataLen);
 
-	  active_state = switch;
+    active_state = switch;
       end
 
       // multiplex the new global states
@@ -3007,8 +3063,10 @@ function [sim,out] = ld_gain(sim, events, in, gain) // PARSEDOCU_BLOCK
 // out = in * gain
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'gain', gain) );
+end
 
   [inp] = libdyn_extrakt_obj(in ); // compatibility
 
@@ -3084,7 +3142,9 @@ function [sim,out] = ld_fngen(sim, events, shape_, period, amp) // PARSEDOCU_BLO
 // 
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('SingleValue', 'shape_', shape_) );
+end
 
   btype = 80;
   [sim,bid] = libdyn_new_block(sim, events, btype, [shape_], [], ...
@@ -3140,8 +3200,9 @@ function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
 // H is give as a Scilab rational
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'inp_list', inp_list) );
-
+end
 
   [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
 
@@ -3201,11 +3262,12 @@ function [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state) //
 // initial_state - constant
 //
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'set0', set0) );
   ortd_checkpar(sim, list('Signal', 'set1', set1) );
   ortd_checkpar(sim, list('Signal', 'reset', reset) );
   ortd_checkpar(sim, list('SingleValue', 'init_state', init_state) );
-
+end
 
     [sim,blk] = libdyn_new_flipflop(sim, events, initial_state);
     [sim,blk] = libdyn_conn_equation(sim, blk, list(set0,0, set1,0, reset,0)); // FIXME: remove ,0
@@ -3252,10 +3314,11 @@ function [sim] = ld_printf(sim, events, in, str, insize) // PARSEDOCU_BLOCK
 // 
 // 
 
+if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('Signal', 'in', in) );
   ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
   ortd_checkpar(sim, list('String', 'str', str) );
-
+end
 
   btype = 170;
   str = ascii(str);

@@ -73,6 +73,8 @@ ORTD.DATATYPE_BINARY = 6;
 // Some terminal color codes for usage with ld_printf
 //
 
+ORTD.termcode.clearscreen = ascii(27) + '[2J';
+
 ORTD.termcode.black = ascii(27) + '[30m';
 ORTD.termcode.red = ascii(27) + '[31m';
 ORTD.termcode.green = ascii(27) + '[32m';
@@ -95,6 +97,9 @@ ORTD.termcode.reset = ascii(27) + '[0m';
 // Constants for describing thread types
 ORTD.ORTD_RT_REALTIMETASK = 1;
 ORTD.ORTD_RT_NORMALTASK = 2;
+
+ORTD.FASTCOMPILE = %t; // if %t then some optional checks are skipped
+
 
 
 
@@ -330,7 +335,8 @@ endfunction
 // Check wheter the object given by the user is part of the given simulation
 function libdyn_check_object(sim,obj) 
   if libdyn_is_ldobject(obj) == %F then
-    printf("The given variable is no libdyn object\n");
+    printf("The given variable is no libdyn object. Insted, the following data is contained in this variable:\n");
+    disp(obj);
     error("");
   end
 
