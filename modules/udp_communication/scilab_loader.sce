@@ -486,6 +486,48 @@ function [PacketFramework, PluginUname] = ld_PF_addpluginAdvanced(PacketFramewor
 
 endfunction
 
+function [PacketFramework] = ld_PF_addpluginAdvancedInclControl(PacketFramework, PluginType, PluginName, PluginSize, PluginPos, TabName, PluginSettingsList, ControlParameterID, ControlBlock)
+    // inc counter
+    PacketFramework.PluginID_counter = PacketFramework.PluginID_counter + 1;
+
+    PluginUname = "Plugin" + string(PacketFramework.PluginID_counter);
+
+
+    // Add new plugin to the struct
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).identifier.value =  PluginType;
+
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.name.value = PluginName;
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.size.value = PluginSize;
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.position.value = PluginPos;
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.tab.value = TabName;
+
+    PacketFramework = ld_PF_changePluginConfig(PacketFramework, PluginUname, PluginSettingsList);
+
+    PacketFramework = ld_PF_addcontrolbyID(PacketFramework, PluginUname, ControlBlock, ControlParameterID);
+
+endfunction
+
+function [PacketFramework] = ld_PF_addpluginAdvancedInclSub(PacketFramework, PluginType, PluginName, PluginSize, PluginPos, TabName, PluginSettingsList, SubSourceIDs, SubBlock)
+    // inc counter
+    PacketFramework.PluginID_counter = PacketFramework.PluginID_counter + 1;
+
+    PluginUname = "Plugin" + string(PacketFramework.PluginID_counter);
+
+
+    // Add new plugin to the struct
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).identifier.value =  PluginType;
+
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.name.value = PluginName;
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.size.value = PluginSize;
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.position.value = PluginPos;
+    PacketFramework.PaPIConfig.ToCreate(PluginUname).config.tab.value = TabName;
+
+    PacketFramework = ld_PF_changePluginConfig(PacketFramework, PluginUname, PluginSettingsList);
+    
+    PacketFramework = ld_PF_addsubsbyID(PacketFramework, PluginUname, SubBlock, SubSourceIDs);
+
+endfunction
+
 function [PacketFramework] = ld_PF_addsubs(PacketFramework, SubPluginUname, SubBlock, SubSignals)
     if (isfield(PacketFramework.PaPIConfig, "ToSub"))
         if (isfield(PacketFramework.PaPIConfig.ToSub, SubPluginUname))
@@ -536,13 +578,20 @@ function [PacketFramework,SourceID] = ld_PF_addsourceInclSub(PacketFramework, NV
     PacketFramework = ld_PF_addsubsbyID(PacketFramework, SubPluginUname, SubBlock, SourceID);
 endfunction
 
-function [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName)
+function [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName, optionalInitValue)
+    if ~exists('optionalInitValue', 'local')
+        optionalInitValue = zeros(1,NValues);
+    end
+    if (length(optionalInitValue) ~= NValues)
+        error("length(optionalInitValue) = " + string(length(optionalInitValue)) + " ~= NValues = " + string(NValues));
+    end
     ParameterID = PacketFramework.Parameterid_counter;
 
     Parameter.ParameterName = ParameterName;
     Parameter.ParameterID = ParameterID;
     Parameter.NValues = NValues;
     Parameter.datatype =  datatype;
+    Parameter.InitialValue = optionalInitValue;
     Parameter.MemoryOfs = PacketFramework.ParameterMemOfs_counter;
 
     // Add new source to the list
@@ -557,12 +606,15 @@ function [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFram
     MemoryOfs = Parameter.MemoryOfs;
 endfunction
 
-function [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameterInclControl(PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock)
-    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName);
+function [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameterInclControl(PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock, optionalInitValue)
+    if ~exists('optionalInitValue', 'local')
+        optionalInitValue = zeros(1,NValues);
+    end
+    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName, optionalInitValue);
     PacketFramework = ld_PF_addcontrolbyID(PacketFramework, ControlPluginUname, ControlBlock, ParameterID);
 endfunction
 
-function [sim, PacketFramework, Parameter] = ld_PF_Parameter(sim, PacketFramework, NValues, datatype, ParameterName) // PARSEDOCU_BLOCK
+function [sim, PacketFramework, Parameter] = ld_PF_Parameter(sim, PacketFramework, NValues, datatype, ParameterName, optionalInitValue) // PARSEDOCU_BLOCK
     // 
     // Define a parameter
     // 
@@ -572,8 +624,10 @@ function [sim, PacketFramework, Parameter] = ld_PF_Parameter(sim, PacketFramewor
     // 
     // 
     // 
-
-    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName);
+    if ~exists('optionalInitValue', 'local')
+        optionalInitValue = zeros(1,NValues);
+    end
+    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName, optionalInitValue);
 
     // read data from global memory
     [sim, readI] = ld_const(sim, 0, MemoryOfs); // start at index 1
@@ -581,7 +635,28 @@ function [sim, PacketFramework, Parameter] = ld_PF_Parameter(sim, PacketFramewor
     datatype, NValues);
 endfunction
 
-function [sim, PacketFramework, Parameter] = ld_PF_ParameterInclControl(sim, PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock) // PARSEDOCU_BLOCK
+function [sim, PacketFramework, ParameterID, Parameter] = ld_PF_ParameterForPlugin(sim, PacketFramework, NValues, datatype, ParameterName, optionalInitValue) // PARSEDOCU_BLOCK
+    // 
+    // Define a parameter and get the ParameterID to control it by a plugin
+    // 
+    // NValues - amount of data sets
+    // datatype - only ORTD.DATATYPE_FLOAT for now
+    // ParameterName - a unique string decribing the parameter
+    // 
+    // 
+    // 
+    if ~exists('optionalInitValue', 'local')
+        optionalInitValue = zeros(1,NValues);
+    end
+    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameter(PacketFramework, NValues, datatype, ParameterName, optionalInitValue);
+
+    // read data from global memory
+    [sim, readI] = ld_const(sim, 0, MemoryOfs); // start at index 1
+    [sim, Parameter] = ld_read_global_memory(sim, 0, index=readI, ident_str=PacketFramework.InstanceName+"Memory", ...
+    datatype, NValues);
+endfunction
+
+function [sim, PacketFramework, Parameter] = ld_PF_ParameterInclControl(sim, PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock, optionalInitValue) // PARSEDOCU_BLOCK
     // 
     // Define a parameter and it's control unit
     // 
@@ -592,8 +667,10 @@ function [sim, PacketFramework, Parameter] = ld_PF_ParameterInclControl(sim, Pac
     // ControlBlock - e.g. 'Click_Event' for a Button
     // 
     // 
-
-    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameterInclControl(PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock);
+    if ~exists('optionalInitValue', 'local')
+        optionalInitValue = zeros(1,NValues);
+    end
+    [PacketFramework,ParameterID,MemoryOfs] = ld_PF_addparameterInclControl(PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock, optionalInitValue);
 
     // read data from global memory
     [sim, readI] = ld_const(sim, 0, MemoryOfs); // start at index 1
@@ -641,6 +718,22 @@ endfunction
 function [sim, PacketFramework] = ld_SendPacket(sim, PacketFramework, Signal, NValues_send, datatype, SourceName) // PARSEDOCU_BLOCK // PARSEDOCU_BLOCK
     // 
     // Stream data - block
+    // 
+    // Signal - the signal to stream
+    // NValues_send - the vector length of Signal
+    // datatype - only ORTD.DATATYPE_FLOAT by now
+    // SourceName - a unique string identifier descring the stream
+    // 
+    // 
+    // 
+
+    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName);
+    [sim]=ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, datatype, SourceID);
+endfunction
+
+function [sim, PacketFramework, SourceID] = ld_SendPacketForPlugin(sim, PacketFramework, Signal, NValues_send, datatype, SourceName) // PARSEDOCU_BLOCK // PARSEDOCU_BLOCK
+    // 
+    // Stream data - block and get the SourceID to visualize it by a plugin
     // 
     // Signal - the signal to stream
     // NValues_send - the vector length of Signal
@@ -1076,6 +1169,8 @@ function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOC
 
         TotalMemorySize = sum(PacketFramework.ParameterMemory.Sizes);
         InstanceName = PacketFramework.InstanceName;
+        InitValues =  PacketFramework.ParameterMemory.InitValues;
+        disp(InitValues);
         //	// Open an UDP-Port in server mode
         //	[sim] = ld_UDPSocket_shObj(sim, 0, ObjectIdentifyer=InstanceName+"aSocket", Visibility=0, ...
         //                                  hostname=PacketFramework.Configuration.LocalSocketHost, ...
@@ -1084,7 +1179,7 @@ function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOC
         // initialise a global memory for storing the input data for the computation
         [sim] = ld_global_memory(sim, 0, ident_str=InstanceName+"Memory", ... 
         datatype=ORTD.DATATYPE_FLOAT, len=TotalMemorySize, ...
-        initial_data=[zeros(TotalMemorySize,1)], ... 
+        initial_data=[InitValues], ... 
         visibility='global', useMutex=1);
 
         // Create thread for the receiver
@@ -1106,16 +1201,19 @@ function [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework) // PARSEDOC
     // calc memory
     MemoryOfs = [];
     Sizes = [];
+    InitValues = [];
     // go through all parameters and create memories for all
     for i=1:length(PacketFramework.Parameters)
         P = PacketFramework.Parameters(i);
 
         Sizes = [Sizes; P.NValues];
         MemoryOfs = [MemoryOfs; P.MemoryOfs];
+        InitValues = [InitValues; P.InitialValue(:)];
     end
 
     PacketFramework.ParameterMemory.MemoryOfs = MemoryOfs;
     PacketFramework.ParameterMemory.Sizes = Sizes;
+    PacketFramework.ParameterMemory.InitValues = InitValues;
 
     // udp
     [sim] = ld_PF_InitUDP(sim, PacketFramework);
@@ -1304,11 +1402,19 @@ endfunction
 
         printf("export of parameter %s \n",PacketFramework.Parameters(i).ParameterName );
 
-        line=sprintf(" ""%s"" : { ""ParameterName"" : ""%s"" , ""NValues"" : ""%s"", ""datatype"" : ""%s""  } ", ...
+        initVal = PacketFramework.Parameters(i).InitialValue;
+        if length(initVal) == 1 then
+            initvalstr = string(initVal);
+        else
+            initvalstr = sci2exp(initVal(:)');
+        end
+
+        line=sprintf(" ""%s"" : { ""ParameterName"" : ""%s"" , ""NValues"" : ""%s"", ""datatype"" : ""%s"", ""initial_value"" : %s  } ", ...
         string(PacketFramework.Parameters(i).ParameterID), ...
         string(PacketFramework.Parameters(i).ParameterName), ...
         string(PacketFramework.Parameters(i).NValues), ...
-        string(PacketFramework.Parameters(i).datatype) );
+        string(PacketFramework.Parameters(i).datatype), ...
+        initvalstr );
 
 
         if i==length(PacketFramework.Parameters) 
