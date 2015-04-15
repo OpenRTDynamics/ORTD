@@ -117,12 +117,10 @@ public:
     }
 
     void SendPacket(void *buf, int N) {
-//         printf("send packet of %d bytes using socket %d:\n", N, sockfd);
         sendto(sockfd,buf,N,0,(struct sockaddr *)&broadcastAddr,sizeof(broadcastAddr));
     }
 
     void SendToPacket(struct sockaddr_in DestAddr, void *buf, int N) {
-//         printf("send packet of %d bytes using socket %d:\n", N, sockfd);
         sendto(sockfd,buf,N,0,(struct sockaddr *)&DestAddr,sizeof(DestAddr));
     }
 
@@ -133,8 +131,6 @@ public:
 	    return -1;
 	  }
            
-//           printf("Received packet from %s:%d\nData: %s\n\n",  inet_ntoa(si_from.sin_addr), ntohs(si_from.sin_port), buf); 
-	  
 	  return 0;
     }
     
@@ -155,22 +151,24 @@ public:
 
         // Get the irpar parameters Uipar, Urpar
         libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+	
+	socket = NULL;
     }
 
     ~UDPSocket_SharedObject() {
-      delete socket;
+      if (socket != NULL)
+	delete socket;
     }
 
     int init() {
         printf("Init of UDPSocket_SharedObject\n");
+	
 
         struct irpar_ivec_t vec;
         if ( irpar_get_ivec(&vec, Uipar, Urpar, 10) < 0 ) {
             return -1;
         }
         udpport = vec.v[0];
-
-//         printf("Using udp port %d\n", udpport);
 
         //
         // get a string (not so nice by now)
@@ -192,11 +190,7 @@ public:
 	}
 
         free(hostname); // do not forget to free the memory allocated by irpar_getstr
-
 	
-// 	char hostname[] = "localhost";
-	
-
         return 0; // init was ok
     }
 

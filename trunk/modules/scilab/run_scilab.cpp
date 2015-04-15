@@ -10,7 +10,9 @@
 
 run_scilab::run_scilab(const char* scilab_path) // Constructor
 {
-    this->scilab_path = new char [strlen(scilab_path) + 1];
+//     this->scilab_path = new char [strlen(scilab_path) + 1];
+    this->scilab_path = (char*) malloc( strlen(scilab_path) + 1 );
+    
     if (strcpy(this->scilab_path, scilab_path) == NULL)
     {
         fprintf(stderr, "Error initializing the scilab path!\n");
@@ -27,7 +29,7 @@ run_scilab::run_scilab(const char* scilab_path) // Constructor
 
 run_scilab::~run_scilab()  // Destructor
 {
-    delete scilab_path;
+    free( scilab_path );
     //close pipes
     ToChild[0] = 0;
     ToChild[1] = 0;
