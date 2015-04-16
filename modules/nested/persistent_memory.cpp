@@ -140,9 +140,17 @@ class persistent_memory_block_class {
 public:
     persistent_memory_block_class(struct dynlib_block_t *block)    {
         this->block = block;
+	
+	this->pmem = NULL;
+	this->directory_entry_fname = NULL;
     }
     void destruct() {
+      
+      if (directory_entry_fname != NULL)
         free(directory_entry_fname);
+      
+      if (pmem != NULL) {
+	
         if (!pmem->isUsed()) {
             delete pmem;
         } else {
@@ -150,6 +158,7 @@ public:
             fprintf(stderr, "ASSERTION FAILED: persistent_memory_block_class: object is still in use and will therefore remain in memory\n");
 #endif
         }
+      }
     }
 
     void io(int update_states) {};
@@ -157,6 +166,9 @@ public:
     int init() {
         double *rpar = libdyn_get_rpar_ptr(block);
         int *ipar = libdyn_get_ipar_ptr(block);
+	
+	this->pmem = NULL;
+	this->directory_entry_fname = NULL;
 
         this->datatype = ipar[1];
         this->size = ipar[2];
