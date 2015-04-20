@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 26.9.2014
+Version of this document: 20.4.2015
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -138,7 +138,7 @@ CONTENTS OF THIS README
 - EXAMPLES
 - DATATYPES
 - NOTES ON REAL-TIME CAPABILITIES
-- REMOTE CONTROL INTERFACE
+- REMOTE CONTROL INTERFACE (PaPi)
 - IMPORTANT SOURCE FILES
 - REAL-TIME BENCHMARK
 - PORTING TO OTHER TARGETS
@@ -282,6 +282,10 @@ Cleaning up is done via
     $ make clean
 
 This should be executed when compiling and updated version from subversion.
+
+To visualise data it is suggested to additionally install PaPi 
+(https://github.com/TUB-Control/PaPI/tree/development) (currently only the development
+version fully supports ORTD).
 
 
 IMPORTANT MAKE-TARGETS
@@ -806,27 +810,32 @@ reads the clock of the computer.
 3) Apply the proper priorities to the threads. It is suggested to start with
 the template examples/Template_rtcontrol.
 
-REMOTE CONTROL INTERFACE
-========================
+REMOTE CONTROL INTERFACE (e.g. using PaPi)
+==========================================
 
-Possibilities:
+An UDP-based communication protocoll (PacketFramework) is available that can be used to 
+visualise data e.g. using PaPi (https://github.com/TUB-Control/PaPI/tree/development).
 
-B) RECOMMENDED: A new (UDP-based) framework is available (Packet framework). An example that 
-   visualises data using a web-browser is available at
+Examples for using PaPi to display automatic calibration procedures:
+
+   https://github.com/christianausb/OpenRTDynamics/blob/master/Examples/PaPi/AutomaticProcedures
+
+An example that visualises data using a web-browser is available at
+
    https://github.com/christianausb/OpenRTDynamics/tree/master/Examples/nodejs_webinterface_Level2
    or examples/PacketFramework
-
-A) OBSOLETE: A TCP-based remote control interface is provided by the rt_server module, providing
-   ld_parameter and ld_stream. As it is thought about a more simple (in terms of lines
-   of C-code) (UDP)packet-based communication in combination with an external javascript 
-   (node.js) program for higher level logic, the infrastructure will not be further 
-   developed. In the long-long-term it will be removed and replaced by a new framework B)
-   while the old one A) will be emulated/re-implemented using node.js, thus compatibility 
-   will be preserved.
 
 An example for a webinterface:
 
 [[embed url=http://www.youtube.com/watch?v=Mln_JxfzLD0]]
+
+
+OBSOLETE: A TCP-based remote control interface is provided by the rt_server module, providing
+ld_parameter and ld_stream. As it is thought about a more simple (in terms of lines
+of C-code) (UDP)packet-based communication in combination with an external javascript 
+(node.js) program for higher level logic, the infrastructure will not be further 
+developed. 
+
 
 
 IMPORTANT SOURCE FILES
@@ -1102,5 +1111,6 @@ By date as there will only be the svn-version
   - 4.3.15:   Bug fixes: Shared Objects were not destructed; fixed UDPSendTo to
               send UDP-data when state update is called: Fixes delayed transmission
   - 29.3.15:  Added Random module
+  - month 2/3/4 15: Advanced PaPi integration
 
 
