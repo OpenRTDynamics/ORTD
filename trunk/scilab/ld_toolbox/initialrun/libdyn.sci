@@ -219,23 +219,29 @@ endfunction
 
 // New version forked form above as of 16.2.14 to add in and outtypes
 function sim = libdyn_new_simulation2(insizes, outsizes, intypes, outtypes)
-  sim_struct.insizes = insizes; // Vektor of insizes
-  sim_struct.outsizes = outsizes; // Vektor of outsizes
-  sim_struct.intypes = intypes;
-  sim_struct.outtypes = outtypes;
-
-  sim_struct.parlist = new_irparam_set(); // irparam container
-  
-  // used by libdyn_new_blockid() to create new block ids
-  sim_struct.objectidcounter = 200; // also used for irpar ids, never start at 0 because its is reserverd for external in/out
-  
-  sim_struct.cllist = list(); // Connection list is stored here
-//  sim_struct.clist_count = 0;
-
-  sim_struct.objectlist = list(); // Contains all block etc...
-
   global libdyn_simu_id_counter;
-  sim_struct.simid = libdyn_simu_id_counter; // a unique identifier for each simulation struct
+
+//  sim_struct.insizes = insizes; // Vektor of insizes
+//  sim_struct.outsizes = outsizes; // Vektor of outsizes
+//  sim_struct.intypes = intypes;
+//  sim_struct.outtypes = outtypes;
+//
+//  sim_struct.parlist = new_irparam_set(); // irparam container
+//  
+//  // used by libdyn_new_blockid() to create new block ids
+//  sim_struct.objectidcounter = 200; // also used for irpar ids, never start at 0 because its is reserverd for external in/out
+//  
+//  sim_struct.cllist = list(); // Connection list is stored here
+////  sim_struct.clist_count = 0;
+//
+//  sim_struct.objectlist = list(); // Contains all block etc...
+//  
+//  sim_struct.simid = libdyn_simu_id_counter; // a unique identifier for each simulation struct
+//  
+  
+  sim_struct = struct( 'insizes', insizes, 'outsizes', outsizes, 'intypes', intypes, 'outtypes', outtypes, 'parlist', new_irparam_set(), 'objectidcounter', 200, 'cllist', list(), 'objectlist', list(), 'simid', libdyn_simu_id_counter );
+  
+  
   libdyn_simu_id_counter = libdyn_simu_id_counter + 1;
 
   sim = sim_struct;
@@ -255,12 +261,17 @@ endfunction
 // FIXME: This function is obsolete by now and should be replaced by libdyn_new_block
 function [sim,blk] = libdyn_new_blk_generic(sim, events, btype, ipar, rpar, insizes, outsizes, intypes, outtypes)
   [sim,oid] = libdyn_new_objectid(sim); // get new object id
-  blk.oid = oid;
-  blk.simid = sim.simid;
-  blk.objecttype = 0; // Which object type is this? 0 - Block
-  blk.input_block = 0;  // FIXME raus!
-  blk.magic = 678234;
-  blk.btype = btype;
+  
+//  blk.oid = oid;
+//  blk.simid = sim.simid;
+//  blk.objecttype = 0; // Which object type is this? 0 - Block
+//  blk.input_block = 0;  // FIXME raus!
+//  blk.magic = 678234;
+//  blk.btype = btype;
+
+//  printf("*****************\n");
+    
+  blk = struct( 'oid', oid, 'simid', sim.simid, 'objecttype', 0, 'input_block', 0, 'magic', 678234, 'btype', btype );
 
   id = oid; // id for this parameter set - take the object id in this case as it is unique
   Nbipar = length(ipar);
@@ -291,12 +302,24 @@ endfunction
 // btype is the kind of block - the comp fn is determined based on this integer
 function [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, insizes, outsizes, intypes, outtypes)
   [sim,oid] = libdyn_new_objectid(sim); // get new object id
-  blk.oid = oid;
-  blk.simid = sim.simid;
-  blk.objecttype = 0; // Which object type is this? 0 - Block
-  blk.input_block = 0;  // FIXME raus!
-  blk.magic = 678234;
-  blk.btype = btype;
+  
+  
+//  blk.oid = oid;
+//  blk.simid = sim.simid;
+//  blk.objecttype = 0; // Which object type is this? 0 - Block
+//  blk.input_block = 0;  // FIXME raus!
+//  blk.magic = 678234;
+//  blk.btype = btype;
+//
+//  // set in and output sizes and types
+//  blk.insizes = insizes;
+//  blk.outsizes = outsizes;
+//  blk.intypes = intypes;
+//  blk.outtypes = outtypes;
+  
+  blk = struct( 'oid', oid, 'simid', sim.simid, 'objecttype', 0, 'input_block', 0, 'magic', 678234, 'btype', btype, 'insizes', insizes, 'outsizes', outsizes, 'intypes', intypes, 'outtypes', outtypes  );
+  
+  
 
   id = oid; // id for this parameter set - take the object id in this case as it is unique
   Nbipar = length(ipar);
@@ -306,11 +329,7 @@ function [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, insizes, o
   header = [ btype; oid; Nbipar; Nbrpar; eventlist_len ]; // add header parameters
   header = [ header; events(:) ]; // Add eventlist
 
-  // set in and output sizes and types
-  blk.insizes = insizes;
-  blk.outsizes = outsizes;
-  blk.intypes = intypes;
-  blk.outtypes = outtypes;
+
   
   // store parameters
   sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [header; ipar(:)], [rpar(:)]);
@@ -322,6 +341,7 @@ endfunction
 
 // test wheter the given object is a libdyn object
 function [ret] = libdyn_is_ldobject(obj) 
+    
   ret = %F;
   if typeof(obj) == 'st' then
     if isfield(obj, 'magic') then
@@ -330,6 +350,7 @@ function [ret] = libdyn_is_ldobject(obj)
       end
     end
   end
+
 endfunction
 
 // Check wheter the object given by the user is part of the given simulation
@@ -413,18 +434,23 @@ function [sim,blk] = libdyn_new_oport_hint(sim, object, port);
   
   
   [sim,oid] = libdyn_new_objectid(sim); // get new object id
-  blk.oid = oid;
-  blk.simid = sim.simid;
-
-  blk.objecttype = 4; // Which object type is this? 4 - Special output port hint object
-  blk.outsizes = [];
   
-  // ---- special vars of this object class -----
-  blk.highleveloid = object.oid;
-  blk.highlevelotype = object.objecttype;
-  blk.outport = port;
+//  blk.oid = oid;
+//  blk.simid = sim.simid;
+//
+//  blk.objecttype = 4; // Which object type is this? 4 - Special output port hint object
+//  blk.outsizes = [];
+//  
+//  // ---- special vars of this object class -----
+//  blk.highleveloid = object.oid;
+//  blk.highlevelotype = object.objecttype;
+//  blk.outport = port;
+//
+//  blk.magic = 678234;
 
-  blk.magic = 678234;
+
+
+  blk = struct( 'oid', oid, 'simid', sim.simid, 'objecttype', 4, 'outsizes', [], 'highleveloid', object.oid, 'highlevelotype', object.objecttype, 'outport', port, 'magic', 678234 );
   
   // stort block structure
   sim.objectlist(oid) = blk;
@@ -487,16 +513,19 @@ endfunction
 // the returned object may also named "signal"
 function [sim,fbdummy] = libdyn_new_feedback(sim);
   [sim,oid] = libdyn_new_objectid(sim); // get new object id
-  fbdummy.oid = oid;
-  fbdummy.simid = sim.simid;
-
-  fbdummy.objecttype = 8; // Which object type is this? 8 - Special feedback dummy referer
+//  fbdummy.oid = oid;
+//  fbdummy.simid = sim.simid;
+//
+//  fbdummy.objecttype = 8; // Which object type is this? 8 - Special feedback dummy referer
+//  
+//  fbdummy.magic = 678234;
+//
+//  // later: a list of connections to some blocks or whatever
+//  fbdummy.dblk = -1; // -1 means uninitialised
+//  fbdummy.dport = -1; // -1 means uninitialised
+//  
+  fbdummy = struct( 'oid', oid, 'simid', sim.simid, 'objecttype', 8, 'magic', 678234, 'dblk', -1, 'dport', -1  );
   
-  fbdummy.magic = 678234;
-
-  // later: a list of connections to some blocks or whatever
-  fbdummy.dblk = -1; // -1 means uninitialised
-  fbdummy.dport = -1; // -1 means uninitialised
 
   // ---- special vars of this object class -----
   
@@ -558,6 +587,7 @@ function sim = libdyn_connect_block(sim, src, src_port, dst, dst_port)
     printf("bad block magic!");
     error("");
   end
+  
   libdyn_check_object(sim,src);
   libdyn_check_object(sim,dst);
   

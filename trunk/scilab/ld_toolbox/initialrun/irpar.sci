@@ -42,20 +42,30 @@ function parlist = new_irparam_set()
 endfunction
 
 function parlist = new_irparam_elemet(parlist, id, typ, ipar, rpar)
-  par.id = id;
-  par.typ = typ;
-  par.ipar = ipar(:);
-  par.rpar = rpar(:);
-  
-  parlist($+1) = par;
+//    clear par;
+//    
+
+//  par = [];
+//  par.id = id;
+//  par.typ = typ;
+//  par.ipar = ipar(:);
+//  par.rpar = rpar(:);
+//  parlist($+1) = par;
+//
+  parlist($+1) = struct( 'id', id, 'typ', typ, 'ipar', ipar(:), 'rpar', rpar(:)  );
 endfunction
 
 function parlist = new_irparam_elemet_rvec(parlist, v, id)
-  parlist = new_irparam_elemet(parlist, id, 1, length(v), v(:));
+//  parlist = new_irparam_elemet(parlist, id, 1, length(v), v(:));
+  
+  parlist($+1) = struct( 'id', id, 'typ', 1, 'ipar', length(v), 'rpar', v(:)  );
+  
 endfunction
 
 function parlist = new_irparam_elemet_ivec(parlist, v, id)
-  parlist = new_irparam_elemet(parlist, id, IRPAR_IVEC, [length(v); v(:) ], []);
+//  parlist = new_irparam_elemet(parlist, id, IRPAR_IVEC, [length(v); v(:) ], []);
+
+  parlist($+1) = struct( 'id', id, 'typ', 4, 'ipar', [length(v); v(:)], 'rpar', []  );
 endfunction
 
 function parlist = new_irparam_elemet_rmat(parlist, A, id)
@@ -71,12 +81,15 @@ function parlist = new_irparam_elemet_tf(parlist, tf, id)
 endfunction
 
 function parlist = new_irparam_elemet_box(parlist, ipar, rpar, id)
+//    printf("***********\n");
   parlist = new_irparam_elemet(parlist, id, 10, ipar , rpar);
 endfunction
 
 // same as new_irparam_elemet_box but with a irparlsit structure
 function parlist = new_irparam_container(parlist, irparlist, id)
-  parlist = new_irparam_elemet(parlist, id, 10, irparlist.ipar , irparlist.rpar);
+//  parlist = new_irparam_elemet(parlist, id, 10, irparlist.ipar , irparlist.rpar);
+  
+  parlist($+1) = struct( 'id', id, 'typ', 10, 'ipar', irparlist.ipar(:), 'rpar', irparlist.rpar(:) );
 endfunction
 
 
@@ -85,6 +98,8 @@ endfunction
 
 function blockparam = combine_irparam(parlist)
   // merge i+rpar
+  
+//  tic();
 
   rpar_ptr = []; //list();
   ipar_ptr = []; //list();
@@ -115,9 +130,15 @@ function blockparam = combine_irparam(parlist)
   end
 
   // summ up
+  blockparam = struct( 'ipar', [header; iparges], 'rpar', rparges );
 
-  blockparam.ipar = [header; iparges];
-  blockparam.rpar = rparges;
+//  blockparam.ipar = [header; iparges];
+//  blockparam.rpar = rparges;
+//  
+  
+//  
+//  time= toc();
+//  printf("Required time to combine irpar: %f s\n", time);
 endfunction
 
 function save_irparam(blockparam, fname_ipar, fname_rpar)
