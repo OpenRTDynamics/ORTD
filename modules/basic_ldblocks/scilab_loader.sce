@@ -1637,7 +1637,7 @@ end
 endfunction
 
 function [sim, index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize) // PARSEDOCU_BLOCK
-// %PURPOSE: find value that is grater as an constant
+// %PURPOSE: Find the index of the value in a vector that is grater than a given constant
 //
 // in *+(vecsize) - input
 // thr * - threshold signal
@@ -2121,6 +2121,31 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
 endfunction
 
+function [sim, out] = ld_vector_multscalar(sim, events, in, mult, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: multiplicate the given vector
+// 
+//  mult * - signal
+//  in *+(vecsize) - vector signal
+//    
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('Signal', 'mult', mult) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+  btype = 60001 + 71; 
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, mult ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 

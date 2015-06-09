@@ -3449,6 +3449,8 @@ int ortd_compu_func_vectoraddscalar(int flag, struct dynlib_block_t *block)
     }
 }
 
+
+
 int ortd_compu_func_vectoradd(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
@@ -4332,6 +4334,70 @@ int ortd_compu_func_vectorConcatenate(int flag, struct dynlib_block_t *block)
 }
 
 
+int ortd_compu_func_vectormultscalar(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 2;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+        double *tomult = (double *) libdyn_get_input_ptr(block, 1);
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+        int i;
+        for (i=0; i < size; ++i) {
+            out[i] = ( in[ i ] * *tomult  );
+        }
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("size cannot be smaller than 1\n");
+            printf("size = %d\n", size);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // add input
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a vectormultscalar block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 
 
 
@@ -4580,6 +4646,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 70, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorConcatenate);
 
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 71, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectormultscalar);
+    
     
     
     
