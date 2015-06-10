@@ -883,6 +883,12 @@ err:
   fprintf(stderr, "  Number of ports: from->Nout = %d, to->Nin = %d\n", blockfrom->Nout, blockto->Nin);
   fprintf(stderr, "  srclen = %d, dstlen = %d\n", blockfrom->outlist[outNr].len, blockto->inlist[inNr].len);
   fprintf(stderr, "  srcdatatype = %d, dstdatatype = %d\n\n", blockfrom->outlist[outNr].datatype, blockto->inlist[inNr].datatype);
+  
+    fprintf(stderr, "  Src block says: ");
+  (*blockfrom->comp_func)(COMPF_FLAG_PRINTINFO, blockfrom);
+    fprintf(stderr, "  Dst block says: ");
+  (*blockto->comp_func)(COMPF_FLAG_PRINTINFO, blockto);
+  
   fprintf(stderr, "\n");
   
   return test;
