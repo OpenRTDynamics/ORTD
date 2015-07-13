@@ -424,6 +424,117 @@ endfunction
 // 
 
 
+function ORTD_print_json(a)
+  jsonstr = struct2json(a);
+  disp(jsonstr);
+endfunction
+
+    function jsonstr = struct2json(a)
+    //
+    // Copyright 2015 Christian Klauer, klauer@control.tu-berlin.de, Licensed under BSD-License
+    //
+    // Rev 1 as of 4.3.15: Initial version
+    // Rev 2 as of 4.3.15: added arrays of strings that are defined by e.g. list('str1', 'str2')
+    // Rev 3 as of 17.3.15: added support for vectors
+    // Rev 4 as of 6.4.15: support for general list() structures and matrices; optimized the code 
+    //
+    // Example usage:
+    //
+    //    clear a;
+    //    a.Field1 = 2;
+    //    a.Field2 = "jkh";
+    //    a.Field3 = 1.2;
+    //    a.F3.name = "Joe";
+    //    a.F3.age = 32;
+    //    a.strArray =  list( 'V1', 'Xn' );
+    //    a.vector = [1,2,3,4.5535894379345];
+    //    a.Matrix = diag([1,2,3]);
+    //
+    //    struc.e = 2;
+    //    struc.f = 3;
+    //    a.list = list( 1, "Test", struc );
+    //
+    //    jsonstr = struct2json(a);
+    //    disp(jsonstr);
+    //    
+    //     Warning: For strings make sure you escape the special characters that are used by the JSON-format!
+    // 
+    // The precision of float values can be adjusted by previously using the command "format".
+    //
+
+    function valstr=val2str(val)
+        select typeof(val)
+
+        case "string" // export a string
+            if length(length(val)) == 1 then
+                valstr = """" + string(val) + """";
+            end
+
+        case "list" // convert Scilab list()s to arrays
+            valstr = '[';
+
+            N = length(val);
+            for i=1:(N-1)
+                valstr = valstr + val2str( val(i) ) + ',';
+            end
+            valstr = valstr +  val2str( val(N) )   + ']';
+
+        case "constant" // export numerical values in form of vectors, matrices or single values
+            [n,m] = size(val);
+
+            if n == 1 & m == 1 then // single value
+                if isnan(val) then
+                    valstr = '""NaN""';
+                else                
+                    valstr = string(val);
+                end
+            else
+                if n == 1 then // row vector
+                    valstr = sci2exp(val(:)');
+                end
+            end
+
+            if n > 1 then // a matrix or multiple columns
+                valstr = '[';
+                // for all lines
+                for i=1:(n-1)
+                    mline = val(i,:);
+                    valstr = valstr + sci2exp(mline) + ',';
+                end                  
+                mline = val(n,:);
+                valstr = valstr + sci2exp(mline) ;                  
+                valstr = valstr + ']';
+            end
+
+        case "st" // export a structure
+            a=val;
+            F = fieldnames(a);
+
+            valstr = "{";
+            N = length(length(F));
+
+            for i = 1:(N-1) // iterate through all fields
+                f = F(i);
+                val = eval('a.'+f); // extract an element of the struct
+                valstrIT = val2str(val);
+                valstr = valstr + """" + f + """" + ':' + valstrIT + ',';
+            end
+
+            f = F(N);
+            val = eval('a.'+f);
+            valstrIT = val2str(val);
+            valstr = valstr + """" + f + """" + ':' + valstrIT + '}';
+
+        else
+            valstr = """" + "Datatype " + typeof(val) + " not supported" + """";
+        end
+
+    endfunction
+
+    jsonstr=val2str(a);
+endfunction
+
+
 function [PacketFramework, PluginUname] = ld_PF_addplugin(PacketFramework, PluginType, PluginName, PluginSize, PluginPos)
     // inc counter
     PacketFramework.PluginID_counter = PacketFramework.PluginID_counter + 1;
@@ -1244,110 +1355,6 @@ function str=ld_PF_Export_str(PacketFramework)
     
     
     
-    function jsonstr = struct2json(a)
-    //
-    // Copyright 2015 Christian Klauer, klauer@control.tu-berlin.de, Licensed under BSD-License
-    //
-    // Rev 1 as of 4.3.15: Initial version
-    // Rev 2 as of 4.3.15: added arrays of strings that are defined by e.g. list('str1', 'str2')
-    // Rev 3 as of 17.3.15: added support for vectors
-    // Rev 4 as of 6.4.15: support for general list() structures and matrices; optimized the code 
-    //
-    // Example usage:
-    //
-    //    clear a;
-    //    a.Field1 = 2;
-    //    a.Field2 = "jkh";
-    //    a.Field3 = 1.2;
-    //    a.F3.name = "Joe";
-    //    a.F3.age = 32;
-    //    a.strArray =  list( 'V1', 'Xn' );
-    //    a.vector = [1,2,3,4.5535894379345];
-    //    a.Matrix = diag([1,2,3]);
-    //
-    //    struc.e = 2;
-    //    struc.f = 3;
-    //    a.list = list( 1, "Test", struc );
-    //
-    //    jsonstr = struct2json(a);
-    //    disp(jsonstr);
-    //    
-    //     Warning: For strings make sure you escape the special characters that are used by the JSON-format!
-    // 
-    // The precision of float values can be adjusted by previously using the command "format".
-    //
-
-    function valstr=val2str(val)
-        select typeof(val)
-
-        case "string" // export a string
-            if length(length(val)) == 1 then
-                valstr = """" + string(val) + """";
-            end
-
-        case "list" // convert Scilab list()s to arrays
-            valstr = '[';
-
-            N = length(val);
-            for i=1:(N-1)
-                valstr = valstr + val2str( val(i) ) + ',';
-            end
-            valstr = valstr +  val2str( val(N) )   + ']';
-
-        case "constant" // export numerical values in form of vectors, matrices or single values
-            [n,m] = size(val);
-
-            if n == 1 & m == 1 then // single value
-                if isnan(val) then
-                    valstr = '""NaN""';
-                else                
-                    valstr = string(val);
-                end
-            else
-                if n == 1 then // row vector
-                    valstr = sci2exp(val(:)');
-                end
-            end
-
-            if n > 1 then // a matrix or multiple columns
-                valstr = '[';
-                // for all lines
-                for i=1:(n-1)
-                    mline = val(i,:);
-                    valstr = valstr + sci2exp(mline) + ',';
-                end                  
-                mline = val(n,:);
-                valstr = valstr + sci2exp(mline) ;                  
-                valstr = valstr + ']';
-            end
-
-        case "st" // export a structure
-            a=val;
-            F = fieldnames(a);
-
-            valstr = "{";
-            N = length(length(F));
-
-            for i = 1:(N-1) // iterate through all fields
-                f = F(i);
-                val = eval('a.'+f); // extract an element of the struct
-                valstrIT = val2str(val);
-                valstr = valstr + """" + f + """" + ':' + valstrIT + ',';
-            end
-
-            f = F(N);
-            val = eval('a.'+f);
-            valstrIT = val2str(val);
-            valstr = valstr + """" + f + """" + ':' + valstrIT + '}';
-
-        else
-            valstr = """" + "Datatype " + typeof(val) + " not supported" + """";
-        end
-
-    endfunction
-
-    jsonstr=val2str(a);
-endfunction
     
     
     
