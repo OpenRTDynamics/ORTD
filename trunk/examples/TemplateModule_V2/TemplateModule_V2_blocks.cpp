@@ -192,8 +192,10 @@ public:
 
 
 
-
 class SynchronisingTemplateBlock {
+  // This block syncronises schematics. Only one block of this type is allowed in a threaded sub-schematic
+  // created e.g. by ld_async_simulation
+  
 public:
     SynchronisingTemplateBlock(struct dynlib_block_t *block) {
         this->block = block;    // no nothing more here. The real initialisation take place in init()
@@ -201,6 +203,7 @@ public:
     ~SynchronisingTemplateBlock()
     {
         // free your allocated memory, ...
+      destruct();
     }
 
     //
@@ -211,6 +214,19 @@ public:
     bool ExitLoop;
     double SensorValue;
 
+    // variables that point to allocated memot
+    irpar_string *s;
+    irpar_ivec *Array;
+
+    void destruct()
+    {
+        // free your during init() allocated memory, ...
+
+        if (s!=NULL) delete s;
+        if (Array!=NULL) delete Array;
+    }
+
+    
     //
     // initialise your block
     //
@@ -218,9 +234,38 @@ public:
     int init() {
         int *Uipar;
         double *Urpar;
+	
 
+	try {
         // Get the irpar parameters Uipar, Urpar
         libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+            // init all pointers with NULL
+            s = NULL;
+            Array = NULL;
+
+            //
+            // extract some structured sample parameters
+            //
+
+            //
+            // get a string
+            //
+
+            // cpp version (nicer), an exception is thrown in case something goes wrong
+            s = new irpar_string(Uipar, Urpar, 12);
+            printf("cppstr = %s\n", s->s->c_str());
+
+
+            //
+            // get a vector of integers (double vectors are similar, replace ivec with rvec)
+            //
+
+            // c++ version (nicer), an exception is thrown in case something goes wrong
+
+            Array = new irpar_ivec(Uipar, Urpar, 11); // then use:  veccpp.n; veccpp.v;
+            printf("veccpp[0] = %d\n", Array->v[0]); // print the first element
+            // of the vector that is of size veccpp.n
 
 
         // set the initial states
@@ -231,8 +276,14 @@ public:
         libdyn_simulation_setSyncCallbackDestructor(block->sim, &syncCallbackDestructor_ , this);
 
         ExitLoop = false;
-
-        // Return -1 to indicate an error, so the simulation will be destructed
+	
+        } catch(int e) { // check if initialisation went fine
+            // deallocate all previously allocated memeory in case something went wrong
+            fprintf(stderr, "TemplateBlock: something went wrong. Exception = %d\n", e);
+            destruct(); // free all memeory allocated by now.
+            return -1; // indicate an error
+        }
+        // All ok
         return 0;
     }
 
@@ -341,11 +392,6 @@ public:
     // The data for this block managed by the simulator
     struct dynlib_block_t *block;
 };
-
-
-
-
-// include more blocks
 
 
 

@@ -84,6 +84,61 @@ endfunction
 
 
 
+function [sim, out] = ld_SyncTemplate(sim, events, str, in1, in2) // PARSEDOCU_BLOCK
+// ADD SOME DOCUMENTATION HERE, that will be copied to the scilab help
+// abs - block
+//
+// This block syncronises schematics. Only one block of this type is allowed in a threaded sub-schematic
+// created e.g. by ld_async_simulation
+//
+// in * - input
+// out * - output
+// 
+// out = abs(in)
+// 
+
+   // check the input parameters
+   ortd_checkpar(sim, list('String', 'str', str) );
+   ortd_checkpar(sim, list('Signal', 'in1', in1) );
+   ortd_checkpar(sim, list('Signal', 'in2', in2) );
+//    ortd_checkpar(sim, list('SingleValue', 'gain', gain) );
+
+
+// introduce some parameters that are refered to by id's
+parameter1 = 12345;
+vec = [1,2,3];
+
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+   parlist = new_irparam_elemet_ivec(parlist, parameter1, 10); // id = 10
+   parlist = new_irparam_elemet_ivec(parlist, vec, 11); // vector of integers (double vectors are similar, replace ivec with rvec)
+   parlist = new_irparam_elemet_ivec(parlist, ascii(str), 12); // id = 12; A string parameter
+
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];
+  Urpar = [ p.rpar ];
+  btype = ORTD_BLOCKIDSTART + 1; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+  insizes=[1,1]; // Input port sizes
+  outsizes=[1]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]; // datatype for each input port
+  outtypes=[ORTD.DATATYPE_FLOAT]; // datatype for each output port
+
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // connect the inputs
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(in1, in2) ); // connect in1 to port 0 and in2 to port 1
+
+  // connect the ouputs
+ [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
