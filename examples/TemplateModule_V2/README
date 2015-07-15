@@ -14,12 +14,19 @@ The important files are:
   TemplateModule_V2_blocks.cpp: The computational functions written in C/C++
   demo/demo.sce: An example on how to use the block
 
-Edit the Makefile and edit the module name
-(must be the same name like the folder in which the module is placed)
-as well as the start for blockids (find a free one from the ORTD-README 
+Copy this folder, rename it such that it matches the module name you
+like to use and run
+
+$ sh SetModuleName.sh
+$ rm SetModuleName.sh
+
+to perform an automatic search an replace process in the source files to adapt
+them to the choose module name.
+
+Edit the Makefile to enter start for blockids (find a free one from the ORTD-README 
 file.  
   
-To use it as a module copy or link this folder to the modules/
+To use this as a module copy or link this folder to the modules/
 directory of the framework and recompile the framework
 using 
 
