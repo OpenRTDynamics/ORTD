@@ -188,7 +188,9 @@ void compu_func_scilab_class::io(int update_states)
                 fprintf(stderr, "scilab: Start read_vector_from_scilab\n");
 #endif
 
-		scilab_calc->read_vector_from_scilab(outvec_no, output, outsize);
+		if ( !scilab_calc->read_vector_from_scilab(outvec_no, output, outsize) ) {
+		  // TODO: Runtime error
+		};
             }
         }
 

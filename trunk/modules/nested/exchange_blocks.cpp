@@ -32,6 +32,12 @@ extern "C" {
 #include "nested_onlineexchange.h"
 
 
+
+// #define DEBUG 1
+
+
+
+
 extern "C" int compu_func_nested_exchange_fromfile(int flag, struct dynlib_block_t *block);
 
 
@@ -106,6 +112,8 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	  return; 
 	}
 	
+	int Todo = round(*in_compresult);
+
         libdyn_master *master = (libdyn_master *) block->sim->master;
         if (master == NULL || master->dtree == NULL) {  // no master available
            fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: block requires a libdyn master\n");
@@ -115,7 +123,6 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	}
 	
 	// get the identifier
-// 	directory_entry::direntry *dentr = master->dtree->access("nested_exchange_test", NULL);
 	directory_entry::direntry *dentr = master->dtree->access(nested_simname, NULL);
 	
 	if (dentr == NULL) {
@@ -134,6 +141,9 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	
 	nested_onlineexchange *exch = (nested_onlineexchange *) dentr->userptr;
 	
+	
+	if (Todo == 1) { // replace a simulation
+
 	// load irpar files and replace a simulation
 	// the irpar instance is automatically deleted by nested_onlineexchange
 	irpar *par = new irpar();
@@ -155,8 +165,21 @@ void compu_func_nested_exchange_fromfile_class::io(int update_states)
 	// ok
 	*output = 1;
 #ifdef DEBUG	
-	fprintf(stderr, "compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s>\n", nested_simname);
+	fprintf(stderr, "--------------------- compu_func_nested_exchange_fromfile_class: successfully exchanged schematic for <%s> -------- \n", nested_simname);
 #endif	
+    } else if (Todo == 2) { // only unload a simulation
+      
+      	if (exch->unload_second_simulation() < 0) {
+	  fprintf(stderr, "WARNING: compu_func_nested_exchange_fromfile_class: initialisation of simulation failed %s\n", nested_simname);
+	  *output = -1;
+	  
+	  return;
+	}
+
+    }
+    
+    
+    
     }
 }
 

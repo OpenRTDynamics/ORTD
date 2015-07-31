@@ -62,6 +62,35 @@ int nested_onlineexchange::replace_simulation(irpar* irdata, int id, int slot)
   return ret;
 }
 
+int nested_onlineexchange::unload_second_simulation()
+{
+  int standby_slot = 0;
+  int slot = 1; // exchange the second slot
+
+  fprintf(stderr, "nested_onlineexchange: destructing the currently active simulation in slot %d\n", slot);
+  
+  // remove the old simulation
+  int ret = simnest->del_simulation( slot, standby_slot );
+  if (ret < 0)
+    return -1;
+  
+  // delete the old, now unused irpar data for the old simulation
+  if (this->current_irdata != NULL) {
+#ifdef DEBUG
+    fprintf(stderr, "nested_onlineexchange: delete irpar of old simulation\n");
+#endif
+    delete this->current_irdata; 
+    
+    // mark unused
+    current_irdata = NULL;
+    
+  }
+  
+  return 0;
+  
+}
+
+
 int nested_onlineexchange::replace_second_simulation(irpar* irdata, int id)
 {
   
