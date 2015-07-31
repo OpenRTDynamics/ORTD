@@ -19,6 +19,7 @@
 
 #include <malloc.h>
 #include <sched.h>
+#include <cstdlib>
 
 extern "C" {
 
@@ -39,7 +40,15 @@ extern "C" {
     int libdyn_module_nested_siminit(struct dynlib_simulation_t *sim, int bid_ofs);
 }
 
+
+
+
 template <class compute_instance> class background_computation {
+  /*
+  
+  TODO: remove this class because it is unused now
+  
+  */
 public:
 
     // the class compute_instance should provide a method int computer()
@@ -216,21 +225,6 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 
 
-// async_simulationBlock: added schematic
-// ortd: Simulation set-up successfully; entering main loop.
-// -- step O --- sim=0x3b7b90
-// -- step U --- sim=0x3b7b90
-// async_simulationBlock: Trigger computation
-// Comp mgr sending signal to thread
-// Task Prio1 (flags) would be 2 (1 means ORTD_RT_REALTIMETASK)
-// Task Prio2 would be 0
-// Task CPU would be -1
-// realtime.c: initialised a non real-time thread
-// realtime.c: Successfully set the task properties
-// -- step O --- sim=0x3b7b90
-// -- step U --- sim=0x3b7b90
-
-
 template <class compute_instance> void background_computation<compute_instance>::signal_thread(int sig)
 {
 
@@ -318,22 +312,14 @@ template <class compute_instance> void background_computation<compute_instance>:
 
 
 
-
-
-
-/*
-class ortd_asychronous_computation_thread {
-  public:
-
-
-  private:
-
-
-};*/
-
-
 template <class callback_class> class ortd_asychronous_computation {
 private:
+  /*
+  
+  TODO: remove this class because it is unused now
+  
+  */
+
 
     libdyn_nested2 * simnest;
     libdyn *sim;
@@ -1697,7 +1683,7 @@ template <class callback_class> int ortd_asychronous_computation2<callback_class
 
 
 
-
+// #define DEBUG 1
 
 
 
@@ -1732,9 +1718,10 @@ public:
     pthread_mutex_t output_mutex;
 
     // Used when asyn computation is desired
-    ortd_asychronous_computation2<async_simulationBlock> * async_comp_mgr;
+  //  ortd_asychronous_computation2<async_simulationBlock> * async_comp_mgr;
 
     libdyn_nested2 * simnest;
+    libdyn *NestedSim;
 //     libdyn_master * master;
 //     nested_onlineexchange *exchange_helper; // ifdef REMOTE
     char *nested_sim_name;
@@ -1747,13 +1734,24 @@ public:
     int dfeed;
     
     struct TaskPriority_t TaskPriority;
+    pthread_t thread;
+    int ThreadingMode;
 
-
-
+    int condsignal;
+    pthread_mutex_t condmutex;
+    pthread_cond_t cond;
+    libdyn *sim;
+    
+   // std::atomic<int> CompuatationFinished;
+    int CompuatationFinished;
+    pthread_mutex_t CompuatationFinishedMutex;
+    
     //
     // initialise your block
     //
 
+    
+    
     int init() {
         fprintf(stderr, "async_simulationBlock: Creating an async simulation V2\n");
 
@@ -1771,8 +1769,11 @@ public:
 
 
         simnest = NULL;
-        async_comp_mgr = NULL;
+     //   async_comp_mgr = NULL;
         nested_sim_name = NULL;
+// 	output_mutex = NULL;
+// 	condmutex = NULL;
+// 	condsignal = NULL;
 
 
         try {
@@ -1849,7 +1850,7 @@ public:
             simnest->FinishConfiguration();
 
 
-            // load all schematics
+            // load all schematics (only one in this case)
             int simCreateCount;
 
             for (simCreateCount = 0; simCreateCount < Nsimulations; ++simCreateCount) {
@@ -1863,14 +1864,46 @@ public:
                 fprintf(stderr, "async_simulationBlock: added schematic\n");
             }
 
+            
+            //
+            // Get the C-libdyn object
+            NestedSim = simnest->current_sim;
+    
+
 
             // Start the thread
-            this->async_comp_mgr = new ortd_asychronous_computation2<async_simulationBlock>(this, simnest, 0, TaskPriority);
+            condsignal = 0;
+	                pthread_mutex_init(&output_mutex, NULL);
+			            pthread_mutex_init(&condmutex, NULL);
+				    pthread_cond_init(&cond, NULL);
+				    
+				    pthread_mutex_init(&CompuatationFinishedMutex, NULL);
+				    
+				    
+            int rc = pthread_create(&thread, NULL, &ThreadEntryC, (void *) this);
+    if (rc) {
+        fprintf(stderr, "ERROR; return code from pthread_create() is %d\n", rc);
+	throw 1;
+    }
+    
+    	      CompuatationFinished = 0; // init state of computation active mechanism
+    
+            if ( !NestedSim->IsSyncronised() ) {
+	      // A simulation that is triggered by this blocks input
+	      ThreadingMode = 1;
+	    } else {
+	      // Just start a thread to run a separate main loop, defined by a synchronising block included in the nested simulation
+	      ThreadingMode = 2;
+	    }
+            
+            
+            
+           // this->async_comp_mgr = new ortd_asychronous_computation2<async_simulationBlock>(this, simnest, 0, TaskPriority);
 	    
             // Register Terminate callback function
             libdyn_simulation_setSyncCallbackTerminateThread(simnest->get_current_simulation_libdynSimStruct(), &syncCallbackTerminateThread__, this);
 
-            pthread_mutex_init(&this->output_mutex, NULL);
+
 
             // set the initial states
             resetStates();
@@ -1884,16 +1917,22 @@ public:
 
         return 0;
     }
-
-    void destruct() {
+    
+        void destruct() {
         fprintf(stderr, "async_simulationBlock: Destructing all simulations\n");
 
-        // delete computation manager
-        if (async_comp_mgr != NULL) {
-            delete async_comp_mgr;
-        }
 
-        pthread_mutex_destroy(&this->output_mutex);
+
+	//if (output_mutex != NULL)
+        pthread_mutex_destroy(&output_mutex);
+	
+	//if (condmutex != NULL)	
+	  pthread_mutex_destroy(&condmutex);
+	
+	//if (cond != NULL)
+	  pthread_cond_destroy(&cond);
+	
+	  pthread_mutex_destroy(&CompuatationFinishedMutex);
 
         // destruct the simulation
         if (simnest != NULL) {
@@ -1906,13 +1945,156 @@ public:
             free(this->nested_sim_name);
 
     }
+    
+    
+    void SendSignalToThread(int signal)
+    {
+       pthread_mutex_lock(&condmutex);
+       condsignal = signal;
+       pthread_mutex_unlock(&condmutex);
+       pthread_cond_signal(&cond); // Notify reader thread
+
+       sched_yield(); // Not sure if this changes something in RT-properties
+    }
+    
+    void ComputeSimulationSteps() {
+//          // Get the C-libdyn object
+//       libdyn *sim = simnest->current_sim;
+//     dynlib_simulation_t* C_sim = sim->get_C_SimulationObject();
+
+      dynlib_simulation_t* C_sim = NestedSim->get_C_SimulationObject();
+
+#ifdef DEBUG
+        fprintf(stderr, "async_nested2: This is an unsynchronised simulation --> running computer in single mode\n");
+#endif
+        NestedSim->event_trigger_mask(1);
+        NestedSim->simulation_step(0);
+
+#ifdef DEBUG
+        fprintf(stderr, "async_nested2: Call state-update flag\n");
+#endif
+
+        NestedSim->simulation_step(1);
+
+
+    NestedSim->reset_blocks(); // Why resets all block inside??:: log_filewriter closes its files on a reset flag
+    
+	pthread_mutex_lock(&CompuatationFinishedMutex);
+    CompuatationFinished = 1;
+	pthread_mutex_unlock(&CompuatationFinishedMutex);
+
+#ifdef DEBUG
+    fprintf(stderr, "async_nested: finished\n");
+#endif
+ 
+    }
+    
+    
+    void ThreadEntryCpp() {
+      fprintf(stderr, "async_simulationBlock: Thread started\n");
+      
+      ortd_rt_SetThreadProperties2( TaskPriority );
+      
+      if (ThreadingMode == 2) {
+        do { // the simulation synchronises itselft to something
+
+
+            /*
+            * Wait for synhronisation callback function
+	    * 
+            */
+// 	     fprintf(stderr, "async_nested: ####################### NEW THREAD #######################\n");
+
+            int SyncCallbackRetState = NestedSim->RunSyncCallbackFn();
+            if ( SyncCallbackRetState == 1 ) {
+                // abort
+#ifdef DEBUG
+                fprintf(stderr, "async_nested: leaving\n");
+#endif
+                break;
+            }
+
+
+#ifdef DEBUG
+            fprintf(stderr, "async_nested: another run\n");
+#endif
+
+        } while (1);
+      }
+      
+      
+      
+      
+      if (ThreadingMode == 1) {
+      
+      int signal = 0;
+      
+          for (;;) {
+	    pthread_mutex_lock(&condmutex);
+        while (condsignal == 0) {
+            pthread_cond_wait(&cond, &condmutex);
+        }
+        signal = condsignal;
+	condsignal = 0;
+
+	
+//         set_CompNotRunning(false);
+
+#ifdef DEBUG
+        fprintf(stderr, "Comp mgr thread rcved signal\n");
+#endif
+
+        pthread_mutex_unlock(&condmutex);
+	// This thread can be sigaled from here on, but that would not be catched
+
+
+        // do something based on sig
+        if (signal == 1) {
+	  // Run one step of the nested simulation
+	  
+	   ComputeSimulationSteps(); 
+	  
+	  
+	  
+	  
+	  
+
+//             pthread_mutex_lock(&comp_active_mutex);
+
+            // Run the function computer() of the given class, which type is parametrised by this template
+//             ci->computer();
+
+//             pthread_mutex_unlock(&comp_active_mutex);
+
+
+// 	     computation finished
+//             set_CompNotRunning(true);
+        }
+
+        if (signal == -1)
+            return;	
+	
+    }
+      }
+      
+    }
+    
+    static void * ThreadEntryC(void *udata) {
+      async_simulationBlock *tmp = (async_simulationBlock*) udata;
+      tmp->ThreadEntryCpp(); 
+    }
 
     int syncCallbackTerminateThread() {
         fprintf(stderr, "async_simulationBlock: Forcing thread to terminate\n");
-        async_comp_mgr->TerminateThread(1);
+       // async_comp_mgr->TerminateThread(1);
+	//    printf("About to kill thread\n");
+      ortd_pthread_cancel(thread);
     }
 
     static int syncCallbackTerminateThread__(struct dynlib_simulation_t * sim) {
+      // Called, if the nested simulation running in the thread wishes to terminitate the thread
+      // This is also able to kick out blocking I/O in the nested simulation
+      
         void * obj = sim->sync_callback.userdatTerminateThread; // the instance of the class
         async_simulationBlock *p = (async_simulationBlock *) obj;
         return p->syncCallbackTerminateThread();
@@ -1930,7 +2112,6 @@ public:
             void *out_p = (void*) libdyn_get_output_ptr(block, i);
 
             simnest->copy_outport_vec(i, out_p);
-//                    printf("nested outp %f\n", ((double*)out_p)[0]);
         }
 
         unlock_output();
@@ -1939,13 +2120,20 @@ public:
     inline void updateStates()
     {
         double *comptrigger_inp = (double*) libdyn_get_input_ptr(block, Nin + 0); // additional input #0
-//          printf("starting comp = %f\n", *comptrigger_inp);
-
-        if (*comptrigger_inp > 0.5) {
 #ifdef DEBUG
-            fprintf(stderr, "async_simulationBlock: Trigger computation\n");
+          printf("starting comp %p ? = %f\n", this, *comptrigger_inp);
 #endif
-            this->async_comp_mgr->compute();
+
+        if (*comptrigger_inp > 0.5 && ThreadingMode == 1) {
+#ifdef DEBUG
+            fprintf(stderr, "async_simulationBlock %p: Trigger computation\n", this);
+#endif
+	    pthread_mutex_lock(&CompuatationFinishedMutex);
+	    CompuatationFinished = 0;
+	    pthread_mutex_unlock(&CompuatationFinishedMutex);
+	    
+	    SendSignalToThread(1); // Start computation
+          //  this->async_comp_mgr->compute();
         }
     }
 
@@ -1957,14 +2145,21 @@ public:
         //
 
         double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout + 0); // additional output #0
+	
+	// TODO copy output only when they've been updated by the nested simulation
+	pthread_mutex_lock(&CompuatationFinishedMutex);
+	int CompuatationFinishedCopy = CompuatationFinished;
+	pthread_mutex_unlock(&CompuatationFinishedMutex);
 
-        // If the background computation is finished the the output to 1
-        // nonblocking check for a result
-        if (this->async_comp_mgr->computation_finished()) {
-            *comp_finished = 1;
-        } else {
-            *comp_finished = 0;
-        }
+
+	*comp_finished = CompuatationFinishedCopy;
+	
+	if (CompuatationFinishedCopy == 1) {
+	  // do only copy the resulting data when the computation is finished
+	async_copy_output_callback();
+	}
+	
+
 
     }
 
@@ -1974,12 +2169,13 @@ public:
 //         double *comp_finished = (double*) libdyn_get_output_ptr(block, Nout + 0); // additional output #0
 //         *comp_finished = 0;   // added on 8.8.14
 //         
-        this->async_comp_mgr->reset(); // added on 8.8.14
+//         this->async_comp_mgr->reset(); // added on 8.8.14
 	
 	
-      // TODO: forward reset events
+      // Note: Resetting blocks inside the threaded simulation is not performed
+      //       in the context of the thread
+      NestedSim->reset_blocks();
     }
-
 
 
     void printInfo() {

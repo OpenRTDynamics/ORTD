@@ -629,8 +629,8 @@ bool libdyn_nested::set_current_simulation(int nSim)
     if (sim_slots[ nSim ] == NULL) {
         unlock_slots();
 
-        fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
-        return false;
+        fprintf(stderr, "libdyn_nested: NOTE: slot cannot be destructed because it is already free\n");
+        return true;
     }
 
 
@@ -1357,8 +1357,8 @@ int libdyn_nested2::del_simulation(int slotID)
     if (sim_slots[ slotID ].sim == NULL) {
         unlock_slots();
 
-        fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
-        return -1;
+        fprintf(stderr, "libdyn_nested: NOTE slot cannot be destructed because it is already free\n");
+        return 1;
     }
 
     // destruct the simulation
@@ -1399,8 +1399,8 @@ int libdyn_nested2::del_simulation(int slotID, int switchto_slotID)
         if (sim_slots[ slotID ].sim == NULL) {
             unlock_slots();
 
-            fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot cannot be destructed because it is already free\n");
-            return -1;
+            fprintf(stderr, "libdyn_nested: NOTE: slot cannot be destructed because it is already free\n");
+            return 1;
         }
 
         // switch to another simulation
@@ -1478,9 +1478,10 @@ bool libdyn_nested2::set_current_simulation(int nSim)
 
     if (sim_slots[ nSim ].sim == NULL) {
         unlock_slots();
-
-        fprintf(stderr, "libdyn_nested: ASSERTION FAILED slot %d is unused! Connot switch to this simulation.\n", nSim);
-        return false;
+#ifdef DEBUG
+        fprintf(stderr, "libdyn_nested: Slot %d is unused! Cannot switch to this simulation.\n", nSim);
+#endif
+	return false;
     }
 
 
