@@ -1870,7 +1870,16 @@ public:
             NestedSim = simnest->current_sim;
     
 
-
+    	      CompuatationFinished = 0; // init state of computation active mechanism
+    
+            if ( !NestedSim->IsSyncronised() ) {
+	      // A simulation that is triggered by this blocks input
+	      ThreadingMode = 1;
+	    } else {
+	      // Just start a thread to run a separate main loop, defined by a synchronising block included in the nested simulation
+	      ThreadingMode = 2;
+	    }
+            
             // Start the thread
             condsignal = 0;
 	                pthread_mutex_init(&output_mutex, NULL);
@@ -1886,16 +1895,7 @@ public:
 	throw 1;
     }
     
-    	      CompuatationFinished = 0; // init state of computation active mechanism
-    
-            if ( !NestedSim->IsSyncronised() ) {
-	      // A simulation that is triggered by this blocks input
-	      ThreadingMode = 1;
-	    } else {
-	      // Just start a thread to run a separate main loop, defined by a synchronising block included in the nested simulation
-	      ThreadingMode = 2;
-	    }
-            
+
             
             
            // this->async_comp_mgr = new ortd_asychronous_computation2<async_simulationBlock>(this, simnest, 0, TaskPriority);
@@ -1903,11 +1903,6 @@ public:
             // Register Terminate callback function
             libdyn_simulation_setSyncCallbackTerminateThread(simnest->get_current_simulation_libdynSimStruct(), &syncCallbackTerminateThread__, this);
 
-
-
-            // set the initial states
-            resetStates();
-	     
 	    
         } catch (int e) {
             fprintf(stderr, "ld_async: something went wrong. Exception = %d\n", e);

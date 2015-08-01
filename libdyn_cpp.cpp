@@ -24,6 +24,8 @@
     TODO: long term:  remove libdyn_nested
 
     TODO: Suche nach sizeof(double) und abändern
+    
+    1.8.15: Removed bug in libdyn_nested2 in case the nesting has no in- or outputs 
 
 */
 
@@ -784,23 +786,35 @@ void libdyn_nested2::allocate_structures(int Nin, int Nout)
     //
     // Allocate the list of pointers to the input vectors
     //
+    if (iocfg.inports > 0) {
     iocfg.inptr = (double **) malloc(sizeof(double *) * iocfg.inports);
 
+//     fprintf(stderr, "+++++++++++++++++++ %p allocate_structures iocfg.inptr = %p, iocfg.inports = %d \n", this, iocfg.inptr, iocfg.inports);
+
+    
     // init with NULL
     for (i=0; i<iocfg.inports; ++i)
         iocfg.inptr[i] = (double*) NULL;
 
+    } else {
+      iocfg.inptr = NULL;
+    }
+    
     //
     // Alloc list of pointers for outvalues comming from libdyn
     // These pointers will be set by irpar_get_libdynconnlist
     //
 
+    if (iocfg.outports > 0) {
     iocfg.outptr = (double **) malloc(sizeof(double *) * iocfg.outports);
 
     // init with NULL
     for (i=0; i<iocfg.outports; ++i)
         iocfg.outptr[i] = (double*) NULL;
 
+    } else {
+      iocfg.outptr = NULL;
+    }
 
     // Initially there is no master
     this->ld_master = NULL;
@@ -859,11 +873,15 @@ void libdyn_nested2::set_buffer_inptrs()
     // share the allocated_inbuffer accoss all inputs
 
     i = 0;
+    
+//     fprintf(stderr, "+++++++++++++++++++ %p set_buffer_inptrs iocfg.inptr = %p \n", this, iocfg.inptr );
+    
+    
+    if (iocfg.inptr != NULL) {
     iocfg.inptr[i] = (double *) ptr; //sim->cfg_inptr(i, (double *) ptr);
 
     // calc datatype lengthts
     for (i = 1; i < iocfg.inports; ++i) {
-
 
         int TypeBytes = libdyn_config_get_datatype_len( iocfg.intypes[i-1] );
         int vlen = iocfg.insizes[i-1];
@@ -875,7 +893,7 @@ void libdyn_nested2::set_buffer_inptrs()
         iocfg.inptr[i] = (double *) ptr;
 
     }
-
+    }
 }
 
 
@@ -1077,7 +1095,11 @@ void libdyn_nested2::destruct()
     free(iocfg.outsizes);
     free(iocfg.intypes);
     free(iocfg.outtypes);
+    
+    if (iocfg.inptr != NULL)
     free(iocfg.inptr);
+    
+    if (iocfg.outptr != NULL)
     free(iocfg.outptr);
     
     // dellocate input buffers if any
