@@ -224,7 +224,10 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-        in = (double *) libdyn_get_input_ptr(block,0);
+// 	fprintf(stderr, "++++++++++++++++++++++++++ persistent_memory_block %p: output: \n", block);
+//        in = (double *) libdyn_get_input_ptr(block,0);
+	
+	
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
         worker->io(0);
@@ -243,8 +246,6 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
     {
-
-
         int datatype = ipar[1];
         int size = ipar[2];
 
@@ -253,8 +254,6 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
 //         libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
 //         libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
 //         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
-
-
     }
     return 0;
     break;
@@ -262,6 +261,8 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     {
         persistent_memory_block_class *worker = new persistent_memory_block_class(block);
         libdyn_set_work_ptr(block, (void*) worker);
+
+// 	fprintf(stderr, "++++++++++++++++++++++++++ persistent_memory_block %p: preinit: \n", block);
 
         int ret = worker->init();
         if (ret < 0)
@@ -438,7 +439,6 @@ int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
     int Nin = 2;
     int Nout = 0;
 
-    in = (double *) libdyn_get_input_ptr(block,0);
     persistent_memory_write_block_class *worker = (persistent_memory_write_block_class *) libdyn_get_work_ptr(block);
 
     switch (flag) {
@@ -450,6 +450,7 @@ int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_UPDATESTATES:
     {
+    in = (double *) libdyn_get_input_ptr(block,0);
         worker->io_update();
     }
     return 0;
@@ -641,12 +642,12 @@ int read_persistent_memory_block(int flag, struct dynlib_block_t *block)
     int Nin = 1;
     int Nout = 1; // should be 1
 
-    in = (double *) libdyn_get_input_ptr(block,0);
     persistent_memory_read_block_class *worker = (persistent_memory_read_block_class *) libdyn_get_work_ptr(block);
 
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
+        in = (double *) libdyn_get_input_ptr(block,0);
         worker->io_output();
     }
     return 0;
@@ -843,12 +844,12 @@ int write2_persistent_memory_block(int flag, struct dynlib_block_t *block)
     int Nin = 3;
     int Nout = 0;
 
-    in = (double *) libdyn_get_input_ptr(block,0);
     persistent_memory_write2_block_class *worker = (persistent_memory_write2_block_class *) libdyn_get_work_ptr(block);
 
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
+    in = (double *) libdyn_get_input_ptr(block,0);
         worker->io_output();
     }
     return 0;
