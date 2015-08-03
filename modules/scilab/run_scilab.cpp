@@ -363,24 +363,9 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 
     FILE *read_fd = scilab->get_readfd();
 
-//     fprintf(stderr, "Trying to get vector from scilab\n");
 
-//     sprintf(tmp, "scilab_interf.outvec%d", vector_nr);
-//     status = scilab->send_to_scilab(tmp);
-//     if (status == false)
-//     {
-//         fprintf(stderr, "Error writing to scilab!\n");
-//         return false;
-//     }
 
-//     status = scilab->send_to_scilab("printf(\"\\n\")"); // to get something to read
-//     if (status == false)
-//     {
-//         fprintf(stderr, "Error writing to scilab!\n");
-//         return false;
-//     }
-
-    // Make scilab to print out a "magic" number which helps to separate from the usual output of the scilab calculation
+    // Make scilab print out a "magic" number which helps to separate from the usual output of the scilab calculation
 
 #ifdef DEBUG
     fprintf(stderr, "scilab_interface: Try read a vector\n");
@@ -429,22 +414,6 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
 
 
 
-// 	    if (strstr (buf,"vectorleng3hdl1289fn28=") != NULL) // wait for the special line
-//             {
-//                 sscanf (buf,"%10s%d",tmp,&rec_veclen);
-//                 if (rec_veclen != veclen)   {
-//                     fprintf(stderr, "Error: Wrong vector length received!\n");
-//                     return false;
-//                 }  else  {
-// //                  fprintf(stderr, "got veclen=%d\n", rec_veclen);
-//                     state = 1;
-//                 }
-//
-//
-//             }  else if (strstr (buf,"error") != NULL)   {
-//                 state = -1;
-//             }
-//
         }
         else
         {

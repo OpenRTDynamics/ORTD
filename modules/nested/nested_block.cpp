@@ -1694,11 +1694,6 @@ public:
     }
     ~async_simulationBlock()
     {
-        // free your allocated memory, ...
-        printf("async_simulationBlock: destructing\n");
-
-        // notify user code running in the thread that it is over
-        simnest->CallSyncCallbackDestructor();
 
 
         destruct();
@@ -1746,6 +1741,8 @@ public:
     int CompuatationFinished;
     pthread_mutex_t CompuatationFinishedMutex;
     
+    bool ThreadInitialised;
+
     //
     // initialise your block
     //
@@ -1774,6 +1771,7 @@ public:
 // 	output_mutex = NULL;
 // 	condmutex = NULL;
 // 	condsignal = NULL;
+	ThreadInitialised = false;
 
 
         try {
@@ -1896,13 +1894,17 @@ public:
     }
     
 
+    
+
             
             
            // this->async_comp_mgr = new ortd_asychronous_computation2<async_simulationBlock>(this, simnest, 0, TaskPriority);
 	    
             // Register Terminate callback function
             libdyn_simulation_setSyncCallbackTerminateThread(simnest->get_current_simulation_libdynSimStruct(), &syncCallbackTerminateThread__, this);
-
+	    
+    // mark that everything is set-up
+    ThreadInitialised = true;
 	    
         } catch (int e) {
             fprintf(stderr, "ld_async: something went wrong. Exception = %d\n", e);
@@ -1915,6 +1917,19 @@ public:
     
         void destruct() {
         fprintf(stderr, "async_simulationBlock: Destructing all simulations\n");
+	
+	if (ThreadInitialised) {
+        // notify user code running in the thread that it is over
+        simnest->CallSyncCallbackDestructor();
+	
+	// joint thread (there may be an active computation running)
+	SendSignalToThread(-1);
+	pthread_join(thread, NULL);
+	
+        fprintf(stderr, "async_simulationBlock: Thread has been joint\n");
+
+	    
+	}
 
 
 
