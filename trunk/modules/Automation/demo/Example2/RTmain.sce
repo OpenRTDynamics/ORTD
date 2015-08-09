@@ -5,6 +5,8 @@
 // --------------------------------------------------------------------------------
 // 
 // Rev 2. 10.8.15
+//
+// NOTE: At least Revision 591 of ORTD is required to run this 2nd revision of this template.
 // 
 // 
 // This example shows how to automate sequences of experiments including
