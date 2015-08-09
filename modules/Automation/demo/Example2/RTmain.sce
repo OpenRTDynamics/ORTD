@@ -1,10 +1,10 @@
 // 
 // This file is part of OpenRTDynamics.sf.net, the Real-Time Dynamics Framework
 // 
-// A demonstration for automating experiments using the macro ld_AutoOnlineExch_dev
+// A demonstration for automating experiments using the macro ld_AutoOnlineExch_dev2
 // --------------------------------------------------------------------------------
 // 
-// Rev 1. 16.8.14
+// Rev 2. 10.8.15
 // 
 // 
 // This example shows how to automate sequences of experiments including
@@ -249,9 +249,10 @@ function [sim] = AutoCalibration(sim, Signal)
 
   // Please note ident_str must be unique.
   userdata = [];
-  [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, 0, inlist=list(Signal), ...
-                                                             insizes, outsizes, intypes, outtypes, ... 
-                                                             ThreadPrioStruct, CallbackFns, ident_str="AutoCalibDemo", userdata);
+  param.scilab_path = "BUILDIN_PATH";
+  [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev2(sim, 0, inlist=list(Signal), ...
+                                                              insizes, outsizes, intypes, outtypes, ... 
+                                                              ThreadPrioStruct, CallbackFns, ident_str="AutoCalibDemo", userdata, param);
 
 //   [sim] = ld_printf(sim, 0, finished, "State ", 1);
   

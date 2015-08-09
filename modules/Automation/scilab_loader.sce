@@ -145,6 +145,9 @@ function [sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist
 
     function [sim, outlist, userdata] = evaluation_Thread(sim, inlist, userdata)
         [sim, CalibrationReturnVal, userdata] = evaluation_fn(sim, userdata);
+        
+         // TODO COMMENT
+//        [sim] = ld_printfstderr(sim, ev, in=CalibrationReturnVal, str="-------------- > Computation step finished -- CalibrationReturnVal", insize=1);        
 
         outlist = list(CalibrationReturnVal);
     endfunction
@@ -158,7 +161,7 @@ function [sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist
 
 
         ev = 0;
-        printf("ld_AutoExperiment: defining state %s (#%d) ...\n", statename, state);
+//        printf("ld_AutoExperiment: defining state %s (#%d) ...\n", statename, state);
 
 
         // print out some state information
@@ -200,7 +203,9 @@ function [sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist
 
             //           [sim, NotCalibrationOk_ ] = ld_not(sim, 0, CalibrationOk_);
             // 
-            // 	  [sim] = ld_printf(sim, ev, in=computation_finished, str="computation_finished", insize=1);
+            
+
+
             //          [sim] = ld_printf(sim, ev, in=NotFinished, str="computation_Notfinished", insize=1);// 
 
             //           [sim, FinshedOk   ] = ld_and(sim, 0, list(    CalibrationOk_ , computation_finished ));
@@ -210,6 +215,11 @@ function [sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist
             // run something while the computation is running
             [sim, outlist, HoldState, userdata] = whileComputing_fn(sim, ev, inlist, CalibrationReturnVal, computation_finished, userdata);
 
+            // TODO COMMENT
+//            [sim] = ld_printf(sim, ev, in=computation_finished, str="computation_finished", insize=1);
+//            [sim] = ld_printf(sim, ev, in=HoldState, str="HoldState", insize=1);
+//            [sim] = ld_printf(sim, ev, in=startcalc, str="startcalc", insize=1);
+            
 
             // WHEN TO CHANGE THE STATE
             [sim, active_state] = ld_const(sim, ev, 0);  // by default: no state switch
@@ -274,7 +284,65 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
     // PreScilabRun:    This ORTD-schematic is called for one time step in advance to the embedded Scilab-calculation
     // 
     // 
-    // Note: This is a temporary development version. The interface may slightly change. Rev 1
+    // Note: This is a wrapper to ld_AutoOnlineExch_dev2 for backwards compatibility. Use ld_AutoOnlineExch_dev2 instead.
+    // 
+
+    // a wrapper to the new version
+    param.scilab_path = "BUILDIN_PATH";
+    [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, CallbackFns, ident_str, userdata, param)
+
+endfunction
+
+
+
+
+
+
+
+
+function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, CallbackFns, ident_str, userdata, param)  // PARSEDOCU_BLOCK
+    // 
+    // %PURPOSE: Automated definition/compilation and execution of ORTD-schemtics during runtime.
+    // 
+    // Automatically perform an experiment and an ongoing evaluation. Additionally,
+    // during this evaluation a new ORTD-schematic may be compiled to replace a part
+    // of the control system.
+    // 
+    // The signals in inlist will be forwarded to several callback functions for defining e.g.
+    // the nested control system.
+    // 
+    // There must be several callback functions in a structure CallbackFns:
+    // 
+    // experiment:      The schematic for performing the experiment, e.g. collecting data. This function
+    //                  to define such a schematic may be called during compilation as well as during 
+    //                  runtime of the control system. The latter case is used to replace the experiment
+    //                  controller with an online-generated replacement that may depend e.g. on previously 
+    //                  collected calibration data.
+    //
+    //                  The prototype for this callback function is:
+    //
+    //                    [sim, finished, outlist, userdata] = experiment(sim, ev, inlist, userdata, CalledOnline)
+    //
+    //
+    //
+    // whileComputing:  The schematic that is activated while the computation is active_state
+    //
+    //                    [sim, outlist, HoldState, userdata] = whileComputing_example(sim, ev, inlist, CalibrationReturnVal, computation_finished, par)
+    //
+    //
+    // PreScilabRun:    This ORTD-schematic is called for one time step in advance to the embedded Scilab-calculation
+    //
+    //                    [sim, ToScilab, userdata] = PreScilabRun(sim, ev, par)
+    //
+    // ident_str        Unique string for identifications of the created instance
+    // userdata         left to the user of this function to transfer data to the callback functions
+    //
+    //
+    // param            Contains additional parameters:
+    // 
+    // param.scilab_path: String describing the Scilab executable to use. e.g. set to "BUILDIN_PATH"
+    // 
+    // Note: This is a temporary development version. The interface may slightly change. Rev 2
     // 
 
 
@@ -303,7 +371,7 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
         // dummy schematic which is activated while the 2nd "2" is exchanged during runtime
         userdata = par(2);
 
-        printf("Compiling replaceable N=%d\n", cntrlN);   
+//        printf("Compiling replaceable N=%d\n", cntrlN);   
 
         insizes = userdata(1); intypes = userdata(2); 
         outsizes=userdata(3); outtypes=userdata(4);
@@ -473,10 +541,9 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
                 userdata.InputData = data;
 
 
-                printf("Parameters to this computational Scilab function:\n");
-                disp(cfpar);
-
-
+//                printf("Parameters to this computational Scilab function:\n");
+//                disp(cfpar);
+//
                 insizes = cfpar.insizes;
                 outsizes = cfpar.outsizes;
                 intypes = cfpar.intypes;
@@ -495,7 +562,6 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
                 //             printf("Defining schematic: experiment_user using the following function:\n");
                 //             disp(fun2string(experiment_user));
 
-                printf("__ userdata is\n"); disp(userdata);
 
                 // create a new ir-par Experiment.[i,r]par files
                 CalledOnline = %t;  // The experiment function is called online because we are in embedded Scilab here
@@ -509,7 +575,7 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
                 block.states.userdata = userdata(5);
 
                 //
-                printf("__ New userdata is\n"); disp(block.states.userdata);
+//                printf("__ New userdata is\n"); disp(block.states.userdata);
 
                 // save vectors to a file
                 save_irparam(par, ident_str+'_ReplaceableSimulation.ipar', ident_str+'_ReplaceableSimulation.rpar');
@@ -531,7 +597,7 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
                 block.outptr(1) = outvec;
 
                 ElapsedTime = toc();
-                printf("Time to run the embedded Scilab Code %f sec.\n", ElapsedTime);
+                printf("Time to run the embedded Scilab Code %f sec. \n", ElapsedTime);
 
             case 4 // init
                 // printf("Setting funcproc(0), which has been of value %d before\n", funcprot());
@@ -549,6 +615,12 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
 
         par.userdata = useruserdata;
 
+
+        // unload schematic the experiment schematic
+        [sim, two] = ld_const(sim, 0, 2);
+        [sim, out] = ld_nested_exchffile(sim, 0, compresult=two, slot=two, ... 
+        fname=ident_str+"_ReplaceableSimulation", ident_str+"_ReplaceableSimulation");
+        
         // run callback
         [sim, ToScilab, useruserdata] = PreScilabRun_user(sim, ev, par);
         [ToScilab_Size, ToScilab_type] = ld_getSizesAndTypes(sim, 0, SignalList=list(ToScilab) );
@@ -578,12 +650,13 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
         //        disp(par.InitStr);
 
 
-        par.scilab_path = "BUILDIN_PATH";
+//        par.scilab_path = "BUILDIN_PATH";
+        par.scilab_path = param.scilab_path;
         [sim, Calibration] = ld_scilab4(sim, 0, in=ToScilab, invecsize=ToScilab_Size(1), outvecsize=20, ...
         comp_fn=scilab_comp_fn, ForwardVars=%f, par);
 
         // Print the results
-        // [sim] = ld_printf(sim, 0, Calibration, "The from Scilab returned values are ", 20);
+//         [sim] = ld_printf(sim, 0, Calibration, "The from Scilab returned values are ", 20);
 
         // demux      
         [sim, one] = ld_const(sim, 0, 1);      [sim, two] = ld_const(sim, 0, 2);
@@ -595,7 +668,6 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
         [sim, exchslot] = ld_const(sim, 0, 2);
         [sim, out] = ld_nested_exchffile(sim, 0, compresult=compready, slot=exchslot, ... 
         fname=ident_str+"_ReplaceableSimulation", ident_str+"_ReplaceableSimulation");
-
         //       [sim] = ld_FlagProbe(sim, 0, in=out, str="ASYNC COMP", 1);
 
 
@@ -603,20 +675,9 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
         //       [sim, useruserdata] = PostScilabCalc(sim, 0, Calibration, useruserdata);
 
 
-        //       // Store the calibration into a shared memory
-        //       [sim, one] = ld_const(sim, ev, 1);
-        //       [sim] = ld_write_global_memory(sim, 0, data=Calibration, index=one, ...
-        //                                      ident_str="CalibrationResult", datatype=ORTD.DATATYPE_FLOAT, ...
-        //                                      ElementsToWrite=20);
-
         // 
         userdata(5) = useruserdata;
 
-        // Tell ld_AutoExperiment to run the experiment again, 
-        //       [sim, CalibrationReturnVal] = ld_not(sim, 0, compready);
-
-        //       [sim, oneint32] = ld_constvecInt32(sim, 0, vec=1)
-        //       CalibrationReturnVal = oneint32;
     endfunction
 
 
@@ -635,6 +696,10 @@ function [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inl
     userdata=list(insizes, intypes, outsizes, outtypes, userdata, experiment_user, ident_str)  );
 
 endfunction
+
+
+
+
 
 
 
