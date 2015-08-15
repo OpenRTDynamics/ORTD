@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 20.4.2015
+Version of this document: 15.8.2015
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -56,6 +56,8 @@ library.
 
 IMPORTANT NEWS and NOTES
 ========================
+
+- Rev 592: Full support for PaPI (Graphical interface to control targets)
 
 - Rev 519: A new command "ortdrun" has been introduced that starts the 
   ortd-interpreter. The old command ortd becomes obsolete. However, most
@@ -284,8 +286,7 @@ Cleaning up is done via
 This should be executed when compiling and updated version from subversion.
 
 To visualise data it is suggested to additionally install PaPi 
-(https://github.com/TUB-Control/PaPI/tree/development) (currently only the development
-version fully supports ORTD).
+(https://github.com/TUB-Control/PaPI).
 
 
 IMPORTANT MAKE-TARGETS
@@ -814,18 +815,26 @@ REMOTE CONTROL INTERFACE (e.g. using PaPi)
 ==========================================
 
 An UDP-based communication protocoll (PacketFramework) is available that can be used to 
-visualise data e.g. using PaPi (https://github.com/TUB-Control/PaPI/tree/development).
+visualise data e.g. using PaPi (https://github.com/TUB-Control/PaPI).
 
 Examples for using PaPi to display automatic calibration procedures:
 
    https://github.com/christianausb/OpenRTDynamics/blob/master/Examples/PaPi/AutomaticProcedures
+
+and
+
+  https://github.com/TUB-Control/PaPI/tree/development/data_sources/ORTD/DataSourceChangingAutoConfigExample
+
+How it looks like:
+
+[[embed url=http://www.youtube.com/watch?v=9B2BISXaPdo]]
 
 An example that visualises data using a web-browser is available at
 
    https://github.com/christianausb/OpenRTDynamics/tree/master/Examples/nodejs_webinterface_Level2
    or examples/PacketFramework
 
-An example for a webinterface:
+How it looks like:
 
 [[embed url=http://www.youtube.com/watch?v=Mln_JxfzLD0]]
 
