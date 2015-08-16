@@ -4,14 +4,10 @@ ortddir=`pwd`
 
 installed_scilab="no"
 
-#zenity --question --text "Shall I install scilab 5 for you?" && ( 
-#    echo "installing scilab5"; #
 
-#    scilabdir="~/scilab/scilab5"
-#    installed_scilab="yes"
-# )
 
-if zenity --question --text "Shall I install scilab 5 for you?"
+#if zenity --question --text "Shall I install scilab 5 for you?"
+if false
 then
     echo "installing scilab5"; 
 
@@ -50,7 +46,7 @@ then
 fi
 
 
-echo "installed scilab: $installed_scilab"
+#echo "installed scilab: $installed_scilab"
 
 
 
@@ -69,12 +65,12 @@ else
     # ask user for scilab5
 
     echo "Tell me your Scilab 5 directory (installation from the archive available at the Scilab webpage)"
-    zenity --info --text "Tell me your Scilab 5 directory (installation from the archive available at the Scilab webpage)"
+    zenity --info --text "Tell me your Scilab 5 directory (installation from the archive available at the Scilab webpage www.scilab.org)"
 
 
     #read scilabdir
 
-    scilabdir=`zenity --title "Select Scilab 5 directory" --file-selection --directory`
+    scilabdir=`zenity --title "Select the directory in which Scilab has been installed" --file-selection --directory`
 
 #     if [ "" = $scilabdir ]; then
 #       echo "user abort"
