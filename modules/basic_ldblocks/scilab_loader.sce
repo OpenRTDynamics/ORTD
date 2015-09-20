@@ -685,45 +685,7 @@ function [sim, out] = ld_constvec(sim, events, vec) // PARSEDOCU_BLOCK
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
-function [sim, out] = ld_const_bin(sim, events, BinConst) // PARSEDOCU_BLOCK
-// 
-// %PURPOSE: a constant vector of ORTD.DATATYPE_BINARY
-// 
-// out *+ - the vector of binary
-// 
 
-
-  
-  //ortd_checkpar(sim, list('', 'BinConst', BinConst) );
-
-  // pack all parameters into a structure "parlist"
-  parlist = new_irparam_set();
-  insize = length(BinConst);
-  parlist = new_irparam_elemet_ivec(parlist, insize, 10); // id = 10
-  parlist = new_irparam_elemet_ivec(parlist, BinConst, 11); // id = 11
-  
-  p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
-
-  // Set-up the block parameters and I/O ports
-  Uipar = [ p.ipar ];
-  Urpar = [ p.rpar ];
-  btype = 60001 + 304; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
-
-  insizes=[];
-  outsizes=[ insize ]; // Output port sizes
-  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
-  intypes=[];
-  outtypes=[ ORTD.DATATYPE_BINARY  ]; // datatype for each output port
-
-  blocktype = 2; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
-
-  // Create the block
-  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
-  
-
-  // connect the ouputs
-  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
-endfunction
 
 function [sim, out] = ld_counter(sim, events, count, reset, resetto, initial) // PARSEDOCU_BLOCK
 // 
@@ -2300,53 +2262,45 @@ end
 endfunction
 
 
-function [sim, out] = ld_RemoveJitter3d(sim, events, in, thr ) // PARSEDOCU_BLOCK
+
+function [sim, out] = ld_const_bin(sim, events, BinConst) // PARSEDOCU_BLOCK
 // 
-// Remove Jitter - block
-//
-// in * - input
-// out * - output
+// %PURPOSE: a constant vector of ORTD.DATATYPE_BINARY
 // 
-// 
+// out *+ - the vector of binary
 // 
 
-   // check the input parameters
-   ortd_checkpar(sim, list('Signal', 'in', in) );
-   ortd_checkpar(sim, list('SingleValue', 'thr', thr ) );
 
+  
+  //ortd_checkpar(sim, list('', 'BinConst', BinConst) );
 
-// introduce some parameters that are refered to by id's
+  // pack all parameters into a structure "parlist"
+  parlist = new_irparam_set();
+  insize = length(BinConst);
+  parlist = new_irparam_elemet_ivec(parlist, insize, 10); // id = 10
+  parlist = new_irparam_elemet_ivec(parlist, BinConst, 11); // id = 11
+  
+  p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
 
-   vec = [thr];
-
-   // pack all parameters into a structure "parlist"
-   parlist = new_irparam_set();
-
-   parlist = new_irparam_elemet_ivec(parlist, vec, 11); // vector of integers (double vectors are similar, replace ivec with rvec)
-
-   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
-
-// Set-up the block parameters and I/O ports
+  // Set-up the block parameters and I/O ports
   Uipar = [ p.ipar ];
   Urpar = [ p.rpar ];
   btype = 60001 + 304; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
 
-  insizes=[3]; // Input port sizes
-  outsizes=[1]; // Output port sizes
+  insizes=[];
+  outsizes=[ insize ]; // Output port sizes
   dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
-  intypes=[ORTD.DATATYPE_FLOAT]; // datatype for each input port
-  outtypes=[ORTD.DATATYPE_FLOAT]; // datatype for each output port
+  intypes=[];
+  outtypes=[ ORTD.DATATYPE_BINARY  ]; // datatype for each output port
 
-  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+  blocktype = 2; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
 
   // Create the block
   [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
   
-  // connect the inputs
- [sim,blk] = libdyn_conn_equation(sim, blk, list(in) ); // connect in1 to port 0 and in2 to port 1
 
   // connect the ouputs
- [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
 function [sim] = ld_ORTDIO_Put(sim, events, in, len, datatype, header) // PARSEDOCU_BLOCK
