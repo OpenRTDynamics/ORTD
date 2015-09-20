@@ -709,6 +709,123 @@ public:
     struct dynlib_block_t *block;
 };
 
+
+
+#include "io.h"
+
+// Read from ascii file
+class ORTDIO_PutBuffer {
+public:
+    ORTDIO_PutBuffer(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~ORTDIO_PutBuffer()
+    {
+        // free your allocated memory, ...
+	free(headerstr); // free the memory allocated by irpar_getstr  
+    }
+
+    //
+    // define states or other variables
+    //
+
+    int Len;
+    int N;
+    int datatype;
+    char *headerstr;
+    size_t headerstr_len;
+    int NBytes;
+
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+        //
+        // extract some structured sample parameters
+        //
+        int error = 0;
+
+        //
+        // get a string (not so nice by now)
+        //
+        struct irpar_ivec_t str_;
+        
+        if ( irpar_get_ivec(&str_, Uipar, Urpar, 12) < 0 ) error = -1 ;
+		
+	if (error==-1) {
+	  fprintf(stderr, "ORTDIO_PutBuffer: Error while loading parameters\n");
+	  return -1;	  
+	}
+	
+        irpar_getstr(&headerstr, str_.v, 0, str_.n);
+	headerstr_len = str_.n;
+
+        //
+        // get some information on the first input port
+        //
+        N = libdyn_get_outportsize(block, 0);  // the size of the input vector
+        datatype = libdyn_get_outportdatatype(block, 0); // the datatype
+        int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+        NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
+
+        // set the initial states
+        resetStates();
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return error;
+    }
+
+
+    inline void updateStates()
+    {
+      
+              char *in = (char*) libdyn_get_output_ptr(block, 0); // the first output port
+	
+	ortd_io::PutBuffer( block->sim, (char*) headerstr, headerstr_len,  (char*) in, NBytes );
+
+    }
+
+
+    inline void calcOutputs()
+    {
+
+    }
+
+
+    inline void resetStates()
+    {
+    }
+
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ORTDIO_PutBuffer block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<ORTDIO_PutBuffer>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
 //
 // Export to C so the libdyn simulator finds this function
 // fn = "RTCrossCorrModule_V2" is the folder name of the module
@@ -735,6 +852,10 @@ extern "C" {
 	
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+303, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ArrayInt32Block::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+304, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ConstBinBlock::CompFn);
+    	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+305, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ORTDIO_PutBuffer::CompFn);
+
+    
+    
     }
 
 
