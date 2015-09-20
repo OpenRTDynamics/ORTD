@@ -13,6 +13,13 @@ void ortd_io_internal::PutString(char* s)
   fprintf(stderr, s);
 }
 
+void ortd_io_internal::PutBuffer(char* header, size_t hlen, char* s, size_t len)
+{
+  fprintf(stderr, "ORTD_BINIO %d:", hlen+len);
+  fwrite( (void*) header, hlen, 1, stderr );
+  fwrite( (void*) s, len, 1, stderr);
+}
+
 
 
 
@@ -51,15 +58,19 @@ void ortd_io::PutString(dynlib_block_t *block, char *s)
   ortd_io::PutString(block->sim, s);
 }
 
-// void ortd_io::printf(dynlib_simulation_t* sim, char* format, ...)
-// {
-// //    ortd_io::PutString( (libdyn_nested2 *) sim->SimnestClassPtr , s );
-//    
-// //    printf(format, __VA_ARGS__);
-//    
-//    libdyn_master * master = (libdyn_master *) sim->master;
-//    master->ortd_io->PutString(s);
-// }
-// 
+
+void ortd_io::PutBuffer(libdyn* sim, char* header, size_t hlen, char* s, size_t len)
+{
+ sim->get_master()->ortd_io->PutBuffer(header, hlen, s, len);
+}
+
+
+void ortd_io::PutBuffer(dynlib_simulation_t* sim, char* header, size_t hlen, char* s, size_t len)
+{
+   libdyn_master * master = (libdyn_master *) sim->master;
+   master->ortd_io->PutBuffer(header, hlen, s, len);
+
+}
+
 
 

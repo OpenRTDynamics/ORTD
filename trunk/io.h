@@ -11,6 +11,7 @@ public:
   ortd_io_internal();
   
   void PutString(char *s);
+  void PutBuffer(char* header, size_t hlen, char *s, size_t len);
   
   
 };
@@ -22,10 +23,12 @@ public:
    static void PutString(dynlib_simulation_t *sim, char *s);
    static void PutString(dynlib_block_t *block, char *s);
    
+   static void PutBuffer(libdyn *sim, char* header, size_t hlen, char *s, size_t len);
+   static void PutBuffer(dynlib_simulation_t *sim, char* header, size_t hlen, char *s, size_t len);
+   
 //    void ortd_io::printf(dynlib_simulation_t* sim, char* format, ...);
 
 };
-
 
 
 #endif  
