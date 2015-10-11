@@ -371,10 +371,18 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
     fprintf(stderr, "scilab_interface: Try read a vector\n");
 #endif
 
-    sprintf(tmp, "try;"
+   // sprintf(tmp, "try;"
+   //         "printf(\"vlg3hdl1289fn28=%%d \\n \", length(scilab_interf.outvec%d));  "
+   //         "catch; "
+   //         "printf(\"ERRORvlg3hdl1289fn28\\n \" ); end; " , vector_nr);
+
+    sprintf(tmp, ""
             "printf(\"vlg3hdl1289fn28=%%d \\n \", length(scilab_interf.outvec%d));  "
-            "catch; "
-            "printf(\"ERRORvlg3hdl1289fn28\\n \" ); end; " , vector_nr);
+            " "
+            " " , vector_nr);
+
+
+
     status = scilab->send_to_scilab(tmp);
     if (status == false)
     {
@@ -408,8 +416,12 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
                 return false;
             } else if (state == 0) { // as long as "vectorlen_g3hdl1289fn28" or "error" is not found, put out the scilab outputs to stderr
 //                 fprintf(stderr, "scilab says: >>> %s\n", buf);
-// 		ortd_io::PutString(block, "scilab:");
-		ortd_io::PutString(block, buf);
+
+	      // 		ortd_io::PutString(block, buf);  // NOTE 11.10.15 : Not sure why this leads to segfaults in some cases... 
+	      
+	      
+// 	        fprintf(stderr, "SCILAB received buffer len = %d (should never go bejond %d)\n", strlen(buf), sizeof buf );
+ 		ortd_io::PutBuffer(block->sim, NULL, 0, buf, strlen(buf) );
             }
 
 
@@ -511,9 +523,9 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
             && !ferror(read_fd)
             && fgets(buf, sizeof buf, read_fd) != NULL)
     {
-//         fprintf(stderr, "scilab says: >>> %s\n", buf);
-//       ortd_io::PutString(block, "scilab:");
-	ortd_io::PutString(block, buf);
+// 	ortd_io::PutString(block, buf);
+	
+	ortd_io::PutBuffer(block->sim, NULL, 0, buf, strlen(buf) );
 
         // Was ist das hier? - leere Zeilen abfangen
         if (((int)buf[0] != 32) && ((int)buf[0] != 10) && ((int)buf[3] != 0))
