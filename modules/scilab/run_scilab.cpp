@@ -416,12 +416,12 @@ bool scilab_calculation::read_vector_from_scilab(int vector_nr, double *data, in
                 return false;
             } else if (state == 0) { // as long as "vectorlen_g3hdl1289fn28" or "error" is not found, put out the scilab outputs to stderr
 //                 fprintf(stderr, "scilab says: >>> %s\n", buf);
+//  	        fprintf(stderr, "SCILAB received buffer len = %d (should never go bejond %d)\n", strlen(buf), sizeof buf );
+	
+		ortd_io::PutString(block, buf);  
+// 		fprintf(stderr, "ORTD_IO: %s", buf);
 
-	      // 		ortd_io::PutString(block, buf);  // NOTE 11.10.15 : Not sure why this leads to segfaults in some cases... 
-	      
-	      
-// 	        fprintf(stderr, "SCILAB received buffer len = %d (should never go bejond %d)\n", strlen(buf), sizeof buf );
- 		ortd_io::PutBuffer(block->sim, NULL, 0, buf, strlen(buf) );
+		//ortd_io::PutBuffer(block->sim, NULL, 0, buf, strlen(buf) );
             }
 
 
@@ -523,9 +523,10 @@ bool scilab_calculation::exit_scilab_and_read_remaining_data()
             && !ferror(read_fd)
             && fgets(buf, sizeof buf, read_fd) != NULL)
     {
-// 	ortd_io::PutString(block, buf);
-	
-	ortd_io::PutBuffer(block->sim, NULL, 0, buf, strlen(buf) );
+ 	ortd_io::PutString(block, buf);	
+// 	ortd_io::PutBuffer(block->sim, NULL, 0, buf, strlen(buf) );
+      
+// 	fprintf(stderr, "ORTD_IO:%s", buf);
 
         // Was ist das hier? - leere Zeilen abfangen
         if (((int)buf[0] != 32) && ((int)buf[0] != 10) && ((int)buf[3] != 0))

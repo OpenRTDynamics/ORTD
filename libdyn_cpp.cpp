@@ -1988,6 +1988,8 @@ libdyn_master::libdyn_master()
 // remote_control_tcpport - if 0 the no remote control will be set-up
 libdyn_master::libdyn_master(int realtime_env, int remote_control_tcpport)
 {
+//   fprintf(stderr, "************* LEGACY VARIANT OF CONSTRUCTOR FOR libdyn_master USED! *******\n");
+  
     magic = 0x89abcde2;
     ortd_io = new ortd_io_internal();
 
