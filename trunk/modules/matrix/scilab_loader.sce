@@ -167,22 +167,17 @@ function [sim, out, param] = ld_leastsquares(sim, events, inplist, veclen, n_par
 // NOTICE: ld_leastsquares is not available by default since you need to include the GSL - GNU Scientific Library.
 // Please follow the instructions which have been testet under Ubuntu 12.04. LTS:
 //
-// - install the required library with the following command or with a package-manager of your choice:
+// - install the required library with the following command or with a package-manager of your choice before installing ORTD:
 // 'sudo apt-get install libgsl0-dev'
 //
-// - change to the directory /YOUR_PATH/openrtdynamics/trunk/modules/matrix/ and rename the file 'LDFLAGS.disabled'
-// to 'LDFLAGS'
-//
-// - open the file 'matrix.c' which is located in the same directory with an editor of your choice and change the
-// line '#define GSL_INCLUDED 0' to '#define GSL_INCLUDED 1' - then save and close the file.
-//
-// - change to the directory /YOUR_PATH/openrtdynamics/trunk/ and type run 'make clean', 'make' and 'sudo make install'
-//
-// - reload the toolbox in scilab and you should be able to use it.
 //    
   btype = 69001 + 4;
 
   ipar = [veclen, n_param]; rpar = [];
+
+  if (veclen < n_param)
+    error("ERROR: ld_leastsquares: Vectorsize must be greater or equal to the number of parameters to estimate.");
+  end
   
   insizelist = [];
   intypelist = [];
