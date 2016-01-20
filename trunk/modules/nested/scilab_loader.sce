@@ -360,7 +360,7 @@ function [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, 
         [sim, outlist_inner, userdata_nested] = fn(sim, inlist_inner, Ncase, casename, userdata_nested);
 
         if length(outlist_inner) ~= Nout_usersignals then
-            printf("ld_CaseSwitchNest: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+            printf("ld_CaseSwitchNest: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_usersignals, length(outlist_inner));
             error(".");
         end
 
@@ -545,7 +545,7 @@ function [sim, outlist, userdata] = ld_ForLoopNest(sim, ev, inlist, insizes, out
         [sim, outlist_inner, userdata_nested] = fn(sim, inlist_inner, CounterSignal, userdata_nested);
 
         if length(outlist_inner) ~= Nout_usersignals then
-            printf("ld_ForLoopNest: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_userdata, length(outlist_inner));
+            printf("ld_ForLoopNest: your provided schmatic-describing function returns more or less outputs in outlist. Expecting %d but there are %d\n", Nout_usersignals, length(outlist_inner));
             error(".");
         end
 
@@ -1369,10 +1369,10 @@ function [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname, 
     //
     // %PURPOSE: Online exchange of a nested simulation via loading *[ir].par files
     //
-    // NOTE: May delay realtime behaviour - use during a asynchronous nested simulation
+    // NOTE: May delay realtime behaviour - use during a separated asynchronous nested simulation
     //
-    // compresult - signal
-    // slot - signal
+    // compresult - signal - 0: Do nothing, 1: unload schematic and load new (replace), 2: just unload 
+    // slot - signal (unused by now; set to 2)
     // fname - the filename without ".[ir]par"-ending
     // simnest_name - the string which referes to the nested simulation (as given to "ld_simnest2")
     // 
