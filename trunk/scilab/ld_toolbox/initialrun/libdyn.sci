@@ -1,5 +1,5 @@
 //
-//    Copyright (C) 2010, 2011, 2012, 2013, 2013  Christian Klauer
+//    Copyright (C) 2010, 2011, 2012, 2013, 2013, 2014, 2015, 2016  Christian Klauer
 //
 //    This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 //
@@ -21,13 +21,6 @@
 
 
 
-//
-// libdyn.sci - Scilab interface to libdyn
-//
-// 2010, 2011 Christian Klauer 
-//
-// depends on irpar.sci
-//
 //
 // in function libdyn_setup_sch2: add datatype checking
 //
@@ -366,6 +359,31 @@ function libdyn_check_object(sim,obj)
     error("");
   end
 endfunction
+
+
+                // Check wheter the object given by the user is part of the given simulation
+                function ret=libdyn_check_object2(sim,obj)
+                    //
+                    // Additional return value in comparision to libdyn_check_object
+                    //
+                    ret = 1; 
+                    if libdyn_is_ldobject(obj) == %F then
+                        printf("The given variable is no libdyn object. Instead, the following data is contained in this variable:\n");
+                        disp(obj);
+                        ret = -1;
+                        return;
+                    end
+
+                    if obj.simid ~= sim.simid then
+                        printf("Object does not belong to the simulation-context described by the <sim> structure\n");
+                        ret = -1;
+                        return;
+                    end
+                endfunction
+
+
+
+
 
 // try to find a libdyn object within a list() 
 // usage for compatibility issues
