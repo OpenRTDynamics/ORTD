@@ -2876,7 +2876,7 @@ function [sim,y] = ld_compare(sim, events, in,  thr) // PARSEDOCU_BLOCK
 //   y *
 // If in > thr: y = 1; else y = -1
 // 
-// Please check: Bug inside?
+// Please note: returns -1 for in == 0
 //
 
     [sim,blk] = libdyn_new_compare(sim, events, thr);
