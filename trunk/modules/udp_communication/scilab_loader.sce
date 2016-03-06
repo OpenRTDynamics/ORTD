@@ -1039,7 +1039,7 @@ function [sim] = ld_PF_SendConfigUDP(sim, PacketFramework)
     //  mfprintf(fd,'%s', str_PF_Export);
     //  mclose(fd);
     strLength = length(str_PF_Export);
-    maxPacketLength = 1400;                  // TODO; When Papi is ready to receive multiple config packets, reduce this to the officially allowed amout
+    maxPacketLength = 1400;                  // Max payload size for an UDP packet
     maxPacketStrLength = maxPacketLength - 4*4;
     nPackets = ceil(strLength/maxPacketStrLength);
 

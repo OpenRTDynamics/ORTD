@@ -740,6 +740,7 @@ void libdyn_block_dumpinfo(struct dynlib_block_t *block)
   fprintf(stderr, "\n");
   fprintf(stderr, "block_type=%d, d_feedthrough=%d\n", block->block_type, block->d_feedthrough);
   fprintf(stderr, "Nout=%d, Nin=%d\n", block->Nout, block->Nin);
+  fprintf(stderr, "block instance ptr = %p\n",  (void*) block);
   fprintf(stderr, "comp fn ptr = %p\n",  (void*) block->comp_func);
   fprintf(stderr, "\n");
 
