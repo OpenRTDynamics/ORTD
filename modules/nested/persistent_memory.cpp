@@ -236,7 +236,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_UPDATESTATES:
     {
-        in = (double *) libdyn_get_input_ptr(block,0);
+     //   in = (double *) libdyn_get_input_ptr(block,0);
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
         worker->io(1);
@@ -272,7 +272,7 @@ int persistent_memory_block(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_RESETSTATES:
     {
-        in = (double *) libdyn_get_input_ptr(block,0);
+//        in = (double *) libdyn_get_input_ptr(block,0);  IMPORTANT NOTE: NOT ALLOWED IN BLOCKS WITHOUT ANY I/O
         persistent_memory_block_class *worker = (persistent_memory_block_class *) libdyn_get_work_ptr(block);
 
         worker->reset();
@@ -849,7 +849,7 @@ int write2_persistent_memory_block(int flag, struct dynlib_block_t *block)
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-    in = (double *) libdyn_get_input_ptr(block,0);
+   // in = (double *) libdyn_get_input_ptr(block,0);
         worker->io_output();
     }
     return 0;
