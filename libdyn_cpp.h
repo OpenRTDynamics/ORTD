@@ -800,6 +800,8 @@ template <class T>
 inline int LibdynCompFnTempate2(int flag, struct dynlib_block_t *block) {
         // This is the main C-Callback function, which forwards requests to the functions of the C++-Class
 
+        // Block based on this template are initialized before and destroyed after normal blocks
+
         // uncomment this if you want to know when this block is called by the simulator
 //           printf("comp_func Template: flag==%d\n", flag);
 
@@ -870,7 +872,7 @@ inline int LibdynCompFnTempate2(int flag, struct dynlib_block_t *block) {
 	return 0;
 	break;
 	
-        case COMPF_FLAG_PREINITUNDO: // destroy instance
+        case COMPF_FLAG_POSTDESTUCTOR: // previously: COMPF_FLAG_PREINITUNDO: // destroy instance
         {
             T *worker = (T *) libdyn_get_work_ptr(block);
             delete worker;
@@ -894,10 +896,10 @@ inline int LibdynCompFnTempate2(int flag, struct dynlib_block_t *block) {
         }
         return 0;
         break;
-        case COMPF_FLAG_DESTUCTOR: // destroy instance
+        case COMPF_FLAG_DESTUCTOR: // destroy instance (will later be destroyed by COMPF_FLAG_POSTDESTUCTOR)
         {
-            T *worker = (T *) libdyn_get_work_ptr(block);
-            delete worker;
+       //     T *worker = (T *) libdyn_get_work_ptr(block);
+       //     delete worker;
 
         }
         return 0;
@@ -918,6 +920,9 @@ inline int LibdynCompFnTempate2(int flag, struct dynlib_block_t *block) {
 template <class T> 
 inline int LibdynCompFnTempate_PreInit(int flag, struct dynlib_block_t *block) {
         // This is the main C-Callback function, which forwards requests to the functions of the C++-Class
+        //
+        // Blocks based on this template are initialized prior and destructed after normal blocks.
+        // This is especially useful for e.g. blocks that share instances of objects with with other blocks
 
         // uncomment this if you want to know when this block is called by the simulator
 //           printf("comp_func Template: flag==%d\n", flag);
@@ -993,13 +998,13 @@ inline int LibdynCompFnTempate_PreInit(int flag, struct dynlib_block_t *block) {
         break;
         case COMPF_FLAG_PREINITUNDO: // destroy instance
         {
-            T *worker = (T *) libdyn_get_work_ptr(block);
-            delete worker;
+//            T *worker = (T *) libdyn_get_work_ptr(block);
+//            delete worker;
 
         }
         return 0;
         break;
-        case COMPF_FLAG_DESTUCTOR: // destroy instance
+        case COMPF_FLAG_POSTDESTUCTOR: // destroy instance
         {
             T *worker = (T *) libdyn_get_work_ptr(block);
             delete worker;

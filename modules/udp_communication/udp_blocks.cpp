@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2013, 2014, 2015   Christian Klauer
+    Copyright (C) 2013, 2014, 2015, 2016   Christian Klauer
 
     This file is part of OpenRTDynamics, the Real-Time Dynamics Framework
 
@@ -109,22 +109,42 @@ public:
 	  fprintf (stderr, "Not binding to an UDP-socket\n");
 	}
 
+        #ifdef DEBUG
+              fprintf (stderr, "udpsocket:opened, this ptr = %p\n", this);
+        #endif
 
     }
     ~udpsocket()
     {
         close(sockfd);
+
+        #ifdef DEBUG
+              fprintf (stderr, "udpsocket:closed, this ptr = %p\n", this);
+        #endif
     }
 
     void SendPacket(void *buf, int N) {
+        #ifdef DEBUG
+              fprintf (stderr, "udpsocket:in SendPacket, this ptr = %p\n", this);
+        #endif
+
+
         sendto(sockfd,buf,N,0,(struct sockaddr *)&broadcastAddr,sizeof(broadcastAddr));
     }
 
     void SendToPacket(struct sockaddr_in DestAddr, void *buf, int N) {
+        #ifdef DEBUG
+              fprintf (stderr, "udpsocket:in SendToPacket, this ptr = %p\n", this);
+        #endif
+
         sendto(sockfd,buf,N,0,(struct sockaddr *)&DestAddr,sizeof(DestAddr));
     }
 
     int receive(void *buf, int buflen) {
+        #ifdef DEBUG
+              fprintf (stderr, "udpsocket:in receive, this ptr = %p\n", this);
+        #endif
+
           struct sockaddr_in si_from;
           socklen_t slen = sizeof(si_from);
           if (recvfrom(sockfd, buf, buflen, 0, (struct sockaddr *) &si_from, &slen)==-1) {

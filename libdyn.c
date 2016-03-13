@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015  Christian Klauer
+    Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamics Framework
 
@@ -292,22 +292,59 @@ int libdyn_simulation_CallSyncCallbackDestructor(struct dynlib_simulation_t *sim
 void libdyn_del_simulation(struct dynlib_simulation_t *sim)
 {
   //   printf("libdyn.c: libdyn_del_simulation\n");
+  struct dynlib_block_t *current; // Iterator for all blocks
   
   
   // Destroy all blocks, if exits
-  struct dynlib_block_t *current = sim->allblocks_list_head;
+  current = sim->allblocks_list_head;
 
   if (current != 0) {
     do { // Destroy all blocks
       mydebug(1) fprintf(stderr, "#%d - \n", current->numID);
  
-      struct dynlib_block_t *tmp = current;
-      current = current->allblocks_list_next; // step to the next block in list
-      libdyn_del_block(tmp);
+      struct dynlib_block_t *block = current;
+
+     if (block->block_initialised == 1) {
+        int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
+      }
     
+      current = current->allblocks_list_next; // step to the next block in list
     } while (current != 0); // while there is a next block in this list
   }
+
+
+  // Post destroy for special blocks
+  current = sim->allblocks_list_head;
+
+  if (current != 0) {
+    do { // Destroy all blocks
+      mydebug(1) fprintf(stderr, "#%d - \n", current->numID);
+ 
+      struct dynlib_block_t *block = current;
+//      libdyn_del_block(tmp);
+
+      if (block->block_initialised == 1) {
+        int ret = (*block->comp_func)(COMPF_FLAG_POSTDESTUCTOR, block);
+      }
+
+      // Now the block is defenite not initialized any more
+      block->block_initialised = 0;
+
+      // Delete block
+      libdyn_del_block(block);
+
+      current = current->allblocks_list_next; // step to the next block in list
+    } while (current != 0); // while there is a next block in this list
+  }
+
+
+//   if (block->block_initialised == 1) {
+//    // call destructor of Comp function ONLY if the block was successfully initialised
+//    int ret = (*block->comp_func)(COMPF_FLAG_POSTDESTUCTOR, block);
+//    }
   
+
+
   // Destroy the library of computational functions
   libdyn_del_compfnlist(sim->private_comp_func_list);
   
@@ -331,8 +368,7 @@ void libdyn_dump_all_blocks(struct dynlib_simulation_t *sim)
  
       struct dynlib_block_t *tmp = current;
       current = current->allblocks_list_next; // step to the next block in list
-      
-      //libdyn_del_block(tmp);
+
       libdyn_block_dumpinfo(tmp);
     
     } while (current != 0); // while there is a next block in this list
@@ -800,10 +836,10 @@ void libdyn_block_dumpinfo(struct dynlib_block_t *block)
 
 void libdyn_del_block(struct dynlib_block_t *block)
 {
-  if (block->block_initialised == 1) {
-    // call destructor of Comp function ONLY if the block was successfully initialised
-    int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
-  }
+//  if (block->block_initialised == 1) {
+//    // call destructor of Comp function ONLY if the block was successfully initialised
+//    int ret = (*block->comp_func)(COMPF_FLAG_DESTUCTOR, block);
+//  }
 
   //Output cache löschen
   if (block->outdata != 0) free(block->outdata);
@@ -1133,7 +1169,8 @@ int libdyn_simulation_init(struct dynlib_simulation_t * sim)
   int ret;
   
   // call the pre-init flag for all blocks
-  ret = libdyn_simulation_callinitflag(sim, COMPF_FLAG_PREINIT, COMPF_FLAG_PREINITUNDO); 
+//  ret = libdyn_simulation_callinitflag(sim, COMPF_FLAG_PREINIT, COMPF_FLAG_PREINITUNDO); 
+  ret = libdyn_simulation_callinitflag(sim, COMPF_FLAG_PREINIT, COMPF_FLAG_POSTDESTUCTOR); 
   if (ret < 0)
     return ret;
   
@@ -1200,6 +1237,9 @@ undo_everything :
 	return -1;
       
       int ret = (*block->comp_func)(destructorflag, block);
+
+       // Mark the block as not initialize (anymore)
+       block->block_initialised = 0;
       
       current = current->allblocks_list_next; // step to the next block in list
       counter++;
