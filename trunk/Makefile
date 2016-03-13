@@ -50,7 +50,7 @@ ifeq ($(target),MACOSX)
 
   # Detect system type and set Fflags
     export CFLAGS += -O2 -D$(targetmacro)
-    export CFLAGS +=     
+#    export CFLAGS += -g -O0 -DDEBUG
     
     # The path include/MACOSX is added with contains <malloc.h> for macosx
     export INCLUDE +=  -I$(ortd_root) -I$(ortd_root)/include/MACOSX

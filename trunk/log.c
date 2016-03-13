@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010, 2011  Christian Klauer
+    Copyright (C) 2010, 2011, 2016  Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
 
@@ -99,6 +99,8 @@ int log_ringbuffer_del(struct ringbuffer_t *rb)
   free(rb->buf);  
   free(rb->cntrl_signal_ring.buffer );
   free(rb);
+
+  return 0;
 }
 
 //
