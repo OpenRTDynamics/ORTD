@@ -669,13 +669,16 @@ function [PacketFramework] = ld_PF_addcontrolbyID(PacketFramework, ControlPlugin
     PacketFramework = ld_PF_addcontrol(PacketFramework, ControlPluginUname, ControlBlock, PacketFramework.Parameters(ControlParamID+1).ParameterName);
 endfunction
 
-function [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName)
+function [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName, Demux)
     SourceID = PacketFramework.SourceID_counter;
 
     Source.SourceName = SourceName;
     Source.SourceID = SourceID;
     Source.NValues_send = NValues_send;
     Source.datatype =  datatype;
+    if typeof(Demux) == 'list' then
+      Source.Demux = Demux;
+    end
 
     // Add new source to the list
     PacketFramework.Sources($+1) = Source;
@@ -685,7 +688,7 @@ function [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_s
 endfunction
 
 function [PacketFramework,SourceID] = ld_PF_addsourceInclSub(PacketFramework, NValues_send, datatype, SourceName, SubPluginUname, SubBlock)
-    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName);
+    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName, 0 );
     PacketFramework = ld_PF_addsubsbyID(PacketFramework, SubPluginUname, SubBlock, SourceID);
 endfunction
 
@@ -824,7 +827,21 @@ function [sim] = ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, data
 endfunction
 
 
+function [sim, PacketFramework] = ld_SendPacketMux(sim, PacketFramework, Signal, NValues_send, datatype, SourceName, Demux) // PARSEDOCU_BLOCK // PARSEDOCU_BLOCK
+    // 
+    // Stream data - block
+    // 
+    // Signal - the signal to stream
+    // NValues_send - the vector length of Signal
+    // datatype - only ORTD.DATATYPE_FLOAT by now
+    // SourceName - a unique string identifier descring the stream
+    // Demux - information for the receiver on how to demultiplex the packet into individual signals.
+    // 
+    // 
 
+    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName, Demux );
+    [sim]=ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, datatype, SourceID);
+endfunction
 
 function [sim, PacketFramework] = ld_SendPacket(sim, PacketFramework, Signal, NValues_send, datatype, SourceName) // PARSEDOCU_BLOCK // PARSEDOCU_BLOCK
     // 
@@ -838,7 +855,7 @@ function [sim, PacketFramework] = ld_SendPacket(sim, PacketFramework, Signal, NV
     // 
     // 
 
-    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName);
+    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName, 0 );
     [sim]=ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, datatype, SourceID);
 endfunction
 
@@ -854,7 +871,7 @@ function [sim, PacketFramework, SourceID] = ld_SendPacketForPlugin(sim, PacketFr
     // 
     // 
 
-    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName);
+    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName, 0 );
     [sim]=ld_PF_ISendUDP(sim, PacketFramework, Signal, NValues_send, datatype, SourceID);
 endfunction
 
@@ -1377,15 +1394,21 @@ function str=ld_PF_Export_str(PacketFramework)
 
         SourceID = PacketFramework.Sources(i).SourceID;
         SourceName =  PacketFramework.Sources(i).SourceName;
-        disp(SourceID );
-        disp( SourceName );
+//        disp(SourceID );
+//        disp( SourceName );
 
-
-        line=sprintf(" ""%s"" : { ""SourceName"" : ""%s"" , ""NValues_send"" : ""%s"", ""datatype"" : ""%s""  } ", ...
+        // Add optional Demultiplexing information
+        if isfield( PacketFramework.Sources(i), 'Demux' );
+            DmxStr = struct2json(PacketFramework.Sources(i).Demux);
+        else
+            DmxStr = "{}";
+        end
+        
+        line=sprintf(" ""%s"" : { ""SourceName"" : ""%s"" , ""NValues_send"" : ""%s"", ""datatype"" : ""%s"", ""Demux"" : ""%s""  } ", ...
         string(PacketFramework.Sources(i).SourceID), ...
         string(PacketFramework.Sources(i).SourceName), ...
         string(PacketFramework.Sources(i).NValues_send), ...
-        string(PacketFramework.Sources(i).datatype) );
+        string(PacketFramework.Sources(i).datatype), DmxStr );
 
 
         if i==length(PacketFramework.Sources)
@@ -1464,7 +1487,7 @@ endfunction
 // 
 
 function [sim, PacketFramework, SourceID]=ld_SendPacketReserve(sim, PacketFramework, NValues_send, datatype, SourceName)
-    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName);
+    [PacketFramework,SourceID] = ld_PF_addsource(PacketFramework, NValues_send, datatype, SourceName, 0 );
 endfunction
 
 function [sim, PacketFramework]=ld_SendPacket2(sim, PacketFramework, Signal, SourceName)
