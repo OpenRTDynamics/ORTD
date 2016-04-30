@@ -76,9 +76,15 @@ ifeq ($(target),LINUX)
 	endif
 
 	ifeq ($(host-type),armv7l)
-	# 64 Bit
+	# 32 Bit ARM
 	export CFLAGS += -fPIC
 	endif
+
+	ifeq ($(host-type),aarch64)
+	# 64 Bit ARM
+	export CFLAGS += -fPIC
+	endif
+	
 
   # Detect system type and set Fflags
     export CFLAGS += -O2 -D$(targetmacro)
@@ -101,6 +107,11 @@ ifeq ($(target),LINUX_DEBUG)
 
 	ifeq ($(host-type),armv7l)
 	# 64 Bit
+	export CFLAGS += -fPIC
+	endif
+
+	ifeq ($(host-type),aarch64)
+	# 64 Bit ARM
 	export CFLAGS += -fPIC
 	endif
 
