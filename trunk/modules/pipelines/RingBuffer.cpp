@@ -52,6 +52,9 @@ extern "C" {
     extern int RingBuffer_block(int flag, struct dynlib_block_t *block);
     extern int write_RingBuffer_block(int flag, struct dynlib_block_t *block);
     extern int read_RingBuffer_block(int flag, struct dynlib_block_t *block);
+    extern int relread_RingBuffer_block(int flag, struct dynlib_block_t *block);
+    extern int setmarkerW_RingBuffer_block(int flag, struct dynlib_block_t *block);
+  
 };
 
 
@@ -77,6 +80,7 @@ public:
 
         this->ReadCounter = 0;
         this->WriteCounter = 0;
+	this->MarkerPosition = 0;
         this->ElementsPending = 0;
 
 //         printf("init RingBuffer. Memsize = %d\n", memsize);
@@ -113,6 +117,15 @@ public:
         memcpy(data, src, memsize);
         unlock_data();
     }
+    
+    bool SetMarkerPositionToCurrentWrite() {
+      lock_data();
+      this->MarkerPosition = this->WriteCounter;
+   //   printf("MarkerPosition set to %d\n", MarkerPosition);
+      unlock_data();
+      
+    }
+    
     bool insertElements(int numElementsToWrite, void *src) {
 //         fprintf(stderr, "insertElements\n");
         lock_data();
@@ -122,7 +135,7 @@ public:
 
             if (freeSlots < numElementsToWrite) {
 	        unlock_data();
-                fprintf(stderr, "ringbuffer overflow\n");		
+             //   fprintf(stderr, "ringbuffer overflow\n");		
                 return false; // Buf full
             }
 
@@ -153,6 +166,38 @@ public:
 
         return true;
     }
+    
+    bool GetElementRelToMarkerCopy(void *dst, uint rel) {
+//       fprintf(stderr, "GetElementCopy\n");
+        lock_data();
+        {
+	    int PosToRead = this->MarkerPosition;
+	    
+	    PosToRead = PosToRead + rel;
+	    
+	    if (PosToRead < 0) { // wrap to the end of the linear buffer and continue to subtract
+	      PosToRead =  NumElements + PosToRead; 
+	    }
+	  
+	  
+ 	 //   fprintf(stderr, "reader: relative reading from pos %d. rel=%d, NumElements=%d writepos=%d, MarkerPosition=%d\n", PosToRead, rel, NumElements, WriteCounter, MarkerPosition);
+
+	  
+	 
+            // at least one element available
+            uint memofs = PosToRead * data_element_size; // calc position in buffer
+            memcpy(dst, (void *) &data[memofs], data_element_size);
+	    
+
+//             fprintf(stderr, "data read: read_cnt=%d, write_cnt=%d, stored ele=%d\n", ReadCounter, WriteCounter, ElementsPending);
+// printf("Read: %f\n", ((double*)dst)[0]);
+
+        }
+        unlock_data();
+
+        return true;
+    }
+    
     bool GetElementCopy(void *dst) {
 //       fprintf(stderr, "GetElementCopy\n");
         lock_data();
@@ -160,7 +205,7 @@ public:
 
             if (ElementsPending < 1) {
 	        unlock_data();
-                fprintf(stderr, "Buffer Empty\n");
+              //  fprintf(stderr, "Buffer Empty\n");
                 return false;
             }
 
@@ -205,7 +250,7 @@ public:
 
 private:
     uint8_t *data;
-    uint WriteCounter, ReadCounter;
+    uint WriteCounter, ReadCounter, MarkerPosition;
     uint ElementsPending;
 
     bool UnusedParam;
@@ -719,6 +764,321 @@ int read_RingBuffer_block(int flag, struct dynlib_block_t *block)
     break;
     case COMPF_FLAG_PRINTINFO:
         printf("I'm a RingBuffer reading block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+class RingBuffer_relread_block_class {
+public:
+    RingBuffer_relread_block_class(struct dynlib_block_t *block)    {
+        this->block = block;
+    }
+    void destruct() {        }
+
+    void io_output() {
+        int32_t *relPos = (int32_t *) libdyn_get_input_ptr(block,0);
+
+	void *outputPtr = (void *) libdyn_get_output_ptr(block,0);
+//        double *DataRead = (double *) libdyn_get_output_ptr(block,1);
+
+        // Copy data
+        int i=0;
+        do {
+            void *outputElementPtr = ((uint8_t*) outputPtr) + pmem->data_element_size * i;
+	    pmem->GetElementRelToMarkerCopy(outputElementPtr, *relPos + i );
+	    
+	    i++;
+        } while ( i < ElementsToRead );
+
+        // Return the number of elements read
+//        *DataRead = i;
+    };
+    void io_update() {       };
+    void reset() {};
+    int init() {
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
+
+        int datatype = ipar[1];
+        this->ElementsToRead = ipar[2];
+
+        int len_ident_str = ipar[10];
+        char * directory_entry_fname;
+        irpar_getstr(&directory_entry_fname, ipar, 11, len_ident_str);
+
+       // fprintf(stderr, "relread_RingBuffer_block: datatype %d size to read %d indentStr %s\n", datatype, this->ElementsToRead, directory_entry_fname);
+
+        libdyn_master *master = (libdyn_master *) block->sim->master;
+
+        // FIXME: need to make sure that this is really a Rigbuf object and not something else
+        pmem = (RingBuffer_shobj*) get_ortd_global_shared_object(directory_entry_fname, master);
+
+
+        if (pmem == NULL) {
+            fprintf(stderr, "ERROR: relread_RingBuffer_block: memory <%s> could not be found\n", directory_entry_fname);
+            free(directory_entry_fname);
+            return -1;
+        }
+        free(directory_entry_fname);
+
+
+        // check consistency
+        if (pmem->datatype != datatype) {
+            fprintf(stderr, "ERROR: relread_RingBuffer_block: missmatching datatype for memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+        if (pmem->NumElements < this->ElementsToRead) {
+            fprintf(stderr, "ERROR: relread_RingBuffer_block: elements_to_write is bigger than the number of elements in memory <%s>\n", directory_entry_fname);
+            return -1;
+        }
+
+
+        return 0;
+    }
+
+private:
+    struct dynlib_block_t *block;
+
+    int ElementsToRead;
+    bool useMutex;
+
+    RingBuffer_shobj  *pmem;
+};
+
+
+
+int relread_RingBuffer_block(int flag, struct dynlib_block_t *block)
+{
+//     printf("RingBuffer_ read block: flag==%d\n", flag);
+
+    double *in;
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int Nin = 1;
+    int Nout = 1; 
+
+    in = (double *) libdyn_get_input_ptr(block,0);
+    RingBuffer_relread_block_class *worker = (RingBuffer_relread_block_class *) libdyn_get_work_ptr(block);
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        worker->io_output();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        worker->io_update();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
+    {
+        int datatype = ipar[1];
+        int size = ipar[2]; // len of datainput
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT, 1);
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:
+    {
+        worker = new RingBuffer_relread_block_class(block);
+        libdyn_set_work_ptr(block, (void*) worker);
+
+        int ret = worker->init();
+        if (ret < 0)
+            return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        worker->reset();
+    }
+    return 0;
+    break;
+//     case COMPF_FLAG_HIGHERLEVELRESET:
+//     {
+//         worker->io(1);
+//     }
+//     return 0;
+//     break;
+    case COMPF_FLAG_PREINITUNDO: // destroy instance
+    {
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        worker->destruct();
+        delete worker;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a RingBuffer rel reading block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+class RingBuffer_setmarkerW_block_class {
+public:
+    RingBuffer_setmarkerW_block_class(struct dynlib_block_t *block)    {
+        this->block = block;
+    }
+    void destruct() {        }
+
+    void io_output() {
+        int32_t *trigger = (int32_t *) libdyn_get_input_ptr(block,0);
+	
+	if (*trigger > 0.5) {
+	  pmem->SetMarkerPositionToCurrentWrite();
+	}
+
+    };
+    void io_update() {       };
+    void reset() {};
+    int init() {
+        double *rpar = libdyn_get_rpar_ptr(block);
+        int *ipar = libdyn_get_ipar_ptr(block);
+
+        int len_ident_str = ipar[10];
+        char * directory_entry_fname;
+        irpar_getstr(&directory_entry_fname, ipar, 11, len_ident_str);
+
+       // fprintf(stderr, "setmarkerW_RingBuffer_block: datatype %d size to read %d indentStr %s\n", datatype, this->ElementsToRead, directory_entry_fname);
+
+        libdyn_master *master = (libdyn_master *) block->sim->master;
+
+        // FIXME: need to make sure that this is really a Rigbuf object and not something else
+        pmem = (RingBuffer_shobj*) get_ortd_global_shared_object(directory_entry_fname, master);
+
+
+        if (pmem == NULL) {
+            fprintf(stderr, "ERROR: setmarkerW_RingBuffer_block: memory <%s> could not be found\n", directory_entry_fname);
+            free(directory_entry_fname);
+            return -1;
+        }
+        free(directory_entry_fname);
+
+
+
+        return 0;
+    }
+
+private:
+    struct dynlib_block_t *block;
+
+    RingBuffer_shobj  *pmem;
+};
+
+
+int setmarkerW_RingBuffer_block(int flag, struct dynlib_block_t *block)
+{
+//     printf("RingBuffer_ read block: flag==%d\n", flag);
+
+    double *in;
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+
+    int Nin = 1;
+    int Nout = 0; 
+
+    in = (double *) libdyn_get_input_ptr(block,0);
+    RingBuffer_setmarkerW_block_class *worker = (RingBuffer_setmarkerW_block_class *) libdyn_get_work_ptr(block);
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        worker->io_output();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+        worker->io_update();
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_CONFIGURE:  // configure. NOTE: do not reserve memory or open devices. Do this while init instead!
+    {
+        int datatype = ipar[1];
+        int size = ipar[2]; // len of datainput
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:
+    {
+        worker = new RingBuffer_setmarkerW_block_class(block);
+        libdyn_set_work_ptr(block, (void*) worker);
+
+        int ret = worker->init();
+        if (ret < 0)
+            return -1;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+        worker->reset();
+    }
+    return 0;
+    break;
+//     case COMPF_FLAG_HIGHERLEVELRESET:
+//     {
+//         worker->io(1);
+//     }
+//     return 0;
+//     break;
+    case COMPF_FLAG_PREINITUNDO: // destroy instance
+    {
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+        worker->destruct();
+        delete worker;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a RingBuffer set marker block\n");
         return 0;
         break;
 

@@ -67,7 +67,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
       [sim, motion] = ld_constvec(sim, ev, vec=zeros(1,1) );
     
       // Create the Ringbuffer
-      [sim] = ld_ringbuf(sim, ev, ident_str="Ringbuffer1", datatype=ORTD.DATATYPE_FLOAT, len=100, visibility='global');
+      [sim] = ld_ringbuf(sim, ev, ident_str="Ringbuffer1", datatype=ORTD.DATATYPE_FLOAT, len=20, visibility='global');
   
 
       // include a threaded simulation that is triggered at 25Hz
@@ -92,6 +92,22 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
   [sim] = ld_printf(sim, ev, in=NumRead, str="NumRead", insize=1);
   [sim] = ld_printf(sim, ev, in=DataRead, str="DataRead", insize=10);
+  
+  [sim, one] = ld_const(sim, 0, 1);
+  [sim,onei32] = ld_roundInt32(sim, 0, one); 
+  [sim] = ld_setmarkerW_ringbuf(sim, 0, "Ringbuffer1" , onei32);
+  
+  
+  
+  
+  [sim, relPos] = ld_constvecInt32(sim, 0, vec=-1);
+  [sim, data] = ld_relread_ringbuf(sim, 0, "Ringbuffer1", datatype=ORTD.DATATYPE_FLOAT, ElementsToRead=1, relPos);
+  [sim] = ld_printf(sim, 0, in=data, str="data -1", insize=1);
+
+
+  [sim, relPos] = ld_constvecInt32(sim, 0, vec=-2);
+  [sim, data] = ld_relread_ringbuf(sim, 0, "Ringbuffer1", datatype=ORTD.DATATYPE_FLOAT, ElementsToRead=1, relPos);
+  [sim] = ld_printf(sim, 0, in=data, str="data -2", insize=1);
 
   // output of schematic
   [sim, out] = ld_const(sim, ev, 0);
