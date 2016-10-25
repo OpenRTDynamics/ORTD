@@ -101,3 +101,55 @@ function [sim, data, NumRead] = ld_read_ringbuf(sim, events, ident_str, datatype
    
 endfunction
 
+function [sim, data] = ld_relread_ringbuf(sim, events, ident_str, datatype, ElementsToRead, relPos)   // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Read a portion from a ringbuffer relative to the currently set marker position
+// 
+// data *+(ElementsToRead) - data
+// ident_str (string) - name of the ringbuffer
+// datatype - ORTD datatype of the ringbuffer (for now only ORTD.DATATYPE_FLOAT)
+// ElementsToRead (integer) - number of elements to read from the ringbuffer
+// relPos - UINT - position relative to the currently set marker to start reading from 
+//
+
+  ident_str = ident_str + '.ringbuf';
+
+  btype = 15400 + 3;
+  ipar = [0, datatype, ElementsToRead, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
+  rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[1 ], outsizes=[ElementsToRead], ...
+                   intypes=[ORTD.DATATYPE_INT32 ], outtypes=[datatype ]  );
+ 
+  // ensure the block is included in the simulation even without any I/O ports
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(relPos) );
+ 
+  [sim,data] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+   
+endfunction
+
+function [sim] = ld_setmarkerW_ringbuf(sim, events, ident_str, trigger)   // PARSEDOCU_BLOCK
+// 
+// %PURPOSE: Set the current marker position to the lastly written element
+// 
+// ident_str (string) - name of the ringbuffer
+// trigger - UINT - set marker if trigger > 0 
+//
+
+  ident_str = ident_str + '.ringbuf';
+
+  btype = 15400 + 4;
+  ipar = [0, 0, 0, 0, 0,0,0,0, 0,0, length(ident_str), ascii(ident_str) ]; 
+  rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                   insizes=[1 ], outsizes=[], ...
+                   intypes=[ORTD.DATATYPE_INT32 ], outtypes=[ ]  );
+ 
+  // ensure the block is included in the simulation even without any I/O ports
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(trigger) );
+ 
+endfunction
+
+

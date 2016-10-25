@@ -204,7 +204,7 @@ int simperiodic(struct global_t *global_p)
 
 int simend(struct global_t *global_p)
 {
-  printf("libdyn_generic_exec: Destructing the simulations\n");
+  printf("ortdrun: Destructing the simulations\n");
   
     global_p->simbox->destruct();
     delete global_p->simbox;
@@ -215,6 +215,11 @@ int simend(struct global_t *global_p)
     free(global_p->ipar_cpy);
     free(global_p->rpar_cpy);
 
+    printf("ortdrun: Ready to exit\n");
+
+    kill(0, SIGHUP);
+
+    printf("ortdrun: exit\n");
 }
 
 
@@ -277,14 +282,16 @@ void *rt_task(void *p)
     }
 //  NAME(MODEL,_end)();
  
-    fprintf(stderr, "ortd: Main loop exited; Destructing the simulation\n");
+    fprintf(stderr, "ortdrun: Main loop exited; Destructing the simulation\n");
 
     simend(global_p);
+
+
 }
 
 void endme(int n)
 {
-  printf("libdyn_generic_exec: Received signal to terminate\n");
+  printf("ortdrun: Received signal to terminate\n");
     end = 1;    
 }
 
@@ -457,6 +464,8 @@ out:
 
         signal(SIGINT,endme);
         signal(SIGKILL,endme);
+        //signal(SIGHUP,endme);
+
 
      //   iopl(3);
 	rt_task(global_p);

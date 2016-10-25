@@ -41,6 +41,10 @@ extern "C" {
     extern int RingBuffer_block(int flag, struct dynlib_block_t *block);
     extern int write_RingBuffer_block(int flag, struct dynlib_block_t *block);    
     extern int read_RingBuffer_block(int flag, struct dynlib_block_t *block);
+    extern int relread_RingBuffer_block(int flag, struct dynlib_block_t *block);
+    extern int setmarkerW_RingBuffer_block(int flag, struct dynlib_block_t *block);
+    
+    //setmakerW_RingBuffer_block
 }
 
 // CHANGE HERE: Adjust this function name to match the name of your module
@@ -55,6 +59,12 @@ int libdyn_module_pipelines_siminit(struct dynlib_simulation_t *sim, int bid_ofs
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+0, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RingBuffer_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+1, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &write_RingBuffer_block);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+2, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &read_RingBuffer_block);
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+3, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &relread_RingBuffer_block);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+4, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &setmarkerW_RingBuffer_block);
+    
+    fprintf(stderr, "################################################\n");
+    
 
 #ifdef DEBUG
     printf("libdyn module pipelines initialised\n");
