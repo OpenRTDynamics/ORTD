@@ -939,27 +939,35 @@ public:
               void *in = (void *) libdyn_get_input_ptr(block, 0); // the first output port
 	      int32_t *trigger = (int32_t *) libdyn_get_input_ptr(block, 1); // the first output port
 	      
-	      if (FileOpen && *trigger > 0) {
-			//printf("w...\n");
+	      if (*trigger > 0) {
 
-		// write data
-		if (datatype == DATATYPE_FLOAT) {
-		  double *fin = (double*) in;
-		  
-		  int i;
-		  
-		  for (i = 0; i < N; ++i) {
-		    fprintf(fd, "%f ", fin[i]);
+		if (!FileOpen) {
+	  	  StartWriting();
+	        }
+
+		
+		if (FileOpen) {
+			  //printf("w...\n");
+
+		  // write data
+		  if (datatype == DATATYPE_FLOAT) {
+		    double *fin = (double*) in;
+		    
+		    int i;
+		    
+		    for (i = 0; i < N; ++i) {
+		      fprintf(fd, "%f ", fin[i]);
+		    }
+		    fprintf(fd, "\n");
+		    
+		  } else {
+		      fprintf(stderr, "ld_SyncFilewrite: Datatype not supported!\n");
 		  }
-		  fprintf(fd, "\n");
 		  
-		} else {
-		    fprintf(stderr, "ld_SyncFilewrite: Datatype not supported!\n");
-		}
 		
-		
-	      } else if (!FileOpen && *trigger > 0) {
-		StartWriting();
+	        } 
+	        
+	        
 	      } else if (FileOpen && *trigger == 0) {
 		StopWriting();
 	      }
