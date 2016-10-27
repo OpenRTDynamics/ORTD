@@ -99,6 +99,16 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // save resulting samples to a file
   [sim, save0] = ld_dumptoiofile(sim, ev, "result.dat", x);
   
+  //
+  [sim, Save] = ld_mux(sim, 0, 2, list(x, y) );
+            
+            
+            //
+            [sim, TriggerSave] = ld_steps2(sim, 0, activation_simsteps=[10,30,40,70], values=[0,1,0,1,0] );
+            [sim, TriggerSave_i32] = ld_roundInt32(sim, 0, TriggerSave); 
+            [sim] = ld_SyncFilewrite(sim, 0, in=Save, len=2, datatype=ORTD.DATATYPE_FLOAT, fname="result_XY.dats", trigger=TriggerSave_i32, par=struct() );
+            
+  
   // output of schematic
   outlist = list(x);
 endfunction

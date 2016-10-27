@@ -434,10 +434,10 @@ int log_dfilewriter_callback(void *data, void *calbdata, int flag)
   
   switch(flag) {
     case 1:
-      printf("filewriter: open logfile %s\n", fw->fname);
+      fprintf(stderr, "filewriter: open logfile %s\n", fw->fname);
       fw->fd = fopen ( fw->fname, "w" );
       if (fw->fd == NULL) {
-	printf("ERROR: log.c: cannot open file\n");
+	fprintf(stderr, "ERROR: log.c: cannot open file\n");
 	return -1;
       }
       return 0;
@@ -460,18 +460,18 @@ int log_dfilewriter_callback(void *data, void *calbdata, int flag)
       break;
     case 3:
       if (fw->fd != NULL) {
-        printf("filewriter: close logfile %s\n", fw->fname);
+        fprintf(stderr, "filewriter: close logfile %s\n", fw->fname);
         fclose(fw->fd);
       }
       return 0;
       break;
     case 5: // reset
       {
-	printf("filewriter: reset\n");
+	fprintf(stderr, "filewriter: reset\n");
 	
 	// Close the old file
 	if (fw->fd != NULL) {
-	  printf("filewriter: close logfile %s\n", fw->fname);
+	  fprintf(stderr, "filewriter: close logfile %s\n", fw->fname);
 	  fclose(fw->fd);
 	}
 	
@@ -479,14 +479,14 @@ int log_dfilewriter_callback(void *data, void *calbdata, int flag)
 	char new_file_name[1024 + 10];
 	snprintf(new_file_name, sizeof(new_file_name), "%s.finished", fw->fname);
 	if (rename(fw->fname, new_file_name) != 0) {
-	  printf("filewriter: unable to rename file to %s\n", new_file_name); 
+	  fprintf(stderr, "filewriter: unable to rename file to %s\n", new_file_name); 
 	}
 	
 	// Open the new file
-	printf("filewriter: open logfile %s\n", fw->fname);
+	fprintf(stderr, "filewriter: open logfile %s\n", fw->fname);
 	fw->fd = fopen ( fw->fname, "w" );
 	if (fw->fd == NULL) {
-	  printf("ERROR: log.c: cannot open file\n");
+	  fprintf(stderr, "ERROR: log.c: cannot open file\n");
 	  return -1;
 	}
 	
@@ -502,7 +502,7 @@ struct filewriter_t *log_dfilewriter_new(int vlen, int bufsize, char *fname)
   struct filewriter_t *fw = (struct filewriter_t *) malloc(sizeof(struct filewriter_t));
  
   if (strlen(fname) > sizeof(fw->fname)) {
-    printf("log.c dfilewriter: Filename too long\n");
+    fprintf(stderr, "log.c dfilewriter: Filename too long\n");
     return NULL;
   }
   

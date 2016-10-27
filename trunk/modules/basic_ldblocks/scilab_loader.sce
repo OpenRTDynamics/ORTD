@@ -2344,7 +2344,50 @@ function [sim] = ld_ORTDIO_Put(sim, events, in, len, datatype, header) // PARSED
  //[sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim] = ld_SyncFilewrite(sim, events, in, len, datatype, fname, trigger, par) // PARSEDOCU_BLOCK
+// 
+// Synchronously write ascii data to a file
+//
+// Data is stored directly during the flag for updating states and may hence disturbe realtime operation
+// of a surrounding realtime loop. Only datatype float is currently supported.
+//
+// len - Size of the vector to be send
+// in *(len) - Input signal.
+// datatype - Datatype of signal "in"
+// fname - A string that is prepended to each binary message
+// par - optional parameters (none at the moment. Put par=struct() )
+// 
 
+
+   // pack all parameters into a structure "parlist"
+   parlist = new_irparam_set();
+
+   parlist = new_irparam_elemet_ivec(parlist, ascii(fname), 12); // id = 12; A string parameter
+
+   p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ p.ipar ];
+  Urpar = [ p.rpar ];
+  btype = 60001 + 306; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+  insizes=[len,1]; // Input port sizes
+  outsizes=[]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[datatype, ORTD.DATATYPE_INT32]; // datatype for each input port
+  outtypes=[]; // datatype for each output port
+
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // connect the inputs
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, trigger) ); // 
+
+  // connect the ouputs
+ //[sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 // 
 // 
