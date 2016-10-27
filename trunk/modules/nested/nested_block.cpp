@@ -2889,6 +2889,9 @@ public:
             simnest->copy_outport_vec(i, out_p);
         }
 	}
+	
+	// reset all blocks inside the for-loop nest
+	simnest->reset_blocks();
 
     }
 
