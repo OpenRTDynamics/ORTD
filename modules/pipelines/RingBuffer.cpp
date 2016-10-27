@@ -121,7 +121,7 @@ public:
     bool SetMarkerPositionToCurrentWrite() {
       lock_data();
       this->MarkerPosition = this->WriteCounter;
-      printf("MarkerPosition set to %d\n", MarkerPosition);
+      fprintf(stderr, "MarkerPosition set to %d\n", MarkerPosition);
       unlock_data();
       
     }
