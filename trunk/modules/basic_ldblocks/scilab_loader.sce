@@ -1109,6 +1109,34 @@ end
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
 endfunction
 
+function [sim] = ld_printfstderr2(sim, events, in, str, insize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Print str to stderr (the console)
+//
+// in *+(insize) - vectorial input signal
+//
+// str is a string that is printed followed by the signal vector in
+// of size insize
+//
+  //[sim,blk] = libdyn_new_printf(sim, events, str, insize);
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('String', 'str', str) );
+  ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
+end
+
+  btype = 60001 + 36;;
+  str = ascii(str);
+//   [sim,bid] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ insize, length(str), str(:)' ], rpar=[ ], ...
+                   insizes=[ insize ], outsizes=[], ...
+                   intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+endfunction
+
 function [sim] = ld_printfbar(sim, events, in, str) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: Print a bar (the console)

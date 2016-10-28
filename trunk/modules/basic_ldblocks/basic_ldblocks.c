@@ -1667,6 +1667,87 @@ int compu_func_printfstderr(int flag, struct dynlib_block_t *block)
   }
 }
 
+int compu_func_printfstderr2(int flag, struct dynlib_block_t *block)
+{
+  
+//   printf("comp_func printf: flag==%d\n", flag);
+  int Nout = 0;
+  int Nin = 1;
+
+  double *in;
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+
+  int vlen = ipar[0];
+  int fnamelen = ipar[1];
+  int *codedfname = &ipar[2];
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {  
+
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      in = (double *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      fprintf(stderr, str, in[1]);
+//      int i;
+//      for (i = 0; i < vlen; ++i) {
+//	fprintf(stderr, "%f, ", in[i]);
+//      }
+      fprintf(stderr, "\n"); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+
+      // one Port of length vlen
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, vlen, DATATYPE_FLOAT); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      char *str = (char *) malloc(fnamelen+1);
+          
+      // Decode filename
+      int i;
+      for (i = 0; i < fnamelen; ++i)
+	str[i] = codedfname[i];
+      
+      str[i] = 0; // String termination
+      
+      libdyn_set_work_ptr(block, (void*) str);
+      
+//      printf("Decoded filename = %s\n", filename);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      char *str = (char *) block->work;
+
+      free(str);
+    }
+      return 0;
+      break;      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a printf(stderr,...) V2 block\n");
+      return 0;
+      break;
+      
+  }
+}
+
+
 
 int compu_func_printfbar(int flag, struct dynlib_block_t *block)
 {
@@ -4608,6 +4689,10 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 33, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_roundInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 34, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_constvecInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 35, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_sumInt32);
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 36, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_printfstderr2);
+    
+    
     
     
 //     TO INSERT
