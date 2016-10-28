@@ -121,7 +121,7 @@ public:
     bool SetMarkerPositionToCurrentWrite() {
       lock_data();
       this->MarkerPosition = this->WriteCounter;
-      fprintf(stderr, "MarkerPosition set to %d\n", MarkerPosition);
+    //  fprintf(stderr, "MarkerPosition set to %d\n", MarkerPosition);
       unlock_data();
       
     }
@@ -180,7 +180,7 @@ public:
 	    }
 	  
 	  
- 	    fprintf(stderr, "reader: relative reading from pos %d. rel=%d, NumElements=%d writepos=%d, MarkerPosition=%d\n", PosToRead, rel, NumElements, WriteCounter, MarkerPosition);
+ 	  //  fprintf(stderr, "reader: relative reading from pos %d. rel=%d, NumElements=%d writepos=%d, MarkerPosition=%d\n", PosToRead, rel, NumElements, WriteCounter, MarkerPosition);
 
 	  
 	 
