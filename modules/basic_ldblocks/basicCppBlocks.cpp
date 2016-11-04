@@ -856,6 +856,8 @@ public:
     int32_t lastTrigger;
     FILE *fd;
     bool FileOpen;
+    
+    int WrittenLines;
 
 
     //
@@ -915,6 +917,7 @@ public:
 	  if (fd == NULL) {
 	    fprintf(stderr, "ERROR: ld_SyncFilewrite: cannot open file\n");
 	  }
+	  WrittenLines = 0;
 	  
 	  FileOpen = true;
 	}
@@ -925,8 +928,8 @@ public:
    //   	printf("stow\n");
 
       if (FileOpen) {
-      	printf("close fd\n");
 	fclose(fd);
+      	printf("ld_SyncFilewrite: closed logfile after writing %d lines of data\n", WrittenLines);
       } 
       FileOpen = false;      
       
@@ -959,6 +962,8 @@ public:
 		      fprintf(fd, "%f ", fin[i]);
 		    }
 		    fprintf(fd, "\n");
+		    
+		    WrittenLines += 1;
 		    
 		  } else {
 		      fprintf(stderr, "ld_SyncFilewrite: Datatype not supported!\n");
