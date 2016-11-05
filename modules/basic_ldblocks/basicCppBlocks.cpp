@@ -929,7 +929,7 @@ public:
 
       if (FileOpen) {
 	fclose(fd);
-      	printf("ld_SyncFilewrite: closed logfile after writing %d lines of data\n", WrittenLines);
+      	fprintf("ld_SyncFilewrite: closed logfile after writing %d lines of data\n", WrittenLines);
       } 
       FileOpen = false;      
       
