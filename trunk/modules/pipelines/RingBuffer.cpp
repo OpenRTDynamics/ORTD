@@ -128,16 +128,36 @@ public:
     
     bool insertElements(int numElementsToWrite, void *src) {
 //         fprintf(stderr, "insertElements\n");
+      if (numElementsToWrite > NumElements) {
+	fprintf(stderr, "RingBuffer: Error: insertElements: numElementsToWrite > NumElements\n");
+	return false;
+      }
+      
         lock_data();
         {
             bool overflow_check = ElementsPending == NumElements;
             int freeSlots = NumElements - ElementsPending;
 
+        //    if (freeSlots < numElementsToWrite) {
+	//        unlock_data();
+	//	return false; // Buf full
+         //   }
+            
+            // Simulate reading of data to free a number of numElementsToWrite slots
+	    // if buffer does not have enough remaing space to store this data
+	    // NOTE: The oldest data is discarded!
+	    
             if (freeSlots < numElementsToWrite) {
-	        unlock_data();
-             //   fprintf(stderr, "ringbuffer overflow\n");		
-                return false; // Buf full
+              ReadCounter+=numElementsToWrite;
+	      
+	      if (ReadCounter >= NumElements) // read_cnt zurücksetzen
+		  ReadCounter = ReadCounter - NumElements; // 0;  // NOTE: Assuming the number of elements inserted into the buffer is never bigger than the buffer
+
+	      ElementsPending-=numElementsToWrite;
+	       freeSlots = NumElements - ElementsPending;
             }
+            
+            // Write elements to the buffer
 
             int i;
             for (i = 0; i < numElementsToWrite; ++i) { // for each element to be written
