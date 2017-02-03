@@ -622,7 +622,7 @@ bool libdyn_nested::set_current_simulation(int nSim)
     }
 
     if (!slotindexOK(nSim)) {
-        fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
+       // fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
         return false;
     }
 
@@ -1492,7 +1492,7 @@ bool libdyn_nested2::set_current_simulation(int nSim)
     }
 
     if (!slotindexOK(nSim)) {
-        fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
+        //fprintf(stderr, "libdyn_nested: ASSERTION FAILED bad slot\n");
         return false;
     }
 
