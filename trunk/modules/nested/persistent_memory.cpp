@@ -348,7 +348,7 @@ public:
         if (index < 1) index=1;
         if (index > maxindex) index=maxindex;
 
-      fprintf(stderr, "write %d elements to index %d\n", elements_to_write, index);
+    //  fprintf(stderr, "write %d elements to index %d\n", elements_to_write, index);
 
         index--; // convert to C-index
 
@@ -760,7 +760,7 @@ public:
         }
           
 
-           //  fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
+             fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
 
             index--; // convert to C-index
 
@@ -851,7 +851,7 @@ int write2_persistent_memory_block(int flag, struct dynlib_block_t *block)
     int *ipar = libdyn_get_ipar_ptr(block);
 
     int Nin = 3;
-    int Nout = 0;
+    int Nout = 1;
 
     persistent_memory_write2_block_class *worker = (persistent_memory_write2_block_class *) libdyn_get_work_ptr(block);
 
@@ -879,6 +879,7 @@ int write2_persistent_memory_block(int flag, struct dynlib_block_t *block)
         libdyn_config_block_input(block, 0, size, datatype); // data input
         libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // control input ofs
         libdyn_config_block_input(block, 2, 1, DATATYPE_INT32); // control input Nwrite
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1); //DUMMY
 	
 
     }
