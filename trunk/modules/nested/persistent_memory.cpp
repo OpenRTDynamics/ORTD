@@ -460,7 +460,7 @@ int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
         int datatype = ipar[1];
         int size = ipar[2]; // len of datainput
 
-        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
         libdyn_config_block_input(block, 0, size, datatype); // data input
         libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // control input
@@ -663,7 +663,7 @@ int read_persistent_memory_block(int flag, struct dynlib_block_t *block)
         int datatype = ipar[1];
         int size = ipar[2]; // len of datainput
 
-        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
         libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // control input
         libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT, 1);
@@ -865,7 +865,7 @@ int write2_persistent_memory_block(int flag, struct dynlib_block_t *block)
         int datatype = ipar[1];
         int size = ipar[2]; // len of datainput
 
-        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
         libdyn_config_block_input(block, 0, size, datatype); // data input
         libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // control input ofs
