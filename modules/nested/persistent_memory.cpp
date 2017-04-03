@@ -348,7 +348,7 @@ public:
         if (index < 1) index=1;
         if (index > maxindex) index=maxindex;
 
-         fprintf(stderr, "write %d elements to index %d\n", elements_to_write, index);
+    //  fprintf(stderr, "write %d elements to index %d\n", elements_to_write, index);
 
         index--; // convert to C-index
 
@@ -760,7 +760,7 @@ public:
         }
           
 
-             fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
+           //  fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
 
             index--; // convert to C-index
 
