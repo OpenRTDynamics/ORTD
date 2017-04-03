@@ -760,7 +760,7 @@ public:
         }
           
 
-             fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
+           //  fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
 
             index--; // convert to C-index
 
