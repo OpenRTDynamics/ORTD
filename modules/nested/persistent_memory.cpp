@@ -337,8 +337,9 @@ public:
     }
     void destruct() {        }
 
-    void io_output() {};
-    void io_update() {
+    void io_output() {
+
+
         void *dataToWrite = (void *) libdyn_get_input_ptr(block,0);
         double *index__ = (double *) libdyn_get_input_ptr(block,1);
         int index = round(*index__); // is starting at 1
@@ -347,7 +348,7 @@ public:
         if (index < 1) index=1;
         if (index > maxindex) index=maxindex;
 
-//         printf("write %d elements to index %d\n", elements_to_write, index);
+         fprintf(stderr, "write %d elements to index %d\n", elements_to_write, index);
 
         index--; // convert to C-index
 
@@ -362,6 +363,10 @@ public:
         } else {
             memcpy(destptr, dataToWrite, elements_to_write*pmem->data_element_size);
         }
+
+
+    };
+    void io_update() {
 
     };
     void reset() {};
@@ -430,14 +435,14 @@ private:
 // NOTE: MUSTER für C++ compfn
 int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
 {
-//     printf("persistent_memory_ write block: flag==%d\n", flag);
+    // printf("persistent_memory_ write block: flag==%d\n", flag);
 
     double *in;
     double *rpar = libdyn_get_rpar_ptr(block);
     int *ipar = libdyn_get_ipar_ptr(block);
 
     int Nin = 2;
-    int Nout = 0;
+    int Nout = 1;
 
     persistent_memory_write_block_class *worker = (persistent_memory_write_block_class *) libdyn_get_work_ptr(block);
 
@@ -464,7 +469,7 @@ int write_persistent_memory_block(int flag, struct dynlib_block_t *block)
 
         libdyn_config_block_input(block, 0, size, datatype); // data input
         libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT); // control input
-//         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1); // DUMMY OUTPUT
 
     }
     return 0;
@@ -738,38 +743,42 @@ public:
     }
     void destruct() {        }
 
-    void io_output() {};
-    void io_update() {
+    void io_output() {
+
         void *dataToWrite = (void *) libdyn_get_input_ptr(block,0);
-        int32_t *index__ = (int32_t *) libdyn_get_input_ptr(block,1);
-	int index = *index__;
-        int32_t *Nwrite__ = (int32_t *) libdyn_get_input_ptr(block,2);
-	int Nwrite = *Nwrite__;
-        
+            int32_t *index__ = (int32_t *) libdyn_get_input_ptr(block,1);
+        int index = *index__;
+            int32_t *Nwrite__ = (int32_t *) libdyn_get_input_ptr(block,2);
+        int Nwrite = *Nwrite__;
+            
 
-        int maxindex = pmem->data_num_elements - Nwrite + 1;
-        if (index < 1 || index > maxindex || Nwrite > MaxElements) {
-	  fprintf(stderr, "write_persistent_memory_block2: index / Nwrite out of range\n");
-	  
-	  return;
-	}
-	  
-
-//         printf("write %d elements to index %d\n", Nwrite, index);
-
-        index--; // convert to C-index
-
-
-        // calc destination ptr
-        void *destptr = (void*) ( ((char*) pmem->get_dataptr()) + pmem->data_element_size*index );
-
-        if (useMutex) {
-            pmem->lock_data();
-            memcpy(destptr, dataToWrite, Nwrite*pmem->data_element_size);
-            pmem->unlock_data();
-        } else {
-            memcpy(destptr, dataToWrite, Nwrite*pmem->data_element_size);
+            int maxindex = pmem->data_num_elements - Nwrite + 1;
+            if (index < 1 || index > maxindex || Nwrite > MaxElements) {
+          fprintf(stderr, "write_persistent_memory_block2: index / Nwrite out of range\n");
+          
+          return;
         }
+          
+
+             fprintf(stderr, "write %d elements to index %d\n", Nwrite, index);
+
+            index--; // convert to C-index
+
+
+            // calc destination ptr
+            void *destptr = (void*) ( ((char*) pmem->get_dataptr()) + pmem->data_element_size*index );
+
+            if (useMutex) {
+                pmem->lock_data();
+                memcpy(destptr, dataToWrite, Nwrite*pmem->data_element_size);
+                pmem->unlock_data();
+            } else {
+                memcpy(destptr, dataToWrite, Nwrite*pmem->data_element_size);
+            }
+
+    };
+    void io_update() {
+    
 
     };
     void reset() {};
