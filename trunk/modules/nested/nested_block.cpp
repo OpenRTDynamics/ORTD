@@ -1223,9 +1223,23 @@ void compu_func_statemachine_class::io_sync(int update_states)
         simnest->copy_outport_vec(Ndataout+0, &tmp);
 
         int active = round(tmp)-1;
+
+
+          //  printf("-....... active = %d\n", active );
+
+        if (active == -2) { // TODO: Added on 12.4.17 but not documented 
+            // copy the x_global states
+            simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);     
+
+            double tmp2;
+            tmp2 = ((double*) this->global_states_buffer)[0];
+           // printf("-....... x_global(1)  = %f\n", tmp2 );
+        }
+
         if (active >= 0) {
             // copy the x_global states
             simnest->copy_outport_vec(Ndataout+1, this->global_states_buffer);
+
 
 //              fprintf(stderr, "Switch to state %d\n", active, tmp);
 #ifdef DEBUG

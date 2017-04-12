@@ -78,7 +78,9 @@ function [sim, outlist, active_state, x_global_kp1, userdata] = state_mainfn(sim
      [sim, reachedAtLeastLevel2] = ld_compare_01(sim, ev, in=inlist(1),  thr=2); // a higher level
 
      // wait for the input signal to go bejond a threshold
-     [ sim, active_state ] = ld_const(sim, ev, 0);  // by default: no state switch       
+
+     [ sim, active_state ] = ld_const(sim, ev, 0);  // by default: no state switch "0". Put "-1" here to keep the state and additionally update the x_global variable for each sampling step (otherwise only updated on state change).
+
      [ sim, active_state ] = ld_cond_overwrite(sim, ev, in=active_state, condition=reachedAtLeastLevel1, setto=2); // go to state "2" if reached is true
      [ sim, active_state ] = ld_cond_overwrite(sim, ev, in=active_state, condition=reachedAtLeastLevel2, setto=3); // go to state "3" if reached is true; This has priority over the first condition
 
