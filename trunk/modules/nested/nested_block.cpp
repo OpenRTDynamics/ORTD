@@ -2229,6 +2229,8 @@ public:
 
 
 
+
+
 class ld_NoResetNest {
 public:
     ld_NoResetNest(struct dynlib_block_t *block) {
@@ -2435,6 +2437,12 @@ public:
     // The data for this block managed by the simulator
     struct dynlib_block_t *block;
 };
+
+
+
+
+
+
 
 
 
@@ -2715,6 +2723,8 @@ public:
     int *insizes_nested, *outsizes_nested;
     int *intypes_nested, *outtypes_nested;
 
+    bool ResetStates;
+
 	// For Loop Counter
 	int32_t LoopCounter;
 
@@ -2761,6 +2771,17 @@ public:
 	      
 	      throw 1;
 	    }
+
+        if (Par.n >= 2) {
+            if (Par.v[1] == 1) {
+                ResetStates = true;
+                printf("ld_ForLoopNest: not resetting states\n");
+            } else {
+                ResetStates = false;
+            }
+        } else {
+            ResetStates = true;
+        }
 	    
             // fetch parameters from Uipar, Urpar, throw an exception if something goes wrong
             struct irpar_ivec_t insizes_irp, outsizes_irp, intypes_irp, outtypes_irp, param;
@@ -2905,7 +2926,7 @@ public:
 	}
 	
 	// reset all blocks inside the for-loop nest
-	simnest->reset_blocks();
+	if (ResetStates) simnest->reset_blocks();
 
     }
 

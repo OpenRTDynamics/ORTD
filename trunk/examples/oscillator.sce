@@ -120,6 +120,8 @@ endfunction
 // Set-up
 //
 
+tic();
+
 // default events
 ev = [0]; // main event
 
@@ -138,6 +140,10 @@ parlist = new_irparam_set();
 // pack simulations into irpar container with id = 901
 parlist = new_irparam_container(parlist, sim_container_irpar, 901);
 
+t=toc();
+disp(t);
+
+
 // irparam set is complete convert to vectors
 par = combine_irparam(parlist);
 
@@ -147,6 +153,7 @@ save_irparam(par, 'oscillator.ipar', 'oscillator.rpar');
 // clear
 par.ipar = [];
 par.rpar = [];
+
 
 
 
