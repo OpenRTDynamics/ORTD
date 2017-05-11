@@ -5,7 +5,7 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
 
                             (openrtdynamics.sf.net)
 
-Version of this document: 15.8.2015
+Version of this document: 11.5.2017, applies to Revision 618 or higher
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
@@ -90,7 +90,7 @@ IMPORTANT NEWS and NOTES
   e.g. timers (modules/synchronisation), incoming network packages or 
   sensor readings...
 
-* Online replacement of sub-controllers; Yes, can can exchange wires and blocks
+* Online replacement of sub-controllers; Yes, can exchange wires and blocks
   during the controller is running (modules/nested)
 
 * Communication with Scilab from the simulations (modules/scilab),
@@ -213,32 +213,26 @@ For compiling the framework
 INSTALLATION (GRAPHICAL INSTALLATION)
 =====================================
 
-Install some required packets (Ubuntu): 
+Install required packets (Ubuntu): 
 
     sudo apt-get install zenity g++ make subversion build-essential
 
-
+Download and Install Scilab from http://www.scilab.org
 
 Download the latest packet from http://sourceforge.net/projects/openrtdynamics/files/
-and run it in your shell (self extractible archieve):
+and unpack into the directory you like to install ORTD (may be the home directory)
 
-    $ sh OpenRTDynamics_source_revXXX.sh
+Go into the extracted folder and run
 
-The framework will be unpacked into the current folder and installed automatically.
-It is a good idea to let the installer install Scilab for you, as the Scilab-Toolbox
-will be automatically set-up during this process.
+% sh setup.sh
 
-    OR 
+Alternatively if no graphical environment is available, e.g. on embedded systems
 
-The newest version is found in subversion and can be installed by a graphical 
-user interface via pasting
+$ make config
+$ make install
 
-     wget openrtdynamics.sf.net/getit.sh -O - | bash
-
-into your Terminal on Linux. You should also install Scilab if you're
-asked to do so as the ORTD toolbox for Scilab will be automatically
-installed.
-
+In this case only the interpreter is installed but not the Scilab-Toolbox for
+ORTD-development.
 
 GETTING STARTED
 ===============
@@ -328,8 +322,10 @@ This gives a file called <OpenRTDynamics_source>.sh which inclues a copy of the 
 <openrtdynamics-source>. This can then be transfered to target systems, where the 
 sources are compiled automatically. Of course a build system is required on the target system.
 
-UPDATING THE SUBVERSION VERSION
-===============================
+UPDATING THE LATEST SUBVERSION VERSION
+======================================
+
+To enable the latest features:
 
 Use 
 
@@ -338,35 +334,27 @@ Use
 to get a correct update. Remember to re-compile your plugings, if any.
 
 
-INSTALLATION ON BEAGLEBONE (and likely other Boards that support Ubuntu for ARM)
-================================================================================
+INSTALLATION ON EMBEDDED (ARM)-Systems 
+======================================
 
 
 
-Quick Installation on the target system
+Quick Installation on target system
 ---------------------------------------
 
 Testet for Ubuntu 12.04, but should also work for Ångström-Linux.
 
-On Ubuntu you could also install Scilab before: 
+On Ubuntu you could also install Scilab before (to enable Scilab embedded into ORTD): 
 
     sudo apt-get install scilab
 
 Then proceed using:
 
 1. Make sure you have the gnu compilers, perl and make on your target system (should be the case)
-2. Download the default package from <http://sourceforge.net/projects/openrtdynamics/files/> named OpenRTDynamics_source_revXXX.sh; XXX stands for the current revision number.
-(e.g. execute
+2. Download the default package from <http://sourceforge.net/projects/openrtdynamics/files/> to the target
+   device.
+3. Install using "make config" & "make install"
 
-          wget http://sourceforge.net/projects/openrtdynamics/files/latest/download?source=navbar -O OpenRTDynamics.sh
-
-on the target device.
-3. Transfer this file to your BB and place it into a folder in which you would like to install the framework. A subdirectory will be created within this folder.
-
-          scp OpenRTDynamics_source_revXXX.sh debian@192.168.7.2:/home/debian
-
-4. From inside the chosen folder run: $ sh OpenRTDynamics_source_revXXX.sh; The source code will be automatically extracted and compiled.
-5. Follow the given instructions
 
 Hints for development
 ---------------------
@@ -435,6 +423,8 @@ INSTALLATION ON MACOS X
 
 Note: Currently the graphical installer does not work on Mac. You need to do the manual installation:
 
+Optional: Install homebrew, then: brew install gsl
+
 0) Configure the ortd-target
 
      $ echo "MACOSX" > target.conf
@@ -472,6 +462,9 @@ the subfolder scilab/ld_toolbox of ORTD, e.g.:
                 
 ANDROID (ANDROID_ARM-target)
 ============================
+
+PLEASE NOTE: Currently Android-Support is broken. Small changes to the file realtime.c are
+             required, but this is not in the focus of development currently...
 
 Requires the executables from the NDK (<http://developer.android.com/tools/sdk/ndk/index.html>):
 
@@ -587,6 +580,10 @@ WARNING: Do not make a copy -- otherwise some header files are not found
 
 TOOLS
 =====
+
+- ortdrun, ortdrun_static: ORTD-interpreter to run realtime code.
+
+Depreciated (do not use when possible):
 
 - ortd: (the new name of libdyn_generic_exec)
     executes schematics in real-time (rt_preempt) OR as fast as possible
@@ -1121,5 +1118,10 @@ By date as there will only be the svn-version
               send UDP-data when state update is called: Fixes delayed transmission
   - 29.3.15:  Added Random module
   - month 2/3/4 15: Advanced PaPi integration
+  - 2.5.16:   Data-Streaming to PaPI has been made more efficient, as multiple streams are scombined to one stream
+              that is demultiplexed by PaPI
+  - 2.5.16:   Support for 64-Bit ARM (aarch64) e.g. Odroid C2 (introduced in rev 608 but not in 607!)
+  - 11.5.17:  ld_ForLoopNest2 allows to build Triigered Subsystems like in Simulink
+
 
 
