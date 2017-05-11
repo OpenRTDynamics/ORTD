@@ -2894,7 +2894,7 @@ public:
         //
 
 //         uint32_t *SelectSignal = (uint32_t*) libdyn_get_output_ptr(block, Nin_nested); // the first addiotnonal input to this block
-        uint32_t *NitSignal = (uint32_t*) libdyn_get_input_ptr(block, Nin_nested+0 ); // the first addiotnonal input to this block
+        int32_t *NitSignal = (int32_t*) libdyn_get_input_ptr(block, Nin_nested+0 ); // the first addiotnonal input to this block
       
 //         double *test = (double*) libdyn_get_input_ptr(block, 0 ); // the first addiotnonal input to this block
 // 	printf("SelectSignal = %d , in1=%f\n", *SelectSignal, *test);
@@ -2905,15 +2905,15 @@ public:
 	
 //  printf("Iterations: %d \n", *NitSignal);
 	  
-	for (LoopCounter = 0; LoopCounter < *NitSignal; ++LoopCounter) {
-	  
-	//  printf("loop\n");
-	  
-          // calc one simulation step
-          simnest->event_trigger_mask(1);
-          simnest->simulation_step(0);
-          simnest->simulation_step(1);
-	}
+    	for (LoopCounter = 0; LoopCounter < *NitSignal; ++LoopCounter) {
+    	  
+    	//  printf("loop\n");
+    	  
+              // calc one simulation step
+              simnest->event_trigger_mask(1);
+              simnest->simulation_step(0);
+              simnest->simulation_step(1);
+    	}
 	}
 
 	{
