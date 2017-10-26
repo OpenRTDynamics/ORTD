@@ -21,6 +21,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 
 // extern "C" {
 
@@ -168,9 +169,77 @@ int compu_func_demux(int flag, struct dynlib_block_t *block)
     }
 }
 
+int compu_func_demuxInt32(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int datatype = ipar[1];
+    int Nout = size;
+    int Nin = 1;
+
+    int32_t *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (int32_t *) libdyn_get_input_ptr(block,0);
+
+        int i;
+
+// 	printf("--");
+        for (i = 0; i < size; ++i) {
+            int32_t *out = (int32_t *) libdyn_get_output_ptr(block, i);
+            *out = in[i];
+// 	    printf("%f ", in[i]);
+        }
+//         printf("--\n");
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("Demux size cannot be smaller than 1\n");
+            printf("demux size = %d\n", size);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        int i;
+        for (i = 0; i < size; ++i) {
+            libdyn_config_block_output(block, i, 1, DATATYPE_INT32,1 ); // in, intype,
+        }
+
+        libdyn_config_block_input(block, 0, size, DATATYPE_INT32);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm demux int32_t block\n");
+        return 0;
+        break;
+
+    }
+}
 
 /*
-  Demultiplexer
+  Multiplexer
 
 */
 int compu_func_mux(int flag, struct dynlib_block_t *block)
@@ -222,6 +291,72 @@ int compu_func_mux(int flag, struct dynlib_block_t *block)
         }
 
         libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm mux block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int compu_func_muxInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int datatype = ipar[1];
+    int Nout = 1;
+    int Nin = size;
+
+    int32_t *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+
+        int i;
+
+        for (i = 0; i < size; ++i) {
+            int32_t *in = (int32_t *) libdyn_get_input_ptr(block, i);
+            out[i] = *in;
+        }
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("Mux size cannot be smaller than 1\n");
+            printf("mux size = %d\n", size);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        int i;
+        for (i = 0; i < size; ++i) {
+            libdyn_config_block_input(block, i, 1, DATATYPE_INT32);
+        }
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_INT32, 1);
     }
     return 0;
     break;
@@ -2304,7 +2439,6 @@ int compu_func_FlagProbe(int flag, struct dynlib_block_t *block)
   }
 }
 
-#include <stdint.h>
 
 int compu_func_ld_ceilInt32(int flag, struct dynlib_block_t *block)
 {
@@ -4692,7 +4826,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 36, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_printfstderr2);
     
-    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 37, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_demuxInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 38, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_muxInt32);
+
     
     
 //     TO INSERT
