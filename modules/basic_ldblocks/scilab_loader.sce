@@ -408,9 +408,9 @@ endfunction
 
 
 
-function [sim, outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
+function [sim, outlist] = ld_demuxInt32(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
 //
-// %PURPOSE: Demultiplexer
+// %PURPOSE: Demultiplexer int 32
 //
 // invec * - input vector signal to be split up
 // outlist *LIST - list() of output signals
@@ -428,11 +428,11 @@ if ORTD.FASTCOMPILE==%f then
   ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
 end
 
-  btype = 60001 + 1;  
+  btype = 60001 + 37;  
   ipar = [vecsize, 0]; rpar = [];
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                        insizes=[vecsize], outsizes=[ones(vecsize,1)], ...
-                       intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT*ones(vecsize,1)]  );
+                       intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32*ones(vecsize,1)]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(invec) );
 
@@ -474,6 +474,41 @@ end
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                                      insizes=[ones(1,vecsize)], outsizes=[vecsize], ...
                                      intypes=[ ORTD.DATATYPE_FLOAT*ones(1,vecsize) ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, inlist );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_muxInt32(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Multiplexer int 32
+//
+// inlist *LIST - list() of input signals of size 1
+// out *+ - output vector signal
+// 
+// 
+// combines inlist(1), inlist(2), ...    
+// to a vector signal "out" of size "vecsize", whereby each inlist(i) is of size 1
+//    
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+  btype = 60001 + 38;  
+  ipar = [vecsize; 0]; rpar = [];
+
+  if (length(inlist) ~= vecsize) then
+    printf("Incorect number of input ports to ld_mux. %d != %d\n", length(inlist), vecsize );
+    error(".");
+  end
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[ones(1,vecsize)], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_INT32*ones(1,vecsize) ], outtypes=[ORTD.DATATYPE_INT32] );
  
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, inlist );
