@@ -1838,7 +1838,7 @@ double * libdyn::get_vec_out(int out)
     if (out > iocfg.outports) {
         fprintf(stderr, "libdyn::get_vec_out: out out of range\n");
 
-        return false;
+        return NULL;
     }
 
     return iocfg.outptr[out];
