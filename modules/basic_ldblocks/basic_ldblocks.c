@@ -1042,6 +1042,104 @@ int compu_func_lookuptable(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_vector_lookuptable(int flag, struct dynlib_block_t *block)
+{
+    //printf("comp_func gain: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 1;
+
+    double *inp1;
+    double *out;
+
+    double *rpar = libdyn_get_rpar_ptr(block);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    int len = ipar[0];
+    int interpolation = ipar[1];
+    int vecsize = ipar[2]; 
+
+    double lowerin = rpar[0];
+    double upperin = rpar[1];
+    double *table = &rpar[2];
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        inp1 = (double *) libdyn_get_input_ptr(block,0);
+        out = (double *) libdyn_get_output_ptr(block,0);
+
+        int i;
+
+        for (i=0; i < vecsize; ++i) {
+
+
+
+        // normalise to 0..1
+            double nin = (inp1[i] - lowerin) / (upperin - lowerin); // [0..1]
+
+            if (interpolation == 1) {
+
+                int outindex = floor(nin * (len-1));
+                double remainder = nin*(len-1) - outindex; // Range [0..1[
+
+                if ( outindex >= 0 && outindex < len) { // check wheter index is out of array
+                    out[i] = table[outindex] * ( (1-remainder) ) +  table[outindex+1] * remainder; // linear interpolation
+                } else if (outindex < 0) {
+                    out[i] = table[0];
+                } else if (outindex >= len) {
+                    out[i] = table[len-1];
+                }
+                
+    //              *out = remainder;
+
+            } else if (interpolation == 0) {
+                int outindex = round(nin * (len-1));
+            
+    //      printf("lb=%f ub=%f u=%f, nin=%f, outindex=%d\n", lowerin, upperin, *inp1, nin, outindex);
+
+            if ( outindex >= 0 && outindex < len) { // check wheter index is out of array
+                    out[i] = table[outindex]; // no interpolation
+                } else if (outindex < 0) {
+                    out[i] = table[0];
+                } else if (outindex >= len) {
+                    out[i] = table[len-1];
+                }
+                
+    //      *out = outindex;
+            }
+
+      }
+
+        //    printf("lookup table in=%f, lowerin=%f, upperin=%f, out=%f, index=%d\n", *inp1, lowerin, upperin, *out, outindex);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT, 1);
+
+//       printf("len = %d\n", block->inlist[0].len);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a vector lookup table block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 int compu_func_not(int flag, struct dynlib_block_t *block)
 {
     //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
@@ -2533,6 +2631,7 @@ int compu_func_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
     }
 }
 
+
 int compu_func_ld_floorInt32(int flag, struct dynlib_block_t *block)
 {
     //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
@@ -2548,7 +2647,7 @@ int compu_func_ld_floorInt32(int flag, struct dynlib_block_t *block)
     {
         int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
         double *in = (double *) libdyn_get_input_ptr(block, 0);
-	
+    
         *out = floor(*in);
     }
     return 0;
@@ -2562,6 +2661,63 @@ int compu_func_ld_floorInt32(int flag, struct dynlib_block_t *block)
 
         libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
         libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a floorInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+int compu_func_vector_ld_floorInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int vecsize = ipar[0];
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+
+        int i;
+
+        for (i=0; i<vecsize; ++i) {
+            out[i] = floor( in[i] );
+        }
+	
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_INT32, 1);
     }
     return 0;
     break;
@@ -4862,15 +5018,14 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 65, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectordelay);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 66, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_vectoradd);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 67, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_NaNToVal);
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 68, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_eventDemux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 69, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_TrigSwitch1toN);
-    
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 70, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorConcatenate);
-
+        libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 70, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorConcatenate);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 71, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectormultscalar);
     
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 72, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &compu_func_vector_lookuptable );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 73, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_vector_ld_floorInt32);
     
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);
