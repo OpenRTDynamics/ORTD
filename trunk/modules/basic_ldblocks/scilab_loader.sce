@@ -835,6 +835,49 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+
+
+
+
+function [sim, out] = ld_vector_lookup(sim, events, u, lower_b, upper_b, table, interpolation, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: Lookup table - block
+//
+// in *+(vecsize) - input
+// out *+(vecsize) - output
+// 
+// 
+// lower_b - smallest value of the input signal to map to the table
+// upper_b - biggest value of the input signal to map to the table
+// table - the table (Scilab vector)
+// 
+// Mapping is done in a linear way:
+//   out = table( (in - lowerin) / (upperin - lowerin) )
+// 
+// interpolation = 0 : no interpolation
+// interpolation = 1 : linear interpolation
+// 
+// 
+
+  if ORTD.FASTCOMPILE==%f then
+    ortd_checkpar(sim, list('Signal', 'u', u) );
+    ortd_checkpar(sim, list('SingleValue', 'lower_b', lower_b) );
+    ortd_checkpar(sim, list('SingleValue', 'upper_b', upper_b) );
+
+    ortd_checkpar(sim, list('SingleValue', 'interpolation', interpolation) );
+  end
+
+  btype = 60001 + 72;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [length(table), interpolation, vecsize ], [ lower_b, upper_b, table(:)' ], ...
+                   insizes=[ vecsize ], outsizes=[ vecsize ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(u) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
 function [sim, out] = ld_not(sim, events, in) // PARSEDOCU_BLOCK
 // %PURPOSE: logic negation - block
 //
@@ -1388,6 +1431,26 @@ end
   btype = 60001 + 32;
   [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
                    insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_vector_floorInt32(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: ceil(in)
+// 
+// return value is of type ORTD.DATATYPE_INT32
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+end
+
+  btype = 60001 + 73;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [  ], ...
+                   insizes=[ vecsize ], outsizes=[ vecsize ], ...
                    intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
