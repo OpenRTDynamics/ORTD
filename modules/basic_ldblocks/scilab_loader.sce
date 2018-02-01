@@ -445,6 +445,42 @@ end
 endfunction
 
 
+function [sim, outlist] = ld_demux(sim, events, vecsize, invec) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Demultiplexer
+//
+// invec * - input vector signal to be split up
+// outlist *LIST - list() of output signals
+//
+//
+// Splits the input vector signal "invec" of size "vecsize" up into 
+//
+// outlist(1)
+// outlist(2)
+//  ....
+//    
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'invec', invec) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+  btype = 60001 + 1;  
+  ipar = [vecsize, 0]; rpar = [];
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[vecsize], outsizes=[ones(vecsize,1)], ...
+                       intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT*ones(vecsize,1)]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(invec) );
+
+  // connect each outport
+  outlist = list();
+  for i = 1:vecsize
+    [sim,out] = libdyn_new_oport_hint(sim, blk, i-1);   // ith port
+    outlist(i) = out;
+  end
+endfunction
+
 
 function [sim, out] = ld_mux(sim, events, vecsize, inlist) // PARSEDOCU_BLOCK
 //    
