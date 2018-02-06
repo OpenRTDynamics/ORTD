@@ -23,6 +23,8 @@ $ rm SetModuleName.sh
 to perform an automatic search an replace process in the source files to adapt
 them to the choose module name.
 
+Put your source code- and include files into the folderes "src" and "include" respectively.
+
 Edit the Makefile to enter start for blockids (find a free one from the ORTD-README 
 file.  
   

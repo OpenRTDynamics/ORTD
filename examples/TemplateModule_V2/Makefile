@@ -42,7 +42,7 @@ program_INCLUDE_DIRS :=
 program_LIBRARY_DIRS :=
 program_LIBRARIES :=
 
-INCLUDE += -Ihart_includes -Imodule_src
+INCLUDE += -Iinclude -Imodule_src
 
 CFLAGS += $(INCLUDE) -D_TTY_POSIX_
 CPPFLAGS =  $(CFLAGS)

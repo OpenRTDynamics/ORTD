@@ -4771,7 +4771,237 @@ int ortd_compu_func_vectormultscalar(int flag, struct dynlib_block_t *block)
 
 
 
+int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
+{
+  int err;
+  
+  int Nout = 1;
+  int Nin = 2;
 
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int memorysize = ipar[0];
+  int inVecsize = ipar[1];
+  
+  int *rpar = libdyn_get_rpar_ptr(block);
+  double DefaultVal = rpar[0];
+  
+  
+  int dfeed = 0;  
+  int i = 0;
+  
+  double *out;
+  double *in;
+  int32_t *WriteIndex;
+/*
+  void *buffer__ = (void*) libdyn_get_work_ptr(block);
+//   int *buf_position_read =  (int*) buffer__;
+
+  double *stat_buf = (double*) (buffer__ + sizeof(int) );
+//   int stat_buf_begin;*/
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+     
+       // printf("-- CALCOUT --\n");
+        
+      out = (double *) libdyn_get_output_ptr(block,0);
+      in = (double *) libdyn_get_input_ptr(block,0);
+      WriteIndex = (int32_t *) libdyn_get_input_ptr(block,1);
+      
+      if ( *WriteIndex < 1 ) { 
+          fprintf(stderr, "ld_collectValues: Failed: WriteIndex < 1\n");
+          return 0;
+          break;
+      } 
+      
+      if ( *WriteIndex-1 + inVecsize > memorysize ) { 
+          fprintf(stderr, "ld_collectValues: Failed: Trying to write data bejond the buffer: WriteIndex-1 + inVecsize > memorysize\n");
+          return 0;
+          break;
+      } 
+
+        for(i = 0; i < inVecsize; i++){
+            // copy values
+           // printf("write %f to %d \n", in[i], *WriteIndex-1+i ); 
+            
+            out[ *WriteIndex-1+i ] = in[i];
+        }
+      
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block_input(block, 0, inVecsize, DATATYPE_FLOAT); // in, intype, 
+      libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype, 
+      libdyn_config_block_output(block, 0, memorysize, DATATYPE_FLOAT, 1);
+  
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_INIT:  // configure
+    {      
+      if (inVecsize < 1) {
+	fprintf(stderr, "ld_collectValues: invalid inVecsize\n");
+	return -1;
+      }
+      
+      if (memorysize < 1) {
+	fprintf(stderr, "ld_collectValues: invalid memorysize\n");
+	return -1;
+      }
+//       unsigned int Nbytes = sizeof(double)*(veclen) + sizeof(unsigned int);
+//       void *buffer = malloc(Nbytes);
+//       memset((void*) buffer, 0,  Nbytes );
+//       
+//        int *bpr = &( (int*) buffer)[0];
+// 
+//        *bpr = 0;
+// 
+//       libdyn_set_work_ptr(block, (void *) buffer);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // destroy instance
+    {
+        
+        for (i=0; i<memorysize; ++i) {
+            in[i] = DefaultVal;
+        }
+        
+//       unsigned int Nbytes = sizeof(double)*(veclen) + sizeof(unsigned int);
+//       void *buffer = buffer__;
+//       memset((void*) buffer, 0,  Nbytes );
+//       
+//        int *bpr = &( (int*) buffer)[0];
+// 
+//        *bpr = 0;
+//               
+//        out = (double *) libdyn_get_output_ptr(block,0);
+//        *out = 0;
+// 
+     }
+      return 0;
+      break;      
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+//       void *buffer = (void*) libdyn_get_work_ptr(block);
+//       free(buffer);
+    }
+      return 0;
+      break;
+      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a ld_collectValues block.\n");
+      return 0;
+      break;
+  }
+}
+
+
+
+int compu_func_ld_add_ofsInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+    
+    int ofs=ipar[0];
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+    
+        *out = (*in) + ofs;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_add_ofsInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int compu_func_ld_gainInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+    
+    int fac=ipar[0];
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+    
+        *out = (*in) * fac;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_gainInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
 
 /*
 
@@ -5027,6 +5257,13 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 72, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &compu_func_vector_lookuptable );
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 73, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_vector_ld_floorInt32);
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 74, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_collectValues);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 75, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_add_ofsInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 76, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_gainInt32);
+    
+    
+
+
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);
     
