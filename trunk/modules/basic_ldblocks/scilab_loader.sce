@@ -2273,7 +2273,87 @@ endfunction
 
 
 
+//  [sim, CollectedData] = ld_collectValues(sim, 0, in=filterOut, WriteIndex=LoopCounter, memorysize=100, DefaultVal=0);
 
+function [sim, out] = ld_collectValues(sim, events, in, WriteIndex, memorysize, DefaultVal, inVecsize ) // PARSEDOCU_BLOCK
+  //
+  // %PURPOSE: Store input values in a memory at a given position
+  //
+  // in * - input vector whose values shall be stored
+  // out *(memorysize) - the vector representing the memory
+  // WriteIndex * INT32 - the index to write the data to; starts at 1
+  // memorysize - storage size
+  // DefaultVal - initialize the storage with this value
+  // vecsize - size of the input vector
+  //
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('Signal', 'WriteIndex', WriteIndex) );
+  ortd_checkpar(sim, list('SingleValue', 'memorysize', memorysize) );
+  ortd_checkpar(sim, list('SingleValue', 'DefaultVal', DefaultVal) );
+  ortd_checkpar(sim, list('SingleValue', 'inVecsize', inVecsize) );
+end
+
+  btype = 60001 + 74;
+  ipar = [ memorysize, inVecsize ]; rpar = [DefaultVal];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[inVecsize, 1 ], outsizes=[memorysize], ...
+                       intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, WriteIndex) );
+
+  // connect each outport
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
+endfunction
+
+
+
+
+
+
+function [sim,out] = ld_add_ofsInt32(sim, events, in, ofs) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: add ofs(in)
+// 
+// input and return value are of type ORTD.DATATYPE_INT32
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'ofs', ofs) );
+end
+
+  btype = 60001 + 75;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ ofs ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim,out] = ld_gainInt32(sim, events, in, fac) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: integer multiplication of (in)
+// 
+// input and return value are of type ORTD.DATATYPE_INT32
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'fac', fac) );
+end
+
+  btype = 60001 + 76;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ fac ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 // 
