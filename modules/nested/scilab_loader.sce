@@ -524,7 +524,7 @@ function [sim, outlist, userdata] = ld_ForLoopNest(sim, ev, inlist, insizes, out
 
 
     function [sim, outlist, userdata ] = WrapForLoop(sim, inlist, userdata)
-        userdata_nested = userdata(2);
+        userdata_nested = userdata(1);
         fn = userdata(2);
         Nin_usersignals = userdata(3);
         Nout_usersignals = userdata(4);
@@ -716,7 +716,7 @@ function [sim, outlist, userdata] = ld_ForLoopNest2(sim, ev, inlist, insizes, ou
 
 
     function [sim, outlist, userdata ] = WrapForLoop(sim, inlist, userdata)
-        userdata_nested = userdata(2);
+        userdata_nested = userdata(1);
         fn = userdata(2);
         Nin_usersignals = userdata(3);
         Nout_usersignals = userdata(4);
@@ -907,7 +907,7 @@ function [sim, outlist, userdata] = ld_TriggeredNest(sim, ev, inlist, insizes, o
 
 
     function [sim, outlist, userdata ] = WrapForLoop(sim, inlist, userdata)
-        userdata_nested = userdata(2);
+        userdata_nested = userdata(1);
         fn = userdata(2);
         Nin_usersignals = userdata(3);
         Nout_usersignals = userdata(4);
