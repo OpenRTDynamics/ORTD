@@ -2632,6 +2632,60 @@ int compu_func_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_vector_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int vecsize = ipar[0];
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        double *in = (double *) libdyn_get_input_ptr(block, 0);
+
+        int i;
+
+        for (i=0; i<vecsize; ++i) {
+            out[i] = in[i];  // conversion from int to double
+        }
+	
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a floorInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
 int compu_func_ld_floorInt32(int flag, struct dynlib_block_t *block)
 {
     //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
@@ -5261,6 +5315,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 75, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_add_ofsInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 76, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_gainInt32);
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 77, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_vector_ld_Int32ToFloat);
     
 
 

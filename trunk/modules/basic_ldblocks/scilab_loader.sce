@@ -1453,6 +1453,26 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim,out] = ld_vector_Int32ToFloat(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Convert int32 to double
+// 
+// ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+end
+
+  btype = 60001 + 77;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [  ], ...
+                   insizes=[ vecsize ], outsizes=[ vecsize ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 function [sim,out] = ld_floorInt32(sim, events, in) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: ceil(in)
