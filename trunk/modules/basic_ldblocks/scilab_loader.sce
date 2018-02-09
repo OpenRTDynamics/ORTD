@@ -1120,6 +1120,37 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_cond_overwrite2(sim, events, in, condition, setto) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: conditional overwrite of the input signal's value
+//
+// out * - output
+// in * - input to potentially overwrite
+// condition * - condition signal (int32) -- in contrast to ld_cond_overwrite
+// 
+// out = in, if condition > 0
+// out = setto, otherwise
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'setto', setto) );
+  ortd_checkpar(sim, list('Signal', 'condition', condition) );
+end
+
+  btype = 60001 + 43;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ ], rpar=[ setto ], ...
+                   insizes=[1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(condition, in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+
+
 function [sim, out] = ld_ramp(sim, events, in_from, in_to, start, reset, ramp_duration) // NOT FINISHED
 //
 // %PURPOSE: Online configurable ramp block
@@ -1176,6 +1207,65 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_andInt32(sim, events, inlist) // PARSEDOCU_BLOCK
+// %PURPOSE: logic and - block
+//
+// in *LIST - list() of inputs (for now the exactly two inputs are possible)
+// out * - output
+// 
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+end
+
+  Nin=length(inlist);
+
+  if (Nin ~= 2) then
+    error("invalid number of inputs");
+  end
+
+  insizes=ones(1, Nin);
+  intypes=ones(1, Nin) * ORTD.DATATYPE_INT32;
+
+  btype = 60001 + 44;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[   ], ...
+                   insizes, outsizes=[1], ...
+                   intypes, outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( inlist(1), inlist(2) ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_orInt32(sim, events, inlist) // PARSEDOCU_BLOCK
+// %PURPOSE: logic or - block
+//
+// in *LIST - list() of inputs (for now the exactly two inputs are possible)
+// out * - output
+// 
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+end
+
+  Nin=length(inlist);
+
+  if (Nin ~= 2) then
+    error("invalid number of inputs");
+  end
+
+  insizes=ones(1, Nin);
+  intypes=ones(1, Nin) * ORTD.DATATYPE_INT32;
+
+  btype = 60001 + 45;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[   ], ...
+                   insizes, outsizes=[1], ...
+                   intypes, outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( inlist(1), inlist(2) ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 function [sim, out] = ld_initimpuls(sim, events) // PARSEDOCU_BLOCK
 //
@@ -3704,6 +3794,41 @@ end
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
 endfunction
 
+function [sim] = ld_printfInt32(sim, events, in, str, insize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Print data to stdout (the console)
+//
+// in *+(insize) - vectorial input signal (Int32)
+//
+// str is a string that is printed followed by the signal vector in
+// of size insize
+//
+// Hint: Apply colored printf's by using the predefined terminal color codes:
+// 
+// str = ORTD.termcode.red + "some colored text..." + ORTD.termcode.reset
+// 
+// instead of red there currently is: green, yellow, blue.
+// 
+// 
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'insize', insize) );
+  ortd_checkpar(sim, list('String', 'str', str) );
+end
+
+  btype = 60001 + 78;
+  str = ascii(str);
+//   [sim,blk] = libdyn_new_blk_generic(sim, events, btype, [insize, length(str), str(:)'], []);
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ insize, length(str), str(:)' ], rpar=[ ], ...
+                   insizes=[ insize ], outsizes=[], ...
+                   intypes=[ ORTD.DATATYPE_INT32 ], outtypes=[]  );
+
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in,0) );
+endfunction
 
 
 
