@@ -3873,23 +3873,55 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
         double potential_minmax;
 	double index = 1.0;
 
-        potential_minmax = in[0];
+        
 
         if (findmax > 0) {
-
-            for (i=1; i < size; ++i) {
-                if (potential_minmax < in[i]) {
+            
+            
+            i=0;
+            do {
+                if (!isnan(in[i])) {
+                    
                     potential_minmax = in[i];
-		    index = i + 1; // +1 to match the c-way of counting indices
+                    index = i + 1;
+                    
+                    ++i;
+                    
+                    break;
+                }
+            } while(1);
+            
+
+            for ( ; i < size; ++i) {
+                if (!isnan(in[i])) {
+                    if (potential_minmax < in[i]) {
+                        potential_minmax = in[i];
+                        index = i + 1; // +1 to match the c-way of counting indices
+                    }
                 }
             }
 
         } else {
-
-            for (i=1; i < size; ++i) {
-                if (potential_minmax > in[i]) {
+            
+            i=0;
+            do {
+                if (!isnan(in[i])) {
+                    
                     potential_minmax = in[i];
-		    index = i + 1; // +1 to match the c-way of counting indices
+                    index = i + 1;
+                    
+                    ++i;
+                    
+                    break;
+                }
+            } while(1);
+            
+            for ( ; i < size; ++i) {
+                if (!isnan(in[i])) {
+                    if (potential_minmax > in[i]) {
+                        potential_minmax = in[i];
+                        index = i + 1; // +1 to match the c-way of counting indices
+                    }
                 }
             }
 
