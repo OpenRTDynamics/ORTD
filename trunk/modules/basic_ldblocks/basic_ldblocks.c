@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010, 2011, 2012  Christian Klauer
+    Copyright (C) 2010, 2011, 2012,   Christian Klauer
 
     This file is part of OpenRTDynamics, the Real Time Dynamic Toolbox
 
@@ -1187,6 +1187,52 @@ int compu_func_not(int flag, struct dynlib_block_t *block)
     }
 }
 
+int compu_func_ld_notInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+
+        out[0] = (*in >= 1) ? 0 : 1;
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a not int32 block\n");
+        return 0;
+        break;
+
+    }
+}
 
 int compu_func_ld_or(int flag, struct dynlib_block_t *block)
 {
@@ -3967,6 +4013,223 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
     }
 }
 
+
+int ortd_compu_func_ld_vectorFindSpike(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int NskipLeft = ipar[1];
+    int NskipRight = ipar[2];
+    
+    double significanceFactor = rpar[0]; // typically 6
+    
+    int Nout = 6;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+	
+        int32_t *index = (int32_t *) libdyn_get_output_ptr(block, 0);
+        int32_t *FoundSpike = (int32_t *) libdyn_get_output_ptr(block, 1);
+	
+	double *Mean = (double *) libdyn_get_output_ptr(block, 2);
+	double *Variance = (double *) libdyn_get_output_ptr(block, 3);
+	double *Distance = (double *) libdyn_get_output_ptr(block, 4);
+	double *Val = (double *) libdyn_get_output_ptr(block, 5);
+
+        int i;
+        double potential_max = 0;
+	double potential_min = 0;
+	int32_t indexmin = 1;
+	int32_t indexmax = 1;
+	
+	int32_t potentialSpikeIndex;
+	double SpikeVal;
+	double Dis;
+
+	#define abs(a) ( (a) > 0 ? (a) : (-a) )
+	
+            // Find the maximum which potentially is a spike
+            i=0;
+            do {
+                if (!isnan(in[i])) {
+                    
+                    potential_max = in[i];
+		    potential_min = in[i];
+                    indexmin = i + 1;
+		    indexmax = i + 1;
+                    
+                    ++i;
+                    
+                    break;
+                }
+            } while(1);
+            
+
+            for ( ; i < size; ++i) {
+                if (!isnan(in[i])) {
+		  
+                    if (potential_max < in[i]) {
+                        potential_max = in[i];
+                        indexmax = i + 1; // +1 to match the c-way of counting indices
+                    }
+                  
+                    if (potential_min > in[i]) {
+                        potential_min = in[i];
+                        indexmin = i + 1; // +1 to match the c-way of counting indices
+                    }
+                    
+                    
+                }
+            }
+            
+//             printf("min=%f, max=%f\n", potential_min, potential_max);
+// 	    printf("index min = %d, index max = %d\n", indexmin, indexmax);
+            
+            
+            if ( abs(potential_max) > abs(potential_min) ) {
+	      potentialSpikeIndex = indexmax;
+	      SpikeVal = potential_max;
+	    } else {
+	      potentialSpikeIndex = indexmin;
+	      SpikeVal = potential_min;
+	    }
+            
+            // DEBUG
+//             printf("index = %d, Val = %f\n", potentialSpikeIndex, SpikeVal);
+            
+            
+            
+            
+            // calc mean and variance of data in the vector without nan values and without a range of size 2*Nskip+1 around the center of the potential spike
+	    double Cummlative = 0;
+	    int Nsamples = 0;
+	    
+            for (i = 0; i < size; ++i) {
+// 	       printf(" I%d - v%f ", i, in[i] );
+	       
+	      if ( isnan( in[i] ) ) {
+// 		printf("(no) ");
+		continue;
+	      }
+	      
+	      if ( (i > potentialSpikeIndex-NskipLeft) && ( i < potentialSpikeIndex+NskipRight ) ) {
+// 		printf("(no) ");
+		continue;
+	      }
+
+	     
+	      
+	      Cummlative += in[i];
+	      ++Nsamples;
+	    }
+// 	    printf("\n");
+	    
+	    double EstMean = Cummlative / Nsamples;
+	    
+// 	    printf("EstMean = %f\n", EstMean);
+            
+	    // variance
+	    Cummlative = 0;
+	    //Nsamples = 0;
+	    
+            for (i = 0; i < size; ++i) {
+	      if ( isnan( in[i] ) )
+		continue;
+	      
+	      if ( (i > potentialSpikeIndex-NskipLeft) && ( i < potentialSpikeIndex+NskipRight ) )
+		continue;
+
+	      Cummlative +=  (in[i] - EstMean) * (in[i] - EstMean); 
+	      //++Nsamples;
+	    }
+	    
+	    double EstVariance = Cummlative / Nsamples;  // AKA sigma^2
+
+// 	    	    printf("EstVariance = %f\n", EstVariance);
+
+	    // calc distance of the spike to the mean val
+	    Dis = abs(SpikeVal - EstMean);
+	    
+// 	    printf("Distance_ = %f = (%f - %f)\n", Dis, SpikeVal, EstMean );
+	    
+	    
+	    // check for significance
+	    double sigma = sqrt(EstVariance);
+	    
+// 	    printf("ld_vectorFindSpike; Distance = %f, sigma=%f, index=%d, Mean=%f, Variance=%f, Val=%f\n", Dis, sigma, potentialSpikeIndex, EstMean, EstVariance, SpikeVal );
+	    
+	    if (Dis > significanceFactor*sigma) {
+	      // Yes it is a spike!
+	      *FoundSpike = 1;
+// 	      printf("ld_vectorFindSpike: Found spike\n");
+	    } else {
+	      // Probaply not a spike
+	      *FoundSpike = 0;
+	      
+	    }
+	    
+	    // Further outputs
+	    *index = potentialSpikeIndex;
+	    *Variance = EstVariance;
+	    *Mean = EstMean;
+	    *Distance = Dis;
+	    *Val = SpikeVal;
+	    
+	    
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("size cannot be smaller than 1\n");
+            printf("size = %d\n", size);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32,1 ); // in, intype,
+        libdyn_config_block_output(block, 1, 1, DATATYPE_INT32,1 );
+       libdyn_config_block_output(block, 2, 1, DATATYPE_FLOAT,1 );
+       libdyn_config_block_output(block, 3, 1, DATATYPE_FLOAT,1 );
+       libdyn_config_block_output(block, 4, 1, DATATYPE_FLOAT,1 );
+       libdyn_config_block_output(block, 5, 1, DATATYPE_FLOAT,1 );
+	
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_vectorFindSpike block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
 int ortd_compu_func_vectorglue(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
@@ -4568,7 +4831,7 @@ int ortd_compu_func_simplecovar(int flag, struct dynlib_block_t *block)
 
 	int i,j;
 	double sum;
-	for (i = 1; i <= size-shape_len+1; ++i) { // go through the input vector
+	for (i = 1; i <= size-shape_len+1; ++i) { // shift the windown within which the shape is compared through the input vector
 
           // apply the sample "shape" to the current position i in the input vector
 	  sum = 0;
@@ -4586,8 +4849,8 @@ int ortd_compu_func_simplecovar(int flag, struct dynlib_block_t *block)
         break;
     case COMPF_FLAG_CONFIGURE:  // configure
     {
-        if (size < 1) {
-            printf("size cannot be smaller than 1\n");
+        if (size < shape_len) {
+            printf("size cannot be smaller than shape_len\n");
             printf("size = %d\n", size);
 
             return -1;
@@ -4624,6 +4887,100 @@ int ortd_compu_func_simplecovar(int flag, struct dynlib_block_t *block)
 
     }
 }
+
+
+int ortd_compu_func_ld_vectorFindShape(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *shape = libdyn_get_rpar_ptr(block); // reference-vector
+
+    int size = ipar[0]; // len input vector
+    int shape_len = ipar[1]; // len shape sample
+    int windowSize = shape_len + 2; // + 2 because of the signal ofs detection prior and after the sub-window for shape comparison 
+
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (double *) libdyn_get_input_ptr(block,0);
+	double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+	int i,j;
+	double sum;
+	
+	
+	for (i = 1; i <= size-windowSize+1; ++i) { // shift the windown within which the shape is compared through the input vector
+
+	  
+	  // calc signal ofs around the shape window
+	  double ofs = ( in[i - 1] + in[i-1 + shape_len + 1] ) / 2;
+	  
+	//  printf("FS: i=%d, ofs= mean( in(%d)=%f , in(%d)=%f ) =  %f\n", i, i-1, in[i-1],   i-1 + shape_len + 1, in[i-1 + shape_len + 1], ofs);
+	  
+          // apply the sample "shape" to the current position i in the input vector
+	  sum = 0;
+	  for (j = 2; j <= shape_len+1; ++j) { // j=2:(shape_len+1)
+	    sum = sum + ( (in[ i+j-2  ] - ofs) * shape[ j-1-1 ] );  // -1 and -2 is to match the C-way of counting indices; +1 because of ofs estimation
+	    
+	//    printf("  FS: j=%d, apply shape to in(%d)=%f\n", j, i+j-2, in[i+j-2] );
+	  }
+	  
+	 // printf("FS: sum=%f\n", sum);
+	  
+	  out[ i-1 ] = sum;
+	}
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < windowSize) {
+            printf("size cannot be smaller than windowSize\n");
+            printf("size = %d\n", size);
+
+            return -1;
+        }
+        if (shape_len < 1) {
+            printf("shape_len cannot be smaller than 1\n");
+            printf("shape_len = %d\n", size);
+
+            return -1;
+        }
+        if (windowSize > size) {
+            printf("windowSize > size !\n");
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size-windowSize+1, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_FLOAT);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_vectorFindShape block\n");
+        return 0;
+        break;
+
+    }
+}
+
 
 int ortd_compu_func_vectormute(int flag, struct dynlib_block_t *block)
 {
@@ -5549,6 +5906,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 44, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_andInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 45, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_orInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 46, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_notInt32);
 
     
     
@@ -5579,7 +5937,7 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 67, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_NaNToVal);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 68, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_eventDemux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 69, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_TrigSwitch1toN);
-        libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 70, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorConcatenate);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 70, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectorConcatenate);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 71, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &ortd_compu_func_vectormultscalar);
     
     
@@ -5593,7 +5951,12 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 77, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_vector_ld_Int32ToFloat);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 78, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_printfInt32 );
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 79, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindShape );
 
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 80, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindSpike );
+    
+    
+    
 
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);

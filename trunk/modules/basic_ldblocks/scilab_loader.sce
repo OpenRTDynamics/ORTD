@@ -1207,6 +1207,30 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+
+function [sim, out] = ld_notInt32(sim, events, in) // PARSEDOCU_BLOCK
+// %PURPOSE: logic negation - block
+//
+// in * - input
+// out * - output
+// 
+// out = 0, if in >= 1  OR  out = 1, if in < 1
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+end
+
+  btype = 60001 + 46;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
 function [sim, out] = ld_andInt32(sim, events, inlist) // PARSEDOCU_BLOCK
 // %PURPOSE: logic and - block
 //
@@ -1983,6 +2007,44 @@ function [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsiz
   [sim,value] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
 endfunction
 
+function [sim, index, FoundSpike, Mean, Variance, Distance, Val] = ld_vectorFindSpike(sim, events, in, SignificanceFactor, NskipLeft, NskipRight, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: find a spike in a given dataset
+//
+// Steps performed:
+//
+// 1) The maximum of abs(in) is determined as well as its position
+// 2) The variance (sigma^2) of in is calculated except for the values surounded by
+//    the maxmimum. This range is described by NskipLeft and NskipRight
+// 3) The maximum is compared to the standard deviation (sigma); also the
+//    signal's mean value is compensated herein.
+// 4) If the intensity of the maximum is significantly higher than the maximum's
+//    intensity, FoundSpike is set to 1 
+//
+// in *+(vecsize)
+// SignificanceFactor - Used for the comparison Distance > SignificanceFactor * sigma, 
+// index *(INT32) - the index starting at 1, where the spike was found
+// FoundSpike *(INT32) - 1 if a spike has been found. 0 otherwise
+//    
+  btype = 60001 + 80; 
+  ipar = [vecsize, NskipLeft, NskipRight]; rpar = [SignificanceFactor];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[1, 1, 1, 1, 1, 1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], ...
+                                     outtypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_FLOAT, ...
+                                               ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT ] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,FoundSpike] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
+  [sim,Mean] = libdyn_new_oport_hint(sim, blk, 2);   // 1th port
+  [sim,Variance] = libdyn_new_oport_hint(sim, blk, 3);   // 1th port
+  [sim,Distance] = libdyn_new_oport_hint(sim, blk, 4);   // 1th port
+  [sim,Val] = libdyn_new_oport_hint(sim, blk, 5);   // 1th port
+endfunction
+
 function [sim, out, num] = ld_vector_glue(sim, events, in1, fromindex1, toindex1, in2, fromindex2, toindex2, vecsize) // PARSEDOCU_BLOCK
 // %PURPOSE: Extract parts from two input vectors and glue them together to receive one vector.
 //
@@ -2161,6 +2223,7 @@ function [sim, out] = ld_simplecovar(sim, events, in, shape, vecsize) // PARSEDO
 // 
 // Note: Use ld_vecXCorrelation instead. This will be removed soon.
 //    
+// The size of the output vector signal will be vecsize-length(shape) + 1
 
 // FIXME: remove this function
 
@@ -2181,16 +2244,50 @@ function [sim, out] = ld_simplecovar(sim, events, in, shape, vecsize) // PARSEDO
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_vectorFindShape(sim, events, in, shape, vecsize) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Cross correlation between a vectorial signal and a given shape like ld_vecXCorrelation using ofset compensation
+// 
+// Prior and after the floating window used to compare with the given shape
+// the signal ofset of in at the current window position is estimated
+//    
+// The size of the output vector signal will be vecsize-length(shape) - 1
+
+//pause;
+
+  btype = 60001 + 79;
+  ipar = [vecsize, length(shape) ]; rpar = [ shape ];
+
+  if vecsize<( length(shape) + 2) then
+    error("vecsize<length(shape) !");
+  end
+  
+  OutVecSize = vecsize- (length(shape)+2) +1;
+  
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize  ], outsizes=[  OutVecSize ], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+
+  // printf("Output vector size: %f\n", OutVecSize );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 function [sim, out] = ld_vecXCorrelation(sim, events, in, shape, vecsize) // PARSEDOCU_BLOCK
 //    
 // %PURPOSE: Cross correlation between a vectorial signal and a given shape
 // 
 //  in *+(vecsize) - vector signal
 //  shape - vector to compare the input with
-//  out *+(length(shape)) - output
+//  out *+(vecsize-length(shape) + 1) - output
 //
 // Calculates the cross correlation between "in" and "shape"
 //    
+// The size of the output vector signal will be vecsize-length(shape) + 1
+
   btype = 60001 + 62;
   ipar = [vecsize, length(shape) ]; rpar = [ shape ];
 
