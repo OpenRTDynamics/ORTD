@@ -641,7 +641,7 @@ int ortd_compu_func_memory(int flag, struct dynlib_block_t *block)
 	  if (*rememberin > 0)
 	      memcpy(output, in, datasize); // immidiately feed through the input data
 	  else
-	      memcpy(output, state, datasize);
+	      memcpy(output, state, datasize); // TODO: Ist this required?
 
 	  return 0;
 	  break;
@@ -651,11 +651,10 @@ int ortd_compu_func_memory(int flag, struct dynlib_block_t *block)
 	  output = (double *) libdyn_get_output_ptr(block,0);
 
 	  if (*rememberin > 0) {
-	      memcpy(state, in, datasize);
+	      memcpy(state, in, datasize);   // TODO: Ist this required?
 	  }
   //             state[0] = *in;
   
-         // FIXME Set output to new value
 
 	  return 0;
 	  break;
@@ -4041,7 +4040,7 @@ int ortd_compu_func_ld_vectorFindSpike(int flag, struct dynlib_block_t *block)
         int32_t *FoundSpike = (int32_t *) libdyn_get_output_ptr(block, 1);
 	
 	double *Mean = (double *) libdyn_get_output_ptr(block, 2);
-	double *Variance = (double *) libdyn_get_output_ptr(block, 3);
+	double *sigma = (double *) libdyn_get_output_ptr(block, 3);
 	double *Distance = (double *) libdyn_get_output_ptr(block, 4);
 	double *Val = (double *) libdyn_get_output_ptr(block, 5);
 
@@ -4163,11 +4162,11 @@ int ortd_compu_func_ld_vectorFindSpike(int flag, struct dynlib_block_t *block)
 	    
 	    
 	    // check for significance
-	    double sigma = sqrt(EstVariance);
+	    double sigm = sqrt(EstVariance);
 	    
 // 	    printf("ld_vectorFindSpike; Distance = %f, sigma=%f, index=%d, Mean=%f, Variance=%f, Val=%f\n", Dis, sigma, potentialSpikeIndex, EstMean, EstVariance, SpikeVal );
 	    
-	    if (Dis > significanceFactor*sigma) {
+	    if (Dis > significanceFactor*sigm) {
 	      // Yes it is a spike!
 	      *FoundSpike = 1;
 // 	      printf("ld_vectorFindSpike: Found spike\n");
@@ -4179,7 +4178,7 @@ int ortd_compu_func_ld_vectorFindSpike(int flag, struct dynlib_block_t *block)
 	    
 	    // Further outputs
 	    *index = potentialSpikeIndex;
-	    *Variance = EstVariance;
+	    *sigma = sigm;
 	    *Mean = EstMean;
 	    *Distance = Dis;
 	    *Val = SpikeVal;
