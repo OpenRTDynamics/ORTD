@@ -658,6 +658,8 @@ function [sim, out] = ld_memory(sim, events, in, rememberin, initial_state) // P
 // If rememberin > 0 then
 //   remember in, which is then feed to the output out until it is overwritten by a new value
 //
+// Please note that input ist applied to the output immediately (without a delay)
+//
 // initial output out = initial_state
 // 
 
@@ -2007,7 +2009,7 @@ function [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsiz
   [sim,value] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
 endfunction
 
-function [sim, index, FoundSpike, Mean, Variance, Distance, Val] = ld_vectorFindSpike(sim, events, in, SignificanceFactor, NskipLeft, NskipRight, vecsize) // PARSEDOCU_BLOCK
+function [sim, index, FoundSpike, Mean, Sigma, Distance, Val] = ld_vectorFindSpike(sim, events, in, SignificanceFactor, NskipLeft, NskipRight, vecsize) // PARSEDOCU_BLOCK
 // %PURPOSE: find a spike in a given dataset
 //
 // Steps performed:
@@ -2040,7 +2042,7 @@ function [sim, index, FoundSpike, Mean, Variance, Distance, Val] = ld_vectorFind
   [sim,index] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
   [sim,FoundSpike] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
   [sim,Mean] = libdyn_new_oport_hint(sim, blk, 2);   // 1th port
-  [sim,Variance] = libdyn_new_oport_hint(sim, blk, 3);   // 1th port
+  [sim,Sigma] = libdyn_new_oport_hint(sim, blk, 3);   // 1th port
   [sim,Distance] = libdyn_new_oport_hint(sim, blk, 4);   // 1th port
   [sim,Val] = libdyn_new_oport_hint(sim, blk, 5);   // 1th port
 endfunction
@@ -2614,6 +2616,8 @@ function [sim, out] = ld_RTCrossCorr(sim, events, u, shapeSig, len) // PARSEDOCU
 endfunction
 
 
+
+
 function [sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen) // PARSEDOCU_BLOCK
 // 
 // Read data from an ascii-file
@@ -2837,6 +2841,49 @@ function [sim] = ld_SyncFilewrite(sim, events, in, len, datatype, fname, trigger
   // connect the ouputs
  //[sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
+
+
+function [sim, EstMean, EstSigma] = ld_WindowedMean(sim, events, in, weight, WindowLen) // PARSEDOCU_BLOCK
+// 
+// ld_WindowedMean - Calculte the average of the input singal for a floating window
+//
+// in * - input signal
+// weight * - weight for the current sample
+// EstMean * - the calculated average
+// EstSigma * - the calculated standard deviation
+// WindowLen - length of floating window
+// 
+// 
+
+
+// introduce some parameters that are refered to by id's
+
+// Set-up the block parameters and I/O ports
+  Uipar = [ WindowLen ];
+  Urpar = [ ];
+  btype = 60001 + 307;
+
+  insizes=[1,1]; // Input port sizes
+  outsizes=[1,1]; // Output port sizes
+  dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+  intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]; // datatype for each input port
+  outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]; // datatype for each output port
+
+  blocktype = 1; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+  // Create the block
+  [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes, intypes, outtypes, dfeed);
+  
+  // connect the inputs
+ [sim,blk] = libdyn_conn_equation(sim, blk, list(in, weight) ); // connect in1 to port 0 and in2 to port 1
+
+  // connect the ouputs
+ [sim,EstMean] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+ [sim,EstSigma] = libdyn_new_oport_hint(sim, blk, 1);   // 0th port
+ 
+endfunction
+
+
 
 // 
 // 

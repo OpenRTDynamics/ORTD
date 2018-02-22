@@ -1025,6 +1025,194 @@ public:
 
 
 
+class ld_WindowedMeanBlock {
+public:
+    ld_WindowedMeanBlock(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~ld_WindowedMeanBlock()
+    {
+        free(InputBuffer);
+	free(WeightsBuffer);
+	free(PartSum_VarianceBuffer);
+    }
+
+    //
+    // define states or other variables
+    //
+
+    double *InputBuffer, *WeightsBuffer, *PartSum_VarianceBuffer;
+    int ReadBufferCnt, WriteBufferCnt;
+    int WindowLen;
+    int N;
+    int ValuesInBuffer;
+    
+    double CummulativeSum_Mean, CummulativeSum_Weight, CummulativeSum_Variance;
+
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+        int error = 0;
+
+
+//         //
+//         // get a vector of integers (double vectors are similar, replace ivec with rvec)
+//         //
+//         struct irpar_ivec_t vec;
+//         if ( irpar_get_ivec(&vec, Uipar, Urpar, 11) < 0 ) {return -1; }
+//
+
+        //
+        // get some informations on the first input port
+        //
+//         N = libdyn_get_inportsize(block, 0);  // the size of the input vector
+//         int datatype = libdyn_get_inportdatatype(block, 0); // the datatype
+//         int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+//         WindowLen = N * TypeBytes;  // Amount of bytes allocated for the input vector
+
+// 	if ( libdyn_get_inportsize(block, 0) != libdyn_get_inportsize(block, 1) )
+// 	  return -1;
+	
+	WindowLen = Uipar[0];
+
+        // Allocate Ringbuf
+        InputBuffer = (double*) malloc(WindowLen * sizeof(double) );
+        WeightsBuffer = (double*) malloc(WindowLen * sizeof(double) );
+	PartSum_VarianceBuffer = (double*) malloc(WindowLen * sizeof(double) );
+
+        // set the initial states
+        resetStates();
+
+// 	printf("N=%d\n", N);
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return error;
+    }
+
+
+    inline void updateStates()
+    {
+      
+    }
+
+
+    inline void calcOutputs()
+    {
+        double *in = (double *) libdyn_get_input_ptr(block,0); // the first input port
+        double *Weight = (double *) libdyn_get_input_ptr(block,1); // the 2nd input port
+	
+        double *EstMean = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+        double *EstSigma = (double*) libdyn_get_output_ptr(block, 1); // the first output port
+	
+	// store into buffer
+	if (WriteBufferCnt == WindowLen)
+	  WriteBufferCnt = 0;
+	
+	WeightsBuffer[ WriteBufferCnt ] = *Weight;
+	InputBuffer[ WriteBufferCnt ] = *in;
+	
+
+	
+	// 
+	CummulativeSum_Mean += *in * *Weight;
+	CummulativeSum_Weight += *Weight;
+	
+	
+	// Calc the estinated avg
+	*EstMean = CummulativeSum_Mean / ( CummulativeSum_Weight );
+
+
+	//
+	double PartSum_Variance = (*in - *EstMean) * (*in - *EstMean) * *Weight;
+	CummulativeSum_Variance += PartSum_Variance;
+
+	PartSum_VarianceBuffer[ WriteBufferCnt ] = PartSum_Variance;
+	
+	// Write PartSum_Variance to a buffer
+	*EstSigma = CummulativeSum_Variance / CummulativeSum_Weight; 
+
+	//
+	++WriteBufferCnt;
+	++ValuesInBuffer;	
+	
+// 	printf("in=%f, weight=%f, CummulativeSum_Mean=%f, CummulativeSum_Weight=%f \n", *in, *Weight, CummulativeSum_Mean, CummulativeSum_Weight );
+	
+	// Eventually drop values
+	if ( ValuesInBuffer >= WindowLen) { // only read on buffer overflow
+	  
+	  // Read the last value
+	  if (ReadBufferCnt == WindowLen)
+	    ReadBufferCnt = 0;
+	  
+	  double DropOutIn = InputBuffer[ ReadBufferCnt ];
+	  double DropOutWeight = WeightsBuffer[ ReadBufferCnt ];
+	  double DropPartSum_Variance = PartSum_VarianceBuffer[ ReadBufferCnt ];
+
+	  
+	  ++ReadBufferCnt;
+	  --ValuesInBuffer;
+	  
+	  //
+	  CummulativeSum_Mean -= DropOutIn * DropOutWeight;
+	  CummulativeSum_Weight -= DropOutWeight;
+	  CummulativeSum_Variance -= DropPartSum_Variance; // TODO
+	  
+// 	  printf("Dropped: DropOutIn=%f, DropOutWeight=%f \n", DropOutIn, DropOutWeight);
+	  
+	}
+	
+
+	
+    }
+
+
+    inline void resetStates()
+    {
+      ReadBufferCnt = 0;
+      WriteBufferCnt = 0;
+      
+      CummulativeSum_Mean = 0;
+      CummulativeSum_Weight = 0;
+      CummulativeSum_Variance = 0;
+      ValuesInBuffer = 0;
+      
+    }
+
+    void printInfo() {
+        fprintf(stderr, "I'm a ld_WindowedMean block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<ld_WindowedMeanBlock>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
+
 
 //
 // Export to C so the libdyn simulator finds this function
@@ -1051,14 +1239,15 @@ extern "C" {
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+302, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RTShapeCompareBlock::CompFn);
 	
 	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+303, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ArrayInt32Block::CompFn);
-    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+304, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ConstBinBlock::CompFn);
+        libdyn_compfnlist_add(sim->private_comp_func_list, blockid+304, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ConstBinBlock::CompFn);
     	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+305, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ORTDIO_PutBuffer::CompFn);
 	
     	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+306, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ld_SyncFilewrite::CompFn);
 	
+    	libdyn_compfnlist_add(sim->private_comp_func_list, blockid+307, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ld_WindowedMeanBlock::CompFn);
+	
 	
 
-    
     
     }
 
