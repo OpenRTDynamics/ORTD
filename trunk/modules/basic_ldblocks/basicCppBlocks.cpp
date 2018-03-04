@@ -22,6 +22,8 @@
 extern "C" {
 #include "libdyn.h"
 #include "irpar.h"
+#include "math.h"
+  
 }
 
 #include "libdyn_cpp.h"
@@ -1130,7 +1132,10 @@ public:
 	
 	
 	// Calc the estinated avg
-	*EstMean = CummulativeSum_Mean / ( CummulativeSum_Weight );
+	
+	*EstMean = ( CummulativeSum_Mean / ( CummulativeSum_Weight ) );
+	
+
 
 
 	//
@@ -1140,8 +1145,11 @@ public:
 	PartSum_VarianceBuffer[ WriteBufferCnt ] = PartSum_Variance;
 	
 	// Write PartSum_Variance to a buffer
-	*EstSigma = CummulativeSum_Variance / CummulativeSum_Weight; 
+	*EstSigma = sqrt( CummulativeSum_Variance / CummulativeSum_Weight ); 
 
+	if (isnan( *EstSigma ) )
+	  *EstSigma = 0;
+	
 	//
 	++WriteBufferCnt;
 	++ValuesInBuffer;	

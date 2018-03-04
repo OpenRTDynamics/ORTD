@@ -1149,6 +1149,32 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_cond_overwriteInt32(sim, events, in, condition, setto) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: conditional overwrite of the input signal's value
+//
+// out * - output (int32)
+// in * - input (int32) to potentially overwrite
+// condition * - condition signal (int32) -- in contrast to ld_cond_overwrite
+// 
+// out = in, if condition > 0
+// out = setto, otherwise
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'setto', setto) );
+  ortd_checkpar(sim, list('Signal', 'condition', condition) );
+end
+
+  btype = 60001 + 49;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[ setto ], rpar=[  ], ...
+                   insizes=[1,1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(condition, in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -1788,7 +1814,7 @@ endfunction
 
 function [sim,out] = ld_CompareEqInt32(sim, events, in, CompVal) // PARSEDOCU_BLOCK
 //
-// %PURPOSE: Compeare to CompVal
+// %PURPOSE: Compeare to CompVal (if equal)
 // 
 // in*, float
 // out*, int32 - 0 if (in == CompVal); 1 if (in != CompVal);
@@ -1808,7 +1834,49 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim,out] = ld_CompareInt32(sim, events, in, Thr) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Compeare to Thr (if greater)
+// 
+// in*, float
+// out*, int32 - 0 if (in > CompVal); 1 if (in != CompVal);
+//
 
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'Thr', Thr) );
+end
+
+  btype = 60001 + 47;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ Thr ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+function [sim,out] = ld_integratorInt32(sim, events, in) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Integrator on Int32
+// 
+// in*, int32
+// out*, int32  out[k] = out[k-1] + in[k]
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+end
+
+  btype = 60001 + 48;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  ], [  ], ...
+                   insizes=[1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
 
 
 
@@ -2482,8 +2550,6 @@ endfunction
 
 
 
-//  [sim, CollectedData] = ld_collectValues(sim, 0, in=filterOut, WriteIndex=LoopCounter, memorysize=100, DefaultVal=0);
-
 function [sim, out] = ld_collectValues(sim, events, in, WriteIndex, memorysize, DefaultVal, inVecsize ) // PARSEDOCU_BLOCK
   //
   // %PURPOSE: Store input values in a memory at a given position
@@ -2518,6 +2584,40 @@ end
 endfunction
 
 
+function [sim, out] = ld_HistogramInt32(sim, events, Val, Weight, from, to ) // PARSEDOCU_BLOCK
+  //
+  // %PURPOSE: Accumulative store input values in a memory at a given position
+  //
+  // Val * - input 
+  // Weight * - int32
+  // out *(from-to+1) int32 - the vector representing the histogram
+  // 
+  // from - min input value in the histogram
+  // to - max input value in the histogram
+  // 
+  //
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'Val', Val) );
+  ortd_checkpar(sim, list('Signal', 'Weight', Weight) );
+  ortd_checkpar(sim, list('SingleValue', 'from', from) );
+  ortd_checkpar(sim, list('SingleValue', 'to', to) );
+end
+
+  btype = 60001 + 81;
+  ipar = [ from, to ]; rpar = [];
+  
+//  pause;
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[1, 1 ], outsizes=[to-from+1], ...
+                       intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(Val, Weight) );
+
+  // connect each outport
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
+endfunction
 
 
 

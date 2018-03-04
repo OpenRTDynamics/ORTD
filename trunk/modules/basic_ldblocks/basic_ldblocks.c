@@ -1708,6 +1708,73 @@ int compu_func_ld_cond_overwrite2(int flag, struct dynlib_block_t *block)
     }
 }
 
+
+
+
+
+int compu_func_ld_cond_overwriteInt32(int flag, struct dynlib_block_t *block)
+{
+    //printf("comp_func switch: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 2;
+
+    uint32_t *inp1;
+    uint32_t *cond_in;
+    uint32_t *out1;
+
+    uint32_t *ipar = libdyn_get_ipar_ptr(block);
+    uint32_t setto = ipar[0];
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        cond_in = (uint32_t *) libdyn_get_input_ptr(block,0);
+        inp1 = (uint32_t *) libdyn_get_input_ptr(block,1); // signal
+        out1 = (uint32_t *) libdyn_get_output_ptr(block,0);
+        
+       // printf("Condition: %d\n", *cond_in );
+
+        if (*cond_in > 0) {
+            *out1 = setto;
+        } else {
+            *out1 = *inp1;
+        }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        //printf("New switch Block\n");
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+        
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_cond_overwriteInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
+
+
 int ortd_compu_func_ld_ramp(int flag, struct dynlib_block_t *block) // FIXME: NOT FINISHED
 {
     int Nout = 1;
@@ -3371,7 +3438,7 @@ int compu_func_ld_CompareEqInt32(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm a compu_func_ld_CompareEqInt32 block\n");
+        printf("I'm ld_CompareEqInt32 block\n");
         return 0;
         break;
 
@@ -3379,6 +3446,111 @@ int compu_func_ld_CompareEqInt32(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_ld_CompareInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+    
+    int32_t thr = ipar[0];
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+
+        out[0] = ( *in > thr ) ? 1 : 0;
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_CompareInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int compu_func_ld_integratorInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+    
+    //int32_t thr = ipar[0];
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+        int32_t *in = (int32_t *) libdyn_get_input_ptr(block, 0);
+
+        out[0] = out[0] + in[0];
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_RESETSTATES:  // 
+    {
+        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
+	
+	out[0] = 0;
+    }  
+        return 0;
+        break;
+    
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_CompareInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
 
 
 
@@ -5519,7 +5691,7 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
     }
     case COMPF_FLAG_CONFIGURE:  // configure
     {
-      libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
       libdyn_config_block_input(block, 0, inVecsize, DATATYPE_FLOAT); // in, intype, 
       libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype, 
       libdyn_config_block_output(block, 0, memorysize, DATATYPE_FLOAT, 1);
@@ -5538,15 +5710,11 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
 	fprintf(stderr, "ld_collectValues: invalid memorysize\n");
 	return -1;
       }
-//       unsigned int Nbytes = sizeof(double)*(veclen) + sizeof(unsigned int);
-//       void *buffer = malloc(Nbytes);
-//       memset((void*) buffer, 0,  Nbytes );
-//       
-//        int *bpr = &( (int*) buffer)[0];
-// 
-//        *bpr = 0;
-// 
-//       libdyn_set_work_ptr(block, (void *) buffer);
+      
+        for (i=0; i<memorysize; ++i) {
+            in[i] = DefaultVal;
+        }
+        
     }
       return 0;
       break;
@@ -5581,6 +5749,121 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
       
     case COMPF_FLAG_PRINTINFO:
       printf("I'm a ld_collectValues block.\n");
+      return 0;
+      break;
+  }
+}
+
+
+
+
+
+
+
+int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
+{
+  int err;
+  
+  int Nout = 1;
+  int Nin = 2;
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int from = ipar[0];
+  int to = ipar[1];
+  
+  int *rpar = libdyn_get_rpar_ptr(block);
+  double DefaultVal = rpar[0];
+  
+  
+  int dfeed = 0;  
+  int i = 0;
+  
+  int32_t *out;
+  int32_t *Val;
+  int32_t *Weight;
+
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+     
+       // printf("-- CALCOUT --\n");
+        
+      out = (int32_t *) libdyn_get_output_ptr(block,0);
+      Val = (int32_t *) libdyn_get_input_ptr(block,0);
+      Weight = (int32_t *) libdyn_get_input_ptr(block,1);
+      
+      if ( *Val < from ) { 
+          //fprintf(stderr, "ld_collectValues: Failed: WriteIndex < 1\n");
+          return 0;
+          break;
+      } 
+      
+      if ( *Val > to ) { 
+          //fprintf(stderr, "ld_collectValues: Failed: WriteIndex < 1\n");
+          return 0;
+          break;
+      } 
+
+	// Accumulate Weight
+            out[ *Val - from ] += *Weight;
+        
+      
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block_input(block, 0, 1, DATATYPE_INT32); // in, intype, 
+      libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype, 
+      libdyn_config_block_output(block, 0, to-from+1, DATATYPE_INT32, 1);
+  
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_INIT:  // configure
+    {      
+      if (from > to ) {
+	fprintf(stderr, "ld_HistogramInt32: from > to\n");
+	return -1;
+      }
+      
+      // set output to zero
+      for (i=0; i< (to-from+1); ++i) {
+	out[i]=0;
+      }
+
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // destroy instance
+    {
+        
+      // set output to zero
+      for (i=0; i< (to-from+1); ++i) {
+	out[i]=0;
+      }
+
+     }
+      return 0;
+      break;      
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+//       void *buffer = (void*) libdyn_get_work_ptr(block);
+//       free(buffer);
+    }
+      return 0;
+      break;
+      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a ld_HistogramInt32 block.\n");
       return 0;
       break;
   }
@@ -5907,7 +6190,10 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 45, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_orInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 46, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_notInt32);
 
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 47, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_CompareInt32);
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 48, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_integratorInt32);
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 49, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_cond_overwriteInt32);
     
     
     
@@ -5953,6 +6239,9 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 79, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindShape );
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 80, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindSpike );
+    
+        libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 81, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_HistogramInt32 );
+    
     
     
     
