@@ -5871,6 +5871,108 @@ int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
 
 
 
+
+// [sim, TimerActive, Counter] = ld_Timer(sim, 0, Trigger=AbnormalityDetected, Count=length(par_.CorrModel) )
+
+int ortd_compu_func_ld_Timer(int flag, struct dynlib_block_t *block)
+{
+  int err;
+  
+  int Nout = 2;
+  int Nin = 1;
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int Count = ipar[0];
+
+  
+  int *rpar = libdyn_get_rpar_ptr(block);
+  
+  int i = 0;
+  
+  int32_t *TimerActive;
+  int32_t *Counter;
+  int32_t *Trigger;
+
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+     
+       // printf("-- CALCOUT --\n");
+        
+      TimerActive = (int32_t *) libdyn_get_output_ptr(block,0);
+      Counter = (int32_t *) libdyn_get_output_ptr(block,1);
+      Trigger = (int32_t *) libdyn_get_input_ptr(block,0);
+      
+	if (*TimerActive == 1) {
+	  *Counter -= 1;
+	  
+	  if (*Counter == 0) {
+	    *TimerActive = 0;
+	  }
+	}
+      
+	if ( *Trigger > 0 ) { 
+	    
+	    if (*TimerActive == 0) {
+	      *Counter = Count; // reset counter
+	      *TimerActive = 1;
+	    }
+	}
+	
+      
+      
+      
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block_input(block, 0, 1, DATATYPE_INT32); // in, intype, 
+      libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+      libdyn_config_block_output(block, 1, 1, DATATYPE_INT32, 1);
+  
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_INIT:  // configure
+    {      
+	      *Counter = 0; // reset counter
+	      *TimerActive = 0;
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // destroy instance
+    {
+        
+	      *Counter = 0; // reset counter
+	      *TimerActive = 0;
+     }
+      return 0;
+      break;      
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+//       void *buffer = (void*) libdyn_get_work_ptr(block);
+//       free(buffer);
+    }
+      return 0;
+      break;
+      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a ld_Timer block.\n");
+      return 0;
+      break;
+  }
+}
+
+
 int compu_func_ld_add_ofsInt32(int flag, struct dynlib_block_t *block)
 {
     //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
@@ -6240,7 +6342,8 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 80, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindSpike );
     
-        libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 81, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_HistogramInt32 );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 81, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_HistogramInt32 );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 82, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_Timer );
     
     
     
