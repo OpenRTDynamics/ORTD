@@ -2620,6 +2620,42 @@ end
 endfunction
 
 
+// [sim, TimerActive, Counter] = ld_Timer(sim, 0, Trigger=AbnormalityDetected, Count=length(par_.CorrModel) )
+
+function [sim, TimerActive, Counter] = ld_Timer(sim, events, Trigger, Count ) // PARSEDOCU_BLOCK
+  //
+  // %PURPOSE: A timer than can be triggered
+  //
+  // The timer is active for Count simulation steps
+  //
+  // Trigger * - (int32) start the timer immediately 
+  // TimerActive * - int32 1 if the timer is active, 0 if not
+  // Counter * (int32) - The used conter that starts from Count and decreases
+  // 
+  // 
+  //
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'Trigger', Trigger) );
+  ortd_checkpar(sim, list('SingleValue', 'Count', Count) );
+end
+
+  btype = 60001 + 82;
+  ipar = [ Count ]; rpar = [];
+  
+//  pause;
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                       insizes=[1 ], outsizes=[1,1], ...
+                       intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(Trigger) );
+
+  // connect each outport
+  [sim, TimerActive] = libdyn_new_oport_hint(sim, blk, 0);   // ith port
+  [sim, Counter] = libdyn_new_oport_hint(sim, blk, 1);   // ith port
+endfunction
+
 
 
 function [sim,out] = ld_add_ofsInt32(sim, events, in, ofs) // PARSEDOCU_BLOCK
