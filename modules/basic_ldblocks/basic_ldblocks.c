@@ -5637,6 +5637,7 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
   int *rpar = libdyn_get_rpar_ptr(block);
   double DefaultVal = rpar[0];
   
+
   
   int dfeed = 0;  
   int i = 0;
@@ -5644,24 +5645,20 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
   double *out;
   double *in;
   int32_t *WriteIndex;
-/*
-  void *buffer__ = (void*) libdyn_get_work_ptr(block);
-//   int *buf_position_read =  (int*) buffer__;
-
-  double *stat_buf = (double*) (buffer__ + sizeof(int) );
-//   int stat_buf_begin;*/
   
+
   
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
      
        // printf("-- CALCOUT --\n");
-        
-      out = (double *) libdyn_get_output_ptr(block,0);
+                 out = (double *) libdyn_get_output_ptr(block,0);
       in = (double *) libdyn_get_input_ptr(block,0);
       WriteIndex = (int32_t *) libdyn_get_input_ptr(block,1);
       
+  
+
       if ( *WriteIndex < 1 ) { 
           fprintf(stderr, "ld_collectValues: Failed: WriteIndex < 1\n");
           return 0;
@@ -5701,6 +5698,11 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
     }
     case COMPF_FLAG_INIT:  // configure
     {      
+               out = (double *) libdyn_get_output_ptr(block,0);
+      in = (double *) libdyn_get_input_ptr(block,0);
+      WriteIndex = (int32_t *) libdyn_get_input_ptr(block,1);
+      
+  
       if (inVecsize < 1) {
 	fprintf(stderr, "ld_collectValues: invalid inVecsize\n");
 	return -1;
@@ -5720,21 +5722,16 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
       break;
     case COMPF_FLAG_RESETSTATES: // destroy instance
     {
-        
+                 out = (double *) libdyn_get_output_ptr(block,0);
+      in = (double *) libdyn_get_input_ptr(block,0);
+      WriteIndex = (int32_t *) libdyn_get_input_ptr(block,1);
+      
+  
         for (i=0; i<memorysize; ++i) {
-            in[i] = DefaultVal;
+            out[i] = DefaultVal;
         }
         
-//       unsigned int Nbytes = sizeof(double)*(veclen) + sizeof(unsigned int);
-//       void *buffer = buffer__;
-//       memset((void*) buffer, 0,  Nbytes );
-//       
-//        int *bpr = &( (int*) buffer)[0];
-// 
-//        *bpr = 0;
-//               
-//        out = (double *) libdyn_get_output_ptr(block,0);
-//        *out = 0;
+
 // 
      }
       return 0;
@@ -5782,18 +5779,18 @@ int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
   int32_t *Val;
   int32_t *Weight;
 
-  
+
   
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-     
-       // printf("-- CALCOUT --\n");
-        
-      out = (int32_t *) libdyn_get_output_ptr(block,0);
+             out = (int32_t *) libdyn_get_output_ptr(block,0);
       Val = (int32_t *) libdyn_get_input_ptr(block,0);
       Weight = (int32_t *) libdyn_get_input_ptr(block,1);
       
+       // printf("-- CALCOUT --\n");
+        
+
       if ( *Val < from ) { 
           //fprintf(stderr, "ld_collectValues: Failed: WriteIndex < 1\n");
           return 0;
@@ -5830,6 +5827,10 @@ int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
     }
     case COMPF_FLAG_INIT:  // configure
     {      
+                   out = (int32_t *) libdyn_get_output_ptr(block,0);
+      Val = (int32_t *) libdyn_get_input_ptr(block,0);
+      Weight = (int32_t *) libdyn_get_input_ptr(block,1);
+      
       if (from > to ) {
 	fprintf(stderr, "ld_HistogramInt32: from > to\n");
 	return -1;
@@ -5845,7 +5846,10 @@ int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
       break;
     case COMPF_FLAG_RESETSTATES: // destroy instance
     {
-        
+                    out = (int32_t *) libdyn_get_output_ptr(block,0);
+      Val = (int32_t *) libdyn_get_input_ptr(block,0);
+      Weight = (int32_t *) libdyn_get_input_ptr(block,1);
+      
       // set output to zero
       for (i=0; i< (to-from+1); ++i) {
 	out[i]=0;
@@ -5893,18 +5897,18 @@ int ortd_compu_func_ld_Timer(int flag, struct dynlib_block_t *block)
   int32_t *Counter;
   int32_t *Trigger;
 
-  
+
   
   switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-     
-       // printf("-- CALCOUT --\n");
-        
-      TimerActive = (int32_t *) libdyn_get_output_ptr(block,0);
+           TimerActive = (int32_t *) libdyn_get_output_ptr(block,0);
       Counter = (int32_t *) libdyn_get_output_ptr(block,1);
       Trigger = (int32_t *) libdyn_get_input_ptr(block,0);
       
+       // printf("-- CALCOUT --\n");
+        
+
 	if (*TimerActive == 1) {
 	  *Counter -= 1;
 	  
@@ -5920,10 +5924,7 @@ int ortd_compu_func_ld_Timer(int flag, struct dynlib_block_t *block)
 	      *TimerActive = 1;
 	    }
 	}
-	
-      
-      
-      
+
       return 0;
       break;
     }
@@ -5944,6 +5945,10 @@ int ortd_compu_func_ld_Timer(int flag, struct dynlib_block_t *block)
     }
     case COMPF_FLAG_INIT:  // configure
     {      
+      TimerActive = (int32_t *) libdyn_get_output_ptr(block,0);
+      Counter = (int32_t *) libdyn_get_output_ptr(block,1);
+      Trigger = (int32_t *) libdyn_get_input_ptr(block,0);
+      
 	      *Counter = 0; // reset counter
 	      *TimerActive = 0;
     }
@@ -5951,7 +5956,10 @@ int ortd_compu_func_ld_Timer(int flag, struct dynlib_block_t *block)
       break;
     case COMPF_FLAG_RESETSTATES: // destroy instance
     {
-        
+      TimerActive = (int32_t *) libdyn_get_output_ptr(block,0);
+      Counter = (int32_t *) libdyn_get_output_ptr(block,1);
+      Trigger = (int32_t *) libdyn_get_input_ptr(block,0);
+      
 	      *Counter = 0; // reset counter
 	      *TimerActive = 0;
      }
