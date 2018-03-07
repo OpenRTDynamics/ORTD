@@ -1146,6 +1146,9 @@ public:
 	
 	// Write PartSum_Variance to a buffer
 	*EstSigma = sqrt( CummulativeSum_Variance / CummulativeSum_Weight ); 
+	
+	
+	//printf("EstSigma: %f - CummulativeSum_Weight: %f - CummulativeSum_Variance: %f - PartSum_Variance: %f\n --- EstMean %f - Weight %f - in %f  ", *EstSigma, CummulativeSum_Weight, CummulativeSum_Variance, PartSum_Variance,   *EstMean,*Weight,*in );
 
 	if (isnan( *EstSigma ) )
 	  *EstSigma = 0;
