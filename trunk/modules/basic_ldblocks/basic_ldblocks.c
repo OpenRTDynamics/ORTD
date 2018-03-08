@@ -4187,6 +4187,8 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_ld_vectorFindSpike(int flag, struct dynlib_block_t *block)
 {
+        printf("ortd_compu_func_ld_vectorFindSpike: flag==%d\n", flag);
+
     // printf("comp_func demux: flag==%d\n", flag);
     int *ipar = libdyn_get_ipar_ptr(block);
     double *rpar = libdyn_get_rpar_ptr(block);
@@ -5062,6 +5064,8 @@ int ortd_compu_func_simplecovar(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_ld_vectorFindShape(int flag, struct dynlib_block_t *block)
 {
+          printf("ortd_compu_func_ld_vectorFindShape: flag==%d\n", flag);
+
     // printf("comp_func demux: flag==%d\n", flag);
     int *ipar = libdyn_get_ipar_ptr(block);
     double *shape = libdyn_get_rpar_ptr(block); // reference-vector
@@ -5625,6 +5629,8 @@ int ortd_compu_func_vectormultscalar(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
 {
+//       printf("ortd_compu_func_collectValues: flag==%d\n", flag);
+
   int err;
   
   int Nout = 1;
@@ -5714,7 +5720,7 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
       }
       
         for (i=0; i<memorysize; ++i) {
-            in[i] = DefaultVal;
+            out[i] = DefaultVal;
         }
         
     }
@@ -5759,6 +5765,9 @@ int ortd_compu_func_collectValues(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
 {
+//     printf("ortd_compu_func_ld_HistogramInt32: flag==%d\n", flag);
+
+  
   int err;
   
   int Nout = 1;
@@ -5880,6 +5889,8 @@ int ortd_compu_func_ld_HistogramInt32(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_ld_Timer(int flag, struct dynlib_block_t *block)
 {
+//   printf("ortd_compu_func_ld_Timer: flag==%d\n", flag);
+  
   int err;
   
   int Nout = 2;
