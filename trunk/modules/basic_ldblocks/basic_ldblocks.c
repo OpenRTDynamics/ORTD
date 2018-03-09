@@ -4045,7 +4045,7 @@ int ortd_compu_func_ld_vectorInt32ToFloat(int flag, struct dynlib_block_t *block
     int Nout = 1;
     int Nin = 1;
 
-    double *in;
+    int32_t *in;
 
 
     switch (flag) {

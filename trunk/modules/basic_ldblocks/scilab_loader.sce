@@ -1126,8 +1126,8 @@ function [sim, out] = ld_cond_overwrite2(sim, events, in, condition, setto) // P
 //
 // %PURPOSE: conditional overwrite of the input signal's value
 //
-// out * - output
-// in * - input to potentially overwrite
+// out * - output (float)
+// in * - input (float) to potentially overwrite
 // condition * - condition signal (int32) -- in contrast to ld_cond_overwrite
 // 
 // out = in, if condition > 0
