@@ -3714,6 +3714,111 @@ int ortd_compu_func_vectordelay(int flag, struct dynlib_block_t *block)
   }
 }
 
+int ortd_compu_func_ld_vectordelayInt32(int flag, struct dynlib_block_t *block)
+{
+  int err;
+  
+  int Nout = 1;
+  int Nin = 1;
+
+  int *ipar = libdyn_get_ipar_ptr(block);
+  int veclen = ipar[0];
+  
+  int dfeed = 0;  
+  int i = 0;
+  
+  int32_t *out;
+  int32_t *inp;
+
+  void *buffer__ = (void*) libdyn_get_work_ptr(block);
+  
+  int32_t *stat_buf = (int32_t*) (buffer__ + sizeof(int) );
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+      out = (int32_t *) libdyn_get_output_ptr(block,0);
+      
+      for(i = 0; i < veclen; i++){
+	out[i] = stat_buf[i];
+      }
+
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      inp = (int32_t *) libdyn_get_input_ptr(block,0);
+            
+      for(i = 0; i < veclen; i++){
+
+	stat_buf[i] = inp[i];
+      }
+
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+      libdyn_config_block_input(block, 0, veclen, DATATYPE_INT32); // in, intype, 
+      libdyn_config_block_output(block, 0, veclen, DATATYPE_INT32, dfeed);
+  
+      return 0;
+      break;
+    }
+    case COMPF_FLAG_INIT:  // configure
+    {      
+      if (veclen < 1) {
+	fprintf(stderr, "ld_vector_delay: invalid vector length\n");
+	return -1;
+      }
+      
+      unsigned int Nbytes = sizeof(int32_t)*(veclen) + sizeof(unsigned int);
+      void *buffer = malloc(Nbytes);
+      memset((void*) buffer, 0,  Nbytes );
+      
+       int *bpr = &( (int*) buffer)[0];
+
+       *bpr = 0;
+
+      libdyn_set_work_ptr(block, (void *) buffer);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_RESETSTATES: // destroy instance
+    {
+      unsigned int Nbytes = sizeof(int32_t)*(veclen) + sizeof(unsigned int);
+      void *buffer = buffer__;
+      memset((void*) buffer, 0,  Nbytes );
+      
+       int *bpr = &( (int*) buffer)[0];
+
+       *bpr = 0;
+              
+       out = (int32_t *) libdyn_get_output_ptr(block,0);
+       *out = 0;
+
+    }
+      return 0;
+      break;      
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      void *buffer = (void*) libdyn_get_work_ptr(block);
+      free(buffer);
+    }
+      return 0;
+      break;
+      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a ld_vectordelayInt32 block.\n");
+      return 0;
+      break;
+  }
+}
+
+
+
 int ortd_compu_func_vectordiff(int flag, struct dynlib_block_t *block)
 {
     // printf("comp_func demux: flag==%d\n", flag);
@@ -3923,6 +4028,68 @@ int ortd_compu_func_vectorabs(int flag, struct dynlib_block_t *block)
         break;
     case COMPF_FLAG_PRINTINFO:
         printf("I'm vectorabs block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+int ortd_compu_func_ld_vectorInt32ToFloat(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int size = ipar[0];
+    int Nout = 1;
+    int Nin = 1;
+
+    double *in;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        in = (int32_t *) libdyn_get_input_ptr(block,0);
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+
+        int i;
+
+        for (i=0; i < size; ++i) {
+            out[i] =  in[i] ; // conversion
+        }
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (size < 1) {
+            printf("size cannot be smaller than 1\n");
+            printf("size = %d\n", size);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, size, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_input(block, 0, size, DATATYPE_INT32);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm ld_vectorInt32ToFloat block\n");
         return 0;
         break;
 
@@ -4187,7 +4354,7 @@ int ortd_compu_func_vectorfindminmax(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_ld_vectorFindSpike(int flag, struct dynlib_block_t *block)
 {
-        printf("ortd_compu_func_ld_vectorFindSpike: flag==%d\n", flag);
+//         printf("ortd_compu_func_ld_vectorFindSpike: flag==%d\n", flag);
 
     // printf("comp_func demux: flag==%d\n", flag);
     int *ipar = libdyn_get_ipar_ptr(block);
@@ -5064,7 +5231,7 @@ int ortd_compu_func_simplecovar(int flag, struct dynlib_block_t *block)
 
 int ortd_compu_func_ld_vectorFindShape(int flag, struct dynlib_block_t *block)
 {
-          printf("ortd_compu_func_ld_vectorFindShape: flag==%d\n", flag);
+//           printf("ortd_compu_func_ld_vectorFindShape: flag==%d\n", flag);
 
     // printf("comp_func demux: flag==%d\n", flag);
     int *ipar = libdyn_get_ipar_ptr(block);
@@ -6364,9 +6531,12 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 81, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_HistogramInt32 );
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 82, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_Timer );
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 83, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorInt32ToFloat );
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 84, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectordelayInt32 );
     
     
-    
+
 
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);
