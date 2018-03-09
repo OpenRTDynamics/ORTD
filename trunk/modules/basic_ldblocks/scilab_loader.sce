@@ -1935,6 +1935,31 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_vector_delayInt32(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: delay - block
+//
+// in * - input (int32)
+// out * - output (int32)
+// vecsize - size of vector in*
+// 
+// delay the hole vector in by one step
+// 
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+  btype = 60001 + 84;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [ ], ...
+                   insizes=[vecsize], outsizes=[vecsize], ...
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 
 function [sim, out] = ld_vector_diff(sim, events, in, vecsize) // PARSEDOCU_BLOCK
 //    
@@ -2002,6 +2027,26 @@ function [sim, out] = ld_vector_abs(sim, events, in, vecsize) // PARSEDOCU_BLOCK
   [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
                                      insizes=[vecsize], outsizes=[vecsize], ...
                                      intypes=[ ORTD.DATATYPE_FLOAT ], outtypes=[ORTD.DATATYPE_FLOAT] );
+ 
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out] = ld_vectorInt32ToFloat(sim, events, in, vecsize) // PARSEDOCU_BLOCK
+// %PURPOSE: Int32 to Float conversion on a vector 
+//
+// in *+(vecsize) - input
+// out *+(vecsize) - output
+// 
+//    
+  btype = 60001 + 83; 
+  ipar = [vecsize; 0]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize], outsizes=[vecsize], ...
+                                     intypes=[ ORTD.DATATYPE_INT32 ], outtypes=[ORTD.DATATYPE_FLOAT] );
  
   // libdyn_conn_equation connects multiple input signals to blocks
   [sim,blk] = libdyn_conn_equation(sim, blk, list( in ) );
