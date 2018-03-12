@@ -2977,8 +2977,12 @@ int compu_func_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
         printf("I'm a Int32ToFloat block\n");
         return 0;
         break;
-
+	
+    default:
+      return 0;
+      break;
     }
+    
 }
 
 
