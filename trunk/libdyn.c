@@ -330,10 +330,13 @@ void libdyn_del_simulation(struct dynlib_simulation_t *sim)
       // Now the block is defenite not initialized any more
       block->block_initialised = 0;
 
-      // Delete block
-      libdyn_del_block(block);
 
+      // Move on in the list
       current = current->allblocks_list_next; // step to the next block in list
+      
+      // Delete block (PRESE NOT THAT THIS IS DONE AFTER MOVING ON IN THE LIST, as the moving on requires the block to be alive)
+      libdyn_del_block(block);
+      
     } while (current != 0); // while there is a next block in this list
   }
 
@@ -1336,9 +1339,9 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
   
   if (update_states == 0) {
     
-#ifdef DEBUG
-   fprintf(stderr, "-- step O --- sim=%p\n", simulation);
-#endif  
+//#ifdef DEBUG
+//   fprintf(stderr, "-- step O --- sim=%p\n", simulation);
+//#endif  
     
 //     /*
 //      * Wait for synhronisation callback function
@@ -1401,9 +1404,9 @@ int libdyn_simulation_step(struct dynlib_simulation_t *simulation, int update_st
 
   if (update_states == 1) {
     
-#ifdef DEBUG
-   fprintf(stderr, "-- step U --- sim=%p\n", simulation);
-#endif  
+//#ifdef DEBUG
+//   fprintf(stderr, "-- step U --- sim=%p\n", simulation);
+//#endif  
     
     
     simulation->stepcounter++; // stepcounter wird nur bei stateupdates weitergeführt
