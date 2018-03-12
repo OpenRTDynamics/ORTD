@@ -6213,7 +6213,7 @@ int compu_func_ld_add_ofsInt32(int flag, struct dynlib_block_t *block)
 
 int compu_func_ld_gainInt32(int flag, struct dynlib_block_t *block)
 {
-      printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+//       printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
     
       int *ipar = libdyn_get_ipar_ptr(block);
     double *rpar = libdyn_get_rpar_ptr(block);
