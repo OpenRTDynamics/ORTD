@@ -32,8 +32,11 @@
 int compu_func_bilinearint(int flag, struct dynlib_block_t *block);
 int compu_func_TP1(int flag, struct dynlib_block_t *block);
 struct dynlib_block_t *new_TP1_block_(struct dynlib_simulation_t *sim, double z_oo);
-int compu_func_zTF(int flag, struct dynlib_block_t *block);
-struct dynlib_block_t *new_zTF_block_(struct dynlib_simulation_t *sim, int degn, int degd, double *qn, double *qd);
+
+// int compu_func_zTF(int flag, struct dynlib_block_t *block);
+// struct dynlib_block_t *new_zTF_block_(struct dynlib_simulation_t *sim, int degn, int degd, double *qn, double *qd);
+
+
 int compu_func_sum(int flag, struct dynlib_block_t *block);
 struct dynlib_block_t *new_sum_block_(struct dynlib_simulation_t *sim, double *c);
 int compu_func_gain(int flag, struct dynlib_block_t *block);

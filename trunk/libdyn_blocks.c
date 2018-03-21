@@ -180,7 +180,7 @@ struct dynlib_block_t *new_TP1_block_(struct dynlib_simulation_t *sim, double z_
     return tp1;
 }
 
-
+/*
 // FIXME: Reimplement this
 int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
 {
@@ -279,19 +279,26 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the
         //  printf("Setting dfeed to %d\n", dfeed);
         libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, dfeed);
 
-        filter = libdyn_new_filter(degd); // FIXME: Do this during init!
-        libdyn_load_cf(filter, Qn, Qd, degn);
-        libdyn_null_states(filter);
-        libdyn_set_work_ptr(block, (void *) filter);
+
     }
 
     return 0;
     break;
     case COMPF_FLAG_INIT:  // init
-// printf("ztf init\n");
+    {
+        int degn = (ipar[0]);
+        int degd = (ipar[1]);
 
+        double *Qn = &(rpar[0]);
+        double *Qd = &(rpar[degn+1]);
+	
+	filter = libdyn_new_filter(degd);
+        libdyn_load_cf(filter, Qn, Qd, degn);
+        libdyn_null_states(filter);
+        libdyn_set_work_ptr(block, (void *) filter);
+    }
 
-//       printf("filter=%p\n", filter);
+      
 
         return 0;
         break;
@@ -304,14 +311,14 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the
 
     case COMPF_FLAG_PRINTINFO:
         printf("I'm a tf block: \n");
-        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
-        libdyn_print_cf(filter);
+       // filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+       // libdyn_print_cf(filter);
         return 0;
         break;
     }
-}
+}*/
 
-
+/*
 struct dynlib_block_t *new_zTF_block_(struct dynlib_simulation_t *sim, int degn, int degd, double *qn, double *qd)
 {
     // new lowpass of first order
@@ -348,7 +355,7 @@ struct dynlib_block_t *new_zTF_block_(struct dynlib_simulation_t *sim, int degn,
 
         return ztf;
     }
-}
+}*/
 
 
 
