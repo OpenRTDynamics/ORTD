@@ -33,6 +33,180 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
+{
+    //printf("comp_func zTF: flag==%d\n", flag);
+    int err;
+
+    int Nout = 1;
+    int Nin = 1;
+
+    struct dynlib_filter_t *filter;
+    double *inp;
+    double *out;
+
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int dfeed = 0;
+
+// printf("degn = %d, degd = %d\n", degn, degd);
+
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        inp = (double *) libdyn_get_input_ptr(block,0);
+        out = (double *) libdyn_get_output_ptr(block,0);
+        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+        *out = libdyn_out(filter, *inp, 0);
+
+//             printf("filter=%p\n", filter);
+
+//  	printf("OOUT in=%f, out=%f\n", inp[0], out[0]);
+
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+
+//          	  printf(" SUP\n");
+
+        inp = (double *) libdyn_get_input_ptr(block,0);
+        out = (double *) libdyn_get_output_ptr(block,0);
+        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+
+//         if (__libdyn_event_check(block, 1)) {
+// #ifdef PRINT_DEBUG_HINTS
+//             printf("nullstates irparid=%d\n", block->irpar_config_id);
+// #endif
+//             libdyn_null_states(filter);
+//         }
+        
+//         if (__libdyn_event_check(block, 0)) {
+            double tmp = libdyn_out(filter, *inp, 1);
+
+// 	printf("filter=%p\n", filter);
+
+//         if (block->irpar_config_id == 203) {
+//     	  printf("OUT in=%f, out=%f SUP\n", inp[0], out[0]);
+//         }
+
+
+            //      if (block->irpar_config_id == 202)
+            //	  printf("SUP in=%f, out=%f\n", inp[0], tmp);
+
+//       if (block->irpar_config_id == 219) {
+//  	printf("SOUT in=%f, out=%f\n", inp[0], tmp);
+//       }
+
+
+//         }
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+//       printf("00000000\n");
+        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+        libdyn_null_states(filter);
+
+        out = (double *) libdyn_get_output_ptr(block,0);
+        *out = 0;
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        int degn = (ipar[0]);
+        int degd = (ipar[1]);
+
+        double *Qn = &(rpar[0]);
+        double *Qd = &(rpar[degn+1]);
+
+        if (degn == degd)
+            dfeed = 1;
+
+        libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT); // in, intype,
+        //  printf("Setting dfeed to %d\n", dfeed);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, dfeed);
+
+
+    }
+
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        int degn = (ipar[0]);
+        int degd = (ipar[1]);
+
+        double *Qn = &(rpar[0]);
+        double *Qd = &(rpar[degn+1]);
+	
+	
+	
+	if (degn > degd) {
+	  printf("libdyn: zTF: Cannot create acausal filter\n");
+	  return -1;
+      } 
+	
+	// normalise coefficents of tf
+	  int i;
+   	  double normfac = Qd[degd]; // Highest denom coefficent
+
+	  for (i = 0; i <= degn; ++i)  // deg+1 coefficients
+	      Qn[i] = Qn[i] / normfac; // [0..degn]
+
+	  for (i = 0; i <= degd; ++i)
+	      Qd[i] = Qd[i] / normfac;
+
+    
+    
+	
+	filter = libdyn_new_filter(degd);
+        libdyn_load_cf(filter, Qn, Qd, degn);
+        libdyn_null_states(filter);
+        libdyn_set_work_ptr(block, (void *) filter);
+    }
+
+      
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+        libdyn_delete_filter(filter);
+
+        return 0;
+        break;
+
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a tf block: \n");
+       // filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+       // libdyn_print_cf(filter);
+        return 0;
+        break;
+    }
+}
+
+
+
+
+
+
+
 //
 // A 2 to 1 switching Block
 // inputs = [control_in, signal_in1, signal_in2]
@@ -6432,7 +6606,12 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
 #ifdef DEBUG
     fprintf(stderr, "Adding basic ld_blocks module\n");
 #endif
+    
+    
 
+    
+    libdyn_compfnlist_add(sim->private_comp_func_list, 30, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_zTF); // formerly hard coded within libdyn_blocks.c
+    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_switch2to1);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_demux);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 2, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*) &compu_func_mux);

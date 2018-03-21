@@ -2303,11 +2303,11 @@ struct dynlib_block_t * irpar_get_libdynblock(struct dynlib_simulation_t *sim, i
 	block = libdyn_new_block(sim, &compu_func_sat, &bipar[0], &brpar[0], 0,  0);
       }
       break;
-    case LIBDYN_BLOCK_ID_TF :
-      { int degnum = bipar[0];
-        int degden = bipar[1];
-        block = new_zTF_block_(sim, degnum, degden, &(brpar[0]), &(brpar[degnum+1]) ); }
-      break;
+//     case LIBDYN_BLOCK_ID_TF :
+//       { int degnum = bipar[0];
+//         int degden = bipar[1];
+//         block = new_zTF_block_(sim, degnum, degden, &(brpar[0]), &(brpar[degnum+1]) ); }
+//       break;
     case LIBDYN_BLOCK_ID_SWITCH :
       { 
 	block = new_switch_block_(sim); 
