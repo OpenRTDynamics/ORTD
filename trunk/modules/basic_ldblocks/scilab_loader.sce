@@ -339,6 +339,60 @@ end
 endfunction
 
 
+function [sim] = ld_MultiFileSave(sim, ev, inlist, cntrl, FileNamesList) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Start and stop saving of multiple data vectors to multiple files
+// 
+//   inlist list() of *+ - Data to write
+//   cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped
+//   FileNamesList list() of strings - Filenames for saving
+// 
+// Note: This function tries to automatically detect the vector size for each entry of inlist.
+//       Howver, this does not work for all signal sources (blocks) at the moment.
+//       If come accross such a situation, you're invited to notify the authors of ORTD.
+// 
+// Note: cntrl does not have an effect by now
+// 
+// Example:
+// 
+//       TriggerSave = ...
+// 
+//       SaveSignals=list();        FileNamesList=list();
+//       SaveSignals($+1) = Signal1;      FileNamesList($+1) = "measurements/Signal1.dat";
+//       SaveSignals($+1) = Signal2;      FileNamesList($+1) = "measurements/Signal2.dat";
+// 
+//       [sim] = ld_MultiFileSave(sim, 0, ...
+//                          inlist=SaveSignals, ...
+//                          cntrl=TriggerSave, FileNamesList          );
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'cntrl', cntrl) );
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+end
+
+
+
+
+  if length(inlist) ~= length(FileNamesList) then
+    error("ld_file_save_machine2: length(insizes) ~= length(FileNamesList)");
+  end
+
+
+  NumPorts = length(inlist);
+
+  // get the types and the sizes of the given signals
+  [sizes, types] = ld_getSizesAndTypes(sim, 0, SignalList=inlist);
+  
+  for i=1:NumPorts  // for each port a write to file block
+
+       dataToSave = inlist(i);
+      [sim] = ld_savefile(sim, 0, FileNamesList(i), source=dataToSave, vlen=sizes(i) );
+
+  end
+  
+ 
+endfunction
 
 
 
@@ -2746,6 +2800,105 @@ end
 endfunction
 
 
+
+function [sim,out] = ld_vector_ztf(sim, events, in, Nvalues, H, FilterMode, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: discrete-time transfer function applied to vector data
+// 
+// FilterMode == 1 apply filter from left to right
+// FilterMode == 2 apply filter from right to left
+// FilterMode == 3 apply filter from left to right, flip result, filter from right to left (zero phase-shift filter)
+// 
+// H is a transfer function in z-domain represented by a scilab rational
+//
+// in (float, vecsize) - vector input
+// out (float, vecsize) - vector output
+// Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in) );
+  ortd_checkpar(sim, list('Signal', 'Nvalues', Nvalues) );
+  
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+  ortd_checkpar(sim, list('SingleValue', 'FilterMode', FilterMode) );
+end
+
+//  bip = [ degree(H.num); degree(H.den) ];
+//  brp = [ coeff(H.num)'; coeff(H.den)' ];
+
+  btype = 60001 + 85;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [ degree(H.num), degree(H.den) , vecsize, FilterMode ], [ coeff(H.num)'; coeff(H.den)' ], ...
+                   insizes=[ vecsize, 1 ], outsizes=[ vecsize ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, Nvalues) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+function [sim, out, Nvalues] = ld_vector_VarExtract(sim, events, in, from, to, vecsize) // PARSEDOCU_BLOCK
+//    
+// %PURPOSE: Extract vector elements from a window variable in size 
+// 
+//  in *+(vecsize) - vector signal
+//  from, to (INT32) - cut parameters, indices start at 1
+//  out *+(window_len) - output signal
+//  Nvalues (INT32) - number of the elements cut
+//    
+  btype = 60001 + 86; 
+  ipar = [vecsize]; rpar = [];
+
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar, rpar, ...
+                                     insizes=[vecsize, 1, 1], outsizes=[vecsize, 1], ...
+                                     intypes=[ ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32 ], ....
+                                     outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32] );
+
+  // libdyn_conn_equation connects multiple input signals to blocks
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( in, from, to ) );
+
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,Nvalues] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
+endfunction
+
+
+//
+//// FIXME no port size checking
+//function [sim,bid] = libdyn_new_blk_zTF(sim, events, H)
+//  btype = 30;
+//  bip = [ degree(H.num); degree(H.den) ];
+//  brp = [ coeff(H.num)'; coeff(H.den)' ];
+//
+//  [sim,bid] = libdyn_new_block(sim, events, btype, [bip], [brp], ...
+//                   insizes=[1], outsizes=[1], ...
+//                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_FLOAT]);
+//  
+////  [sim,bid] = libdyn_new_blockid(sim);
+////  id = bid; // id for this parameter set
+////  
+////  
+////  sim.parlist = new_irparam_elemet(sim.parlist, id, IRPAR_LIBDYN_BLOCK, [btype; bid; bip], [brp]);
+//endfunction
+//function [sim,y] = ld_ztf(sim, events, inp_list, H) // PARSEDOCU_BLOCK
+////
+//// %PURPOSE: Time discrete transfer function
+//// H is give as a Scilab rational
+////
+//
+//if ORTD.FASTCOMPILE==%f then
+//  ortd_checkpar(sim, list('Signal', 'inp_list', inp_list) );
+//end
+//
+//  [inp] = libdyn_extrakt_obj( inp_list ); // compatibility
+//
+//    [sim,tf] = libdyn_new_blk_zTF(sim, events, H);
+//    
+//    
+//    
+//    [sim,y] = libdyn_conn_equation(sim, tf, list(inp));
+//    [sim,y] = libdyn_new_oport_hint(sim, y, 0);    
+//endfunction
+
+
 // 
 // 
 // 
@@ -3063,6 +3216,11 @@ function [sim, EstMean, EstSigma] = ld_WindowedMean(sim, events, in, weight, Win
  [sim,EstSigma] = libdyn_new_oport_hint(sim, blk, 1);   // 0th port
  
 endfunction
+
+
+
+
+
 
 
 

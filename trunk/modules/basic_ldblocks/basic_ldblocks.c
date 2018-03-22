@@ -6438,6 +6438,264 @@ int compu_func_ld_gainInt32(int flag, struct dynlib_block_t *block)
     }
 }
 
+
+
+
+
+int compu_func_ld_vector_ztf(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
+{
+    //printf("comp_func zTF: flag==%d\n", flag);
+    int err;
+
+    int Nout = 1;
+    int Nin = 2;
+
+    struct dynlib_filter_t *filter;
+
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+    
+    int vecsize = ipar[2];
+    int FilterMode = ipar[3];
+    
+
+    int dfeed = 0;
+
+// printf("degn = %d, degd = %d\n", degn, degd);
+
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    { 
+        double *in = (double *) libdyn_get_input_ptr(block,0);
+        int32_t *Nvalues = (double *) libdyn_get_input_ptr(block,1);
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+	
+        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+	
+	if (vecsize < *Nvalues) {
+// 	  fprintf(stderr, "vecsize < Nvalues: %d < %d", vecsize, *Nvalues);
+	  
+	  return -1;
+	} 
+	
+	int i;
+	
+	libdyn_null_states(filter);
+	
+	if ( FilterMode == 1) { // left to right
+	
+	  for (i = 0; i < *Nvalues; ++i) {
+	    out[i] = libdyn_out(filter, in[i], 1);
+// 	    printf("Filter: samp %d : %f -> %f\n", i, in[i], out[i] );
+	  }
+	  
+	} else if ( FilterMode == 2) { // right to left 
+	 
+	  for (i = *Nvalues - 1; i >= 0; --i) {
+	    out[i] = libdyn_out(filter, in[i], 1);	    
+// 	    printf("Filter: samp %d : %f -> %f\n", i, in[i], out[i] );
+	  }
+	  
+	} else if ( FilterMode == 3) { // filtfilt
+	  
+	  for (i = 0; i < *Nvalues; ++i) {
+	    out[i] = libdyn_out(filter, in[i], 1);
+	  }
+	  
+	  libdyn_null_states(filter);
+
+	  for (i = *Nvalues - 1; i >= 0; --i) {
+	    out[i] = libdyn_out(filter, out[i], 1);
+	  }
+	  
+	}
+	
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      
+
+            dfeed = 1;
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+        
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT, dfeed);
+
+
+    }
+
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+        int degn = (ipar[0]);
+        int degd = (ipar[1]);
+
+        double *Qn = &(rpar[0]);
+        double *Qd = &(rpar[degn+1]);
+	
+	
+	
+	if (degn > degd) {
+	  printf("libdyn: zTF: Cannot create acausal filter\n");
+	  return -1;
+      } 
+	
+	// normalise coefficents of tf
+	  int i;
+   	  double normfac = Qd[degd]; // Highest denom coefficent
+
+	  for (i = 0; i <= degn; ++i)  // deg+1 coefficients
+	      Qn[i] = Qn[i] / normfac; // [0..degn]
+
+	  for (i = 0; i <= degd; ++i)
+	      Qd[i] = Qd[i] / normfac;
+
+    
+    
+	
+	filter = libdyn_new_filter(degd);
+        libdyn_load_cf(filter, Qn, Qd, degn);
+        libdyn_null_states(filter);
+        libdyn_set_work_ptr(block, (void *) filter);
+    }
+
+      
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+        libdyn_delete_filter(filter);
+
+        return 0;
+        break;
+
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a tf block: \n");
+       // filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
+       // libdyn_print_cf(filter);
+        return 0;
+        break;
+    }
+}
+
+int ortd_compu_func_ld_vector_VarExtract(int flag, struct dynlib_block_t *block)
+{
+    // printf("comp_func demux: flag==%d\n", flag);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int vecsize = ipar[0];
+    int Nout = 2;
+    int Nin = 3;
+
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *in = (double *) libdyn_get_input_ptr(block,0);
+	
+	
+        int32_t *from = (int32_t *) libdyn_get_input_ptr(block, 1);
+        int32_t *to = (int32_t *) libdyn_get_input_ptr(block, 2);
+
+
+        double *out = (double *) libdyn_get_output_ptr(block, 0);
+        int32_t *Nvalues = (int32_t *) libdyn_get_output_ptr(block, 1);
+	
+	if (*from > *to)
+	  return -1;
+	
+	if (*from <= 0)
+	  return -1;
+	
+	if (*to <= 0)
+	  return -1;
+	
+	if (*from > vecsize)
+	  return -1;
+	
+	if (*to > vecsize)
+	  return -1;
+	
+
+
+        int i, j;
+	
+	j = 0;
+        for (i=*from-1; i <= *to-1; ++i) {
+	  
+            out[j] = in[i];
+	    ++j;
+	    
+        }
+        
+        *Nvalues = *to - *from + 1;
+        
+        
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        if (vecsize < 1) {
+            printf("vecsize cannot be smaller than 1\n");
+            printf("vecsize = %d\n", vecsize);
+
+            return -1;
+        }
+
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT,1 ); // in, intype,
+        libdyn_config_block_output(block, 1, 1, DATATYPE_INT32,1 ); // in, intype,
+
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // from input
+        libdyn_config_block_input(block, 2, 1, DATATYPE_INT32); // from input
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm ld_vector_VarExtract block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
 /*
 
 int ortd_compu_func_hysteresis(int flag, struct dynlib_block_t *block)
@@ -6705,26 +6963,20 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 72, LIBDYN_COMPFN_TYPE_LIBDYN,  (void*)  &compu_func_vector_lookuptable );
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 73, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_vector_ld_floorInt32);
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 74, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_collectValues);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 75, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_add_ofsInt32);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 76, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_gainInt32);
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 77, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_vector_ld_Int32ToFloat);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 78, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_printfInt32 );
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 79, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindShape );
-
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 80, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorFindSpike );
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 81, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_HistogramInt32 );
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 82, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_Timer );
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 83, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectorInt32ToFloat );
-    
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 84, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vectordelayInt32 );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 85, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_vector_ztf );
     
-    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 86, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vector_VarExtract );
 
 
     
