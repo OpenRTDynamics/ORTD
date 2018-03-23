@@ -3054,6 +3054,36 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+function [sim, out] = ld_max(sim, events, inlist) // PARSEDOCU_BLOCK
+// %PURPOSE: logic and - block
+//
+// in *LIST - list() of inputs (for now the exactly two inputs are possible)
+// out * - output
+// 
+// 
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('SignalList', 'inlist', inlist) );
+end
+
+  Nin=length(inlist);
+
+  if (Nin ~= 2) then
+    error("invalid number of inputs");
+  end
+
+  insizes=ones(1, Nin);
+  intypes=ones(1, Nin) * ORTD.DATATYPE_FLOAT;
+
+  btype = 60001 + 92;
+  [sim,blk] = libdyn_new_block(sim, events, btype, ipar=[  ], rpar=[   ], ...
+                   insizes, outsizes=[1], ...
+                   intypes, outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list( inlist(1), inlist(2) ) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
 
 //
 //// FIXME no port size checking
