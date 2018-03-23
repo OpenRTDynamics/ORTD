@@ -437,8 +437,8 @@ function [sim, out] = ld_switch2to1(sim, events, cntrl, in1, in2) // PARSEDOCU_B
 // in2 *
 // out * - output
 //
-// if cntrl > 0 : out = in1
-// if cntrl < 0 : out = in2
+// if cntrl > (greather than) 0 : out = in1
+// if cntrl < (smaller than) 0 : out = in2
 //
 
 if ORTD.FASTCOMPILE==%f then
@@ -2801,7 +2801,7 @@ endfunction
 
 
 
-function [sim,out] = ld_vector_ztf(sim, events, in, Nvalues, H, FilterMode, vecsize) // PARSEDOCU_BLOCK
+function [sim,out] = ld_VarVec_ztf(sim, events, in, Nvalues, H, FilterMode, vecsize) // PARSEDOCU_BLOCK
 //
 // %PURPOSE: discrete-time transfer function applied to vector data
 // 
@@ -2836,6 +2836,165 @@ end
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
+
+function [sim,out] = ld_VarVec_add(sim, events, inlist, Nvalues, weight, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Linear combination of two vectors
+// 
+// 
+//
+// inlist (float, vecsize) - list() of vector input
+// out (float, vecsize) - vector output
+// Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'inlist(1)', inlist(1) ) );
+  ortd_checkpar(sim, list('Signal', 'inlist(2)', inlist(2) ) );
+  ortd_checkpar(sim, list('Signal', 'Nvalues', Nvalues) );
+  
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+  ortd_checkpar(sim, list('SingleValue', 'weight(1)', weight(1) ) );
+  ortd_checkpar(sim, list('SingleValue', 'weight(2)', weight(2) ) );
+end
+
+//  bip = [ degree(H.num); degree(H.den) ];
+//  brp = [ coeff(H.num)'; coeff(H.den)' ];
+
+  btype = 60001 + 87;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  vecsize ], [ weight(1), weight(2) ], ...
+                   insizes=[ vecsize, vecsize, 1 ], outsizes=[ vecsize ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(inlist(1), inlist(2), Nvalues) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+function [sim, Mean, Sigma] = ld_VarVec_Variance(sim, events, in, Nvalues, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Calc variance of vector elements
+// 
+// 
+//
+// in (float, vecsize) - vector input
+// out (float, vecsize) - vector output
+// Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in ) );
+  ortd_checkpar(sim, list('Signal', 'Nvalues', Nvalues) );
+  
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+
+
+  btype = 60001 + 88;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  vecsize ], [ ], ...
+                   insizes=[ vecsize, 1 ], outsizes=[ 1,1 ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, Nvalues) );
+  [sim,Mean] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,Sigma] = libdyn_new_oport_hint(sim, blk, 1);   // 0th port
+endfunction
+
+
+function [sim, out] = ld_VarVec_AbsSumNorm(sim, events, in, Nvalues, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Calc sum of the absolute value of vector elements
+// 
+// 
+//
+// in (float, vecsize) - vector input
+// out (float, vecsize) - vector output
+// Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in ) );
+  ortd_checkpar(sim, list('Signal', 'Nvalues', Nvalues) );
+  
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+
+
+  btype = 60001 + 90;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  vecsize ], [ ], ...
+                   insizes=[ vecsize, 1 ], outsizes=[ 1 ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, Nvalues) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+endfunction
+
+
+
+function [sim, Min, Max] = ld_VarVec_MinMax(sim, events, in, Nvalues, vecsize) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: Calc Min and Max of vector elements
+// 
+// 
+//
+// in (float, vecsize) - vector input
+// out (float, vecsize) - vector output
+// Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'in', in ) );
+  ortd_checkpar(sim, list('Signal', 'Nvalues', Nvalues) );
+  
+  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+end
+
+
+
+  btype = 60001 + 91;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [  vecsize ], [ ], ...
+                   insizes=[ vecsize, 1 ], outsizes=[ 1,1 ], ...
+                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_FLOAT]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, Nvalues) );
+  [sim,Min] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+  [sim,Max] = libdyn_new_oport_hint(sim, blk, 1);   // 0th port
+endfunction
+
+//function [sim, out] = ld_VarVec_Abs(sim, events, in, Nvalues, vecsize) // PARSEDOCU_BLOCK
+////
+//// %PURPOSE: Calc the absolute values of vector elements
+//// 
+//// 
+////
+//// in (float, vecsize) - vector input
+//// out (float, vecsize) - vector output
+//// Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+////
+//
+//if ORTD.FASTCOMPILE==%f then
+//  ortd_checkpar(sim, list('Signal', 'in', in ) );
+//  ortd_checkpar(sim, list('Signal', 'Nvalues', Nvalues) );
+//  
+//  ortd_checkpar(sim, list('SingleValue', 'vecsize', vecsize) );
+//end
+//
+//
+//
+//  btype = 60001 + 92;
+//  [sim,blk] = libdyn_new_block(sim, events, btype, [  vecsize ], [ ], ...
+//                   insizes=[ vecsize, 1 ], outsizes=[ vecsize ], ...
+//                   intypes=[ORTD.DATATYPE_FLOAT, ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
+//
+//  [sim,blk] = libdyn_conn_equation(sim, blk, list(in, Nvalues) );
+//  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
+//endfunction
+//
+
+
+
 function [sim, out, Nvalues] = ld_vector_VarExtract(sim, events, in, from, to, vecsize) // PARSEDOCU_BLOCK
 //    
 // %PURPOSE: Extract vector elements from a window variable in size 
@@ -2858,6 +3017,41 @@ function [sim, out, Nvalues] = ld_vector_VarExtract(sim, events, in, from, to, v
 
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
   [sim,Nvalues] = libdyn_new_oport_hint(sim, blk, 1);   // 1th port
+endfunction
+
+
+
+
+
+
+function [sim, out] = ld_switch2to1Int32(sim, events, cntrl, in1, in2) // PARSEDOCU_BLOCK
+//
+// %PURPOSE: A 2 to 1 switching Block
+//
+// cntr (INT32) - control input
+// in1 (INT32)
+// in2 (INT32)
+// out (INT32) - output
+//
+// if cntrl > (greather than) : out = in1
+//   else                     : out = in2
+//
+
+if ORTD.FASTCOMPILE==%f then
+  ortd_checkpar(sim, list('Signal', 'cntrl', cntrl) );
+  ortd_checkpar(sim, list('Signal', 'in1', in1) );
+  ortd_checkpar(sim, list('Signal', 'in2', in2) );
+end
+
+
+  btype = 60001 + 89;
+  [sim,blk] = libdyn_new_block(sim, events, btype, [], [], ...
+                   insizes=[1, 1, 1], outsizes=[1], ...
+                   intypes=[ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32], ...
+                   outtypes=[ORTD.DATATYPE_INT32]  );
+
+  [sim,blk] = libdyn_conn_equation(sim, blk, list(cntrl, in1, in2) );
+  [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
 endfunction
 
 
