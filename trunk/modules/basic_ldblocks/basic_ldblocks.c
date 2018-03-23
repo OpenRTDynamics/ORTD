@@ -207,15 +207,16 @@ int compu_func_zTF(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the
 
 
 
-//
+
+int compu_func_switch2to1(int flag, struct dynlib_block_t *block)
+{
+  //
 // A 2 to 1 switching Block
 // inputs = [control_in, signal_in1, signal_in2]
 // if control_in > 0 : out = signal_in1
 // if control_in < 0 : out = signal_in2
 //
 
-int compu_func_switch2to1(int flag, struct dynlib_block_t *block)
-{
     //printf("comp_func switch: flag==%d\n", flag);
     int Nout = 1;
     int Nin = 3;
@@ -263,7 +264,7 @@ int compu_func_switch2to1(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm a switch 2 to 1 block\n");
+        printf("I'm a ld_switch2to1 block\n");
         return 0;
         break;
 
@@ -6469,7 +6470,7 @@ int compu_func_ld_vector_ztf(int flag, struct dynlib_block_t *block) // FIXME: R
     case COMPF_FLAG_CALCOUTPUTS:
     { 
         double *in = (double *) libdyn_get_input_ptr(block,0);
-        int32_t *Nvalues = (double *) libdyn_get_input_ptr(block,1);
+        int32_t *Nvalues = (int32_t *) libdyn_get_input_ptr(block,1);
         double *out = (double *) libdyn_get_output_ptr(block,0);
 	
         filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
@@ -6510,33 +6511,60 @@ int compu_func_ld_vector_ztf(int flag, struct dynlib_block_t *block) // FIXME: R
 	    out[i] = libdyn_out(filter, out[i], 1);
 	  }
 	  
+	} else if ( FilterMode == 4) { // filtfilt
+	  
+	  // Apply a linear trend removal  // filter might be used to determine the Ofs at the borders...
+	  double LeftOfs = in[0];
+	  double RightOfs = in[ *Nvalues - 1 ];
+	  
+	  double LineSlope = ( RightOfs - LeftOfs ) / *Nvalues;
+	
+	  for (i = 0; i < *Nvalues; ++i) {
+	    double lineOfsY = LeftOfs + i * LineSlope;
+	    out[i] = in[i] - lineOfsY;
+	  }
+	  
+// 	  // Apply filtfilt
+// 	  for (i = 0; i < *Nvalues; ++i) {
+// 	    out[i] = libdyn_out(filter, out[i], 1);
+// 	  }
+// 	  
+// 	  libdyn_null_states(filter);
+// 
+// 	  for (i = *Nvalues - 1; i >= 0; --i) {
+// 	    out[i] = libdyn_out(filter, out[i], 1);
+// 	  }
+	  
 	}
+	
 	
     }
 
         return 0;
         break;
     case COMPF_FLAG_UPDATESTATES:
+    {
+      
+    }
 
         return 0;
         break;
     case COMPF_FLAG_RESETSTATES:
+    {
+      
+    }
 
         return 0;
         break;
     case COMPF_FLAG_CONFIGURE:  // configure
     {
-      
-
-            dfeed = 1;
+        dfeed = 1;
 
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
         libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
         libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
         
         libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT, dfeed);
-
-
     }
 
     return 0;
@@ -6554,7 +6582,7 @@ int compu_func_ld_vector_ztf(int flag, struct dynlib_block_t *block) // FIXME: R
 	if (degn > degd) {
 	  printf("libdyn: zTF: Cannot create acausal filter\n");
 	  return -1;
-      } 
+        } 
 	
 	// normalise coefficents of tf
 	  int i;
@@ -6580,8 +6608,10 @@ int compu_func_ld_vector_ztf(int flag, struct dynlib_block_t *block) // FIXME: R
         return 0;
         break;
     case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
         filter = (struct dynlib_filter_t *) libdyn_get_work_ptr(block);
         libdyn_delete_filter(filter);
+    }
 
         return 0;
         break;
@@ -6594,6 +6624,463 @@ int compu_func_ld_vector_ztf(int flag, struct dynlib_block_t *block) // FIXME: R
         break;
     }
 }
+
+
+int compu_func_ld_VarVec_add(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
+{
+    //printf("comp_func zTF: flag==%d\n", flag);
+
+    int Nout = 1;
+    int Nin = 3;
+
+    
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+    
+    double *Weight = &(rpar[0]);
+    
+   
+    int vecsize = ipar[0];
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    { 
+        double *in1 = (double *) libdyn_get_input_ptr(block,0);
+        double *in2 = (double *) libdyn_get_input_ptr(block,1);
+	
+        int32_t *Nvalues = (int32_t *) libdyn_get_input_ptr(block,2);
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+	
+	
+	if (vecsize < *Nvalues) {
+// 	  fprintf(stderr, "vecsize < Nvalues: %d < %d", vecsize, *Nvalues);
+	  return -1;
+	} 
+	
+	int i;
+	for (i = 0; i< *Nvalues; ++i) {
+	   out[i] = Weight[0] * in1[i] + Weight[1] * in2[i];	  
+//	   out[i] = rpar[0] * in1[i] + rpar[1] * in2[i];
+	}
+	  
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 2, 1, DATATYPE_INT32); // in, intype,
+        
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT, 1);
+    }
+
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      
+	
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+
+      
+    }
+
+        return 0;
+        break;
+
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_VarVec_add block: \n");
+
+	
+        return 0;
+        break;
+    }
+}
+
+int compu_func_ld_VarVec_Variance(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
+{
+    //printf("comp_func zTF: flag==%d\n", flag);
+
+    int Nout = 2;
+    int Nin = 2;
+
+    
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+    
+    int vecsize = ipar[0];
+    
+   
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    { 
+        double *in = (double *) libdyn_get_input_ptr(block,0);
+        int32_t *Nvalues = (int32_t *) libdyn_get_input_ptr(block,1);
+        double *mean = (double *) libdyn_get_output_ptr(block,0);
+        double *sigma = (double *) libdyn_get_output_ptr(block,1);
+	
+	if (vecsize < *Nvalues) {
+// 	  fprintf(stderr, "vecsize < Nvalues: %d < %d", vecsize, *Nvalues);
+	  return -1;
+	} 
+	
+	int i;
+	double sum = 0;
+	
+	for (i = 0; i< *Nvalues; ++i) {
+	  sum += in[i];	  
+	}
+	
+	*mean = sum / *Nvalues;
+	
+	// calc var
+	sum = 0;
+	for (i = 0; i< *Nvalues; ++i) {
+	  sum += (in[i]-*mean)*(in[i]-*mean);	  
+	}
+	*sigma = sqrt( sum / *Nvalues );
+	  
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+        
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+        libdyn_config_block_output(block, 1, 1, DATATYPE_FLOAT, 1);
+    }
+
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      
+	
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+
+      
+    }
+
+        return 0;
+        break;
+
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_VarVec_Variance block: \n");
+
+	
+        return 0;
+        break;
+    }
+}
+
+int compu_func_ld_VarVec_AbsSumNorm(int flag, struct dynlib_block_t *block)
+{
+    //printf("comp_func zTF: flag==%d\n", flag);
+
+    int Nout = 1;
+    int Nin = 2;
+
+    
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+    
+    int vecsize = ipar[0];
+    
+  
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    { 
+        double *in = (double *) libdyn_get_input_ptr(block,0);
+        int32_t *Nvalues = (int32_t *) libdyn_get_input_ptr(block,1);
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+
+	
+	if (vecsize < *Nvalues) {
+// 	  fprintf(stderr, "vecsize < Nvalues: %d < %d", vecsize, *Nvalues);
+	  return -1;
+	} 
+	
+	int i;
+	double sum = 0;
+	
+	for (i = 0; i< *Nvalues; ++i) {
+	  sum += abs( in[i] );	  
+	}
+	
+	*out = sum / *Nvalues;
+  
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+        
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+    }
+
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      
+	
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+
+      
+    }
+
+        return 0;
+        break;
+
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_VarVec_AbsSumNorm block: \n");
+
+	
+        return 0;
+        break;
+    }
+}
+
+int compu_func_ld_VarVec_MinMax(int flag, struct dynlib_block_t *block) // FIXME: Rewrite the whole
+{
+    //printf("comp_func zTF: flag==%d\n", flag);
+
+    int Nout = 2;
+    int Nin = 2;
+
+    
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+    
+    int vecsize = ipar[0];
+    
+   
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    { 
+        double *in = (double *) libdyn_get_input_ptr(block,0);
+        int32_t *Nvalues = (int32_t *) libdyn_get_input_ptr(block,1);
+        double *Min = (double *) libdyn_get_output_ptr(block,0);
+        double *Max = (double *) libdyn_get_output_ptr(block,1);
+	
+	if (vecsize < *Nvalues) {
+// 	  fprintf(stderr, "vecsize < Nvalues: %d < %d", vecsize, *Nvalues);
+	  return -1;
+	} 
+	
+	int i;
+	double min = in[0];
+	double max = in[0];
+	
+	for (i = 0+1; i< *Nvalues; ++i) {
+	  
+	  if ( min > in[i] ) {
+	    min = in[i];
+	  }
+	  
+	  if ( max < in[i] ) {
+	    max = in[i];
+	  }  
+	  
+	}
+	
+	*Min = min;
+	*Max = max;
+	
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_RESETSTATES:
+    {
+      
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+      
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);  // no dfeed
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+        
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+        libdyn_config_block_output(block, 1, 1, DATATYPE_FLOAT, 1);
+    }
+
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      
+	
+    }
+
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+
+      
+    }
+
+        return 0;
+        break;
+
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_VarVec_MinMax block: \n");
+
+	
+        return 0;
+        break;
+    }
+}
+
+
+int compu_func_ld_switch2to1Int32(int flag, struct dynlib_block_t *block)
+{
+  //
+// A 2 to 1 switching Block
+// inputs = [control_in, signal_in1, signal_in2]
+// if control_in => 0 : out = signal_in1
+// if control_in < 0 : out = signal_in2
+//
+
+    //printf("comp_func switch: flag==%d\n", flag);
+    int Nout = 1;
+    int Nin = 3;
+
+    int32_t *inp1, *inp2;
+    int32_t *control_in;
+    int32_t *out1;
+    int32_t *out2;
+
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+        control_in = (int32_t *) libdyn_get_input_ptr(block,0);
+        inp1 = (int32_t *) libdyn_get_input_ptr(block,1);
+        inp2 = (int32_t *) libdyn_get_input_ptr(block,2);
+        out1 = (int32_t *) libdyn_get_output_ptr(block,0);
+
+        if (*control_in > 0) {
+            *out1 = *inp1;
+        } else {
+            *out1 = *inp2;
+        }
+
+        return 0;
+        break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+        //printf("New switch Block\n");
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32); // in, intype,
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32); // in, intype,
+        libdyn_config_block_input(block, 2, 1, DATATYPE_INT32); // in, intype,
+
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+
+        return 0;
+        break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_switch2to1Int32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
 
 int ortd_compu_func_ld_vector_VarExtract(int flag, struct dynlib_block_t *block)
 {
@@ -6612,10 +7099,8 @@ int ortd_compu_func_ld_vector_VarExtract(int flag, struct dynlib_block_t *block)
     {
         double *in = (double *) libdyn_get_input_ptr(block,0);
 	
-	
         int32_t *from = (int32_t *) libdyn_get_input_ptr(block, 1);
         int32_t *to = (int32_t *) libdyn_get_input_ptr(block, 2);
-
 
         double *out = (double *) libdyn_get_output_ptr(block, 0);
         int32_t *Nvalues = (int32_t *) libdyn_get_output_ptr(block, 1);
@@ -6978,7 +7463,14 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 86, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &ortd_compu_func_ld_vector_VarExtract );
 
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 87, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_VarVec_add );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 88, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_VarVec_Variance );
 
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 89, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_switch2to1Int32 );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 90, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_VarVec_AbsSumNorm );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 91, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_VarVec_MinMax );
+
+   
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);
     
