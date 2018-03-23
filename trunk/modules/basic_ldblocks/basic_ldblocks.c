@@ -7081,6 +7081,59 @@ int compu_func_ld_switch2to1Int32(int flag, struct dynlib_block_t *block)
     }
 }
 
+int compu_func_ld_max(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        double *out = (double *) libdyn_get_output_ptr(block,0);
+        double *in1 = (double *) libdyn_get_input_ptr(block, 0);
+        double *in2 = (double *) libdyn_get_input_ptr(block, 1);
+
+	
+	if ( *in1 > *in2 ) {
+          out[0] = *in1;
+	} else {
+	  out[0] = *in2;
+	}
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_FLOAT);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_FLOAT);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_FLOAT, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_max block\n");
+        return 0;
+        break;
+
+    }
+}
 
 int ortd_compu_func_ld_vector_VarExtract(int flag, struct dynlib_block_t *block)
 {
@@ -7469,7 +7522,14 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 89, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_switch2to1Int32 );
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 90, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_VarVec_AbsSumNorm );
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 91, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_VarVec_MinMax );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 92, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_max );
 
+   
+   
+   
+   
+   
+   
    
     
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 1000, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_interface2);
