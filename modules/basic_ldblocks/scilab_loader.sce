@@ -3411,6 +3411,8 @@ function [sim, EstMean, EstSigma] = ld_WindowedMean(sim, events, in, weight, Win
 // EstSigma * - the calculated standard deviation
 // WindowLen - length of floating window
 // 
+// If weight is less than 0 the filter update is prevented. E.g. if in contains an invalid sample that
+// shall not be counted in the calculation of the Mean and Variance
 // 
 
 

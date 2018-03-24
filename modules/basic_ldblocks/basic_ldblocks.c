@@ -7158,6 +7158,8 @@ int ortd_compu_func_ld_vector_VarExtract(int flag, struct dynlib_block_t *block)
         double *out = (double *) libdyn_get_output_ptr(block, 0);
         int32_t *Nvalues = (int32_t *) libdyn_get_output_ptr(block, 1);
 	
+	*Nvalues = 0; // default in case some error occurs
+	
 	if (*from > *to)
 	  return -1;
 	

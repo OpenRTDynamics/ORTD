@@ -1117,6 +1117,10 @@ public:
         double *EstMean = (double*) libdyn_get_output_ptr(block, 0); // the first output port
         double *EstSigma = (double*) libdyn_get_output_ptr(block, 1); // the first output port
 	
+	if (*Weight < 0) {
+	  return;       // do not update in case the Weight is below zero 
+	}
+	
 	// store into buffer
 	if (WriteBufferCnt == WindowLen)
 	  WriteBufferCnt = 0;
