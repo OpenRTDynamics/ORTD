@@ -2188,6 +2188,137 @@ int compu_func_ld_orInt32(int flag, struct dynlib_block_t *block)
 }
 
 
+int compu_func_ld_SetBitsInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 2;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        uint32_t *out = (uint32_t *) libdyn_get_output_ptr(block,0);
+        uint32_t *in = (uint32_t *) libdyn_get_input_ptr(block, 0);
+        uint32_t *BitPattern = (uint32_t *) libdyn_get_input_ptr(block, 1);
+        
+	uint32_t BitNrStart = ipar[0];
+	uint32_t NumBits = ipar[1];
+
+        
+	
+	uint32_t Mask = 1 << BitNrStart;
+	uint32_t NotMask = ~Mask;
+// 	uint32_t ValidMask = 
+	
+	*out = ( NotMask & *in ) ^ ( ( *BitPattern ) << BitNrStart );
+	
+	/*
+	printf("Set BitNrStart=%d to BitPattern=%x; mask = %x , NotMask=%x :  in = %x  out = %x\n",  BitNrStart, *BitPattern, Mask, NotMask,  *in, *out );
+	printf("( ( *BitPattern ) << BitNrStart ) = %x ,  ( NotMask & *in ) = %x\n",  ( ( *BitPattern ) << BitNrStart ),    ( NotMask & *in ) );
+	*/
+
+           //     printf("---- %d and %d  = %d\n", *in1, *in2, *out );
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_input(block, 1, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_SetBitsInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+int compu_func_ld_GetBitsInt32(int flag, struct dynlib_block_t *block)
+{
+    //  printf("comp_func mux: flag==%d; irparid = %d\n", flag, block->irpar_config_id);
+    int *ipar = libdyn_get_ipar_ptr(block);
+    double *rpar = libdyn_get_rpar_ptr(block);
+
+    int Nout = 1;
+    int Nin = 1;
+
+
+    switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {
+        uint32_t *out = (uint32_t *) libdyn_get_output_ptr(block,0);
+        uint32_t *in = (uint32_t *) libdyn_get_input_ptr(block, 0);
+       
+	uint32_t BitNrStart = ipar[0];
+	uint32_t NumBits = ipar[1];
+
+        
+	
+	uint32_t Mask = 1 << BitNrStart;
+	uint32_t NotMask = ~Mask;
+	
+	*out = ( Mask & *in ) >> BitNrStart;
+	
+	
+	
+
+           //     printf("---- %d and %d  = %d\n", *in1, *in2, *out );
+
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_UPDATESTATES:
+        return 0;
+        break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+        libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
+
+        libdyn_config_block_input(block, 0, 1, DATATYPE_INT32);
+        libdyn_config_block_output(block, 0, 1, DATATYPE_INT32, 1);
+    }
+    return 0;
+    break;
+    case COMPF_FLAG_INIT:  // init
+        return 0;
+        break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+        return 0;
+        break;
+    case COMPF_FLAG_PRINTINFO:
+        printf("I'm a ld_GetBitsInt32 block\n");
+        return 0;
+        break;
+
+    }
+}
+
+
+
+
+
+
+
 int ortd_compu_func_ld_initimpuls(int flag, struct dynlib_block_t *block)
 {
 // printf("comp_func flipflop: flag==%d\n", flag);
@@ -2501,6 +2632,102 @@ int compu_func_ld_printfInt32(int flag, struct dynlib_block_t *block)
       break;      
     case COMPF_FLAG_PRINTINFO:
       printf("I'm a printf int32 block\n");
+      return 0;
+      break;
+      
+  }
+}
+
+
+int compu_func_ld_printfBin(int flag, struct dynlib_block_t *block)
+{
+  
+//   printf("comp_func printf: flag==%d\n", flag);
+  int Nout = 0;
+  int Nin = 1;
+
+  uint8_t *in;
+
+  double *rpar = libdyn_get_rpar_ptr(block);
+  int *ipar = libdyn_get_ipar_ptr(block);
+
+  int vlen = ipar[0];
+  int fnamelen = ipar[1];
+  int *codedfname = &ipar[2];
+  
+  
+  switch (flag) {
+    case COMPF_FLAG_CALCOUTPUTS:
+    {  
+
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_UPDATESTATES:
+    {
+      in = (uint8_t *) libdyn_get_input_ptr(block,0);
+      char *str = (char *) block->work;
+
+      printf( "%s [", str);
+      int i;
+      int makeWordCnt = 0;
+      for (i = 0; i < vlen; ++i) {
+	
+	if (makeWordCnt == 0) {
+	  // start word
+	  
+	  printf( "%02X", in[i] );
+  	  makeWordCnt++;
+	  
+	} else {
+	  // end word
+	  makeWordCnt = 0;
+	  
+	  printf( "%02X ", in[i] );
+	  
+	}
+	
+      }
+      printf( "].\n"); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_CONFIGURE:  // configure
+    {
+
+      // one Port of length vlen
+      libdyn_config_block(block, BLOCKTYPE_DYNAMIC, Nout, Nin, (void *) 0, 0); 
+      libdyn_config_block_input(block, 0, vlen, DATATYPE_BINARY); 
+    } 
+      return 0;
+      break;
+    case COMPF_FLAG_INIT:  // init
+    {
+      char *str = (char *) malloc(fnamelen+1);
+          
+      // Decode filename
+      int i;
+      for (i = 0; i < fnamelen; ++i)
+	str[i] = codedfname[i];
+      
+      str[i] = 0; // String termination
+      
+      libdyn_set_work_ptr(block, (void*) str);
+      
+//      printf("Decoded filename = %s\n", filename);
+    }
+      return 0;
+      break;
+    case COMPF_FLAG_DESTUCTOR: // destroy instance
+    {
+      char *str = (char *) block->work;
+
+      free(str);
+    }
+      return 0;
+      break;      
+    case COMPF_FLAG_PRINTINFO:
+      printf("I'm a printf Bin block\n");
       return 0;
       break;
       
@@ -7527,7 +7754,10 @@ int libdyn_module_basic_ldblocks_siminit(struct dynlib_simulation_t *sim, int bi
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 92, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_max );
 
    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 93, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_printfBin );
    
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 94, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_SetBitsInt32 );
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid_ofs + 95, LIBDYN_COMPFN_TYPE_LIBDYN,   (void*) &compu_func_ld_GetBitsInt32 );
    
    
    

@@ -125,7 +125,7 @@ public:
 
     void SendPacket(void *buf, int N) {
         #ifdef DEBUG
-              fprintf (stderr, "udpsocket:in SendPacket, this ptr = %p\n", this);
+//               fprintf (stderr, "udpsocket:in SendPacket, this ptr = %p\n", this);
         #endif
 
 
@@ -134,7 +134,7 @@ public:
 
     void SendToPacket(struct sockaddr_in DestAddr, void *buf, int N) {
         #ifdef DEBUG
-              fprintf (stderr, "udpsocket:in SendToPacket, this ptr = %p\n", this);
+//               fprintf (stderr, "udpsocket:in SendToPacket, this ptr = %p\n", this);
         #endif
 
         sendto(sockfd,buf,N,0,(struct sockaddr *)&DestAddr,sizeof(DestAddr));
@@ -142,7 +142,7 @@ public:
 
     int receive(void *buf, int buflen) {
         #ifdef DEBUG
-              fprintf (stderr, "udpsocket:in receive, this ptr = %p\n", this);
+//               fprintf (stderr, "udpsocket:in receive, this ptr = %p\n", this);
         #endif
 
           struct sockaddr_in si_from;
@@ -459,7 +459,7 @@ public:
 //     pthread_mutex_lock(&ExitMutex);
 //
 
-	double *output = (double*) libdyn_get_output_ptr(block, 0); // the first output port
+	void *output = (void*) libdyn_get_output_ptr(block, 0); // the first output port
 	
 	// This is the main loop of the new simulation
         while (!ExitLoop) {
@@ -729,7 +729,7 @@ public:
 	int NBytesOut = N * TypeBytes;  // Amount of bytes allocated for the input vector
 	
 	if (NBytesOut != NGesbytes) {
-	  fprintf(stderr, "ConcateDataBlock: NBytesOut != NGesbytes\n");
+	  fprintf(stderr, "ConcateDataBlock: NBytesOut != NGesbytes (%d!=%d)\n", NBytesOut, NGesbytes );
 	  free(SizesList);
 	  
 	  return -1;
@@ -759,7 +759,7 @@ public:
 	  void *in = (void*) libdyn_get_input_ptr(block, i);
 
 #ifdef DEBUG
-  	  fprintf(stderr, "ConcateDataBlock: copy %d bytes\n", SizesList[i] );
+//   	  fprintf(stderr, "ConcateDataBlock: copy %d bytes\n", SizesList[i] );
 #endif
 	  memcpy( output + outPtr, in, SizesList[i]  );
 	  
@@ -791,6 +791,155 @@ public:
     // The data for this block managed by the simulator
     struct dynlib_block_t *block;
 };
+
+
+
+class DisassembleDataBlock2 {
+public:
+    DisassembleDataBlock2(struct dynlib_block_t *block) {
+        this->block = block;    // no nothing more here. The real initialisation take place in init()
+    }
+    ~DisassembleDataBlock2()
+    {
+        // free your allocated memory, ...
+        free(SizesList);
+    }
+
+    uint *SizesList, Noutports, MaxByteOfs, NBytesIn, NGesbytes;
+    
+    //
+    // initialise your block
+    //
+
+    int init() {
+        int *Uipar;
+        double *Urpar;
+
+        // Get the irpar parameters Uipar, Urpar
+        libdyn_AutoConfigureBlock_GetUirpar(block, &Uipar, &Urpar);
+
+        //
+        // extract some structured sample parameters
+        //
+        int error = 0;
+
+     
+	int i = 0;
+	Noutports = libdyn_get_Noutports(block) - 1;
+	
+	SizesList = (uint*) malloc( sizeof(uint) * Noutports );
+	
+	NGesbytes = 0;
+	for (i = 0; i<Noutports; ++i) {
+	  int N = libdyn_get_outportsize(block, i+1); 
+	  int datatype = libdyn_get_outportdatatype(block, i+1); // the datatype
+	  int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+	  int NBytes = N * TypeBytes;  // Amount of bytes allocated for the input vector
+	  
+	  SizesList[i] = NBytes;
+	  NGesbytes += NBytes;
+	  
+// 	  printf("DisassembleDataBlock2: port %d NBytes %d \n", i+1, NBytes);
+	}
+	
+	
+	
+	
+        //
+        // get some informations on the first input port
+ 	//
+	int N = libdyn_get_inportsize(block, 0);  // the size of the first (=0) input vector
+	int datatype = libdyn_get_inportdatatype(block, 0); // the datatype
+	int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
+	NBytesIn = N * TypeBytes;  // Amount of bytes allocated for the input vector
+	
+	
+	MaxByteOfs = NBytesIn - NGesbytes;
+	
+// 	printf("DisassembleDataBlock2: NGesbytes %d NBytesIn %d\n", NGesbytes, NBytesIn);
+	
+	
+	if (NBytesIn < NGesbytes) {
+	  fprintf(stderr, "DisassembleDataBlock2: NBytesIn < NGesbytes (%d<=%d)\n", NBytesIn, NGesbytes );
+	  free(SizesList);
+	  
+	  return -1;
+	}
+	
+        // set the initial states
+        resetStates();
+
+        // Return -1 to indicate an error, so the simulation will be destructed
+        return error;
+    }
+
+
+    inline void updateStates()
+    {
+
+    }
+
+
+    inline void calcOutputs()
+    {
+        char *input = (char*) libdyn_get_input_ptr(block, 0); // the first output port
+
+        int32_t *inBytes = (int32_t*) libdyn_get_input_ptr(block, 1); // the first output port
+        int32_t *ByteOfs = (int32_t*) libdyn_get_input_ptr(block, 2); // the first output port
+
+	int32_t *Success = (int32_t*) libdyn_get_output_ptr(block, 0);
+	
+// 	printf("inBytes=%d ByteOfs=%d NGesbytes=%d\n", *inBytes, *ByteOfs, NGesbytes );
+	
+	if ( *ByteOfs > MaxByteOfs + *inBytes - NBytesIn ) {
+	  // extraction will fail because ofs is too large
+	  *Success = 0;
+	} else {
+	  
+	  uint i, inPtr=0;
+	  for (i=0; i<Noutports; ++i) {
+	    void *out = (void*) libdyn_get_output_ptr(block, i+1);
+
+//       	    printf("copy inPtr=%d size=%d\n", inPtr, SizesList[i] );
+	    
+	    memcpy( out, input + inPtr + *ByteOfs, SizesList[i]  );
+	    
+	    inPtr += SizesList[i];
+	  }
+	  
+	  *Success = 1;
+	  
+	}
+	
+	
+    }
+
+
+    inline void resetStates()    {    }
+
+    void printInfo() {
+        fprintf(stderr, "I'm a DisassembleDataBlock2 block\n");
+    }
+
+    // uncommonly used flags
+    void PrepareReset() {}
+    void HigherLevelResetStates() {}
+    void PostInit() {}
+
+
+    // The Computational function that is called by the simulator
+    // and that distributes the execution to the various functions
+    // in this C++ - Class, including: init(), io(), resetStates() and the destructor
+    static int CompFn(int flag, struct dynlib_block_t *block) {
+        return LibdynCompFnTempate<DisassembleDataBlock2>( flag, block ); // this expands a template for a C-comp fn
+    }
+
+    // The data for this block managed by the simulator
+    struct dynlib_block_t *block;
+};
+
+
+
 
 
 
@@ -849,8 +998,8 @@ public:
 	int TypeBytes = libdyn_config_get_datatype_len(datatype); // number of bytes allocated for one element of type "datatype"
 	int NBytesIn = N * TypeBytes;  // Amount of bytes allocated for the input vector
 	
-	if (NBytesIn != NGesbytes) {
-	  fprintf(stderr, "DisassembleDataBlock: NBytesIn != NGesbytes\n");
+	if (NBytesIn < NGesbytes) {
+	  fprintf(stderr, "DisassembleDataBlock: NBytesIn < NGesbytes (%d<=%d)\n", NBytesIn, NGesbytes );
 	  free(SizesList);
 	  
 	  return -1;
@@ -873,6 +1022,8 @@ public:
     inline void calcOutputs()
     {
         char *input = (char*) libdyn_get_input_ptr(block, 0); // the first output port
+	
+	
 
 
 	uint i, inPtr=0;
@@ -913,8 +1064,6 @@ public:
 
 
 
-
-
 extern "C" int libdyn_module_udp_communication_siminit(struct dynlib_simulation_t *sim, int bid_ofs)
 {
 
@@ -933,6 +1082,7 @@ extern "C" int libdyn_module_udp_communication_siminit(struct dynlib_simulation_
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+10, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &ConcateDataBlock::CompFn);
     libdyn_compfnlist_add(sim->private_comp_func_list, blockid+11, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &DisassembleDataBlock::CompFn);
     
+    libdyn_compfnlist_add(sim->private_comp_func_list, blockid+12, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &DisassembleDataBlock2::CompFn);
     
     
 #ifdef DEBUG
