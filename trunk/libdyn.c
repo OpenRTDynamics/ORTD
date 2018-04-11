@@ -717,6 +717,12 @@ void libdyn_block_setid(struct dynlib_block_t *block, char *id)
 
 int libdyn_config_block_input(struct dynlib_block_t *block, int in, int len, int datatype)
 {
+  if (len < 0) {
+    fprintf(stderr, "libdyn.c: ERROR: Input port size cannot be smaller than 0! size = %d\n", len );
+    return -1;
+  }
+  
+  
   if ((in < block->Nin) && (in >= 0)) {
 
  // block->inlist[in].intype = intype; // Wir bei Block connect gesetzt
@@ -736,6 +742,11 @@ int libdyn_config_block_input(struct dynlib_block_t *block, int in, int len, int
 
 int libdyn_config_block_output(struct dynlib_block_t *block, int out, int len, int datatype, int dinput_dependence)
 {
+  if (len < 0) {
+    fprintf(stderr, "libdyn.c: ERROR: Output port size cannot be smaller than 0! size = %d\n", len );
+    return -1;
+  }
+  
   if ((out < block->Nout) && (out >= 0)) {
 //  block->outlist[out].outtype = OUTTYPE_DIRECT; // Wird bei connect gesetzt
 
@@ -1673,8 +1684,8 @@ mydebug(1) fprintf(stderr, "Yeah 2\n");
   
 //   libdyn_dump_executionLists(simulation);
 
-  
-  fprintf(stderr, "--- libdyn: successfully loaded schematic; sim=%p ---\n", simulation);
+
+//   fprintf(stderr, "--- libdyn: successfully loaded schematic; sim=%p ---\n", simulation);
   
   return 0;
 }
@@ -2810,7 +2821,7 @@ int libdyn_irpar_setup(int *ipar, double *rpar, int boxid,
 
   
 #ifdef __ORTD_PLUGINS_ENABLED
-  fprintf(stderr, "System provides shared libraries --> Plugins are enabled.\n");
+//   fprintf(stderr, "System provides shared libraries --> Plugins are enabled.\n");
   
   // Load modules, if available
   struct irpar_rvec_t *enc_libpath;
