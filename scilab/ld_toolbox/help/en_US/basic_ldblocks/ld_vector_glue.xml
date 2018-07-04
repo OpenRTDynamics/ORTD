@@ -27,14 +27,15 @@
 
     <para><para></para>
 <para> Output starting with in1 from fromindex1 until toindex1, continuing with in2 from fromindex2 until toindex2.</para>
-<para> Function is under developement!</para>
+<para> </para>
+<para> Index counting starts at 1</para>
 <para></para>
 <para> in1 *+(vecsize)</para>
 <para> in2 *+(vecsize)</para>
 <para> fromindex1 * - first index considered from in1</para>
-<para> toindex1 * - last index considered from in1</para>
+<para> toindex1 * - stop cutting from in1 before toindex1. This means the value in1(toindex1) is not included</para>
 <para> fromindex2 * - first index considered from in2</para>
-<para> toindex2 * - last index considered from in2</para>
+<para> toindex2 * - stop cutting from in2 before toindex2. This means the value in2(toindex2) is not included</para>
 <para> vecsize - size of each input vector. Vectors need to have equal size!</para>
 <para> out * - as explained above. Size of output is (2*vecsize).</para>
 <para> num * - number of values that have been glued together.</para>

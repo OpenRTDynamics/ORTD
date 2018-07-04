@@ -30,7 +30,7 @@
 <para> out *(INT32) - output</para>
 <para></para>
 <para> BitNrStart - position in the input at which to start copying bits. Counting starts at zero</para>
-<para> NUmBits - number of bits to copy (NOTE; only ==1 works by now)</para>
+<para> NUmBits - number of bits to copy</para>
 <para> </para>
 </para>
 
