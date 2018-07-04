@@ -1,0 +1,79 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+.DS_Store
+modules/rt_server/ortd_client
+modules/scilab/scilabconf.h
+module_list
+module_list__.c
+module_list__.h
+bin/ortdrun_static
+bin/ortdrun
+bin/ortd_static
+bin/ortd
+bin/libdyn_generic_exec
+bin/libdyn_generic_exec_static
+modules/I2C/blockid_start.conf.tmp
+modules/I2C/scilab_loader.sce
+modules/Random/blockid_start.conf.tmp
+modules/Random/scilab_loader.sce
+scilab/ld_toolbox/initialrun/modules_loader.sce
+scilab/ld_toolbox/initialrun/modules_loader.sce
+scilab/modules_loader.sce
+scilab/ORTDToolbox.sce
+tmp/block_list.txt
+tmp/LDFALGS.list
+tmp/MACROS.list
+tmp/block_list.txt
+scilab/modules_loader.sce
+tmp/LDFALGS.list
+tmp/MACROS.list
