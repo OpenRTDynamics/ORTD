@@ -1,1 +1,0 @@
-../libdyn/scilab/irpar.sci
