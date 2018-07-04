@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_LevelDemux" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_LevelDemux</refname>
+
+    <refpurpose> Demux the level of the input signal such that the output corresponding to the input level is set to one</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist] = ld_LevelDemux(sim, events, in, NrEvents)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para>    </para>
+<para> </para>
+<para>  in * - vector signal</para>
+<para>  outlist - list() of * with NrEvents elements</para>
+<para></para>
+<para>  n = round(in) </para>
+<para>  outlist(m) == 1, for n=m  AND outlist(m) == 0, for m != n</para>
+<para> </para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

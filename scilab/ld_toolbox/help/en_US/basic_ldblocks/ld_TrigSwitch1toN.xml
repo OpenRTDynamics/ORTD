@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_TrigSwitch1toN" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_TrigSwitch1toN</refname>
+
+    <refpurpose> Switch N inputs to one output signal based on event pulses</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_TrigSwitch1toN(sim, events, Event, SwitchInputList, InitialState)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para>    </para>
+<para> </para>
+<para>  Event * - vector signal</para>
+<para>  SwitchInputList list() of * with N elements </para>
+<para></para>
+<para>  out * - is set to the input if SwitchInputList(state), whereby &amp;quot;state" is the current state that can be changed </para>
+<para>          giving inpulses to Event, whose intensity correspond to the state to switch to. Event &amp;lt;0.5 does not change</para>
+<para>          the state.</para>
+<para> </para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

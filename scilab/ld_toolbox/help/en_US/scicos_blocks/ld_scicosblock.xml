@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_scicosblock" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_scicosblock</refname>
+
+    <refpurpose> include a scicos block / schematic</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist] = ld_scicosblock(sim, events, inlist, cosblk)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> inlist  - list() of input ports forwarded to the Scicosblock</para>
+<para> outlist  - list() of output ports forwarded from the Scicosblock</para>
+<para> </para>
+<para> cosblk - structure as loaded by ortd_getcosblk containg the block parameters </para>
+<para></para>
+<para> Hint: There is a  way to compile Xcos-superblocks into C-computational functions.</para>
+<para>       These functions can also be included by ld_scicosblock, but this is experimental</para>
+<para>       and the process for doing so takes some manual steps to perform on the source-code.</para>
+<para> </para>
+<para> </para>
+<para> Limitations:</para>
+<para> </para>
+<para> In the C-structure &amp;quot;scicos_block" there is an entry ozptr that is not initiated </para>
+<para> correcty by the wrapper in the file &amp;quot;ScicosWrapper.cpp". Only the following steps</para>
+<para> are performed that may be suffiecient for most applications:</para>
+<para> </para>
+<para>   ozptr[0] = malloc(1000);</para>
+<para>   ozptr[1] = malloc(1000);</para>
+<para>   ozptr[2] = malloc(1000);</para>
+<para>   ozptr[3] = malloc(1000);</para>
+<para>   ozptr[4] = malloc(1000);  </para>
+<para> </para>
+<para> These fields are used by the generated C-functions for Scicos-Superblocks.</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

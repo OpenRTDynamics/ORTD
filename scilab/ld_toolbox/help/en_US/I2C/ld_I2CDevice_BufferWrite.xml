@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_I2CDevice_BufferWrite" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_I2CDevice_BufferWrite</refname>
+
+    <refpurpose> Raw write of vecsize bytes to an I2C-bus.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_I2CDevice_BufferWrite(sim, events, ObjectIdentifyer, in, vecsize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> The Values from multiple calls of this block are buffered untile they are</para>
+<para> send by ld_I2CDevice_Transmit.</para>
+<para> </para>
+<para> Note: The maximal buffer size currently is 1000 bytes.</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

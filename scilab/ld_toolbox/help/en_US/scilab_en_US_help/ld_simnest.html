@@ -1,0 +1,99 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_simnest</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_read_global_memory.html">&lt;&lt; ld_read_global_memory</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_d88e6b452d8cff2f7189c92b61d6d691.html">nested</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_simnest2.html">ld_simnest2 &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_d88e6b452d8cff2f7189c92b61d6d691.html">nested</a> &gt; ld_simnest</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_simnest</h1>
+
+    <p class="refpurpose">create one (or multiple) nested libdyn simulation within a normal libdyn block it is possible to switch between them by an special input signal</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">outlist</span><span class="default">, </span><span class="default">computation_finished</span><span class="default">] = </span><span class="functionid">ld_simnest</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">ev</span><span class="default">, </span><span class="default">inlist</span><span class="default">, </span><span class="default">insizes</span><span class="default">, </span><span class="default">outsizes</span><span class="default">, </span><span class="default">intypes</span><span class="default">, </span><span class="default">outtypes</span><span class="default">, </span><span class="default">fn_list</span><span class="default">, </span><span class="default">dfeed</span><span class="default">, </span><span class="default">asynchron_simsteps</span><span class="default">, </span><span class="default">switch_signal</span><span class="default">, </span><span class="default">reset_trigger_signal</span><span class="default">  )</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para"></p>
+<p class="para">INPUTS:</p>
+<p class="para"></p>
+<p class="para">switch_signal: signal used to switch between different nested simulations</p>
+<p class="para">reset_trigger_signal: when 1 the current simulation is reset (sync)</p>
+<p class="para">OR when 1 the current simulation is triggered (async)</p>
+<p class="para">inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)</p>
+<p class="para"></p>
+<p class="para">PARAMETERS:</p>
+<p class="para"></p>
+<p class="para">ev - events to be forwarded to the nested simulation</p>
+<p class="para">insizes - input ports configuration</p>
+<p class="para">outsizes - output ports configuration</p>
+<p class="para">intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</p>
+<p class="para">outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</p>
+<p class="para">fn_list - list( ) of scilab functions defining sub-schematics</p>
+<p class="para">dfeed - the block containing all sub-schematics is configured with dfeed</p>
+<p class="para">asynchron_simsteps - if == 1 one simulation steps will be simulated in a thread</p>
+<p class="para">when finished the result becomes available to the blocks outports</p>
+<p class="para">if == 2 the simulation will be simulated in a thread and can be synchronised</p>
+<p class="para">by the subsimulation itselft through synchronisation blocks (e.g. ld_synctimer)</p>
+<p class="para">if == 0 the nested simulation runns synchronous to the upper level simulation.</p>
+<p class="para">(i.e. no thread is started)</p>
+<p class="para"></p>
+<p class="para">OUTPUTS:</p>
+<p class="para"></p>
+<p class="para">outlist - list( ) of output signals</p>
+<p class="para">computation_finished - optional and only meanful if asynchron_simsteps &amp;gt; 0 (means async computation)</p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_read_global_memory.html">&lt;&lt; ld_read_global_memory</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_d88e6b452d8cff2f7189c92b61d6d691.html">nested</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_simnest2.html">ld_simnest2 &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_setmarkerW_ringbuf" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_setmarkerW_ringbuf</refname>
+
+    <refpurpose> Set the current marker position to the lastly written element</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_setmarkerW_ringbuf(sim, events, ident_str, trigger)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> ident_str (string) - name of the ringbuffer</para>
+<para> trigger - UINT - set marker if trigger &amp;gt; 0 </para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

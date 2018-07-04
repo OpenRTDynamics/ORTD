@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_global_memory" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_global_memory</refname>
+
+    <refpurpose> inittialise a persistent globally shared memory</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_global_memory(sim, events, ident_str, datatype, len, initial_data, visibility, useMutex)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> ident_str (string) - name of the memory</para>
+<para> datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT works)</para>
+<para> len (integer) - number of elements</para>
+<para> initial_data - initial data of the memory</para>
+<para> visibility (string) - &amp;apos;global', ... (more are following)</para>
+<para> useMutex (integer) - 0 or 1. Use a mutex if you access the memory from different threads</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

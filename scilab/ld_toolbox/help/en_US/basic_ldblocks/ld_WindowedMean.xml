@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_WindowedMean" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_WindowedMean</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, EstMean, EstSigma] = ld_WindowedMean(sim, events, in, weight, WindowLen)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> ld_WindowedMean - Calculte the average of the input singal for a floating window</para>
+<para></para>
+<para> in * - input signal</para>
+<para> weight * - weight for the current sample</para>
+<para> EstMean * - the calculated average</para>
+<para> EstSigma * - the calculated standard deviation</para>
+<para> WindowLen - length of floating window</para>
+<para> </para>
+<para> If weight is less than 0 the filter update is prevented. E.g. if in contains an invalid sample that</para>
+<para> shall not be counted in the calculation of the Mean and Variance</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

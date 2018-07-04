@@ -1,0 +1,111 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_AutoOnlineExch_dev2</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_AutoOnlineExch_dev.html">&lt;&lt; ld_AutoOnlineExch_dev</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_602aebafc4f838f4e7acdc9e6e855ced.html">Automation</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="section_9872a3e838cb3b3b22fdee758035f302.html">EDF &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_602aebafc4f838f4e7acdc9e6e855ced.html">Automation</a> &gt; ld_AutoOnlineExch_dev2</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_AutoOnlineExch_dev2</h1>
+
+    <p class="refpurpose">Automated definition/compilation and execution of ORTD-schemtics during runtime.</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">finished</span><span class="default">, </span><span class="default">outlist</span><span class="default">, </span><span class="default">userdata</span><span class="default">] = </span><span class="functionid">ld_AutoOnlineExch_dev2</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">ev</span><span class="default">, </span><span class="default">inlist</span><span class="default">, </span><span class="default">insizes</span><span class="default">, </span><span class="default">outsizes</span><span class="default">, </span><span class="default">intypes</span><span class="default">, </span><span class="default">outtypes</span><span class="default">, </span><span class="default">ThreadPrioStruct</span><span class="default">, </span><span class="default">CallbackFns</span><span class="default">, </span><span class="default">ident_str</span><span class="default">, </span><span class="default">userdata</span><span class="default">, </span><span class="default">param</span><span class="default">)</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para"></p>
+<p class="para">Automatically perform an experiment and an ongoing evaluation. Additionally,</p>
+<p class="para">during this evaluation a new ORTD-schematic may be compiled to replace a part</p>
+<p class="para">of the control system.</p>
+<p class="para"></p>
+<p class="para">The signals in inlist will be forwarded to several callback functions for defining e.g.</p>
+<p class="para">the nested control system.</p>
+<p class="para"></p>
+<p class="para">There must be several callback functions in a structure CallbackFns:</p>
+<p class="para"></p>
+<p class="para">experiment:      The schematic for performing the experiment, e.g. collecting data. This function</p>
+<p class="para">to define such a schematic may be called during compilation as well as during</p>
+<p class="para">runtime of the control system. The latter case is used to replace the experiment</p>
+<p class="para">controller with an online-generated replacement that may depend e.g. on previously</p>
+<p class="para">collected calibration data.</p>
+<p class="para"></p>
+<p class="para">The prototype for this callback function is:</p>
+<p class="para"></p>
+<p class="para">[sim, finished, outlist, userdata] = experiment(sim, ev, inlist, userdata, CalledOnline)</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para">whileComputing:  The schematic that is activated while the computation is active_state</p>
+<p class="para"></p>
+<p class="para">[sim, outlist, HoldState, userdata] = whileComputing_example(sim, ev, inlist, CalibrationReturnVal, computation_finished, par)</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para">PreScilabRun:    This ORTD-schematic is called for one time step in advance to the embedded Scilab-calculation</p>
+<p class="para"></p>
+<p class="para">[sim, ToScilab, userdata] = PreScilabRun(sim, ev, par)</p>
+<p class="para"></p>
+<p class="para">ident_str        Unique string for identifications of the created instance</p>
+<p class="para">userdata         left to the user of this function to transfer data to the callback functions</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para">param            Contains additional parameters:</p>
+<p class="para"></p>
+<p class="para">param.scilab_path: String describing the Scilab executable to use. e.g. set to &amp;quot;BUILDIN_PATH&#0034;</p>
+<p class="para"></p>
+<p class="para">Note: This is a temporary development version. The interface may slightly change. Rev 2</p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_AutoOnlineExch_dev.html">&lt;&lt; ld_AutoOnlineExch_dev</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_602aebafc4f838f4e7acdc9e6e855ced.html">Automation</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="section_9872a3e838cb3b3b22fdee758035f302.html">EDF &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_SetBitsInt32" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_SetBitsInt32</refname>
+
+    <refpurpose> Copy a bit-pattern to the input</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_SetBitsInt32(sim, events, in, BitPattern, BitNrStart, NumBits)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> in *(INT32) - input</para>
+<para> BitPattern *(INT32)</para>
+<para> out *(INT32) - output</para>
+<para></para>
+<para> BitNrStart - position in the input at which to start copying bits. Counting starts at zero</para>
+<para> NUmBits - number of bits to copy (NOTE; only ==1 works by now)</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

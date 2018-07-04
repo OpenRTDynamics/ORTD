@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_ReadAsciiFile" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_ReadAsciiFile</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> Read data from an ascii-file</para>
+<para></para>
+<para> fname - file name (string)</para>
+<para> veclen - Size of the vector to read during each time-step</para>
+<para> out *(veclen) - Output signal as read from the file</para>
+<para> </para>
+<para> The data contained in the file must be ascii data divided into rows and columns</para>
+<para> as it may be read on Scilab using the command &amp;quot;fscanfMat".</para>
+<para> The number of columns must be veclen. </para>
+<para> For each time-step the respectively next row of data is read from the file and</para>
+<para> copied to the block&amp;apos;s output vectorial signal &quot;out"</para>
+<para> </para>
+<para> The file must be available only at runtime.</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_vector_glue" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_vector_glue</refname>
+
+    <refpurpose> Extract parts from two input vectors and glue them together to receive one vector.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out, num] = ld_vector_glue(sim, events, in1, fromindex1, toindex1, in2, fromindex2, toindex2, vecsize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> Output starting with in1 from fromindex1 until toindex1, continuing with in2 from fromindex2 until toindex2.</para>
+<para> Function is under developement!</para>
+<para></para>
+<para> in1 *+(vecsize)</para>
+<para> in2 *+(vecsize)</para>
+<para> fromindex1 * - first index considered from in1</para>
+<para> toindex1 * - last index considered from in1</para>
+<para> fromindex2 * - first index considered from in2</para>
+<para> toindex2 * - last index considered from in2</para>
+<para> vecsize - size of each input vector. Vectors need to have equal size!</para>
+<para> out * - as explained above. Size of output is (2*vecsize).</para>
+<para> num * - number of values that have been glued together.</para>
+<para> </para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

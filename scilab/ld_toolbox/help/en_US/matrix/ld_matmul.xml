@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_matmul" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_matmul</refname>
+
+    <refpurpose> matrix multiplication of two matrices</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim,out] = ld_matmul(sim, events, left_matrix, left_matrix_size, right_matrix, right_matrix_size)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> out = left_matrix * right_matrix </para>
+<para></para>
+<para>    left_matrix *+(left_matrix_size)  - matrix signal</para>
+<para>    left_matrix_size ---&amp;gt; matrix size [nr,nc]</para>
+<para></para>
+<para>    right_matrix *+(right_matrix_size)  - matrix signal</para>
+<para>    right_matrix_size ---&amp;gt; matrix size [nr,nc]</para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

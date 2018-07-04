@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_stream" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_stream</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_stream(sim, events, in, str, insize, autoflushInterval, autoflushTimeout, bufferlen)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> Creates a new stream block that is remotely controlable via TCP</para>
+<para> It requires the set-up of a libdyn master</para>
+<para> </para>
+<para> str - is a string of the stream name</para>
+<para> insize is the vector length of the input port</para>
+<para> [autoflushInterval] how often (in samples) to flush the send buffers</para>
+<para> [autoflushTimeout] how often to flush the send buffers (time difference) (not implemented)</para>
+<para> [bufferlen] number of samples within the ringbuffer</para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

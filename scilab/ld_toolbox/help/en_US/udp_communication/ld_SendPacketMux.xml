@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_SendPacketMux" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_SendPacketMux</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, PacketFramework] = ld_SendPacketMux(sim, PacketFramework, Signal, NValues_send, datatype, SourceName, Demux)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> Stream data - block</para>
+<para> </para>
+<para> Signal - the signal to stream</para>
+<para> NValues_send - the vector length of Signal</para>
+<para> datatype - only ORTD.DATATYPE_FLOAT by now</para>
+<para> SourceName - a unique string identifier descring the stream</para>
+<para> Demux - information for the receiver on how to demultiplex the packet into individual signals.</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

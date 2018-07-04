@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_HistogramInt32" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_HistogramInt32</refname>
+
+    <refpurpose> Accumulative store input values in a memory at a given position</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_HistogramInt32(sim, events, Val, Weight, from, to )</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> Val * - input </para>
+<para> Weight * - int32</para>
+<para> out *(from-to+1) int32 - the vector representing the histogram</para>
+<para> </para>
+<para> from - min input value in the histogram</para>
+<para> to - max input value in the histogram</para>
+<para> </para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,93 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_simnest2_replacement</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_simnest2.html">&lt;&lt; ld_simnest2</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_d88e6b452d8cff2f7189c92b61d6d691.html">nested</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_statemachine.html">ld_statemachine &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_d88e6b452d8cff2f7189c92b61d6d691.html">nested</a> &gt; ld_simnest2_replacement</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_simnest2_replacement</h1>
+
+    <p class="refpurpose">create schematics that can be used as an online exchangeable simulation for nested simulations set-up using the ld_nested2 block</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">par</span><span class="default">, </span><span class="default">userdata</span><span class="default">] = </span><span class="functionid">ld_simnest2_replacement</span><span class="default">( </span><span class="default">insizes</span><span class="default">, </span><span class="default">outsizes</span><span class="default">, </span><span class="default">intypes</span><span class="default">, </span><span class="default">outtypes</span><span class="default">, </span><span class="default">nested_fn</span><span class="default">, </span><span class="default">userdata</span><span class="default">, </span><span class="default">N</span><span class="default">  )</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para"></p>
+<p class="para">The &amp;quot;ld_nested_exchffile&#0034;-block can be used to load the schematic into the controller</p>
+<p class="para"></p>
+<p class="para">INPUTS:</p>
+<p class="para"></p>
+<p class="para">switch_signal: signal used to switch between different nested simulations</p>
+<p class="para">reset_trigger_signal: when 1 the current simulation is reset (sync)</p>
+<p class="para">OR when 1 the current simulation is triggered (async)</p>
+<p class="para">inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)</p>
+<p class="para"></p>
+<p class="para">PARAMETERS:</p>
+<p class="para"></p>
+<p class="para">insizes - input ports configuration</p>
+<p class="para">outsizes - output ports configuration</p>
+<p class="para">intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</p>
+<p class="para">outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</p>
+<p class="para">nested_fn - scilab function defining sub-schematics</p>
+<p class="para">N - slot id; set to 2</p>
+<p class="para"></p>
+<p class="para">OUTPUTS:</p>
+<p class="para"></p>
+<p class="para">par - irpar data set. par.ipar and par.rpar contain the integer and double parameters list</p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_simnest2.html">&lt;&lt; ld_simnest2</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_d88e6b452d8cff2f7189c92b61d6d691.html">nested</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_statemachine.html">ld_statemachine &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

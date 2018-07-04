@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_limitedcounter" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_limitedcounter</refname>
+
+    <refpurpose> A resetable, limited counter block</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, initial, lower_b, upper_b)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> count * - signal</para>
+<para> reset * - signal</para>
+<para> resetto * - signal</para>
+<para> initial - constant</para>
+<para> out * - output</para>
+<para> </para>
+<para> increases out by count (out = out + count), but count is always between lower_b and upper_b</para>
+<para> </para>
+<para> if reset &amp;gt; 0.5 then</para>
+<para>   out = resetto</para>
+<para></para>
+<para> initially out is set to initial</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

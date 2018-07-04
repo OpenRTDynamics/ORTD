@@ -1,0 +1,95 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_scicosblock</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="section_cecb8d5e8cc45e99fdbca61603d54fec.html">&lt;&lt; scicos_blocks</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_cecb8d5e8cc45e99fdbca61603d54fec.html">scicos_blocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="section_2b3c0ec4cab6f8b949c4ed2d8790ad85.html">scilab &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_cecb8d5e8cc45e99fdbca61603d54fec.html">scicos_blocks</a> &gt; ld_scicosblock</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_scicosblock</h1>
+
+    <p class="refpurpose">include a scicos block / schematic</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">outlist</span><span class="default">] = </span><span class="functionid">ld_scicosblock</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">events</span><span class="default">, </span><span class="default">inlist</span><span class="default">, </span><span class="default">cosblk</span><span class="default">)</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para"></p>
+<p class="para">inlist  - list() of input ports forwarded to the Scicosblock</p>
+<p class="para">outlist  - list() of output ports forwarded from the Scicosblock</p>
+<p class="para"></p>
+<p class="para">cosblk - structure as loaded by ortd_getcosblk containg the block parameters</p>
+<p class="para"></p>
+<p class="para">Hint: There is a  way to compile Xcos-superblocks into C-computational functions.</p>
+<p class="para">These functions can also be included by ld_scicosblock, but this is experimental</p>
+<p class="para">and the process for doing so takes some manual steps to perform on the source-code.</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para">Limitations:</p>
+<p class="para"></p>
+<p class="para">In the C-structure &amp;quot;scicos_block&#0034; there is an entry ozptr that is not initiated</p>
+<p class="para">correcty by the wrapper in the file &amp;quot;ScicosWrapper.cpp&#0034;. Only the following steps</p>
+<p class="para">are performed that may be suffiecient for most applications:</p>
+<p class="para"></p>
+<p class="para">ozptr[0] = malloc(1000);</p>
+<p class="para">ozptr[1] = malloc(1000);</p>
+<p class="para">ozptr[2] = malloc(1000);</p>
+<p class="para">ozptr[3] = malloc(1000);</p>
+<p class="para">ozptr[4] = malloc(1000);</p>
+<p class="para"></p>
+<p class="para">These fields are used by the generated C-functions for Scicos-Superblocks.</p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="section_cecb8d5e8cc45e99fdbca61603d54fec.html">&lt;&lt; scicos_blocks</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_cecb8d5e8cc45e99fdbca61603d54fec.html">scicos_blocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="section_2b3c0ec4cab6f8b949c4ed2d8790ad85.html">scilab &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

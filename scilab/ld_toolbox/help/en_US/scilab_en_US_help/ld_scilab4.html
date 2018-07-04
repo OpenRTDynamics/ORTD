@@ -1,0 +1,101 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_scilab4</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_scilab3.html">&lt;&lt; ld_scilab3</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_2b3c0ec4cab6f8b949c4ed2d8790ad85.html">scilab</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="section_4fd6a85e3cdcef11f3c589069dc1a42b.html">synchronisation &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_2b3c0ec4cab6f8b949c4ed2d8790ad85.html">scilab</a> &gt; ld_scilab4</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_scilab4</h1>
+
+    <p class="refpurpose">Block for calling a computational function written in scilab</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">out</span><span class="default">] = </span><span class="functionid">ld_scilab4</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">events</span><span class="default">, </span><span class="default">in</span><span class="default">, </span><span class="default">invecsize</span><span class="default">, </span><span class="default">outvecsize</span><span class="default">, </span><span class="default">comp_fn</span><span class="default">, </span><span class="default">ForwardVars</span><span class="default">, </span><span class="default">par</span><span class="default">)</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para">A nicer interface to scilab. (See modules/scilab/demo/scilab_demo.sce for an example)</p>
+<p class="para"></p>
+<p class="para">in *+(invecsize) - input</p>
+<p class="para">out *+(outvecsize) - output</p>
+<p class="para"></p>
+<p class="para">out = calc_cmd</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para">comp_fn - scilab function that is executed online. Prototype:</p>
+<p class="para">function [block]=sample_comp_fn( block, flag )</p>
+<p class="para"></p>
+<p class="para">flags are: 1 calc outputs, 4 initialise, 5 terminate</p>
+<p class="para"></p>
+<p class="para">For further details have a look at the example.</p>
+<p class="para"></p>
+<p class="para">ForwardVars - %t or %f Forward variables to the online Scilab instance</p>
+<p class="para"></p>
+<p class="para">The structure par must contain at least the following elements:</p>
+<p class="para"></p>
+<p class="para">include_scilab_fns - list( fn1, &amp;quot;fn1&#0034;, fn2, &#0034;fn2&#0034; ) , whereby fn1 and fn2 stand for Scilab functions</p>
+<p class="para">scilab_path - Path to scilab5 executable. Use &amp;quot;BUILDIN_PATH&#0034; if you do not have special needs.</p>
+<p class="para">InitStr - execute str in the begining. e.g. to define global variables</p>
+<p class="para"></p>
+<p class="para">Nice feature: ld_scilab4 will look for variables that are not defined within comp_fn, if ForwardVars = %t</p>
+<p class="para">and will try to transfer these variables from the Scilab instance running at</p>
+<p class="para">the development host to the on-line running Scilab instance.</p>
+<p class="para">This works only for single value variables only, though.</p>
+<p class="para"></p>
+<p class="para">NOTE: For now the flag &amp;quot;update states&#0034; is not called; Also a &#0034;reset states&#0034; flag is required.</p>
+<p class="para"></p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_scilab3.html">&lt;&lt; ld_scilab3</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_2b3c0ec4cab6f8b949c4ed2d8790ad85.html">scilab</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="section_4fd6a85e3cdcef11f3c589069dc1a42b.html">synchronisation &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

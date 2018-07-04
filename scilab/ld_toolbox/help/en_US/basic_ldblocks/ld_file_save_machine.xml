@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_file_save_machine" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_file_save_machine</refname>
+
+    <refpurpose> Start and stop saving of data to files</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> </para>
+<para>   in *+(size) - Data to write</para>
+<para>   cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped</para>
+<para>   intype - ORTD input type of data</para>
+<para>   size - amount of elements in the vector in</para>
+<para>   fname - string: Filename for saving</para>
+<para> </para>
+<para> Note: The implementation of this function is a superblock using state machines</para>
+<para>       and the ld_savefile block. If you&amp;apos;re interested take the source as an example.</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

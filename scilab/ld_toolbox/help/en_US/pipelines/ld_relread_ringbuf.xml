@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_relread_ringbuf" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_relread_ringbuf</refname>
+
+    <refpurpose> Read a portion from a ringbuffer relative to the currently set marker position</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, data] = ld_relread_ringbuf(sim, events, ident_str, datatype, ElementsToRead, relPos)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> data *+(ElementsToRead) - data</para>
+<para> ident_str (string) - name of the ringbuffer</para>
+<para> datatype - ORTD datatype of the ringbuffer (for now only ORTD.DATATYPE_FLOAT)</para>
+<para> ElementsToRead (integer) - number of elements to read from the ringbuffer</para>
+<para> relPos - UINT - position relative to the currently set marker to start reading from </para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

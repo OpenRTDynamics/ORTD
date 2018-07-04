@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_vector_minmax" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_vector_minmax</refname>
+
+    <refpurpose> Min / Max of a vector (finds the first appearance of the minimum/maximum)</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> Function is buggy somehow. Find maximum should work. Minimum perhaps not!</para>
+<para></para>
+<para> in *+(vecsize)</para>
+<para> findmax greater than 0 means &amp;quot;find the maximum"</para>
+<para> index * - the index starting at 1, where the max / min was found</para>
+<para> value * - min/max value</para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

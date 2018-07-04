@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_vector_play" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_vector_play</refname>
+
+    <refpurpose> Play a vectorial signal</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outvec, Nvecplay] = ld_vector_play(sim, ev, A, special)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> A - matrix containing the vectors to play</para>
+<para> outvec*+(length(A(:,1))) - </para>
+<para> Nvecplay = length of output signal vector</para>
+<para></para>
+<para> outputs A(:,i), where i is increasing within each time step</para>
+<para> special = [ &amp;quot;repeate" ]</para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

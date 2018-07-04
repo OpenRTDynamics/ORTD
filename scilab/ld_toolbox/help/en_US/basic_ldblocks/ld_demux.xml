@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_demux" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_demux</refname>
+
+    <refpurpose> Demultiplexer</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist] = ld_demux(sim, events, vecsize, invec)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> invec * - input vector signal to be split up</para>
+<para> outlist *LIST - list() of output signals</para>
+<para></para>
+<para></para>
+<para> Splits the input vector signal &amp;quot;invec" of size "vecsize" up into </para>
+<para></para>
+<para> outlist(1)</para>
+<para> outlist(2)</para>
+<para>  ....</para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

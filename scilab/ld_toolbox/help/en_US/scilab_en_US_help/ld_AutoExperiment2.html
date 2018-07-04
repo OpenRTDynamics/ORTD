@@ -1,0 +1,97 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_AutoExperiment2</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_AutoExperiment.html">&lt;&lt; ld_AutoExperiment</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_602aebafc4f838f4e7acdc9e6e855ced.html">Automation</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_AutoOnlineExch_dev.html">ld_AutoOnlineExch_dev &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_602aebafc4f838f4e7acdc9e6e855ced.html">Automation</a> &gt; ld_AutoExperiment2</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_AutoExperiment2</h1>
+
+    <p class="refpurpose"></p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">finished</span><span class="default">, </span><span class="default">outlist</span><span class="default">, </span><span class="default">userdata</span><span class="default">] = </span><span class="functionid">ld_AutoExperiment2</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">ev</span><span class="default">, </span><span class="default">inlist</span><span class="default">, </span><span class="default">insizes</span><span class="default">, </span><span class="default">outsizes</span><span class="default">, </span><span class="default">intypes</span><span class="default">, </span><span class="default">outtypes</span><span class="default">, </span><span class="default">ThreadPrioStruct</span><span class="default">, </span><span class="default">experiment_fn</span><span class="default">, </span><span class="default">whileComputing_fn</span><span class="default">, </span><span class="default">evaluation_fn</span><span class="default">, </span><span class="default">whileIdle_fn</span><span class="default">, </span><span class="default">userdata</span><span class="default">)</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para">Automatically perform an experiment and the ongoing evaluation.</p>
+<p class="para">The computation required for the evaluation is performed in a the background</p>
+<p class="para">by means of a thread.</p>
+<p class="para"></p>
+<p class="para">There are several callback functions that describe:</p>
+<p class="para"></p>
+<p class="para">experiment_fn: The schematic for performing the experiment, e.g. collecting data</p>
+<p class="para">whileComputing_fn: The schematic that is activated during the computation is active_state</p>
+<p class="para">evaluation_fn: The schematic that performs the evaulation in a thread.</p>
+<p class="para">One simulation step is performed here</p>
+<p class="para">whileIdle_fn:  The schematic that is active when the procedure finished.</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para">The prototypes are (Hereby outlist and inlist are lists of the signals that are forwarded</p>
+<p class="para">to the I/O of ld_AutoExperiment:</p>
+<p class="para"></p>
+<p class="para">[sim, finished, outlist] = experiment_fn(sim, ev, inlist)</p>
+<p class="para">[sim, outlist] = whileComputing_fn(sim, ev, inlist)</p>
+<p class="para">[sim, CalibrationReturnVal, userdata] = evaluation_fn(sim, userdata)  NOTE changed this function</p>
+<p class="para">[sim, outlist] = whileIdle_fn(sim, ev, inlist)</p>
+<p class="para"></p>
+<p class="para">NOTE: Not everything is finished by now</p>
+<p class="para"></p>
+<p class="para">Rev 2: of ld_AutoExperiment: added userdata input/output, changed prototype of evaluation_fn</p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_AutoExperiment.html">&lt;&lt; ld_AutoExperiment</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_602aebafc4f838f4e7acdc9e6e855ced.html">Automation</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_AutoOnlineExch_dev.html">ld_AutoOnlineExch_dev &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

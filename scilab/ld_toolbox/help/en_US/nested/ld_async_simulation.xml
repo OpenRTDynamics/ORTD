@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_async_simulation" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_async_simulation</refname>
+
+    <refpurpose> Run a nested libdyn simulation within a a thread</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist, computation_finished, userdata] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> INPUT Signals: </para>
+<para></para>
+<para> TriggerSignal * - Trigger one simulation step of the threaded and nested simulation, if TriggerSignal == 1 </para>
+<para>                </para>
+<para> inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)</para>
+<para></para>
+<para> PARAMETERS:</para>
+<para> </para>
+<para> insizes - input ports configuration</para>
+<para> outsizes - output ports configuration</para>
+<para> intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> nested_fn - scilab function defining the sub-schematics</para>
+<para>             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)</para>
+<para> </para>
+<para> name (string) - the name of the nested simulation</para>
+<para> ThreadPrioStruct - Properties of the thread. e.g.:</para>
+<para> 	  ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK;</para>
+<para> 	  ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = -1;</para>
+<para> </para>
+<para> userdata - A Scilab variable that will be forwarded to the function nested_fn</para>
+<para> </para>
+<para> OUTPUTS:</para>
+<para> </para>
+<para> outlist - list( ) of output signals</para>
+<para> computation_finished - optional and only meanful if asynchron_simsteps &amp;gt; 0 (means async computation)</para>
+<para> </para>
+<para> 6.8.14: Fixed Bug forwarding userdata</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

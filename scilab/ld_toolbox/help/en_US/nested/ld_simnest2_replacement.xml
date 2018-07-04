@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_simnest2_replacement" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_simnest2_replacement</refname>
+
+    <refpurpose> create schematics that can be used as an online exchangeable simulation for nested simulations set-up using the ld_nested2 block</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[par, userdata] = ld_simnest2_replacement( insizes, outsizes, intypes, outtypes, nested_fn, userdata, N  )</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> The &amp;quot;ld_nested_exchffile"-block can be used to load the schematic into the controller</para>
+<para></para>
+<para> INPUTS: </para>
+<para></para>
+<para> switch_signal: signal used to switch between different nested simulations</para>
+<para> reset_trigger_signal: when 1 the current simulation is reset (sync)</para>
+<para>                       OR when 1 the current simulation is triggered (async)</para>
+<para> inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)</para>
+<para></para>
+<para> PARAMETERS:</para>
+<para> </para>
+<para> insizes - input ports configuration</para>
+<para> outsizes - output ports configuration</para>
+<para> intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> nested_fn - scilab function defining sub-schematics</para>
+<para> N - slot id; set to 2</para>
+<para> </para>
+<para> OUTPUTS:</para>
+<para></para>
+<para> par - irpar data set. par.ipar and par.rpar contain the integer and double parameters list</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

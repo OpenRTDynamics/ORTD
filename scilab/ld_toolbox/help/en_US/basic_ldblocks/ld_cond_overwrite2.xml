@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_cond_overwrite2" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_cond_overwrite2</refname>
+
+    <refpurpose> conditional overwrite of the input signal's value</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_cond_overwrite2(sim, events, in, condition, setto)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> out * - output (float)</para>
+<para> in * - input (float) to potentially overwrite</para>
+<para> condition * - condition signal (int32) -- in contrast to ld_cond_overwrite</para>
+<para> </para>
+<para> out = in, if condition &amp;gt; 0</para>
+<para> out = setto, otherwise</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_muxInt32" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_muxInt32</refname>
+
+    <refpurpose> Multiplexer int 32</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_muxInt32(sim, events, vecsize, inlist)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para>    </para>
+<para></para>
+<para> inlist *LIST - list() of input signals of size 1</para>
+<para> out *+ - output vector signal</para>
+<para> </para>
+<para> </para>
+<para> combines inlist(1), inlist(2), ...    </para>
+<para> to a vector signal &amp;quot;out" of size "vecsize", whereby each inlist(i) is of size 1</para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

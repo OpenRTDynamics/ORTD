@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_printf" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_printf</refname>
+
+    <refpurpose> Print data to stdout (the console)</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_printf(sim, events, in, str, insize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> in *+(insize) - vectorial input signal</para>
+<para></para>
+<para> str is a string that is printed followed by the signal vector in</para>
+<para> of size insize</para>
+<para></para>
+<para> Hint: Apply colored printf&amp;apos;s by using the predefined terminal color codes:</para>
+<para> </para>
+<para> str = ORTD.termcode.red + &amp;quot;some colored text..." + ORTD.termcode.reset</para>
+<para> </para>
+<para> instead of red there currently is: green, yellow, blue.</para>
+<para> </para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

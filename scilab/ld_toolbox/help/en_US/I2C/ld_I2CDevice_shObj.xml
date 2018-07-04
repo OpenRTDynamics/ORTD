@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_I2CDevice_shObj" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_I2CDevice_shObj</refname>
+
+    <refpurpose> I2C device connection</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_I2CDevice_shObj(sim, events, ObjectIdentifyer, Visibility, I2CDevicename, I2Caddr)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> This function creates a shared object for I2C communications</para>
+<para> using the linux kernel&amp;apos;s I2C-interface. (linux/i2c-dev.h, linux/i2c.h</para>
+<para> https://www.kernel.org/doc/Documentation/i2c/dev-interface )</para>
+<para> Hardware supporting this interface is e.g. available at the following systems</para>
+<para> </para>
+<para> *) Beaglebone</para>
+<para> *) Rasperry Pi</para>
+<para> </para>
+<para> An I2C device at adress I2Caddr ( numbering as used by i2cdetect; Please compare to other notations!)</para>
+<para> is opened via the I2C-bus given by I2CDevicename (e.g. &amp;quot;/dev/i2c-0", "/dev/i2c-1", ...)</para>
+<para> </para>
+<para> Currently there are only functions for writing to the bus.</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

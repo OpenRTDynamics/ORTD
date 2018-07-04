@@ -1,0 +1,84 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_vector_glue</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_vector_gain.html">&lt;&lt; ld_vector_gain</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_36b3d060978c0411bd31be25049d8d0a.html">basic_ldblocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_vector_minmax.html">ld_vector_minmax &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_36b3d060978c0411bd31be25049d8d0a.html">basic_ldblocks</a> &gt; ld_vector_glue</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_vector_glue</h1>
+
+    <p class="refpurpose">Extract parts from two input vectors and glue them together to receive one vector.</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">out</span><span class="default">, </span><span class="default">num</span><span class="default">] = </span><span class="functionid">ld_vector_glue</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">events</span><span class="default">, </span><span class="default">in1</span><span class="default">, </span><span class="default">fromindex1</span><span class="default">, </span><span class="default">toindex1</span><span class="default">, </span><span class="default">in2</span><span class="default">, </span><span class="default">fromindex2</span><span class="default">, </span><span class="default">toindex2</span><span class="default">, </span><span class="default">vecsize</span><span class="default">)</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para">Output starting with in1 from fromindex1 until toindex1, continuing with in2 from fromindex2 until toindex2.</p>
+<p class="para">Function is under developement!</p>
+<p class="para"></p>
+<p class="para">in1 *+(vecsize)</p>
+<p class="para">in2 *+(vecsize)</p>
+<p class="para">fromindex1 * - first index considered from in1</p>
+<p class="para">toindex1 * - last index considered from in1</p>
+<p class="para">fromindex2 * - first index considered from in2</p>
+<p class="para">toindex2 * - last index considered from in2</p>
+<p class="para">vecsize - size of each input vector. Vectors need to have equal size!</p>
+<p class="para">out * - as explained above. Size of output is (2*vecsize).</p>
+<p class="para">num * - number of values that have been glued together.</p>
+<p class="para"></p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_vector_gain.html">&lt;&lt; ld_vector_gain</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_36b3d060978c0411bd31be25049d8d0a.html">basic_ldblocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_vector_minmax.html">ld_vector_minmax &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_vectorFindShape" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_vectorFindShape</refname>
+
+    <refpurpose> Cross correlation between a vectorial signal and a given shape like ld_vecXCorrelation using ofset compensation</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_vectorFindShape(sim, events, in, shape, vecsize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para>    </para>
+<para> </para>
+<para> Prior and after the floating window used to compare with the given shape</para>
+<para> the signal ofset of in at the current window position is estimated</para>
+<para>    </para>
+<para> The size of the output vector signal will be vecsize-length(shape) - 1</para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

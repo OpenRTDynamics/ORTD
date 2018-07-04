@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_startproc2" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_startproc2</refname>
+
+    <refpurpose> Execute a sub process with some more options (EXPERIMENTAL)</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_startproc2(sim, events, exepath, chpwd, prio, whentorun)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> out * - output</para>
+<para> exepath - string: path to executable</para>
+<para> chpwn - change current directory before running the process</para>
+<para> prio - Priority (set to zero for now)</para>
+<para> whentorun - 0 - Start process on blocks initialisation and stop on desruction; </para>
+<para>             1 - Start process on activation in a statemachine and stop on reset</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

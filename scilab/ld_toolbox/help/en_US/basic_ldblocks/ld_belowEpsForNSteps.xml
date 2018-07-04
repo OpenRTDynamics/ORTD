@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_belowEpsForNSteps" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_belowEpsForNSteps</refname>
+
+    <refpurpose> return true, when input is below a constant for more than N sampling steps</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, reached] = ld_belowEpsForNSteps(sim, ev, in, thr, N)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> in * - input signal</para>
+<para> thr - threshold constant</para>
+<para> N - integer</para>
+<para></para>
+<para> If in is below thr for more than N time steps, reached = 1;</para>
+<para> Otherwise reached is set to 0.</para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

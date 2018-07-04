@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_AutoExperiment2" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_AutoExperiment2</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, experiment_fn, whileComputing_fn, evaluation_fn, whileIdle_fn, userdata)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> Automatically perform an experiment and the ongoing evaluation.</para>
+<para> The computation required for the evaluation is performed in a the background</para>
+<para> by means of a thread.</para>
+<para> </para>
+<para> There are several callback functions that describe:</para>
+<para> </para>
+<para> experiment_fn: The schematic for performing the experiment, e.g. collecting data</para>
+<para> whileComputing_fn: The schematic that is activated during the computation is active_state</para>
+<para> evaluation_fn: The schematic that performs the evaulation in a thread.</para>
+<para>                One simulation step is performed here</para>
+<para> whileIdle_fn:  The schematic that is active when the procedure finished.</para>
+<para> </para>
+<para> </para>
+<para> </para>
+<para> </para>
+<para> The prototypes are (Hereby outlist and inlist are lists of the signals that are forwarded </para>
+<para> to the I/O of ld_AutoExperiment:</para>
+<para> </para>
+<para> [sim, finished, outlist] = experiment_fn(sim, ev, inlist)</para>
+<para> [sim, outlist] = whileComputing_fn(sim, ev, inlist)</para>
+<para> [sim, CalibrationReturnVal, userdata] = evaluation_fn(sim, userdata)  NOTE changed this function</para>
+<para> [sim, outlist] = whileIdle_fn(sim, ev, inlist)</para>
+<para> </para>
+<para> NOTE: Not everything is finished by now</para>
+<para> </para>
+<para> Rev 2: of ld_AutoExperiment: added userdata input/output, changed prototype of evaluation_fn</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_Timer" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_Timer</refname>
+
+    <refpurpose> A timer than can be triggered</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, TimerActive, Counter] = ld_Timer(sim, events, Trigger, Count )</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> The timer is active for Count simulation steps</para>
+<para></para>
+<para> Trigger * - (int32) start the timer immediately </para>
+<para> TimerActive * - int32 1 if the timer is active, 0 if not</para>
+<para> Counter * (int32) - The used conter that starts from Count and decreases</para>
+<para> </para>
+<para> </para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

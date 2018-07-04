@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_PF_InitInstance" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_PF_InitInstance</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName, Configuration)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> Initialise an instance of the Packet Framework</para>
+<para>   </para>
+<para> InstanceName - a unique string identifier for the instance</para>
+<para> Configuration must include the following properties:</para>
+<para> </para>
+<para>   Configuration.UnderlyingProtocoll = &amp;quot;UDP"</para>
+<para>   Configuration.DestHost</para>
+<para>   Configuration.DestPort</para>
+<para>   Configuration.LocalSocketHost</para>
+<para>   Configuration.LocalSocketPort</para>
+<para> </para>
+<para> </para>
+<para> Example:</para>
+<para> </para>
+<para> </para>
+<para>   Configuration.UnderlyingProtocoll = &amp;quot;UDP";</para>
+<para>   Configuration.DestHost = &amp;quot;127.0.0.1";</para>
+<para>   Configuration.DestPort = 20000;</para>
+<para>   Configuration.LocalSocketHost = &amp;quot;127.0.0.1";</para>
+<para>   Configuration.LocalSocketPort = 20001;</para>
+<para>   [sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName=&amp;quot;UDPCommunication", Configuration);</para>
+<para> </para>
+<para> </para>
+<para> </para>
+<para> Also consider the file webappUDP.js as the counterpart that communicates to ORTD-simulations</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

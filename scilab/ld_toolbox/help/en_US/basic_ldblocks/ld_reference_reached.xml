@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_reference_reached" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_reference_reached</refname>
+
+    <refpurpose> check wheter a reference value is reached </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, reached] = ld_reference_reached(sim, ev, r, y, N, eps)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> r * - Reference Signal (shall be constant)</para>
+<para> y * - Signal to compare to the reference</para>
+<para> N - After the condition of reaching the reference is true</para>
+<para>     N time steps will be wait until setting reached to one. </para>
+<para> eps - the half tolerance band width</para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

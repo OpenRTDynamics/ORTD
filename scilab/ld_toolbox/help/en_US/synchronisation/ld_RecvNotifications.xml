@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_RecvNotifications" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_RecvNotifications</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, signal ] = ld_RecvNotifications(sim, events, ObjectIdentifyer)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> Receiver for Thread notifications</para>
+<para></para>
+<para> signal *, ORTD.DATATYPE_INT32 - The signal that was received</para>
+<para> </para>
+<para> This is a simulation-synchronising Block. Everytime a notification is received,</para>
+<para> the simulation that contains this blocks goes on for one step.</para>
+<para> </para>
+<para> Notifications can be send from other threads by using ld_ThreadNotify</para>
+<para> </para>
+<para> EXPERIMENTAL</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

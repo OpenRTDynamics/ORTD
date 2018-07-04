@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_vectorFindSpike" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_vectorFindSpike</refname>
+
+    <refpurpose> find a spike in a given dataset</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, index, FoundSpike, Mean, Sigma, Distance, Val] = ld_vectorFindSpike(sim, events, in, SignificanceFactor, NskipLeft, NskipRight, vecsize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> Steps performed:</para>
+<para></para>
+<para> 1) The maximum of abs(in) is determined as well as its position</para>
+<para> 2) The variance (sigma^2) of in is calculated except for the values surounded by</para>
+<para>    the maxmimum. This range is described by NskipLeft and NskipRight</para>
+<para> 3) The maximum is compared to the standard deviation (sigma); also the</para>
+<para>    signal&amp;apos;s mean value is compensated herein.</para>
+<para> 4) If the intensity of the maximum is significantly higher than the maximum&amp;apos;s</para>
+<para>    intensity, FoundSpike is set to 1 </para>
+<para></para>
+<para> in *+(vecsize)</para>
+<para> SignificanceFactor - Used for the comparison Distance &amp;gt; SignificanceFactor * sigma, </para>
+<para> index *(INT32) - the index starting at 1, where the spike was found</para>
+<para> FoundSpike *(INT32) - 1 if a spike has been found. 0 otherwise</para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

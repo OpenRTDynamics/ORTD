@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_MultiFileSave" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_MultiFileSave</refname>
+
+    <refpurpose> Start and stop saving of multiple data vectors to multiple files</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_MultiFileSave(sim, ev, inlist, cntrl, FileNamesList)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> </para>
+<para>   inlist list() of *+ - Data to write</para>
+<para>   cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped</para>
+<para>   FileNamesList list() of strings - Filenames for saving</para>
+<para> </para>
+<para> Note: This function tries to automatically detect the vector size for each entry of inlist.</para>
+<para>       Howver, this does not work for all signal sources (blocks) at the moment.</para>
+<para>       If come accross such a situation, you&amp;apos;re invited to notify the authors of ORTD.</para>
+<para> </para>
+<para> Note: cntrl does not have an effect by now</para>
+<para> </para>
+<para> Example:</para>
+<para> </para>
+<para>       TriggerSave = ...</para>
+<para> </para>
+<para>       SaveSignals=list();        FileNamesList=list();</para>
+<para>       SaveSignals($+1) = Signal1;      FileNamesList($+1) = &amp;quot;measurements/Signal1.dat";</para>
+<para>       SaveSignals($+1) = Signal2;      FileNamesList($+1) = &amp;quot;measurements/Signal2.dat";</para>
+<para> </para>
+<para>       [sim] = ld_MultiFileSave(sim, 0, ...</para>
+<para>                          inlist=SaveSignals, ...</para>
+<para>                          cntrl=TriggerSave, FileNamesList          );</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

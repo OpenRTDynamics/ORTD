@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_CaseSwitchNest" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_CaseSwitchNest</refname>
+
+    <refpurpose> Switch mechanism for multiple nested simulations </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, CaseSwitch_fn, SimnestName, DirectFeedthrough, SelectSignal, CaseNameList, userdata)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> INPUT Signals: </para>
+<para></para>
+<para> inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)</para>
+<para> SelectSignal - * swicht signal of type ORTD.DATATYPE_INT32</para>
+<para></para>
+<para> PARAMETERS:</para>
+<para> </para>
+<para> insizes - input ports configuration</para>
+<para> outsizes - output ports configuration</para>
+<para> intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> CaseSwitch_fn - scilab function defining the sub-schematics</para>
+<para>             The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, Ncase, casename, userdata)</para>
+<para> </para>
+<para> SimnestName (string) - the name of the nested simulation</para>
+<para> DirectFeedthrough - %t or %f</para>
+<para> SelectSignal * - int32 use to determine the currently active simulation</para>
+<para> CaseNameList list() of strings</para>
+<para> </para>
+<para> userdata - A Scilab variable that will be forwarded to the function nested_fn</para>
+<para> </para>
+<para> OUTPUTS:</para>
+<para> </para>
+<para> outlist - list( ) of output signals</para>
+<para></para>
+<para> PLEASE NOTE: For ld_CaseSwitchNest at least one output must be defined such that</para>
+<para>              the nested simulations are executed at the right time instances.</para>
+<para>              Otherwise a delayed execution of the nested simulations has been oberserved.</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

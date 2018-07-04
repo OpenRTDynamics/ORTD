@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_nested_exchffile" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_nested_exchffile</refname>
+
+    <refpurpose> Online exchange of a nested simulation via loading *[ir].par files</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname, simnest_name)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para></para>
+<para> NOTE: May delay realtime behaviour - use during a separated asynchronous nested simulation</para>
+<para></para>
+<para> compresult - signal - 0: Do nothing, 1: unload schematic and load new (replace), 2: just unload </para>
+<para> slot - signal (unused by now; set to 2)</para>
+<para> fname - the filename without &amp;quot;.[ir]par"-ending</para>
+<para> simnest_name - the string which referes to the nested simulation (as given to &amp;quot;ld_simnest2")</para>
+<para> </para>
+<para></para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

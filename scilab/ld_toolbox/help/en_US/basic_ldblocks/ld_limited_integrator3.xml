@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_limited_integrator3" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_limited_integrator3</refname>
+
+    <refpurpose> Implements a time discrete integrator (trapeziodal rule) with saturation of the output between min__ and max__</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, y] = ld_limited_integrator3(sim, ev, u, min__, max__, Ta)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> u * - input</para>
+<para> y * - output</para>
+<para> </para>
+<para> y(k+1) = sat(  Ta/2 ( u(k)+u(k+1) ) + y(k), min__, max__ )</para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

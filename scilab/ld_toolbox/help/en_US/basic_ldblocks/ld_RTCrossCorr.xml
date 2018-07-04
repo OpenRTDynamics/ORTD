@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_RTCrossCorr" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_RTCrossCorr</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_RTCrossCorr(sim, events, u, shapeSig, len)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> Online Cross Correlation</para>
+<para></para>
+<para> u * - input signal</para>
+<para> shapeSig * - input shape</para>
+<para> out * - output signal</para>
+<para> len - length of input shape</para>
+<para> </para>
+<para> </para>
+<para> Note: The implementation is not optimal. Only the raw sum formula is evaluated.</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

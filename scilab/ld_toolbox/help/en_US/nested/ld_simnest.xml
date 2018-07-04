@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_simnest" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_simnest</refname>
+
+    <refpurpose> create one (or multiple) nested libdyn simulation within a normal libdyn block it is possible to switch between them by an special input signal</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal  )</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para></para>
+<para> INPUTS: </para>
+<para></para>
+<para> switch_signal: signal used to switch between different nested simulations</para>
+<para> reset_trigger_signal: when 1 the current simulation is reset (sync)</para>
+<para>                       OR when 1 the current simulation is triggered (async)</para>
+<para> inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)</para>
+<para></para>
+<para> PARAMETERS:</para>
+<para> </para>
+<para> ev - events to be forwarded to the nested simulation</para>
+<para> insizes - input ports configuration</para>
+<para> outsizes - output ports configuration</para>
+<para> intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port</para>
+<para> fn_list - list( ) of scilab functions defining sub-schematics</para>
+<para> dfeed - the block containing all sub-schematics is configured with dfeed</para>
+<para> asynchron_simsteps - if == 1 one simulation steps will be simulated in a thread</para>
+<para>                     when finished the result becomes available to the blocks outports</para>
+<para>                      if == 2 the simulation will be simulated in a thread and can be synchronised</para>
+<para>                      by the subsimulation itselft through synchronisation blocks (e.g. ld_synctimer)</para>
+<para>                     if == 0 the nested simulation runns synchronous to the upper level simulation. </para>
+<para>                     (i.e. no thread is started)</para>
+<para> </para>
+<para> OUTPUTS:</para>
+<para> </para>
+<para> outlist - list( ) of output signals</para>
+<para> computation_finished - optional and only meanful if asynchron_simsteps &amp;gt; 0 (means async computation)</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

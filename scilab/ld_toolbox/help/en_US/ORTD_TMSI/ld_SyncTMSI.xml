@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_SyncTMSI" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_SyncTMSI</refname>
+
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, outlist] = ld_SyncTMSI(sim, events, blocksize, DeviceIDStr, channels, MaxBlocksize )</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> ADD SOME DOCUMENTATION HERE, that will be copied to the scilab help</para>
+<para> TMSI - block</para>
+<para></para>
+<para> This block syncronises schematics. Only one block of this type is allowed in a threaded sub-schematic</para>
+<para> created e.g. by ld_async_simulation</para>
+<para></para>
+<para> in * - input</para>
+<para> out * - output</para>
+<para> </para>
+<para> out = abs(in)</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_AndroidSensors" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_AndroidSensors</refname>
+
+    <refpurpose> Read out Android Sensors and synchronise the simulation to them</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out, SensorID] = ld_AndroidSensors(sim, events, in, ConfigStruct)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> Special: SYNC_BLOCK (use only one block of this type in an asynchronous running sub-simulation)</para>
+<para></para>
+<para> out - vector of size 10 containing the sensor values</para>
+<para> in - when in becomes one, the synchronisation loop is interrupted</para>
+<para> SensorID - The ID of the sensor that send new data</para>
+<para> </para>
+<para> Possible sensor ID&amp;apos;s:</para>
+<para> </para>
+<para>     ASENSOR_TYPE_ACCELEROMETER      = 1,</para>
+<para>     ASENSOR_TYPE_MAGNETIC_FIELD     = 2,</para>
+<para>     ASENSOR_TYPE_GYROSCOPE          = 4,</para>
+<para>     ASENSOR_TYPE_LIGHT              = 5,</para>
+<para>     ASENSOR_TYPE_PROXIMITY          = 8</para>
+<para> </para>
+<para> EXPERIMENTAL</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

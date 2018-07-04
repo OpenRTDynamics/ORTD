@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_leastsquares" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_leastsquares</refname>
+
+    <refpurpose> estimate n linear model parameters (a,b,c...) and compute yvec_hat.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out, param] = ld_leastsquares(sim, events, inplist, veclen, n_param)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> yvec_hat = a * phi0 + b * phi1 + c * phi2 ...</para>
+<para> Estimation of a, b, c ... minimizes the sum of squared errors (\chi^2 = \sum_i (yvec - yvec_hat)^2).</para>
+<para> out = yvec_hat</para>
+<para></para>
+<para> inplist* - list(phi0*, phi1*, phi2*, ..., phi(n_param-1)*, yvec*)</para>
+<para> + phi0* - input vector0 (The vectors phiX form the matrix of predictor variables.)</para>
+<para> + phi1* - input vector1 (The vectors phiX form the matrix of predictor variables.)</para>
+<para> + phi2* - input vector2 (The vectors phiX form the matrix of predictor variables.)</para>
+<para> + ...</para>
+<para> + phi(n_param-1)* - input vector(n_param-1) (The vectors phiX form the matrix of predictor variables.)</para>
+<para> + yvec* - the original vector</para>
+<para></para>
+<para> veclen - the number of observations which have been made (the length of each vector phiX, yvec and yvec_hat)</para>
+<para> n_param - the number of vectors belonging to Phi as well as the number of parameters in param*.</para>
+<para> out* = yvec_hat (the best prediction of yvec)</para>
+<para> param* - [a, b, c, ...]</para>
+<para></para>
+<para> NOTICE: ld_leastsquares is not available by default since you need to include the GSL - GNU Scientific Library.</para>
+<para> Please follow the instructions which have been testet under Ubuntu 12.04. LTS:</para>
+<para></para>
+<para> - install the required library with the following command or with a package-manager of your choice before installing ORTD:</para>
+<para> &amp;apos;sudo apt-get install libgsl0-dev'</para>
+<para></para>
+<para>    </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

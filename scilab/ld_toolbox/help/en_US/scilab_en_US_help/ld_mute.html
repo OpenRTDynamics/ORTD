@@ -1,0 +1,88 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_mute</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_mult.html">&lt;&lt; ld_mult</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_36b3d060978c0411bd31be25049d8d0a.html">basic_ldblocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_mux.html">ld_mux &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_36b3d060978c0411bd31be25049d8d0a.html">basic_ldblocks</a> &gt; ld_mute</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_mute</h1>
+
+    <p class="refpurpose">Mute a signal based on cntrl-signal</p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">y</span><span class="default">] = </span><span class="functionid">ld_mute</span><span class="default">( </span><span class="default">sim</span><span class="default">, </span><span class="default">ev</span><span class="default">, </span><span class="default">u</span><span class="default">, </span><span class="default">cntrl</span><span class="default">, </span><span class="default">mutewhengreaterzero</span><span class="default"> )</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para"></p>
+<p class="para">ev - event</p>
+<p class="para">u * - input</p>
+<p class="para">y * - output</p>
+<p class="para">mutewhengreaterzero - boolean parameter (%T, %F)</p>
+<p class="para"></p>
+<p class="para">if mutewhengreaterzero == %T then</p>
+<p class="para"></p>
+<p class="para">y = 0 for cntrl &amp;gt; 0</p>
+<p class="para">y = u for cntrl &amp;lt; 0</p>
+<p class="para"></p>
+<p class="para">else</p>
+<p class="para"></p>
+<p class="para">y = 0 for cntrl &amp;lt; 0</p>
+<p class="para">y = u for cntrl &amp;gt; 0</p>
+<p class="para"></p>
+<p class="para"></p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_mult.html">&lt;&lt; ld_mult</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_36b3d060978c0411bd31be25049d8d0a.html">basic_ldblocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_mux.html">ld_mux &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

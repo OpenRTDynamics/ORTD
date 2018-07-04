@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_memorydel" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_memorydel</refname>
+
+    <refpurpose> delayed memory - block</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_memorydel(sim, events, in, rememberin, initial_state)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> in * - input</para>
+<para> rememberin * - </para>
+<para> out * - output</para>
+<para> </para>
+<para> If rememberin &amp;gt; 0 then</para>
+<para>   remember in, which is then feed to the output &amp;quot;out" in the next time step until it is overwritten by a new value</para>
+<para></para>
+<para> initial output out = initial_state</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

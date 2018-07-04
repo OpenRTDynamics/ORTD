@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_AutoOnlineExch_dev" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_AutoOnlineExch_dev</refname>
+
+    <refpurpose> Automated definition/compilation and execution of ORTD-schemtics during runtime.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, CallbackFns, ident_str, userdata)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> Automatically perform an experiment and an ongoing evaluation. Additionally,</para>
+<para> during this evaluation a new ORTD-schematic may be compiled to replace a part</para>
+<para> of the control system.</para>
+<para> </para>
+<para> The signals in inlist will be forwarded to several callback functions for defining e.g.</para>
+<para> the nested control system.</para>
+<para> </para>
+<para> There must be several callback functions in a structure CallbackFns:</para>
+<para> </para>
+<para> experiment:      The schematic for performing the experiment, e.g. collecting data. This function</para>
+<para>                  to define such a schematic may be called during compilation as well as during </para>
+<para>                  runtime of the control system. The latter case is used to replace the experiment</para>
+<para>                  controller with an online-generated replacement that may depend e.g. on previously </para>
+<para>                  collected calibration data.</para>
+<para> whileComputing:  The schematic that is activated during the computation is active_state</para>
+<para> PreScilabRun:    This ORTD-schematic is called for one time step in advance to the embedded Scilab-calculation</para>
+<para> </para>
+<para> </para>
+<para> Note: This is a wrapper to ld_AutoOnlineExch_dev2 for backwards compatibility. Use ld_AutoOnlineExch_dev2 instead.</para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_write_global_memory" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_write_global_memory</refname>
+
+    <refpurpose> Write a portion to a persistent globally shared memory</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim] = ld_write_global_memory(sim, events, data, index, ident_str, datatype, ElementsToWrite)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para> </para>
+<para> </para>
+<para> Initialises a memory structure which can be refered by an</para>
+<para> identifier. Data is available for read and write access</para>
+<para> accross different state machines as well as accross</para>
+<para> different threads.</para>
+<para> </para>
+<para> Make sure to only use the memory created by this function in </para>
+<para> lower level simulations such as nested state machines, etc.</para>
+<para> Access from higher level simulations is possible but should</para>
+<para> be avoided, as the memory can not be freed on destruction.</para>
+<para> </para>
+<para> data *+(ElementsToWrite) - data</para>
+<para> index * - index to store the data. Starts at 1</para>
+<para> ident_str (string) - name of the memory</para>
+<para> datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)</para>
+<para> ElementsToWrite (integer) - number of elements to write to the memory</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry version="5.0-subset Scilab" xml:id="ld_vector_lookup" xml:lang="en"
+          xmlns="http://docbook.org/ns/docbook"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xmlns:svg="http://www.w3.org/2000/svg"
+          xmlns:ns3="http://www.w3.org/1999/xhtml"
+          xmlns:mml="http://www.w3.org/1998/Math/MathML"
+          xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <pubdate>$LastChangedDate: $</pubdate>
+  </info>
+
+  <refnamediv>
+    <refname>ld_vector_lookup</refname>
+
+    <refpurpose> Lookup table - block</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <title>Calling Sequence</title>
+
+    <synopsis>[sim, out] = ld_vector_lookup(sim, events, u, lower_b, upper_b, table, interpolation, vecsize)</synopsis>
+  </refsynopsisdiv>
+
+  <refsection>
+    <title>Description</title>
+
+    <para><para></para>
+<para> in *+(vecsize) - input</para>
+<para> out *+(vecsize) - output</para>
+<para> </para>
+<para> </para>
+<para> lower_b - smallest value of the input signal to map to the table</para>
+<para> upper_b - biggest value of the input signal to map to the table</para>
+<para> table - the table (Scilab vector)</para>
+<para> </para>
+<para> Mapping is done in a linear way:</para>
+<para>   out = table( (in - lowerin) / (upperin - lowerin) )</para>
+<para> </para>
+<para> interpolation = 0 : no interpolation</para>
+<para> interpolation = 1 : linear interpolation</para>
+<para> </para>
+<para> </para>
+</para>
+
+    
+  </refsection>
+
+
+</refentry>
