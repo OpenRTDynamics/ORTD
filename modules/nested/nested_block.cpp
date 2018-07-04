@@ -2574,7 +2574,9 @@ public:
                 for (i = 0; i < Nsimulations; ++i) {
                     int shematic_id = 900 + i;
 
+#ifdef DEBUG
                     fprintf(stderr, "ld_CaseSwitchNest: loading shematic id %d\n", shematic_id);
+#endif
                     if (simnest->add_simulation(-1, Uipar, Urpar, shematic_id) < 0) {
                         throw 4;
                     }

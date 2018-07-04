@@ -364,6 +364,10 @@ function [sim, outlist] = ld_DisassembleData(sim, events, in, outsizes, outtypes
     // count the number of bytes
     NBytes = 0;
     for i = 1:length(outsizes)
+        if outsizes(i) < 1
+          error("ld_DisassembleData: Output port %d has size < 1", outsizes(i))    
+        end
+        
         NBytes = NBytes + outsizes(i)*libdyn_datatype_len( outtypes(i) );
     end
 
@@ -396,6 +400,92 @@ function [sim, outlist] = ld_DisassembleData(sim, events, in, outsizes, outtypes
 endfunction
 
 
+
+
+function [sim, outlist, Success] = ld_DisassembleData2(sim, events, in, inBytes, MaxinBytes, ByteOfs, outsizes, outtypes) // PARSEDOCU_BLOCK
+    // 
+    // disasseble Data - block
+    //
+    // disassemble the binary representation of the input, which is of type ORTD.DATATYPE_BINARY
+    // 
+    // 
+    // in *(BINARY) - binary input data
+    // inBytes * (INT32) - number of valid input bytes
+    // MaxinBytes - Number of maximal input bytes (determines the size of in)
+    // ByteOfs * (INT32) - ofset at which the disassembly takes place (index starts at 0)
+    // outsizes - array of output sizes
+    // insizes - array of output types
+    //
+    // Success (INT32) - if the Disassebly could successfully be performed
+    // outlist - *list() of the decomposed data
+    // 
+
+
+    // pack all parameters into a structure "parlist"
+    //    parlist = new_irparam_set();
+    // 
+    //    parlist = new_irparam_elemet_ivec(parlist, insize, 10); // id = 10
+    //    parlist = new_irparam_elemet_ivec(parlist, intype, 11); // id = 11
+    // 
+    //    p = combine_irparam(parlist); // convert to two vectors of integers and floating point values respectively
+
+    // Set-up the block parameters and I/O ports
+    Uipar = [ MaxinBytes  ];
+    Urpar = [   ];
+    btype = 39001 + 12; // Reference to the block's type (computational function). Use the same id you are giving via the "libdyn_compfnlist_add" C-function
+
+    // count the number of bytes
+    NBytes = 0;
+    outsizes__ = list();
+    outtype__ = list();
+    
+//    outtypes__(1) = ORTD.DATATYPE_INT32;
+//    outsizes__(1) = 1;
+    
+    for i = 1:length(outsizes)
+        if outsizes(i) < 1
+          error("ld_DisassembleData: Output port %d has size < 1", outsizes(i))    
+        end
+        
+        NBytes = NBytes + outsizes(i)*libdyn_datatype_len( outtypes(i) );
+        
+//        // copy
+//        outsizes__(i+1) = outsizes(i);
+//        outtypes__(i+1) = outtypes(i);
+    end
+    
+    outsizes__ = [1, outsizes(:)' ];
+    outtypes__ = [ORTD.DATATYPE_INT32, outtypes(:)' ];
+
+
+
+    //   insizes=[insizes]; // Input port sizes
+    insizes=[ MaxinBytes, 1, 1 ]; // Output port sizes
+    dfeed=[1];  // for each output 0 (no df) or 1 (a direct feedthrough to one of the inputs)
+    //   intypes=[intypes]; // datatype for each input port
+    intypes=[ ORTD.DATATYPE_BINARY, ORTD.DATATYPE_INT32, ORTD.DATATYPE_INT32  ]; // datatype for each output port
+
+    // disp(outsizes);
+    // disp(outtypes);
+
+    blocktype = 2; // 1-BLOCKTYPE_DYNAMIC (if block uses states), 2-BLOCKTYPE_STATIC (if there is only a static relationship between in- and output)
+
+    // Create the block
+    [sim, blk] = libdyn_CreateBlockAutoConfig(sim, events, btype, blocktype, Uipar, Urpar, insizes, outsizes__, intypes, outtypes__, dfeed);
+
+    // connect the inputs
+    //   for i = 1:length(inlist)    
+    [sim,blk] = libdyn_conn_equation(sim, blk, list(in, inBytes, ByteOfs ) ); // connect in1 to port 0 and in2 to port 1
+    //   end
+
+    //   // connect the ouputs
+    [sim, Success] = libdyn_new_oport_hint(sim, blk, 0 ); 
+    
+    outlist = list();
+    for i = 1:length(outtypes)
+        [sim,outlist($+1)] = libdyn_new_oport_hint(sim, blk, i );   // 
+    end
+endfunction
 
 
 

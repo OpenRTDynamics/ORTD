@@ -77,3 +77,12 @@ tmp/block_list.txt
 scilab/modules_loader.sce
 tmp/LDFALGS.list
 tmp/MACROS.list
+examples/ExecutionControl/BlockwiseNoise.dat
+examples/result.dat
+examples/result_XY.dats
+examples/Template_rtcontrol/AbsoluteTime.dat
+IncompiledVariables.h
+modules/matrix/LDFLAGS
+scilab/ld_toolbox/etc/ortd_path.conf
+documentation/List_of_Module_Blocks.txt
+scilabdir.conf

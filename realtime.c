@@ -216,7 +216,9 @@ int ortd_rt_SetThreadProperties2(struct TaskPriority_t TaskPriority)
 // The signal handler for the threads
 void ortd_thread_exit_handler(int sig)
 {
+  #ifdef DEBUG
     printf("ortd_thread_exit_handler: this signal is %d \n", sig);
+#endif
     pthread_exit(0);
 }
 
@@ -248,9 +250,11 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
     // set priorities and cpu affinity
     if (Npar >= 3) {
         // ok got prio
+      #ifdef DEBUG
         fprintf(stderr, "Task Prio1 (flags) would be %d (1 means ORTD_RT_REALTIMETASK)\n", par[0]);
         fprintf(stderr, "Task Prio2 would be %d\n", par[1]);
         fprintf(stderr, "Task CPU would be %d\n", par[2]);
+#endif
 
         // Set CPU
         ortd_rt_SetCore(par[2]);
@@ -260,12 +264,15 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
 
         ortd_rt_stack_prefault();
 
+	#ifdef DEBUG
         fprintf(stderr, "realtime.c: Successfully set the task properties\n");
+#endif
 
         return 0;
     }
-
+#ifdef DEBUG
     fprintf(stderr, "realtime.c: no task properties were given\n");
+#endif
     return -1;
 }
 
@@ -375,7 +382,9 @@ int ortd_rt_ChangePriority(unsigned int flags, int priority)
             return -1;
         }
 
+        #ifdef DEBUG
         fprintf(stderr, "realtime.c: initialised a non real-time thread\n");
+#endif
 
     }
 }
@@ -494,7 +503,9 @@ int move_pthread_to_realtime_scheduling_class(double Tcomputation, double Tconst
         return -1;
     }
     
+    #ifdef DEBUG
     fprintf(stderr, "Entered Mach real-time scheduling class\n");
+#endif
     
     return 0;
 }
@@ -502,7 +513,9 @@ int move_pthread_to_realtime_scheduling_class(double Tcomputation, double Tconst
 // The signal handler for the threads
 void ortd_thread_exit_handler(int sig)
 {
+  #ifdef DEBUG
     printf("ortd_thread_exit_handler: this signal is %d \n", sig);
+#endif
     pthread_exit(0);
 }
 
@@ -542,10 +555,11 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
     // set priorities and cpu affinity
     if (Npar >= 3) {
         // ok got prio
+      #ifdef DEBUG
         fprintf(stderr, "Task Prio1 (flags) would be %d (1 means ORTD_RT_REALTIMETASK)\n", par[0]);
         fprintf(stderr, "Task Prio2 would be %d\n", par[1]);
         fprintf(stderr, "Task CPU would be %d\n", par[2]);
-
+#endif
         // Set CPU
 //         ortd_rt_SetCore(par[2]);
 
@@ -553,13 +567,16 @@ int ortd_rt_SetThreadProperties(int *par, int Npar)
         ortd_rt_ChangePriority(par[0], par[1]);
 
 //         ortd_rt_stack_prefault();
-
+#ifdef DEBUG
         fprintf(stderr, "realtime.c: Successfully set the task properties\n");
+#endif
 
         return 0;
     }
-
+    
+#ifdef DEBUG
     fprintf(stderr, "realtime.c: no task properties were given\n");
+#endif
     return -1;    
 }
 

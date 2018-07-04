@@ -2207,10 +2207,13 @@ int compu_func_ld_SetBitsInt32(int flag, struct dynlib_block_t *block)
         
 	uint32_t BitNrStart = ipar[0];
 	uint32_t NumBits = ipar[1];
-
-        
 	
-	uint32_t Mask = 1 << BitNrStart;
+        uint32_t Mask = 0xffffffff;
+	Mask = Mask >> ( 32-NumBits );   // 000000000111 remains if NumBits == 3
+	Mask = Mask << BitNrStart;	 // 000000011100 if Further BitNrStart == 2
+	
+	// uint32_t Mask = 1 << BitNrStart;
+	
 	uint32_t NotMask = ~Mask;
 // 	uint32_t ValidMask = 
 	
@@ -2272,9 +2275,12 @@ int compu_func_ld_GetBitsInt32(int flag, struct dynlib_block_t *block)
 	uint32_t BitNrStart = ipar[0];
 	uint32_t NumBits = ipar[1];
 
-        
+        uint32_t Mask = 0xffffffff;
+	Mask = Mask >> ( 32-NumBits );   // 000000000111 remains if NumBits == 3
+	Mask = Mask << BitNrStart;	 // 000000011100 if Further BitNrStart == 2
+
 	
-	uint32_t Mask = 1 << BitNrStart;
+//	uint32_t Mask = 1 << BitNrStart;
 	uint32_t NotMask = ~Mask;
 	
 	*out = ( Mask & *in ) >> BitNrStart;
@@ -3403,8 +3409,8 @@ int compu_func_vector_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
     switch (flag) {
     case COMPF_FLAG_CALCOUTPUTS:
     {
-        int32_t *out = (int32_t *) libdyn_get_output_ptr(block,0);
-        double *in = (double *) libdyn_get_input_ptr(block, 0);
+        int32_t *in = (double *) libdyn_get_input_ptr(block, 0);
+        double *out = (int32_t *) libdyn_get_output_ptr(block,0);
 
         int i;
 
@@ -3422,8 +3428,8 @@ int compu_func_vector_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
     {
         libdyn_config_block(block, BLOCKTYPE_STATIC, Nout, Nin, (void *) 0, 0);
 
-        libdyn_config_block_input(block, 0, vecsize, DATATYPE_FLOAT);
-        libdyn_config_block_output(block, 0, vecsize, DATATYPE_INT32, 1);
+        libdyn_config_block_input(block, 0, vecsize, DATATYPE_INT32 );
+        libdyn_config_block_output(block, 0, vecsize, DATATYPE_FLOAT, 1);
     }
     return 0;
     break;
@@ -3434,7 +3440,7 @@ int compu_func_vector_ld_Int32ToFloat(int flag, struct dynlib_block_t *block)
         return 0;
         break;
     case COMPF_FLAG_PRINTINFO:
-        printf("I'm a floorInt32 block\n");
+        printf("I'm a ld_vector_Int32ToFloat block\n");
         return 0;
         break;
 

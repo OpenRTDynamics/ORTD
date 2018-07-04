@@ -168,8 +168,9 @@ extern "C" {
         libdyn_compfnlist_add(sim->private_comp_func_list, blockid, LIBDYN_COMPFN_TYPE_LIBDYN, (void*) &RandomBlock::CompFn);
 
 
-
+#ifdef DEBUG
         printf("module Random is initialised\n");
+#endif  
 
     }
 

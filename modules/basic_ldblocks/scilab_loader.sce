@@ -1351,7 +1351,7 @@ function [sim, out] = ld_SetBitsInt32(sim, events, in, BitPattern, BitNrStart, N
 // out *(INT32) - output
 //
 // BitNrStart - position in the input at which to start copying bits. Counting starts at zero
-// NUmBits - number of bits to copy (NOTE; only ==1 works by now)
+// NUmBits - number of bits to copy
 // 
 
 if ORTD.FASTCOMPILE==%f then
@@ -1380,7 +1380,7 @@ function [sim, out] = ld_GetBitsInt32(sim, events, in, BitNrStart, NumBits) // P
 // out *(INT32) - output
 //
 // BitNrStart - position in the input at which to start copying bits. Counting starts at zero
-// NUmBits - number of bits to copy (NOTE; only ==1 works by now)
+// NUmBits - number of bits to copy
 // 
 
 if ORTD.FASTCOMPILE==%f then
@@ -1726,7 +1726,7 @@ end
   btype = 60001 + 77;
   [sim,blk] = libdyn_new_block(sim, events, btype, [ vecsize ], [  ], ...
                    insizes=[ vecsize ], outsizes=[ vecsize ], ...
-                   intypes=[ORTD.DATATYPE_FLOAT], outtypes=[ORTD.DATATYPE_INT32]  );
+                   intypes=[ORTD.DATATYPE_INT32], outtypes=[ORTD.DATATYPE_FLOAT]  );
 
   [sim,blk] = libdyn_conn_equation(sim, blk, list(in) );
   [sim,out] = libdyn_new_oport_hint(sim, blk, 0);   // 0th port
@@ -2281,14 +2281,15 @@ function [sim, out, num] = ld_vector_glue(sim, events, in1, fromindex1, toindex1
 // %PURPOSE: Extract parts from two input vectors and glue them together to receive one vector.
 //
 // Output starting with in1 from fromindex1 until toindex1, continuing with in2 from fromindex2 until toindex2.
-// Function is under developement!
+// 
+// Index counting starts at 1
 //
 // in1 *+(vecsize)
 // in2 *+(vecsize)
 // fromindex1 * - first index considered from in1
-// toindex1 * - last index considered from in1
+// toindex1 * - stop cutting from in1 before toindex1. This means the value in1(toindex1) is not included
 // fromindex2 * - first index considered from in2
-// toindex2 * - last index considered from in2
+// toindex2 * - stop cutting from in2 before toindex2. This means the value in2(toindex2) is not included
 // vecsize - size of each input vector. Vectors need to have equal size!
 // out * - as explained above. Size of output is (2*vecsize).
 // num * - number of values that have been glued together.

@@ -48,7 +48,10 @@ struct ringbuffer_t *log_ringbuffer_new(int element_size, int num_elements, int 
   struct ringbuffer_t *rb = (struct ringbuffer_t *) malloc(sizeof(struct ringbuffer_t));
   
   rb->buf = (void *) malloc(element_size*num_elements);
-  printf("ringbuffer: allocated %d elements of size %d. %d bytes in total\n", num_elements, element_size, element_size*num_elements);
+#ifdef DEBUG
+   printf("ringbuffer: allocated %d elements of size %d. %d bytes in total\n", num_elements, element_size, element_size*num_elements);
+#endif
+   
   rb->num_elements = num_elements;
   rb->element_size = element_size;
   rb->write_cnt = 0;  // pointer to the next dataset to write

@@ -766,6 +766,13 @@ inline int LibdynCompFnTempate(int flag, struct dynlib_block_t *block) {
         }
         return 0;
         break;
+	
+	case COMPF_FLAG_PREINIT:
+	{ // Added on 20.4.18 (The init flags shall return well defined values!)
+	}
+	return 0;
+	break;
+	
         case COMPF_FLAG_DESTUCTOR: // destroy instance
         {
             T *worker = (T *) libdyn_get_work_ptr(block);
@@ -868,6 +875,11 @@ inline int LibdynCompFnTempate2(int flag, struct dynlib_block_t *block) {
             libdyn_set_work_ptr(block, (void*) worker); // remember the instance of the C++ Class
 	    
 	    worker->PreInit();
+	    
+	    //int ret = worker->init();
+            //if (ret < 0)
+            //    return -1;
+	    
 	}
 	return 0;
 	break;
