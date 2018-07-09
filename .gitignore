@@ -73,7 +73,6 @@ scilab/ORTDToolbox.sce
 tmp/block_list.txt
 tmp/LDFALGS.list
 tmp/MACROS.list
-tmp/block_list.txt
 scilab/modules_loader.sce
 tmp/LDFALGS.list
 tmp/MACROS.list
