@@ -1,0 +1,4755 @@
+M O D U L E -- android
+
+
+
+BLOCK -- ld_AndroidSensors
+
+  CALLING SEQUENCE
+
+    [sim, out, SensorID] = ld_AndroidSensors(sim, events, in, ConfigStruct)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Read out Android Sensors and synchronise the simulation to them    
+     Special: SYNC_BLOCK (use only one block of this type in an asynchronous running sub-simulation)
+    
+     out - vector of size 10 containing the sensor values
+     in - when in becomes one, the synchronisation loop is interrupted
+     SensorID - The ID of the sensor that send new data
+     
+     Possible sensor ID's:
+     
+         ASENSOR_TYPE_ACCELEROMETER      = 1,
+         ASENSOR_TYPE_MAGNETIC_FIELD     = 2,
+         ASENSOR_TYPE_GYROSCOPE          = 4,
+         ASENSOR_TYPE_LIGHT              = 5,
+         ASENSOR_TYPE_PROXIMITY          = 8
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+M O D U L E -- Automation
+
+
+
+BLOCK -- ld_AutoExperiment
+
+  CALLING SEQUENCE
+
+    [sim, finished, outlist] = ld_AutoExperiment(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, experiment_fn, whileComputing_fn, evaluation_fn, whileIdle_fn)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Perform automatic calibration procedures     
+     Automatically perform an experiment and the ongoing evaluation.
+     The computation required for the evaluation is performed in a the background
+     by means of a thread.
+     
+     There are several callback functions that describe:
+     
+     experiment_fn: The schematic for performing the experiment, e.g. collecting data
+     whileComputing_fn: The schematic that is activated during the computation is active_state
+     evaluation_fn: The schematic that performs the evaulation in a thread.
+                    One simulation step is performed here
+     whileIdle_fn:  The schematic that is active when the procedure finished.
+     
+     
+     
+     
+     The prototypes are (Hereby outlist and inlist are lists of the signals that are forwarded 
+     to the I/O of ld_AutoExperiment:
+     
+     [sim, finished, outlist] = experiment_fn(sim, ev, inlist)
+     [sim, outlist] = whileComputing_fn(sim, ev, inlist)
+     [sim, CalibrationOk, userdata] = evaluation_fn(sim, userdata)
+     [sim, outlist] = whileIdle_fn(sim, ev, inlist)
+     
+     NOTE: Not everything is finished by now
+     
+
+
+
+
+
+BLOCK -- ld_AutoExperiment2
+
+  CALLING SEQUENCE
+
+    [sim, finished, outlist, userdata] = ld_AutoExperiment2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, experiment_fn, whileComputing_fn, evaluation_fn, whileIdle_fn, userdata)
+
+  DESCRIPTION
+
+    
+     Automatically perform an experiment and the ongoing evaluation.
+     The computation required for the evaluation is performed in a the background
+     by means of a thread.
+     
+     There are several callback functions that describe:
+     
+     experiment_fn: The schematic for performing the experiment, e.g. collecting data
+     whileComputing_fn: The schematic that is activated during the computation is active_state
+     evaluation_fn: The schematic that performs the evaulation in a thread.
+                    One simulation step is performed here
+     whileIdle_fn:  The schematic that is active when the procedure finished.
+     
+     
+     
+     
+     The prototypes are (Hereby outlist and inlist are lists of the signals that are forwarded 
+     to the I/O of ld_AutoExperiment:
+     
+     [sim, finished, outlist] = experiment_fn(sim, ev, inlist)
+     [sim, outlist] = whileComputing_fn(sim, ev, inlist)
+     [sim, CalibrationReturnVal, userdata] = evaluation_fn(sim, userdata)  NOTE changed this function
+     [sim, outlist] = whileIdle_fn(sim, ev, inlist)
+     
+     NOTE: Not everything is finished by now
+     
+     Rev 2: of ld_AutoExperiment: added userdata input/output, changed prototype of evaluation_fn
+     
+
+
+
+
+
+BLOCK -- ld_AutoOnlineExch_dev
+
+  CALLING SEQUENCE
+
+    [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, CallbackFns, ident_str, userdata)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Automated definition/compilation and execution of ORTD-schemtics during runtime.     
+     Automatically perform an experiment and an ongoing evaluation. Additionally,
+     during this evaluation a new ORTD-schematic may be compiled to replace a part
+     of the control system.
+     
+     The signals in inlist will be forwarded to several callback functions for defining e.g.
+     the nested control system.
+     
+     There must be several callback functions in a structure CallbackFns:
+     
+     experiment:      The schematic for performing the experiment, e.g. collecting data. This function
+                      to define such a schematic may be called during compilation as well as during 
+                      runtime of the control system. The latter case is used to replace the experiment
+                      controller with an online-generated replacement that may depend e.g. on previously 
+                      collected calibration data.
+     whileComputing:  The schematic that is activated during the computation is active_state
+     PreScilabRun:    This ORTD-schematic is called for one time step in advance to the embedded Scilab-calculation
+     
+     
+     Note: This is a wrapper to ld_AutoOnlineExch_dev2 for backwards compatibility. Use ld_AutoOnlineExch_dev2 instead.
+     
+
+
+
+
+
+BLOCK -- ld_AutoOnlineExch_dev2
+
+  CALLING SEQUENCE
+
+    [sim, finished, outlist, userdata] = ld_AutoOnlineExch_dev2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, ThreadPrioStruct, CallbackFns, ident_str, userdata, param)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Automated definition/compilation and execution of ORTD-schemtics during runtime.     
+     Automatically perform an experiment and an ongoing evaluation. Additionally,
+     during this evaluation a new ORTD-schematic may be compiled to replace a part
+     of the control system.
+     
+     The signals in inlist will be forwarded to several callback functions for defining e.g.
+     the nested control system.
+     
+     There must be several callback functions in a structure CallbackFns:
+     
+     experiment:      The schematic for performing the experiment, e.g. collecting data. This function
+                      to define such a schematic may be called during compilation as well as during 
+                      runtime of the control system. The latter case is used to replace the experiment
+                      controller with an online-generated replacement that may depend e.g. on previously 
+                      collected calibration data.
+    
+                      The prototype for this callback function is:
+    
+                        [sim, finished, outlist, userdata] = experiment(sim, ev, inlist, userdata, CalledOnline)
+    
+    
+    
+     whileComputing:  The schematic that is activated while the computation is active_state
+    
+                        [sim, outlist, HoldState, userdata] = whileComputing_example(sim, ev, inlist, CalibrationReturnVal, computation_finished, par)
+    
+    
+     PreScilabRun:    This ORTD-schematic is called for one time step in advance to the embedded Scilab-calculation
+    
+                        [sim, ToScilab, userdata] = PreScilabRun(sim, ev, par)
+    
+     ident_str        Unique string for identifications of the created instance
+     userdata         left to the user of this function to transfer data to the callback functions
+    
+    
+     param            Contains additional parameters:
+     
+     param.scilab_path: String describing the Scilab executable to use. e.g. set to "BUILDIN_PATH"
+     
+     Note: This is a temporary development version. The interface may slightly change. Rev 2
+     
+
+
+
+
+
+M O D U L E -- basic_ldblocks
+
+
+
+BLOCK -- ld_file_save_machine2
+
+  CALLING SEQUENCE
+
+    [sim] = ld_file_save_machine2(sim, ev, inlist, cntrl, FileNamesList)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Start and stop saving of multiple data vectors to multiple files     
+       inlist list() of *+ - Data to write
+       cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped
+       FileNamesList list() of strings - Filenames for saving
+     
+     Note: This function tries to automatically detect the vector size for each entry of inlist.
+           Howver, this does not work for all signal sources (blocks) at the moment.
+           If come accross such a situation, you're invited to notify the authors of ORTD.
+     
+     Note: The implementation of this function is a superblock using state machines
+           and the ld_savefile block. If you're invited to take a look at its source for a nice
+           example on using state machines.
+     
+     
+     Example:
+     
+           TriggerSave = ...
+     
+           SaveSignals=list();        FileNamesList=list();
+           SaveSignals($+1) = Signal1;      FileNamesList($+1) = "measurements/Signal1.dat";
+           SaveSignals($+1) = Signal2;      FileNamesList($+1) = "measurements/Signal2.dat";
+     
+           [sim] = ld_file_save_machine2(sim, ev, ...
+                              inlist=SaveSignals, ...
+                              cntrl=TriggerSave, FileNamesList          );
+     
+
+
+
+
+
+BLOCK -- ld_MultiFileSave
+
+  CALLING SEQUENCE
+
+    [sim] = ld_MultiFileSave(sim, ev, inlist, cntrl, FileNamesList)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Start and stop saving of multiple data vectors to multiple files     
+       inlist list() of *+ - Data to write
+       cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped
+       FileNamesList list() of strings - Filenames for saving
+     
+     Note: This function tries to automatically detect the vector size for each entry of inlist.
+           Howver, this does not work for all signal sources (blocks) at the moment.
+           If come accross such a situation, you're invited to notify the authors of ORTD.
+     
+     Note: cntrl does not have an effect by now
+     
+     Example:
+     
+           TriggerSave = ...
+     
+           SaveSignals=list();        FileNamesList=list();
+           SaveSignals($+1) = Signal1;      FileNamesList($+1) = "measurements/Signal1.dat";
+           SaveSignals($+1) = Signal2;      FileNamesList($+1) = "measurements/Signal2.dat";
+     
+           [sim] = ld_MultiFileSave(sim, 0, ...
+                              inlist=SaveSignals, ...
+                              cntrl=TriggerSave, FileNamesList          );
+     
+
+
+
+
+
+BLOCK -- ld_savefile
+
+  CALLING SEQUENCE
+
+    [sim] = ld_savefile(sim, events, fname, source, vlen)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Quick and easy dumping of signals to files     
+     fname - string of the filename
+     source *+ - source signal
+     vlen - vector size of signal
+     
+
+
+
+
+
+BLOCK -- ld_switch2to1
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_switch2to1(sim, events, cntrl, in1, in2)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A 2 to 1 switching Block    
+     cntr * - control input
+     in1 *
+     in2 *
+     out * - output
+    
+     if cntrl > (greather than) 0 : out = in1
+     if cntrl < (smaller than) 0 : out = in2
+    
+
+
+
+
+
+BLOCK -- ld_demuxInt32
+
+  CALLING SEQUENCE
+
+    [sim, outlist] = ld_demuxInt32(sim, events, vecsize, invec)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Demultiplexer int 32    
+     invec * - input vector signal to be split up
+     outlist *LIST - list() of output signals
+    
+    
+     Splits the input vector signal "invec" of size "vecsize" up into 
+    
+     outlist(1)
+     outlist(2)
+      ....
+        
+
+
+
+
+
+BLOCK -- ld_demux
+
+  CALLING SEQUENCE
+
+    [sim, outlist] = ld_demux(sim, events, vecsize, invec)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Demultiplexer    
+     invec * - input vector signal to be split up
+     outlist *LIST - list() of output signals
+    
+    
+     Splits the input vector signal "invec" of size "vecsize" up into 
+    
+     outlist(1)
+     outlist(2)
+      ....
+        
+
+
+
+
+
+BLOCK -- ld_mux
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_mux(sim, events, vecsize, inlist)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Multiplexer    
+     inlist *LIST - list() of input signals of size 1
+     out *+ - output vector signal
+     
+     
+     combines inlist(1), inlist(2), ...    
+     to a vector signal "out" of size "vecsize", whereby each inlist(i) is of size 1
+        
+
+
+
+
+
+BLOCK -- ld_muxInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_muxInt32(sim, events, vecsize, inlist)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Multiplexer int 32    
+     inlist *LIST - list() of input signals of size 1
+     out *+ - output vector signal
+     
+     
+     combines inlist(1), inlist(2), ...    
+     to a vector signal "out" of size "vecsize", whereby each inlist(i) is of size 1
+        
+
+
+
+
+
+BLOCK -- ld_hysteresis
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_hysteresis(sim, events, in, switch_on_level, switch_off_level, initial_state, onout, offout)
+
+  DESCRIPTION
+
+>>> PURPOSE:   hysteresis block    
+     in * - input
+     out * -output
+     
+     switches out between onout and offout
+     initial state is either -1 (off) or 1 (on)
+    
+    
+
+
+
+
+
+BLOCK -- ld_modcounter
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_modcounter(sim, events, in, initial_count, mod)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Modulo Counter - Block    
+     in * - input
+     out * -output
+     
+     A counter that increases its value for each timestep for which in > 0 is true.
+     if the counter value >= mod then it is reset to counter = initial_count
+    
+    
+
+
+
+
+
+BLOCK -- ld_jumper
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_jumper(sim, events, in, steps)
+
+  DESCRIPTION
+
+>>> PURPOSE:   jumper - block    
+     out *+ - vector of size steps
+     in * - switching input
+    
+     The vector out always contains one "1", the rest is zero.
+     The "1" moves to the right if in > 0. If the end is reached
+     it "1" flips back to the left side
+     
+     
+
+
+
+
+
+BLOCK -- ld_memory
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_memory(sim, events, in, rememberin, initial_state)
+
+  DESCRIPTION
+
+>>> PURPOSE:   memory - block    
+     in * - input
+     rememberin * - 
+     out * - output
+     
+     If rememberin > 0 then
+       remember in, which is then feed to the output out until it is overwritten by a new value
+    
+     Please note that input ist applied to the output immediately (without a delay)
+    
+     initial output out = initial_state
+     
+
+
+
+
+
+BLOCK -- ld_abs
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_abs(sim, events, in)
+
+  DESCRIPTION
+
+>>> PURPOSE:   abs - block    
+     in * - input
+     out * - output
+     
+     out = abs(in)
+     
+
+
+
+
+
+BLOCK -- ld_extract_element
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_extract_element(sim, events, invec, pointer, vecsize )
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Extract one element of a vector    
+     invec *+ - the input vector signal
+     pointer * - the index signal (indexing starts at 1)
+     vecsize - length of input vector
+     
+     out = invec[pointer], the first element is at pointer = 1
+    
+
+
+
+
+
+BLOCK -- ld_constvec
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_constvec(sim, events, vec)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   a constant vector     
+     out *+ - the vector
+     
+
+
+
+
+
+BLOCK -- ld_counter
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_counter(sim, events, count, reset, resetto, initial)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   A resetable counter block    
+     count * - signal
+     reset * - signal
+     resetto * - signal
+     initial - constant
+     out * - output
+     
+     increases out by count (out = out + count)
+     
+     if reset > 0.5 then
+       out = resetto
+    
+     initially out is set to initial
+     
+     
+
+
+
+
+
+BLOCK -- ld_lookup
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_lookup(sim, events, u, lower_b, upper_b, table, interpolation)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Lookup table - block    
+     in * - input
+     out * - output
+     
+     
+     lower_b - smallest value of the input signal to map to the table
+     upper_b - biggest value of the input signal to map to the table
+     table - the table (Scilab vector)
+     
+     Mapping is done in a linear way:
+       out = table( (in - lowerin) / (upperin - lowerin) )
+     
+     interpolation = 0 : no interpolation
+     interpolation = 1 : linear interpolation
+     
+     
+
+
+
+
+
+BLOCK -- ld_vector_lookup
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_lookup(sim, events, u, lower_b, upper_b, table, interpolation, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Lookup table - block    
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+     
+     
+     lower_b - smallest value of the input signal to map to the table
+     upper_b - biggest value of the input signal to map to the table
+     table - the table (Scilab vector)
+     
+     Mapping is done in a linear way:
+       out = table( (in - lowerin) / (upperin - lowerin) )
+     
+     interpolation = 0 : no interpolation
+     interpolation = 1 : linear interpolation
+     
+     
+
+
+
+
+
+BLOCK -- ld_not
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_not(sim, events, in)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic negation - block    
+     in * - input
+     out * - output
+     
+     out = 0, if in > 0.5  OR  out = 1, if in < 0.5
+     
+
+
+
+
+
+BLOCK -- ld_or
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_or(sim, events, inlist)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic or - block    
+     in *LIST - list() of inputs (for now the exactly two inputs are possible)
+     out * - output
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_iszero
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_iszero(sim, events, in, eps)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   check if input is near zero    
+     in * - input
+     out * - output
+     
+     out = 1, if in between -eps and eps, othwewise out = 0
+     
+
+
+
+
+
+BLOCK -- ld_limitedcounter
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_limitedcounter(sim, events, count, reset, resetto, initial, lower_b, upper_b)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   A resetable, limited counter block    
+     count * - signal
+     reset * - signal
+     resetto * - signal
+     initial - constant
+     out * - output
+     
+     increases out by count (out = out + count), but count is always between lower_b and upper_b
+     
+     if reset > 0.5 then
+       out = resetto
+    
+     initially out is set to initial
+     
+     
+
+
+
+
+
+BLOCK -- ld_memorydel
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_memorydel(sim, events, in, rememberin, initial_state)
+
+  DESCRIPTION
+
+>>> PURPOSE:   delayed memory - block    
+     in * - input
+     rememberin * - 
+     out * - output
+     
+     If rememberin > 0 then
+       remember in, which is then feed to the output "out" in the next time step until it is overwritten by a new value
+    
+     initial output out = initial_state
+     
+
+
+
+
+
+BLOCK -- ld_steps
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_steps(sim, events, activation_simsteps, values)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   steps    
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_cond_overwrite
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_cond_overwrite(sim, events, in, condition, setto)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   conditional overwrite of the input signal's value    
+     out * - output
+     in * - input to potentially overwrite
+     condition * - condition signal
+     
+     out = in, if condition < 0.5
+     out = setto, otherwise
+     
+
+
+
+
+
+BLOCK -- ld_cond_overwrite2
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_cond_overwrite2(sim, events, in, condition, setto)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   conditional overwrite of the input signal's value    
+     out * - output (float)
+     in * - input (float) to potentially overwrite
+     condition * - condition signal (int32) -- in contrast to ld_cond_overwrite
+     
+     out = in, if condition > 0
+     out = setto, otherwise
+     
+
+
+
+
+
+BLOCK -- ld_cond_overwriteInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_cond_overwriteInt32(sim, events, in, condition, setto)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   conditional overwrite of the input signal's value    
+     out * - output (int32)
+     in * - input (int32) to potentially overwrite
+     condition * - condition signal (int32) -- in contrast to ld_cond_overwrite
+     
+     out = in, if condition > 0
+     out = setto, otherwise
+     
+
+
+
+
+
+BLOCK -- ld_and
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_and(sim, events, inlist)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic and - block    
+     in *LIST - list() of inputs (for now the exactly two inputs are possible)
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_notInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_notInt32(sim, events, in)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic negation - block    
+     in * - input
+     out * - output
+     
+     out = 0, if in >= 1  OR  out = 1, if in < 1
+     
+
+
+
+
+
+BLOCK -- ld_andInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_andInt32(sim, events, inlist)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic and - block    
+     in *LIST - list() of inputs (for now the exactly two inputs are possible)
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_SetBitsInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_SetBitsInt32(sim, events, in, BitPattern, BitNrStart, NumBits)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Copy a bit-pattern to the input    
+     in *(INT32) - input
+     BitPattern *(INT32)
+     out *(INT32) - output
+    
+     BitNrStart - position in the input at which to start copying bits. Counting starts at zero
+     NUmBits - number of bits to copy
+     
+
+
+
+
+
+BLOCK -- ld_GetBitsInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_GetBitsInt32(sim, events, in, BitNrStart, NumBits)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Copy a range of bits from the input to the output    
+     in *(INT32) - input
+     out *(INT32) - output
+    
+     BitNrStart - position in the input at which to start copying bits. Counting starts at zero
+     NUmBits - number of bits to copy
+     
+
+
+
+
+
+BLOCK -- ld_orInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_orInt32(sim, events, inlist)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic or - block    
+     in *LIST - list() of inputs (for now the exactly two inputs are possible)
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_initimpuls
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_initimpuls(sim, events)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   initial impuls    
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_printfstderr
+
+  CALLING SEQUENCE
+
+    [sim] = ld_printfstderr(sim, events, in, str, insize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print data to stderr (the console)    
+     in *+(insize) - vectorial input signal
+    
+     str is a string that is printed followed by the signal vector in
+     of size insize
+    
+    [sim,blk] = libdyn_new_printf(sim, events, str, insize);
+
+
+
+
+
+BLOCK -- ld_printfstderr2
+
+  CALLING SEQUENCE
+
+    [sim] = ld_printfstderr2(sim, events, in, str, insize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print str to stderr (the console)    
+     in *+(insize) - vectorial input signal
+    
+     str is a string that is printed followed by the signal vector in
+     of size insize
+    
+    [sim,blk] = libdyn_new_printf(sim, events, str, insize);
+
+
+
+
+
+BLOCK -- ld_printfbar
+
+  CALLING SEQUENCE
+
+    [sim] = ld_printfbar(sim, events, in, str)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print a bar (the console)    
+     in *+(1) - vectorial input signal
+    
+     str is a string that is printed followed by a bar whose length depends on in
+    
+
+
+
+
+
+BLOCK -- ld_delay
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_delay(sim, events, u, N)
+
+  DESCRIPTION
+
+>>> PURPOSE:   delay - block    
+     in * - input
+     out * - output
+     
+     delay in by N steps
+     
+     
+
+
+
+
+
+BLOCK -- ld_steps2
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_steps2(sim, events, activation_simsteps, values)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   steps, counter is increased on event, which is different to ld_steps    
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_insert_element
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_insert_element(sim, events, in, pointer, vecsize )
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Insert one element into a vector    
+     in *+ - the input element signal
+     pointer * - the index signal
+     vecsize - length of output vector
+     
+     out[pointer] = in, the first element is at pointer = 1
+    
+
+
+
+
+
+BLOCK -- ld_FlagProbe
+
+  CALLING SEQUENCE
+
+    [sim] = ld_FlagProbe(sim, events, in, str, insize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print data and Flags (calc output, update states, reset states) to stderr (the console)    
+     in *+(insize) - vectorial input signal
+    
+     str is a string that is printed followed by the signal vector in
+     of size insize
+    
+
+
+
+
+
+BLOCK -- ld_ceilInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_ceilInt32(sim, events, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   ceil(in)     
+     return value is of type ORTD.DATATYPE_INT32
+     
+
+
+
+
+
+BLOCK -- ld_Int32ToFloat
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_Int32ToFloat(sim, events, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Convert int32 to double     
+     ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
+     
+
+
+
+
+
+BLOCK -- ld_vector_Int32ToFloat
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_vector_Int32ToFloat(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Convert int32 to double     
+     ORTD.DATATYPE_INT32 --> ORTD.DATATYPE_FLOAT
+     
+
+
+
+
+
+BLOCK -- ld_floorInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_floorInt32(sim, events, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   ceil(in)     
+     return value is of type ORTD.DATATYPE_INT32
+     
+
+
+
+
+
+BLOCK -- ld_vector_floorInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_vector_floorInt32(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   ceil(in)     
+     return value is of type ORTD.DATATYPE_INT32
+     
+
+
+
+
+
+BLOCK -- ld_roundInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_roundInt32(sim, events, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   ceil(in)     
+     return value is of type ORTD.DATATYPE_INT32
+     
+
+
+
+
+
+BLOCK -- ld_constvecInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_constvecInt32(sim, events, vec)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   a constant vector of ORTD.DATATYPE_INT32     
+     out *+ - the vector of int32
+     
+
+
+
+
+
+BLOCK -- ld_sumInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_sumInt32(sim, events, in1, in2)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return sum of the input signals     TODO
+    
+
+
+
+
+
+BLOCK -- ld_getsign
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_getsign(sim, events, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return - in     TODO
+    
+
+
+
+
+
+BLOCK -- ld_OneStepDelInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_OneStepDelInt32(sim, events, in, init_state)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   One time step delay for Int32     TODO
+    
+
+
+
+
+
+BLOCK -- ld_MulInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_MulInt32(sim, ev, in1, in2)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return multiplication of the input signals     TODO
+    
+
+
+
+
+
+BLOCK -- ld_DivInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_DivInt32(sim, ev, num, den)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return num DIV den     TODO. not implemented by now
+    
+
+
+
+
+
+BLOCK -- ld_ModInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_ModInt32(sim, ev, num, den)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return num MODULO den     TODO: not implemented by now
+    
+
+
+
+
+
+BLOCK -- ld_CompareEqInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_CompareEqInt32(sim, events, in, CompVal)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Compeare to CompVal (if equal)     
+     in*, float
+     out*, int32 - 0 if (in == CompVal); 1 if (in != CompVal);
+    
+
+
+
+
+
+BLOCK -- ld_CompareInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_CompareInt32(sim, events, in, Thr)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Compeare to Thr (if greater)     
+     in*, float
+     out*, int32 - 0 if (in > CompVal); 1 if (in != CompVal);
+    
+
+
+
+
+
+BLOCK -- ld_integratorInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_integratorInt32(sim, events, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Integrator on Int32     
+     in*, int32
+     out*, int32  out[k] = out[k-1] + in[k]
+    
+
+
+
+
+
+BLOCK -- ld_vector_delay
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_delay(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   delay - block    
+     in * - input
+     out * - output
+     vecsize - size of vector in*
+     
+     delay the hole vector in by one step
+     
+     
+
+
+
+
+
+BLOCK -- ld_vector_delayInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_delayInt32(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   delay - block    
+     in * - input (int32)
+     out * - output (int32)
+     vecsize - size of vector in*
+     
+     delay the hole vector in by one step
+     
+     
+
+
+
+
+
+BLOCK -- ld_vector_diff
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_diff(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Vector differentiation with respect to the index     
+     in *+(vecsize) - vector signal of size "vecsize"
+     out *+(vecsize-1) - vector signal of size "vecsize-1"
+    
+     Equivalent to Scilab 'diff' function
+        
+
+
+
+
+
+BLOCK -- ld_vector_findthr
+
+  CALLING SEQUENCE
+
+    [sim, index] = ld_vector_findthr(sim, events, in, thr, greater, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Find the index of the value in a vector that is grater than a given constant    
+     in *+(vecsize) - input
+     thr * - threshold signal
+     index * - output
+     
+     find values greater than threshold "thr" in vector signal "in", when greater > 0
+     find values less than threshold "thr" in vector signal "in", when greater =< 0
+     
+    
+        
+
+
+
+
+
+BLOCK -- ld_vector_abs
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_abs(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Vector abs()    
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+     
+        
+
+
+
+
+
+BLOCK -- ld_vectorInt32ToFloat
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vectorInt32ToFloat(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Int32 to Float conversion on a vector     
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+     
+        
+
+
+
+
+
+BLOCK -- ld_vector_gain
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_gain(sim, events, in, gain, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Vector gain    
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+        
+
+
+
+
+
+BLOCK -- ld_vector_extract
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_extract(sim, events, in, from, window_len, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Extract "in" from to from+window_len     
+      in *+(vecsize) - vector signal
+      from * - index signal, (indexing starts at 1)
+      out *+(window_len) - output signal
+    
+        
+
+
+
+
+
+BLOCK -- ld_vector_minmax
+
+  CALLING SEQUENCE
+
+    [sim, index, value] = ld_vector_minmax(sim, events, in, findmax, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Min / Max of a vector (finds the first appearance of the minimum/maximum)    
+     Function is buggy somehow. Find maximum should work. Minimum perhaps not!
+    
+     in *+(vecsize)
+     findmax greater than 0 means "find the maximum"
+     index * - the index starting at 1, where the max / min was found
+     value * - min/max value
+        
+
+
+
+
+
+BLOCK -- ld_vectorFindSpike
+
+  CALLING SEQUENCE
+
+    [sim, index, FoundSpike, Mean, Sigma, Distance, Val] = ld_vectorFindSpike(sim, events, in, SignificanceFactor, NskipLeft, NskipRight, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   find a spike in a given dataset    
+     Steps performed:
+    
+     1) The maximum of abs(in) is determined as well as its position
+     2) The variance (sigma^2) of in is calculated except for the values surounded by
+        the maxmimum. This range is described by NskipLeft and NskipRight
+     3) The maximum is compared to the standard deviation (sigma); also the
+        signal's mean value is compensated herein.
+     4) If the intensity of the maximum is significantly higher than the maximum's
+        intensity, FoundSpike is set to 1 
+    
+     in *+(vecsize)
+     SignificanceFactor - Used for the comparison Distance > SignificanceFactor * sigma, 
+     index *(INT32) - the index starting at 1, where the spike was found
+     FoundSpike *(INT32) - 1 if a spike has been found. 0 otherwise
+        
+
+
+
+
+
+BLOCK -- ld_vector_glue
+
+  CALLING SEQUENCE
+
+    [sim, out, num] = ld_vector_glue(sim, events, in1, fromindex1, toindex1, in2, fromindex2, toindex2, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Extract parts from two input vectors and glue them together to receive one vector.    
+     Output starting with in1 from fromindex1 until toindex1, continuing with in2 from fromindex2 until toindex2.
+     
+     Index counting starts at 1
+    
+     in1 *+(vecsize)
+     in2 *+(vecsize)
+     fromindex1 * - first index considered from in1
+     toindex1 * - stop cutting from in1 before toindex1. This means the value in1(toindex1) is not included
+     fromindex2 * - first index considered from in2
+     toindex2 * - stop cutting from in2 before toindex2. This means the value in2(toindex2) is not included
+     vecsize - size of each input vector. Vectors need to have equal size!
+     out * - as explained above. Size of output is (2*vecsize).
+     num * - number of values that have been glued together.
+     
+        
+
+
+
+
+
+BLOCK -- ld_vector_addscalar
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_addscalar(sim, events, in, add, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   add "add" to the vector     
+      add * - signal
+      in *+(vecsize) - vector signal
+        
+
+
+
+
+
+BLOCK -- ld_vector_add
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_add(sim, events, in1, in2, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   add two vectors elementwise     
+      in1 *+(vecsize) - vector signal1
+      in2 *+(vecsize) - vector signal2
+        
+
+
+
+
+
+BLOCK -- ld_vector_sum
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_sum(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   sum over "in"    
+     in *+(vecsize)
+     out *
+        
+
+
+
+
+
+BLOCK -- ld_vector_abssum
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_abssum(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   sum over element wise abs() of "in"    
+     in *+(vecsize)
+     out *
+        
+
+
+
+
+
+BLOCK -- ld_vector_sqsum
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_sqsum(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   sum over element wise ()^2 of "in"    
+     in *+(vecsize)
+     out *
+        
+
+
+
+
+
+BLOCK -- ld_vector_extractandsum
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_extractandsum(sim, events, in, from, window_len, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Extract "in" from "from"-index to "to"-index and sum up (untested) EXPERIMENTAL FOR NOW     
+      in *+(vecsize) - vector signal
+      from * - index signal
+      to * - index signal
+    
+        
+
+
+
+
+
+BLOCK -- ld_simplecovar
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_simplecovar(sim, events, in, shape, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Cross correlation between a vectorial signal and a given shape, use ld_vecXCorrelation instead     
+     Note: Use ld_vecXCorrelation instead. This will be removed soon.
+        
+     The size of the output vector signal will be vecsize-length(shape) + 1
+
+
+
+
+
+BLOCK -- ld_vectorFindShape
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vectorFindShape(sim, events, in, shape, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Cross correlation between a vectorial signal and a given shape like ld_vecXCorrelation using ofset compensation     
+     Prior and after the floating window used to compare with the given shape
+     the signal ofset of in at the current window position is estimated
+        
+     The size of the output vector signal will be vecsize-length(shape) - 1
+
+
+
+
+
+BLOCK -- ld_vecXCorrelation
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vecXCorrelation(sim, events, in, shape, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Cross correlation between a vectorial signal and a given shape     
+      in *+(vecsize) - vector signal
+      shape - vector to compare the input with
+      out *+(vecsize-length(shape) + 1) - output
+    
+     Calculates the cross correlation between "in" and "shape"
+        
+     The size of the output vector signal will be vecsize-length(shape) + 1
+
+
+
+
+
+BLOCK -- ld_vector_mute
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_mute(sim, events, in, from, len, setto, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   mute a vector from and to a spacified index     
+      in *+(vecsize) - vector signal
+      from * - signal (index counting starts at )
+      len * - signal (length of the window to mute)
+      setto * - signal
+    
+    
+
+
+
+
+
+BLOCK -- ld_vector_NaNtoVal
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_NaNtoVal(sim, events, in, Val, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Find all NaN in a vector and set them to Val    
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+     Val - numeric parameter
+        
+
+
+
+
+
+BLOCK -- ld_LevelDemux
+
+  CALLING SEQUENCE
+
+    [sim, outlist] = ld_LevelDemux(sim, events, in, NrEvents)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Demux the level of the input signal such that the output corresponding to the input level is set to one     
+      in * - vector signal
+      outlist - list() of * with NrEvents elements
+    
+      n = round(in) 
+      outlist(m) == 1, for n=m  AND outlist(m) == 0, for m != n
+     
+        
+
+
+
+
+
+BLOCK -- ld_TrigSwitch1toN
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_TrigSwitch1toN(sim, events, Event, SwitchInputList, InitialState)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Switch N inputs to one output signal based on event pulses     
+      Event * - vector signal
+      SwitchInputList list() of * with N elements 
+    
+      out * - is set to the input if SwitchInputList(state), whereby "state" is the current state that can be changed 
+              giving inpulses to Event, whose intensity correspond to the state to switch to. Event <0.5 does not change
+              the state.
+     
+        
+
+
+
+
+
+BLOCK -- ld_vector_concate
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_concate(sim, events, in1, in2, size1, size2)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Concatenate two vectors    
+     in1, in2 *+ - input vectors
+     out *(size1+size2) - the concatenated vector
+     size1, size2 - respective length for both vectors
+     
+    
+
+
+
+
+
+BLOCK -- ld_vector_multscalar
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_vector_multscalar(sim, events, in, mult, vecsize)
+
+  DESCRIPTION
+
+>>> PURPOSE:   multiplicate the given vector     
+      mult * - signal
+      in *+(vecsize) - vector signal
+        
+
+
+
+
+
+BLOCK -- ld_collectValues
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_collectValues(sim, events, in, WriteIndex, memorysize, DefaultVal, inVecsize )
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Store input values in a memory at a given position    
+     in * - input vector whose values shall be stored
+     out *(memorysize) - the vector representing the memory
+     WriteIndex * INT32 - the index to write the data to; starts at 1
+     memorysize - storage size
+     DefaultVal - initialize the storage with this value
+     vecsize - size of the input vector
+    
+
+
+
+
+
+BLOCK -- ld_HistogramInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_HistogramInt32(sim, events, Val, Weight, from, to )
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Accumulative store input values in a memory at a given position    
+     Val * - input 
+     Weight * - int32
+     out *(from-to+1) int32 - the vector representing the histogram
+     
+     from - min input value in the histogram
+     to - max input value in the histogram
+     
+    
+
+
+
+
+
+BLOCK -- ld_Timer
+
+  CALLING SEQUENCE
+
+    [sim, TimerActive, Counter] = ld_Timer(sim, events, Trigger, Count )
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A timer than can be triggered    
+     The timer is active for Count simulation steps
+    
+     Trigger * - (int32) start the timer immediately 
+     TimerActive * - int32 1 if the timer is active, 0 if not
+     Counter * (int32) - The used conter that starts from Count and decreases
+     
+     
+    
+
+
+
+
+
+BLOCK -- ld_add_ofsInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_add_ofsInt32(sim, events, in, ofs)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   add ofs(in)     
+     input and return value are of type ORTD.DATATYPE_INT32
+     
+
+
+
+
+
+BLOCK -- ld_gainInt32
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_gainInt32(sim, events, in, fac)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   integer multiplication of (in)     
+     input and return value are of type ORTD.DATATYPE_INT32
+     
+
+
+
+
+
+BLOCK -- ld_VarVec_ztf
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_VarVec_ztf(sim, events, in, Nvalues, H, FilterMode, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   discrete-time transfer function applied to vector data     
+     FilterMode == 1 apply filter from left to right
+     FilterMode == 2 apply filter from right to left
+     FilterMode == 3 apply filter from left to right, flip result, filter from right to left (zero phase-shift filter)
+     
+     H is a transfer function in z-domain represented by a scilab rational
+    
+     in (float, vecsize) - vector input
+     out (float, vecsize) - vector output
+     Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+    
+
+
+
+
+
+BLOCK -- ld_VarVec_add
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_VarVec_add(sim, events, inlist, Nvalues, weight, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Linear combination of two vectors     
+     
+    
+     inlist (float, vecsize) - list() of vector input
+     out (float, vecsize) - vector output
+     Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+    
+
+
+
+
+
+BLOCK -- ld_VarVec_Variance
+
+  CALLING SEQUENCE
+
+    [sim, Mean, Sigma] = ld_VarVec_Variance(sim, events, in, Nvalues, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Calc variance of vector elements     
+     
+    
+     in (float, vecsize) - vector input
+     out (float, vecsize) - vector output
+     Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+    
+
+
+
+
+
+BLOCK -- ld_VarVec_AbsSumNorm
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_VarVec_AbsSumNorm(sim, events, in, Nvalues, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Calc sum of the absolute value of vector elements     
+     
+    
+     in (float, vecsize) - vector input
+     out (float, vecsize) - vector output
+     Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+    
+
+
+
+
+
+BLOCK -- ld_VarVec_MinMax
+
+  CALLING SEQUENCE
+
+    [sim, Min, Max] = ld_VarVec_MinMax(sim, events, in, Nvalues, vecsize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Calc Min and Max of vector elements     
+     
+    
+     in (float, vecsize) - vector input
+     out (float, vecsize) - vector output
+     Nvalues (int32) - the number of samples the filter is applied to (starting from the left side of the vector)
+    
+
+
+
+
+
+BLOCK -- ld_vector_VarExtract
+
+  CALLING SEQUENCE
+
+    [sim, out, Nvalues] = ld_vector_VarExtract(sim, events, in, from, to, vecsize)
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Extract vector elements from a window variable in size      
+      in *+(vecsize) - vector signal
+      from, to (INT32) - cut parameters, indices start at 1
+      out *+(window_len) - output signal
+      Nvalues (INT32) - number of the elements cut
+        
+
+
+
+
+
+BLOCK -- ld_switch2to1Int32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_switch2to1Int32(sim, events, cntrl, in1, in2)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A 2 to 1 switching Block    
+     cntr (INT32) - control input
+     in1 (INT32)
+     in2 (INT32)
+     out (INT32) - output
+    
+     if cntrl > (greather than) : out = in1
+       else                     : out = in2
+    
+
+
+
+
+
+BLOCK -- ld_max
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_max(sim, events, inlist)
+
+  DESCRIPTION
+
+>>> PURPOSE:   logic and - block    
+     in *LIST - list() of inputs (for now the exactly two inputs are possible)
+     out * - output
+     
+     
+
+
+
+
+
+BLOCK -- ld_RTCrossCorr
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_RTCrossCorr(sim, events, u, shapeSig, len)
+
+  DESCRIPTION
+
+     
+     Online Cross Correlation
+    
+     u * - input signal
+     shapeSig * - input shape
+     out * - output signal
+     len - length of input shape
+     
+     
+     Note: The implementation is not optimal. Only the raw sum formula is evaluated.
+     
+
+
+
+
+
+BLOCK -- ld_ReadAsciiFile
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_ReadAsciiFile(sim, events, fname, veclen)
+
+  DESCRIPTION
+
+     
+     Read data from an ascii-file
+    
+     fname - file name (string)
+     veclen - Size of the vector to read during each time-step
+     out *(veclen) - Output signal as read from the file
+     
+     The data contained in the file must be ascii data divided into rows and columns
+     as it may be read on Scilab using the command "fscanfMat".
+     The number of columns must be veclen. 
+     For each time-step the respectively next row of data is read from the file and
+     copied to the block's output vectorial signal "out"
+     
+     The file must be available only at runtime.
+     
+     
+
+
+
+
+
+BLOCK -- ld_ArrayInt32
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_ArrayInt32(sim, events, array, in)
+
+  DESCRIPTION
+
+     
+     Lookup a value inside an array - block
+    
+     in * - input
+     out * - output
+     
+     out = array[in]
+     
+
+
+
+
+
+BLOCK -- ld_const_bin
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_const_bin(sim, events, BinConst)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   a constant vector of ORTD.DATATYPE_BINARY     
+     out *+ - the vector of binary
+     
+
+
+
+
+
+BLOCK -- ld_ORTDIO_Put
+
+  CALLING SEQUENCE
+
+    [sim] = ld_ORTDIO_Put(sim, events, in, len, datatype, header)
+
+  DESCRIPTION
+
+     
+     Put data to ORTD_IO
+    
+     len - Size of the vector to be send
+     in *(len) - Input signal.
+     datatype - Datatype of signal "in"
+     header - A string that is prepended to each binary message
+     
+
+
+
+
+
+BLOCK -- ld_SyncFilewrite
+
+  CALLING SEQUENCE
+
+    [sim] = ld_SyncFilewrite(sim, events, in, len, datatype, fname, trigger, par)
+
+  DESCRIPTION
+
+     
+     Synchronously write ascii data to a file
+    
+     Data is stored directly during the flag for updating states and may hence disturbe realtime operation
+     of a surrounding realtime loop. Only datatype float is currently supported.
+    
+     len - Size of the vector to be send
+     in *(len) - Input signal.
+     datatype - Datatype of signal "in"
+     fname - A string that is prepended to each binary message
+     par - optional parameters (none at the moment. Put par=struct() )
+     
+
+
+
+
+
+BLOCK -- ld_WindowedMean
+
+  CALLING SEQUENCE
+
+    [sim, EstMean, EstSigma] = ld_WindowedMean(sim, events, in, weight, WindowLen)
+
+  DESCRIPTION
+
+     
+     ld_WindowedMean - Calculte the average of the input singal for a floating window
+    
+     in * - input signal
+     weight * - weight for the current sample
+     EstMean * - the calculated average
+     EstSigma * - the calculated standard deviation
+     WindowLen - length of floating window
+     
+     If weight is less than 0 the filter update is prevented. E.g. if in contains an invalid sample that
+     shall not be counted in the calculation of the Mean and Variance
+     
+
+
+
+
+
+BLOCK -- ld_interface
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_interface(sim, events, in, vecsize)
+
+  DESCRIPTION
+
+     Interfacing block
+    
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+        
+
+
+
+
+
+BLOCK -- ld_add_ofs
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_add_ofs(sim, events, u, ofs)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Add a constant "ofs" to the signal u; y = u + const(ofs)    
+
+
+
+
+
+BLOCK -- ld_mute
+
+  CALLING SEQUENCE
+
+    [sim, y] = ld_mute( sim, ev, u, cntrl, mutewhengreaterzero )
+
+  DESCRIPTION
+
+        
+>>> PURPOSE:   Mute a signal based on cntrl-signal    
+        ev - event
+        u * - input
+        y * - output
+        mutewhengreaterzero - boolean parameter (%T, %F)
+        
+        if mutewhengreaterzero == %T then
+    
+          y = 0 for cntrl > 0
+          y = u for cntrl < 0
+    
+        else
+    
+          y = 0 for cntrl < 0
+          y = u for cntrl > 0
+    
+    
+    
+
+
+
+
+
+BLOCK -- ld_limited_integrator
+
+  CALLING SEQUENCE
+
+    [sim, y] = ld_limited_integrator(sim, ev, u, min__, max__, Ta)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Implements a time discrete integrator with saturation of the output between min__ and max__     
+     u * - input
+     y * - output
+     
+     y(k+1) = sat( y(k) + Ta*u , min__, max__ )
+
+
+
+
+
+BLOCK -- ld_limited_integrator2
+
+  CALLING SEQUENCE
+
+    [sim, y] = ld_limited_integrator2(sim, ev, u, min__, max__, Ta)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Implements a time discrete integrator with saturation of the output between min__ and max__     compared to ld_limited_integrator there is no delay: Ta z / (z-1)
+    
+     u * - input
+     y * - output
+     
+     y(k+1) = sat( y(k) + Ta*u , min__, max__ )
+
+
+
+
+
+BLOCK -- ld_limited_integrator3
+
+  CALLING SEQUENCE
+
+    [sim, y] = ld_limited_integrator3(sim, ev, u, min__, max__, Ta)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Implements a time discrete integrator (trapeziodal rule) with saturation of the output between min__ and max__    
+     u * - input
+     y * - output
+     
+     y(k+1) = sat(  Ta/2 ( u(k)+u(k+1) ) + y(k), min__, max__ )
+
+
+
+
+
+BLOCK -- ld_limited_integrator4
+
+  CALLING SEQUENCE
+
+    [sim, y] = ld_limited_integrator4(sim, ev, u, min__, max__, Ta)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Implements a time discrete integrator with saturation of the output between min__ and max__     compared to ld_limited_integrator there is no delay: Ta z / (z-1)
+    
+     u * - input
+     y * - output
+     min__ * - variable saturation minimum
+     
+     y(k+1) = sat( y(k) + Ta*u , min__, max__ )
+
+
+
+
+
+BLOCK -- ld_lin_awup_controller
+
+  CALLING SEQUENCE
+
+    [sim, u] = ld_lin_awup_controller(sim, ev, r, y, Ta, tfR, min__, max__)
+
+  DESCRIPTION
+
+>>> PURPOSE:   linear controller with anti reset windup implemented by bounding the integral state:     e = r-y
+     u = ld_limited_integrator( e, min__, max__ ) + tfR*e
+
+
+
+
+
+BLOCK -- ld_print_angle
+
+  CALLING SEQUENCE
+
+    [sim] = ld_print_angle(sim, ev, alpha, text)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Convert an angle in rad to degree and print to console     
+     alpha * - angle signal
+     text - string
+     
+
+
+
+
+
+BLOCK -- ld_pwm
+
+  CALLING SEQUENCE
+
+    [sim, pwm] = ld_pwm(sim, ev, plen, u)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   PWM generator     
+     plen - period length
+     u * - modulation signal; Values are between 0 and 1.
+     pwm * - pwm output
+    
+
+
+
+
+
+BLOCK -- ld_vector_play
+
+  CALLING SEQUENCE
+
+    [sim, outvec, Nvecplay] = ld_vector_play(sim, ev, A, special)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Play a vectorial signal     
+     A - matrix containing the vectors to play
+     outvec*+(length(A(:,1))) - 
+     Nvecplay = length of output signal vector
+    
+     outputs A(:,i), where i is increasing within each time step
+     special = [ "repeate" ]
+    
+
+
+
+
+
+BLOCK -- ld_alternate
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_alternate( sim, ev, start_with_zero )
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   generate an alternating sequence         
+     y * - output
+    
+    
+     [0, 1, 0, 1, 0, ... ], if start_with_zero == %T
+     [1, 0, 1, 0, 1, ... ], if start_with_zero == %F
+    
+
+
+
+
+
+BLOCK -- ld_detect_step_event
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_detect_step_event(sim, ev, in, eps)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   step detection block    
+     Detect jumps in the signal "in".
+     Everytime a jump occurs "out" is an impulse with the intensity of the
+     value after the jump i.e. if a signal steps from 1 to 2 there
+     will be an impulse out = 2
+     if no steps occur, out is zero
+    
+
+
+
+
+
+BLOCK -- ld_detect_step_event2
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_detect_step_event2(sim, ev, in, eps)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   step detection block    
+     Detect jumps in the signal "in".
+     Everytime a jump occurs "out" is an impulse with an intensity of 1,
+     else it is zero
+    
+
+
+
+
+
+BLOCK -- ld_reference_reached
+
+  CALLING SEQUENCE
+
+    [sim, reached] = ld_reference_reached(sim, ev, r, y, N, eps)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   check wheter a reference value is reached     
+     r * - Reference Signal (shall be constant)
+     y * - Signal to compare to the reference
+     N - After the condition of reaching the reference is true
+         N time steps will be wait until setting reached to one. 
+     eps - the half tolerance band width
+    
+
+
+
+
+
+BLOCK -- ld_greaterEpsForNSteps
+
+  CALLING SEQUENCE
+
+    [sim, reached] = ld_greaterEpsForNSteps(sim, ev, in, thr, N)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return true, when input is greater a constant for more than N sampling steps    
+     in * - input signal
+     thr - threshold constant
+     N - integer
+    
+     If in is greater than thr for more than N time steps, reached = 1;
+     Otherwise reached is set to 0.
+
+
+
+
+
+BLOCK -- ld_belowEpsForNSteps
+
+  CALLING SEQUENCE
+
+    [sim, reached] = ld_belowEpsForNSteps(sim, ev, in, thr, N)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return true, when input is below a constant for more than N sampling steps    
+     in * - input signal
+     thr - threshold constant
+     N - integer
+    
+     If in is below thr for more than N time steps, reached = 1;
+     Otherwise reached is set to 0.
+
+
+
+
+
+BLOCK -- ld_belowEpsForNStepsAdvanced
+
+  CALLING SEQUENCE
+
+    [sim, reached, count, countup, reset] = ld_belowEpsForNStepsAdvanced(sim, ev, in, thr, N)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   return true, when input is below a constant for more than N sampling steps    
+     in * - input signal
+     thr - threshold constant
+     N - integer
+    
+     If in is below thr for N time steps, reached = 1;
+     Otherwise reached is set to 0.
+
+
+
+
+
+BLOCK -- ld_file_save_machine
+
+  CALLING SEQUENCE
+
+    [sim] = ld_file_save_machine(sim, ev, in, cntrl, intype, insize, fname)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Start and stop saving of data to files     
+       in *+(size) - Data to write
+       cntrl * - if cntrl steps to 2 then saving is started; if it steps to 1 saving is stopped
+       intype - ORTD input type of data
+       size - amount of elements in the vector in
+       fname - string: Filename for saving
+     
+     Note: The implementation of this function is a superblock using state machines
+           and the ld_savefile block. If you're interested take the source as an example.
+     
+     
+
+
+
+
+
+BLOCK -- ld_compare
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_compare(sim, events, in,  thr)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   compare block.        thr - constant
+       in * - signal
+       y *
+     If in > thr: y = 1; else y = -1
+     
+     Please note: returns -1 for in == 0
+    
+
+
+
+
+
+BLOCK -- ld_compare_01
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_compare_01(sim, events, in,  thr)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   compare block.        thr - constant
+       in - signal
+       y *
+     If in > thr: y = 1; else y = 0
+    
+
+
+
+
+
+BLOCK -- ld_const
+
+  CALLING SEQUENCE
+
+    [sim,c] = ld_const(sim, events, val)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A constant val    
+
+
+
+
+
+BLOCK -- ld_add
+
+  CALLING SEQUENCE
+
+    [sim,sum_] = ld_add(sim, events, inp_list, fak_list)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Add signals (linear combination)     inp_list = list( in1, in2 )  ; fak_list = [ c1, c2 ]
+     sum_ = in1 * c1 + in2 * c2
+    
+
+
+
+
+
+BLOCK -- ld_mult
+
+  CALLING SEQUENCE
+
+    [sim,mul_] = ld_mult(sim, events, inp_list, muldiv1_list)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Multiplication      muldiv1/2: multiplicate (=0) or divide (=1) corresponding input; need exactly 2 inputs
+     inp_list = list( in1, in2 )  ; muldiv1_list = [ muldiv1, muldiv2 ]
+    
+
+
+
+
+
+BLOCK -- ld_gain
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_gain(sim, events, in, gain)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A simple gain     
+     in * - input
+     out * - output
+     
+     out = in * gain
+    
+
+
+
+
+
+BLOCK -- ld_sign
+
+  CALLING SEQUENCE
+
+    [sim,sign_] = ld_sign(sim, events, inp_list, thr)
+
+  DESCRIPTION
+
+    
+     FIXME: OSOLETE FN: use ld_getsign instead
+     
+     return the sign of the input sigal
+     either 1 or -1
+     
+     
+    
+     compatibility
+
+
+
+
+
+BLOCK -- ld_fngen
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_fngen(sim, events, shape_, period, amp)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   function generator     
+     shape_ - the shape of the output signal: =0 : sinus, more to come...
+     period, amp * - Periode length in samples and amplitude
+     out * - output
+     
+    
+
+
+
+
+
+BLOCK -- ld_ztf
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_ztf(sim, events, inp_list, H)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Time discrete transfer function     H is give as a Scilab rational
+    
+
+
+
+
+
+BLOCK -- ld_sat
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_sat(sim, events, inp_list, lowerlimit, upperlimit)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Saturation between lowerlimit and upperlimit    
+
+
+
+
+
+BLOCK -- ld_flipflop
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_flipflop(sim, events, set0, set1, reset, initial_state)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A flip-flop    
+     set0, set1, reset * - control of the flipflop (set output to zero if set0 is >0.5 for at least one sample, ...)
+     initial_state - constant
+    
+
+
+
+
+
+BLOCK -- ld_printf
+
+  CALLING SEQUENCE
+
+    [sim] = ld_printf(sim, events, in, str, insize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print data to stdout (the console)    
+     in *+(insize) - vectorial input signal
+    
+     str is a string that is printed followed by the signal vector in
+     of size insize
+    
+     Hint: Apply colored printf's by using the predefined terminal color codes:
+     
+     str = ORTD.termcode.red + "some colored text..." + ORTD.termcode.reset
+     
+     instead of red there currently is: green, yellow, blue.
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_printfInt32
+
+  CALLING SEQUENCE
+
+    [sim] = ld_printfInt32(sim, events, in, str, insize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print data to stdout (the console)    
+     in *+(insize) - vectorial input signal (Int32)
+    
+     str is a string that is printed followed by the signal vector in
+     of size insize
+    
+     Hint: Apply colored printf's by using the predefined terminal color codes:
+     
+     str = ORTD.termcode.red + "some colored text..." + ORTD.termcode.reset
+     
+     instead of red there currently is: green, yellow, blue.
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_printfBin
+
+  CALLING SEQUENCE
+
+    [sim] = ld_printfBin(sim, events, in, str, insize)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Print data to stdout (the console)    
+     in *+(insize) - vectorial input signal (Binaray)
+    
+     str is a string that is printed followed by the signal vector in
+     of size insize
+    
+     Hint: Apply colored printf's by using the predefined terminal color codes:
+     
+     str = ORTD.termcode.red + "some colored text..." + ORTD.termcode.reset
+     
+     instead of red there currently is: green, yellow, blue.
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_switch
+
+  CALLING SEQUENCE
+
+    [sim,out_1, out_2] = ld_switch(sim, events, cntrl, in)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   A switching Block     inputs = [control_in, signal_in]
+     if control_in > 0 : signal_in is directed to output 1; output_2 is set to zero
+     if control_in < 0 : signal_in is directed to output 2; output_1 is set to zero
+    
+
+
+
+
+
+BLOCK -- ld_play_simple
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_play_simple(sim, events, r)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Simple sample play block    
+     plays the sequence stored in r
+     each time event 0 occurs the next value of r is put out
+    
+
+
+
+
+
+M O D U L E -- EDF
+
+
+
+BLOCK -- ld_EDFWrite
+
+  CALLING SEQUENCE
+
+    [sim] = ld_EDFWrite(sim, events, fname, smp_freq, inlist, innames, PhyMin, PhyMax, DigMin, DigMax)
+
+  DESCRIPTION
+
+     Write data to EDF+ - Files
+    
+     inlist - list() of signals of size 1
+     
+     
+
+
+
+
+
+M O D U L E -- ext_process
+
+
+
+BLOCK -- ld_Proc_shObj
+
+  CALLING SEQUENCE
+
+    [sim] = ld_Proc_shObj(sim, events, ObjectIdentifyer, Visibility, executable, OptionList)
+
+  DESCRIPTION
+
+     
+     Set-up a Process with I/O redirection
+    
+     Note: only one and at least one parameter is required in OptionList
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_startproc
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_startproc(sim, events, exepath, whentorun)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Execute a sub process (EXPERIMENTAL)    
+     out * - output (unused)
+     exepath - string: path to executable
+     whentorun - 0 - Start process on blocks initialisation and stop on desruction; 
+                 1 - Start process on activation in a statemachine and stop on reset
+     
+     
+
+
+
+
+
+BLOCK -- ld_startproc2
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_startproc2(sim, events, exepath, chpwd, prio, whentorun)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Execute a sub process with some more options (EXPERIMENTAL)    
+     out * - output
+     exepath - string: path to executable
+     chpwn - change current directory before running the process
+     prio - Priority (set to zero for now)
+     whentorun - 0 - Start process on blocks initialisation and stop on desruction; 
+                 1 - Start process on activation in a statemachine and stop on reset
+     
+     
+
+
+
+
+
+M O D U L E -- I2C
+
+
+
+BLOCK -- ld_I2CDevice_shObj
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_shObj(sim, events, ObjectIdentifyer, Visibility, I2CDevicename, I2Caddr)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   I2C device connection     
+     This function creates a shared object for I2C communications
+     using the linux kernel's I2C-interface. (linux/i2c-dev.h, linux/i2c.h
+     https://www.kernel.org/doc/Documentation/i2c/dev-interface )
+     Hardware supporting this interface is e.g. available at the following systems
+     
+     *) Beaglebone
+     *) Rasperry Pi
+     
+     An I2C device at adress I2Caddr ( numbering as used by i2cdetect; Please compare to other notations!)
+     is opened via the I2C-bus given by I2CDevicename (e.g. "/dev/i2c-0", "/dev/i2c-1", ...)
+     
+     Currently there are only functions for writing to the bus.
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_Write
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_Write(sim, events, ObjectIdentifyer, Register, in)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Write to a one byte register of an I2C-device     
+     
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_BufferWrite
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_BufferWrite(sim, events, ObjectIdentifyer, in, vecsize)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Raw write of vecsize bytes to an I2C-bus.     
+     The Values from multiple calls of this block are buffered untile they are
+     send by ld_I2CDevice_Transmit.
+     
+     Note: The maximal buffer size currently is 1000 bytes.
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_Transmit
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_Transmit(sim, events, ObjectIdentifyer)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Transmit / Flush write buffers and send the collected data to the device.     
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_Read
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_I2CDevice_Read(sim, events, ObjectIdentifyer, Register)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   read one byte from a register of an I2C-device     
+     
+     
+
+
+
+
+
+M O D U L E -- matrix
+
+
+
+BLOCK -- ld_constmat
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_constmat(sim, events, mat)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   a constant matrix     
+     mat *+ - the matrix
+     
+
+
+
+
+
+BLOCK -- ld_matmul
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_matmul(sim, events, left_matrix, left_matrix_size, right_matrix, right_matrix_size)
+
+  DESCRIPTION
+
+>>> PURPOSE:   matrix multiplication of two matrices     
+     out = left_matrix * right_matrix 
+    
+        left_matrix *+(left_matrix_size)  - matrix signal
+        left_matrix_size ---> matrix size [nr,nc]
+    
+        right_matrix *+(right_matrix_size)  - matrix signal
+        right_matrix_size ---> matrix size [nr,nc]
+        
+
+
+
+
+
+BLOCK -- ld_matvecmul_3d
+
+  CALLING SEQUENCE
+
+    [sim,y] = ld_matvecmul_3d(sim, events, A, v)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Matrix multiplication against a vector for 3d-vectors     
+     y = A * v, whereby A is 3x3 and v is a vector of size 3
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_leastsquares
+
+  CALLING SEQUENCE
+
+    [sim, out, param] = ld_leastsquares(sim, events, inplist, veclen, n_param)
+
+  DESCRIPTION
+
+>>> PURPOSE:   estimate n linear model parameters (a,b,c...) and compute yvec_hat.     
+     yvec_hat = a * phi0 + b * phi1 + c * phi2 ...
+     Estimation of a, b, c ... minimizes the sum of squared errors (\chi^2 = \sum_i (yvec - yvec_hat)^2).
+     out = yvec_hat
+    
+     inplist* - list(phi0*, phi1*, phi2*, ..., phi(n_param-1)*, yvec*)
+     + phi0* - input vector0 (The vectors phiX form the matrix of predictor variables.)
+     + phi1* - input vector1 (The vectors phiX form the matrix of predictor variables.)
+     + phi2* - input vector2 (The vectors phiX form the matrix of predictor variables.)
+     + ...
+     + phi(n_param-1)* - input vector(n_param-1) (The vectors phiX form the matrix of predictor variables.)
+     + yvec* - the original vector
+    
+     veclen - the number of observations which have been made (the length of each vector phiX, yvec and yvec_hat)
+     n_param - the number of vectors belonging to Phi as well as the number of parameters in param*.
+     out* = yvec_hat (the best prediction of yvec)
+     param* - [a, b, c, ...]
+    
+     NOTICE: ld_leastsquares is not available by default since you need to include the GSL - GNU Scientific Library.
+     Please follow the instructions which have been testet under Ubuntu 12.04. LTS:
+    
+     - install the required library with the following command or with a package-manager of your choice before installing ORTD:
+     'sudo apt-get install libgsl0-dev'
+    
+        
+
+
+
+
+
+M O D U L E -- muparser
+
+
+
+BLOCK -- ld_muparser
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_muparser(sim, events, inlist, str, float_param)
+
+  DESCRIPTION
+
+     
+     Evaluation of math formula
+     
+     inlist - list() of signals of length 1
+     str - string containing the formula
+     float_param - vector of parameters
+     
+     Within str "u1", "u2", ... refer to inputs and
+                "c1", "c2", ... refer to the parameters within float_param
+     
+
+
+
+
+
+BLOCK -- ld_muparser_subst
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_muparser_subst(sim, events, inlist, str, par, inNames, parNames)
+
+  DESCRIPTION
+
+     
+     Bug within this scilab function
+     
+     subtitution: haveing names like "phi" and "phi_u" does not work
+                  names "u1", "u2", ... and "c1", "c2", ... also does not work right now
+     
+     
+     
+
+
+
+
+
+M O D U L E -- nested
+
+
+
+BLOCK -- ld_async_simulation
+
+  CALLING SEQUENCE
+
+    [sim, outlist, computation_finished, userdata] = ld_async_simulation(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, TriggerSignal, name, ThreadPrioStruct, userdata)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Run a nested libdyn simulation within a a thread    
+     INPUT Signals: 
+    
+     TriggerSignal * - Trigger one simulation step of the threaded and nested simulation, if TriggerSignal == 1 
+                    
+     inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+    
+     PARAMETERS:
+     
+     insizes - input ports configuration
+     outsizes - output ports configuration
+     intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     nested_fn - scilab function defining the sub-schematics
+                 The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)
+     
+     name (string) - the name of the nested simulation
+     ThreadPrioStruct - Properties of the thread. e.g.:
+     	  ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK;
+     	  ThreadPrioStruct.prio2=0, ThreadPrioStruct.cpu = -1;
+     
+     userdata - A Scilab variable that will be forwarded to the function nested_fn
+     
+     OUTPUTS:
+     
+     outlist - list( ) of output signals
+     computation_finished - optional and only meanful if asynchron_simsteps > 0 (means async computation)
+     
+     6.8.14: Fixed Bug forwarding userdata
+     
+
+
+
+
+
+BLOCK -- ld_NoResetNest
+
+  CALLING SEQUENCE
+
+    [sim, outlist, userdata] = ld_NoResetNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, ResetLevel, SimnestName, userdata)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Run a nested libdyn simulation and prevent resets of this simulation    
+     INPUT Signals: 
+    
+     inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+    
+     PARAMETERS:
+     
+     insizes - input ports configuration
+     outsizes - output ports configuration
+     intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     nested_fn - scilab function defining the sub-schematics
+                 The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, userdata)
+     
+     ResetLevel - set to -1
+     SimnestName (string) - the name of the nested simulation
+     
+     userdata - A Scilab variable that will be forwarded to the function nested_fn
+     
+     OUTPUTS:
+     
+     outlist - list( ) of output signals
+     
+
+
+
+
+
+BLOCK -- ld_CaseSwitchNest
+
+  CALLING SEQUENCE
+
+    [sim, outlist, userdata] = ld_CaseSwitchNest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, CaseSwitch_fn, SimnestName, DirectFeedthrough, SelectSignal, CaseNameList, userdata)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Switch mechanism for multiple nested simulations     
+     INPUT Signals: 
+    
+     inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s) (Note: Currently broken)
+     SelectSignal - * swicht signal of type ORTD.DATATYPE_INT32
+    
+     PARAMETERS:
+     
+     insizes - input ports configuration
+     outsizes - output ports configuration
+     intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     CaseSwitch_fn - scilab function defining the sub-schematics
+                 The prototype must be: function [sim, outlist, userdata] = nested_fn(sim, inlist, Ncase, casename, userdata)
+     
+     SimnestName (string) - the name of the nested simulation
+     DirectFeedthrough - %t or %f
+     SelectSignal * - int32 use to determine the currently active simulation
+     CaseNameList list() of strings
+     
+     userdata - A Scilab variable that will be forwarded to the function nested_fn
+     
+     OUTPUTS:
+     
+     outlist - list( ) of output signals
+    
+     PLEASE NOTE: For ld_CaseSwitchNest at least one output must be defined such that
+                  the nested simulations are executed at the right time instances.
+                  Otherwise a delayed execution of the nested simulations has been oberserved.
+     
+
+
+
+
+
+BLOCK -- ld_simnest
+
+  CALLING SEQUENCE
+
+    [sim, outlist, computation_finished] = ld_simnest(sim, ev, inlist, insizes, outsizes, intypes, outtypes, fn_list, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal  )
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   create one (or multiple) nested libdyn simulation within a normal libdyn block it is possible to switch between them by an special input signal    
+     INPUTS: 
+    
+     switch_signal: signal used to switch between different nested simulations
+     reset_trigger_signal: when 1 the current simulation is reset (sync)
+                           OR when 1 the current simulation is triggered (async)
+     inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)
+    
+     PARAMETERS:
+     
+     ev - events to be forwarded to the nested simulation
+     insizes - input ports configuration
+     outsizes - output ports configuration
+     intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     fn_list - list( ) of scilab functions defining sub-schematics
+     dfeed - the block containing all sub-schematics is configured with dfeed
+     asynchron_simsteps - if == 1 one simulation steps will be simulated in a thread
+                         when finished the result becomes available to the blocks outports
+                          if == 2 the simulation will be simulated in a thread and can be synchronised
+                          by the subsimulation itselft through synchronisation blocks (e.g. ld_synctimer)
+                         if == 0 the nested simulation runns synchronous to the upper level simulation. 
+                         (i.e. no thread is started)
+     
+     OUTPUTS:
+     
+     outlist - list( ) of output signals
+     computation_finished - optional and only meanful if asynchron_simsteps > 0 (means async computation)
+     
+
+
+
+
+
+BLOCK -- ld_simnest2
+
+  CALLING SEQUENCE
+
+    [sim, outlist, computation_finished, userdata] = ld_simnest2(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nsimulations, dfeed, asynchron_simsteps, switch_signal, reset_trigger_signal, userdata, simnest_name)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   create one (or multiple) nested libdyn simulation within a normal libdyn block                    It is possible to switch between them by an special input signal
+                    Replacement schematics can be generated by the "ld_simnest2_replacement" function.
+                    The "ld_nested_exchffile"-block can be used to load the schematic into the controller
+    
+     INPUTS: 
+    
+     switch_signal: signal used to switch between different nested simulations
+     reset_trigger_signal: when 1 the current simulation is reset (sync)
+                           OR when 1 the current simulation is triggered (async)
+     inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)
+    
+     PARAMETERS:
+     
+     ev - events to be forwarded to the nested simulation
+     insizes - input ports configuration
+     outsizes - output ports configuration
+     intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     nested_fn - scilab function defining sub-schematics
+     Nsimulations - number of simulations to switch inbetween
+     dfeed - the block containing all sub-schematics is configured with dfeed
+     asynchron_simsteps - if > 0 asynchron_simsteps steps will be simulated in a thread
+                         when finished the result becomes available to the blocks outports
+                         if == 0 the nested simulation runns synchronous to the upper level simulation.
+     switch_signal 
+     reset_trigger_signal
+     userdata - arbitrary user date
+     simnest_name - a string name with which the nested is refered.
+     
+     OUTPUTS:
+     
+     outlist - list( ) of output signals
+     computation_finished - optional and only meanful if asynchron_simsteps > 0 (means async computation)
+     
+
+
+
+
+
+BLOCK -- ld_simnest2_replacement
+
+  CALLING SEQUENCE
+
+    [par, userdata] = ld_simnest2_replacement( insizes, outsizes, intypes, outtypes, nested_fn, userdata, N  )
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   create schematics that can be used as an online exchangeable simulation for nested simulations set-up using the ld_nested2 block    
+     The "ld_nested_exchffile"-block can be used to load the schematic into the controller
+    
+     INPUTS: 
+    
+     switch_signal: signal used to switch between different nested simulations
+     reset_trigger_signal: when 1 the current simulation is reset (sync)
+                           OR when 1 the current simulation is triggered (async)
+     inlist - list( ) of input signals to the block, that will be forwarded to the nested simulation(s)
+    
+     PARAMETERS:
+     
+     insizes - input ports configuration
+     outsizes - output ports configuration
+     intypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     outtypes - ignored for now, put ORTD.DATATYPE_FLOAT for each port
+     nested_fn - scilab function defining sub-schematics
+     N - slot id; set to 2
+     
+     OUTPUTS:
+    
+     par - irpar data set. par.ipar and par.rpar contain the integer and double parameters list
+     
+
+
+
+
+
+BLOCK -- ld_statemachine
+
+  CALLING SEQUENCE
+
+    [sim, outlist, x_global, active_state, userdata] = ld_statemachine(sim, ev, inlist, insizes, outsizes, intypes, outtypes, nested_fn, Nstates, state_names_list, inittial_state, x0_global, userdata  )
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   A statemachine
+
+
+
+
+BLOCK -- ld_nested_exchffile
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_nested_exchffile(sim, events, compresult, slot, fname, simnest_name)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   Online exchange of a nested simulation via loading *[ir].par files    
+     NOTE: May delay realtime behaviour - use during a separated asynchronous nested simulation
+    
+     compresult - signal - 0: Do nothing, 1: unload schematic and load new (replace), 2: just unload 
+     slot - signal (unused by now; set to 2)
+     fname - the filename without ".[ir]par"-ending
+     simnest_name - the string which referes to the nested simulation (as given to "ld_simnest2")
+     
+    
+
+
+
+
+
+BLOCK -- ld_survivereset
+
+  CALLING SEQUENCE
+
+    [sim, outvec] = ld_survivereset(sim, events, invec, initvec)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Keep stored data even if a simulation reset occurs (EXPERIMENTAL FOR NOW)    
+     in *+(vecsize) - input
+     out *+(vecsize) - output
+     
+     Prior to a simulation reset the input is stored into memory.
+     After the reset the data is available again via the output
+     Initially the output is set to initvec
+     
+        
+
+
+
+
+
+BLOCK -- ld_ReplaceableNest
+
+  CALLING SEQUENCE
+
+    [sim, outlist, userdata, replaced] = ld_ReplaceableNest(sim, ev, inlist, trigger_reload, fnlist, insizes, outsizes, intypes, outtypes, simnest_name, irpar_fname, dfeed, userdata)
+
+  DESCRIPTION
+
+>>> PURPOSE:   A higher level for defining online replaceable schematics using callback functions    
+     inlist - input list()
+     outlist - output list()
+     
+     For an example see modules/nested/demo/online_replacement
+        
+
+
+
+
+
+BLOCK -- ld_global_memory
+
+  CALLING SEQUENCE
+
+    [sim] = ld_global_memory(sim, events, ident_str, datatype, len, initial_data, visibility, useMutex)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   inittialise a persistent globally shared memory     
+     ident_str (string) - name of the memory
+     datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT works)
+     len (integer) - number of elements
+     initial_data - initial data of the memory
+     visibility (string) - 'global', ... (more are following)
+     useMutex (integer) - 0 or 1. Use a mutex if you access the memory from different threads
+     
+     
+
+
+
+
+
+BLOCK -- ld_write_global_memory
+
+  CALLING SEQUENCE
+
+    [sim] = ld_write_global_memory(sim, events, data, index, ident_str, datatype, ElementsToWrite)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Write a portion to a persistent globally shared memory     
+     Initialises a memory structure which can be refered by an
+     identifier. Data is available for read and write access
+     accross different state machines as well as accross
+     different threads.
+     
+     Make sure to only use the memory created by this function in 
+     lower level simulations such as nested state machines, etc.
+     Access from higher level simulations is possible but should
+     be avoided, as the memory can not be freed on destruction.
+     
+     data *+(ElementsToWrite) - data
+     index * - index to store the data. Starts at 1
+     ident_str (string) - name of the memory
+     datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+     ElementsToWrite (integer) - number of elements to write to the memory
+     
+     
+
+
+
+
+
+BLOCK -- ld_read_global_memory
+
+  CALLING SEQUENCE
+
+    [sim, data] = ld_read_global_memory(sim, events, index, ident_str, datatype, ElementsToRead)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Read a portion from a persistent globally shared memory     
+     data *+(ElementsToRead) - data read from memory
+     index * - start-index to read the data. Starts at 1
+     ident_str (string) - name of the memory
+     datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+     ElementsToRead (integer) - number of elements to read from the memory
+     
+
+
+
+
+
+BLOCK -- ld_WriteMemory2
+
+  CALLING SEQUENCE
+
+    [sim] = ld_WriteMemory2(sim, events, data, index, ElementsToWrite, ident_str, datatype, MaxElements)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Write a portion to a persistent globally shared memory     
+     Initialises a memory structure which can be refered by an
+     identifier. Data is available for read and write access
+     accross different state machines as well as accross
+     different threads.
+     
+     Make sure to only use the memory created by this function in 
+     lower level simulations such as nested state machines, etc.
+     Access from higher level simulations is possible but should
+     be avoided, as the memory can not be freed on destruction.
+     
+     data *+(MaxElements) - data
+     index * INT32 - index to store the data. Starts at 1
+     ElementsToWrite * INT32 - number of elements to write to the memory
+     ident_str (string) - name of the memory
+     datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+     MaxElements - maximal elements to write
+     
+     
+
+
+
+
+
+M O D U L E -- pipelines
+
+
+
+BLOCK -- ld_ringbuf
+
+  CALLING SEQUENCE
+
+    [sim] = ld_ringbuf(sim, events, ident_str, datatype, len, visibility)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   inittialise a new ringbuffer     
+     ident_str (string) - name of the ringbuffer
+     datatype - ORTD datatype of the ringbuffer (for now only ORTD.DATATYPE_FLOAT)
+     len (integer) - number of elements
+     initial_data - initial data of the ringbuffer
+     visibility (string) - 'global', ... (more are following)
+     
+     
+
+
+
+
+
+BLOCK -- ld_write_ringbuf
+
+  CALLING SEQUENCE
+
+    [sim] = ld_write_ringbuf(sim, events, data, ident_str, datatype, ElementsToWrite)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Write a portion to a ringbuffer     
+     
+     data *+(ElementsToWrite) - data
+     ident_str (string) - name of the memory
+     datatype - ORTD datatype of the memory (for now only ORTD.DATATYPE_FLOAT)
+     ElementsToWrite (integer) - number of elements to write to the memory
+     
+     
+
+
+
+
+
+BLOCK -- ld_read_ringbuf
+
+  CALLING SEQUENCE
+
+    [sim, data, NumRead] = ld_read_ringbuf(sim, events, ident_str, datatype, ElementsToRead)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Read a portion from a ringbuffer     
+     data *+(ElementsToRead) - data
+     ident_str (string) - name of the ringbuffer
+     datatype - ORTD datatype of the ringbuffer (for now only ORTD.DATATYPE_FLOAT)
+     ElementsToRead (integer) - number of elements to read from the ringbuffer
+     
+
+
+
+
+
+BLOCK -- ld_relread_ringbuf
+
+  CALLING SEQUENCE
+
+    [sim, data] = ld_relread_ringbuf(sim, events, ident_str, datatype, ElementsToRead, relPos)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Read a portion from a ringbuffer relative to the currently set marker position     
+     data *+(ElementsToRead) - data
+     ident_str (string) - name of the ringbuffer
+     datatype - ORTD datatype of the ringbuffer (for now only ORTD.DATATYPE_FLOAT)
+     ElementsToRead (integer) - number of elements to read from the ringbuffer
+     relPos - UINT - position relative to the currently set marker to start reading from 
+    
+
+
+
+
+
+BLOCK -- ld_setmarkerW_ringbuf
+
+  CALLING SEQUENCE
+
+    [sim] = ld_setmarkerW_ringbuf(sim, events, ident_str, trigger)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Set the current marker position to the lastly written element     
+     ident_str (string) - name of the ringbuffer
+     trigger - UINT - set marker if trigger > 0 
+    
+
+
+
+
+
+M O D U L E -- Random
+
+
+
+BLOCK -- ld_Random
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_Random(sim, events, Method, Seed)
+
+  DESCRIPTION
+
+     
+     Random generator - block
+    
+     out * - random output
+     
+     Method - 0 (normal distribution), 1 (uniform distribution, NOT IMPLEMENTED)
+     Seed - The random seed to start with, NOT IMPLEMENTED
+    
+     The implementation of http://randomlib.sourceforge.net is used.
+     
+
+
+
+
+
+M O D U L E -- rt_server
+
+
+
+BLOCK -- ld_parameter
+
+  CALLING SEQUENCE
+
+    [sim,out] = ld_parameter(sim, events, str, initial_param)
+
+  DESCRIPTION
+
+     Creates a new parameter block that is remotely controlable via TCP
+     It requires the set-up of a libdyn master
+     
+     str - is a string of the parameter name
+     initial_param - is a vector of the initial parameter set
+     out - is a vectorial signal of size length(initial_param)
+     
+
+
+
+
+
+BLOCK -- ld_stream
+
+  CALLING SEQUENCE
+
+    [sim] = ld_stream(sim, events, in, str, insize, autoflushInterval, autoflushTimeout, bufferlen)
+
+  DESCRIPTION
+
+     Creates a new stream block that is remotely controlable via TCP
+     It requires the set-up of a libdyn master
+     
+     str - is a string of the stream name
+     insize is the vector length of the input port
+     [autoflushInterval] how often (in samples) to flush the send buffers
+     [autoflushTimeout] how often to flush the send buffers (time difference) (not implemented)
+     [bufferlen] number of samples within the ringbuffer
+    
+
+
+
+
+
+M O D U L E -- scicos_blocks
+
+
+
+BLOCK -- ld_scicosblock
+
+  CALLING SEQUENCE
+
+    [sim, outlist] = ld_scicosblock(sim, events, inlist, cosblk)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   include a scicos block / schematic    
+     inlist  - list() of input ports forwarded to the Scicosblock
+     outlist  - list() of output ports forwarded from the Scicosblock
+     
+     cosblk - structure as loaded by ortd_getcosblk containg the block parameters 
+    
+     Hint: There is a  way to compile Xcos-superblocks into C-computational functions.
+           These functions can also be included by ld_scicosblock, but this is experimental
+           and the process for doing so takes some manual steps to perform on the source-code.
+     
+     
+     Limitations:
+     
+     In the C-structure "scicos_block" there is an entry ozptr that is not initiated 
+     correcty by the wrapper in the file "ScicosWrapper.cpp". Only the following steps
+     are performed that may be suffiecient for most applications:
+     
+       ozptr[0] = malloc(1000);
+       ozptr[1] = malloc(1000);
+       ozptr[2] = malloc(1000);
+       ozptr[3] = malloc(1000);
+       ozptr[4] = malloc(1000);  
+     
+     These fields are used by the generated C-functions for Scicos-Superblocks.
+     
+
+
+
+
+
+M O D U L E -- scilab
+
+
+
+BLOCK -- ld_scilab
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_scilab(sim, events, in, invecsize, outvecsize, init_cmd, calc_cmd, destruct_cmd, scilab_path)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Block for interfacing scilab    
+     in *+(invecsize) - input        scilab_interf.invec%d = [ .... ];
+     out *+(outvecsize) - output        scilab_interf.outvec%d = [ .... ];
+     scilab_path - Path to scilab5 executable
+     
+     out = calc_cmd        scilab_interf.outvec%d = calc_cmd(scilab_interf.invec%d);
+    
+     
+
+
+
+
+
+BLOCK -- ld_scilab2
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_scilab2(sim, events, in, comp_fn, include_scilab_fns, scilab_path)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Block for calling a computational function written in scilab    
+     A nicer interface to scilab. (See modules/scilab/demo/scilab_demo.sce for an example)
+    
+     in *+(invecsize) - input
+     out *+(outvecsize) - output
+     
+     out = calc_cmd
+    
+    
+     comp_fn - scilab function that is executed online. Prototype:
+               function [block]=sample_comp_fn( block, flag )
+    
+               flags are: 1 calc outputs, 4 initialise, 5 terminate, 10 configure I/O
+    
+               For further details have a look at the example.
+    
+     include_scilab_fns - unused for now. Set to list()
+     scilab_path - Path to scilab5 executable. Use "BUILDIN_PATH" if you do not have special needs.
+    
+     NOTE: For now the flag "update states" is not called; Also a "reset states" flag is required.
+    
+    
+
+
+
+
+
+BLOCK -- ld_scilab3
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_scilab3(sim, events, in, comp_fn, include_scilab_fns, InitStr, scilab_path)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Block for calling a computational function written in scilab    
+     A nicer interface to scilab. (See modules/scilab/demo/scilab_demo.sce for an example)
+    
+     in *+(invecsize) - input
+     out *+(outvecsize) - output
+     InitStr - execute str in the begining. e.g. to define global variables
+     
+     out = calc_cmd
+    
+    
+     comp_fn - scilab function that is executed online. Prototype:
+               function [block]=sample_comp_fn( block, flag )
+    
+               flags are: 1 calc outputs, 4 initialise, 5 terminate, 10 configure I/O
+    
+               For further details have a look at the example.
+    
+     include_scilab_fns - unused for now. Set to list()
+     scilab_path - Path to scilab5 executable. Use "BUILDIN_PATH" if you do not have special needs.
+     
+     Nice feature: ld_scilab3 will look for variables that are not defined within comp_fn
+                   and will try to transfer these variables from the Scilab instance running at
+                   the development host to the on-line running Scilab instance.
+                   This works only for single value variables only, though.
+    
+     NOTE: For now the flag "update states" is not called; Also a "reset states" flag is required.
+    
+    
+
+
+
+
+
+BLOCK -- ld_scilab4
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_scilab4(sim, events, in, invecsize, outvecsize, comp_fn, ForwardVars, par)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Block for calling a computational function written in scilab    
+     A nicer interface to scilab. (See modules/scilab/demo/scilab_demo.sce for an example)
+    
+     in *+(invecsize) - input
+     out *+(outvecsize) - output
+     
+     out = calc_cmd
+    
+    
+     comp_fn - scilab function that is executed online. Prototype:
+               function [block]=sample_comp_fn( block, flag )
+    
+               flags are: 1 calc outputs, 4 initialise, 5 terminate
+    
+               For further details have a look at the example.
+    
+     ForwardVars - %t or %f Forward variables to the online Scilab instance
+     
+     The structure par must contain at least the following elements:
+     
+     include_scilab_fns - list( fn1, "fn1", fn2, "fn2" ) , whereby fn1 and fn2 stand for Scilab functions
+     scilab_path - Path to scilab5 executable. Use "BUILDIN_PATH" if you do not have special needs.
+     InitStr - execute str in the begining. e.g. to define global variables
+     
+     Nice feature: ld_scilab4 will look for variables that are not defined within comp_fn, if ForwardVars = %t
+                   and will try to transfer these variables from the Scilab instance running at
+                   the development host to the on-line running Scilab instance.
+                   This works only for single value variables only, though.
+    
+     NOTE: For now the flag "update states" is not called; Also a "reset states" flag is required.
+    
+    
+
+
+
+
+
+M O D U L E -- synchronisation
+
+
+
+BLOCK -- ld_synctimer
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_synctimer(sim, events, in)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Timer for synchronisation of a async simulation     
+     To beused within an async nested schematic for introducing variable sample times (EXPERIMENTAL)
+     
+     For an example see modules/synchronisation/demo/timed_thread.sce
+     
+     This is obsolete and will be removed. Use ld_ClockSync instead.
+     
+
+
+
+
+
+BLOCK -- ld_ClockSync
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_ClockSync(sim, events, in)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Timer for synchronisation of a async simulation     
+     To beused within an async nested schematic for introducing variable sample times (EXPERIMENTAL)
+     
+     For an example see modules/synchronisation/demo/timed_thread.sce
+     
+     New version of ld_synctimer (was experimental), which will be removed.
+     
+
+
+
+
+
+BLOCK -- ld_clock
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_clock(sim, events)
+
+  DESCRIPTION
+
+    
+>>> PURPOSE:   get current system time in [s]    
+     out * - time
+     
+     
+
+
+
+
+
+BLOCK -- ld_notification_shObj
+
+  CALLING SEQUENCE
+
+    [sim] = ld_notification_shObj(sim, events, ObjectIdentifyer, Visibility)
+
+  DESCRIPTION
+
+     
+     Thread notification slot
+    
+     
+     
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_RecvNotifications
+
+  CALLING SEQUENCE
+
+    [sim, signal ] = ld_RecvNotifications(sim, events, ObjectIdentifyer)
+
+  DESCRIPTION
+
+     
+     Receiver for Thread notifications
+    
+     signal *, ORTD.DATATYPE_INT32 - The signal that was received
+     
+     This is a simulation-synchronising Block. Everytime a notification is received,
+     the simulation that contains this blocks goes on for one step.
+     
+     Notifications can be send from other threads by using ld_ThreadNotify
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_ThreadNotify
+
+  CALLING SEQUENCE
+
+    [sim] = ld_ThreadNotify(sim, events, ObjectIdentifyer, signal)
+
+  DESCRIPTION
+
+     
+     Thread Notify
+    
+     signal *, ORTD.DATATYPE_INT32 - the signal to send. If zero no signal is send
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+M O D U L E -- template
+
+
+
+M O D U L E -- udp_communication
+
+
+
+BLOCK -- ld_udp_main_receiver
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_udp_main_receiver(sim, events, udpport, identstr, socket_fname, vecsize)
+
+  DESCRIPTION
+
+     udp main receiver - block
+    
+     This is a simulation-synchronising Block
+     
+     EXPERIMENTAL FIXME: REMOVE
+     
+
+
+
+
+
+BLOCK -- ld_UDPSocket_shObj
+
+  CALLING SEQUENCE
+
+    [sim] = ld_UDPSocket_shObj(sim, events, ObjectIdentifyer, Visibility, hostname, UDPPort)
+
+  DESCRIPTION
+
+     
+     Set-up an UDP-Socket
+    
+     hostname - Network interface to bind socket to???
+     UDPPort - UDP port to bind. If -1 then no UDP server is set-up
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_UDPSocket_Send
+
+  CALLING SEQUENCE
+
+    [sim] = ld_UDPSocket_Send(sim, events, ObjectIdentifyer, in, insize, intype)
+
+  DESCRIPTION
+
+     
+     UDP - Send block
+    
+     in *, ORTD.DATATYPE_BINARY - input
+     
+     EXPERIMENTAL, About to be removed
+     
+
+
+
+
+
+BLOCK -- ld_UDPSocket_Recv
+
+  CALLING SEQUENCE
+
+    [sim, out, SrcAddr] = ld_UDPSocket_Recv(sim, events, ObjectIdentifyer, outsize)
+
+  DESCRIPTION
+
+     
+     UDP - receiver block
+    
+     out *, ORTD.DATATYPE_BINARY - output
+     SrcAddr - information about where the package comes from (not implemented)
+     
+     This is a simulation-synchronising Block. Everytime an UDP-Packet is received,
+     the simulation that contains this blocks goes on for one step.
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_UDPSocket_SendTo
+
+  CALLING SEQUENCE
+
+    [sim] = ld_UDPSocket_SendTo(sim, events, SendSize, ObjectIdentifyer, hostname, UDPPort, in, insize)
+
+  DESCRIPTION
+
+     
+     UDP - Send block
+    
+     in *, ORTD.DATATYPE_BINARY - input
+     SendSize *. ORTD.DATATYPE_INT32 - Number of bytes to send
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_UDPSocket_Reply
+
+  CALLING SEQUENCE
+
+    [sim] = ld_UDPSocket_Reply(sim, events, SendSize, ObjectIdentifyer, DestAddr, in, insize)
+
+  DESCRIPTION
+
+     
+     UDP - Send block
+    
+     in *, ORTD.DATATYPE_BINARY - input
+     SendSize *. ORTD.DATATYPE_INT32 - Number of bytes to send
+     DestAddr - dynamic representation for the destination address
+     
+     EXPERIMENTAL not implemented by now
+     
+
+
+
+
+
+BLOCK -- ld_ConcateData
+
+  CALLING SEQUENCE
+
+    [sim, out, NBytes] = ld_ConcateData(sim, events, inlist, insizes, intypes)
+
+  DESCRIPTION
+
+     
+     Concate Data - block
+    
+     concatenates the binary representation of all inputs
+     
+     The output is of type ORTD.DATATYPE_BINARY
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_DisassembleData
+
+  CALLING SEQUENCE
+
+    [sim, outlist] = ld_DisassembleData(sim, events, in, outsizes, outtypes)
+
+  DESCRIPTION
+
+     
+     disasseble Data - block
+    
+     disassemble the binary representation of the input, which is of type ORTD.DATATYPE_BINARY
+     
+     EXPERIMENTAL
+     
+
+
+
+
+
+BLOCK -- ld_DisassembleData2
+
+  CALLING SEQUENCE
+
+    [sim, outlist, Success] = ld_DisassembleData2(sim, events, in, inBytes, MaxinBytes, ByteOfs, outsizes, outtypes)
+
+  DESCRIPTION
+
+     
+     disasseble Data - block
+    
+     disassemble the binary representation of the input, which is of type ORTD.DATATYPE_BINARY
+     
+     
+     in *(BINARY) - binary input data
+     inBytes * (INT32) - number of valid input bytes
+     MaxinBytes - Number of maximal input bytes (determines the size of in)
+     ByteOfs * (INT32) - ofset at which the disassembly takes place (index starts at 0)
+     outsizes - array of output sizes
+     insizes - array of output types
+    
+     Success (INT32) - if the Disassebly could successfully be performed
+     outlist - *list() of the decomposed data
+     
+
+
+
+
+
+BLOCK -- ld_PF_Parameter
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework, Parameter] = ld_PF_Parameter(sim, PacketFramework, NValues, datatype, ParameterName, optionalInitValue)
+
+  DESCRIPTION
+
+     
+     Define a parameter
+     
+     NValues - amount of data sets
+     datatype - only ORTD.DATATYPE_FLOAT for now
+     ParameterName - a unique string decribing the parameter
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_PF_ParameterForPlugin
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework, ParameterID, Parameter] = ld_PF_ParameterForPlugin(sim, PacketFramework, NValues, datatype, ParameterName, optionalInitValue)
+
+  DESCRIPTION
+
+     
+     Define a parameter and get the ParameterID to control it by a plugin
+     
+     NValues - amount of data sets
+     datatype - only ORTD.DATATYPE_FLOAT for now
+     ParameterName - a unique string decribing the parameter
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_PF_ParameterInclControl
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework, Parameter] = ld_PF_ParameterInclControl(sim, PacketFramework, NValues, datatype, ParameterName, ControlPluginUname, ControlBlock, optionalInitValue)
+
+  DESCRIPTION
+
+     
+     Define a parameter and it's control unit
+     
+     NValues - amount of data sets
+     datatype - only ORTD.DATATYPE_FLOAT for now
+     ParameterName - a unique string decribing the parameter
+     ControlPluginUname - a unique string describing the control unit
+     ControlBlock - e.g. 'Click_Event' for a Button
+     
+     
+
+
+
+
+
+BLOCK -- ld_SendPacketMux
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework] = ld_SendPacketMux(sim, PacketFramework, Signal, NValues_send, datatype, SourceName, Demux)
+
+  DESCRIPTION
+
+     
+     Stream data - block
+     
+     Signal - the signal to stream
+     NValues_send - the vector length of Signal
+     datatype - only ORTD.DATATYPE_FLOAT by now
+     SourceName - a unique string identifier descring the stream
+     Demux - information for the receiver on how to demultiplex the packet into individual signals.
+     
+     
+
+
+
+
+
+BLOCK -- ld_SendPacket
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework] = ld_SendPacket(sim, PacketFramework, Signal, NValues_send, datatype, SourceName)
+
+  DESCRIPTION
+
+     
+     Stream data - block
+     
+     Signal - the signal to stream
+     NValues_send - the vector length of Signal
+     datatype - only ORTD.DATATYPE_FLOAT by now
+     SourceName - a unique string identifier descring the stream
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_SendPacketForPlugin
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework, SourceID] = ld_SendPacketForPlugin(sim, PacketFramework, Signal, NValues_send, datatype, SourceName)
+
+  DESCRIPTION
+
+     
+     Stream data - block and get the SourceID to visualize it by a plugin
+     
+     Signal - the signal to stream
+     NValues_send - the vector length of Signal
+     datatype - only ORTD.DATATYPE_FLOAT by now
+     SourceName - a unique string identifier descring the stream
+     
+     
+     
+
+
+
+
+
+BLOCK -- ld_SendPacketInclSub
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework] = ld_SendPacketInclSub(sim, PacketFramework, Signal, NValues_send, datatype, SourceName, SubPluginUname, SubBlock)
+
+  DESCRIPTION
+
+     
+     Stream data - block including a subscibtion to a plugin
+     
+     Signal - the signal to stream
+     NValues_send - the vector length of Signal
+     datatype - only ORTD.DATATYPE_FLOAT by now
+     SourceName - a unique string identifier descring the stream
+     SubPluginUname - a unique string identifier describing the plugin
+     SubBlock - e.g. 'SourceGroup0'
+     
+
+
+
+
+
+BLOCK -- ld_PF_InitInstance
+
+  CALLING SEQUENCE
+
+    [sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName, Configuration)
+
+  DESCRIPTION
+
+     
+     Initialise an instance of the Packet Framework
+       
+     InstanceName - a unique string identifier for the instance
+     Configuration must include the following properties:
+     
+       Configuration.UnderlyingProtocoll = "UDP"
+       Configuration.DestHost
+       Configuration.DestPort
+       Configuration.LocalSocketHost
+       Configuration.LocalSocketPort
+     
+     
+     Example:
+     
+     
+       Configuration.UnderlyingProtocoll = "UDP";
+       Configuration.DestHost = "127.0.0.1";
+       Configuration.DestPort = 20000;
+       Configuration.LocalSocketHost = "127.0.0.1";
+       Configuration.LocalSocketPort = 20001;
+       [sim, PacketFramework] = ld_PF_InitInstance(sim, InstanceName="UDPCommunication", Configuration);
+     
+     
+     
+     Also consider the file webappUDP.js as the counterpart that communicates to ORTD-simulations
+     
+     
+
+
+
+
+
+BLOCK -- ld_PF_Finalise
+
+  CALLING SEQUENCE
+
+    [sim,PacketFramework] = ld_PF_Finalise(sim,PacketFramework)
+
+  DESCRIPTION
+
+     
+     Finalise the instance.
+     
+     
+
+
+
+
+
