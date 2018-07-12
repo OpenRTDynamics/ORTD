@@ -73,7 +73,7 @@ function [sim, outlist] = schematic_fn(sim, inlist)
     
   [sim, CountTo] = ld_ceilInt32(sim, 0, CountTo);
 
-  // set-up three states represented by three nested simulations
+  // set-up the for-loop
   [sim, outlist, userdata] = ld_ForLoopNest(sim, 0, ...
       inlist=list(data1, data2), ..
       insizes=[1,2], outsizes=[1], ... 
