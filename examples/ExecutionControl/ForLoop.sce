@@ -41,27 +41,10 @@ z = poly(0,'z');
 // Set up simulation schematic
 //
 
-
-
-//[sim, outlist_inner, userdata] = fn(sim, inlist_inner, Ncase, casename, userdata_nested);
-
-
 function [sim, outlist, userdata] = ForLoopFn(sim, inlist, LoopCounter, userdata)
-  // This function is called multiple times -- once to define each case
-  // At runtime, all cases will become different nested simulations of 
-  // which only one is active a a time. 
-  
-  // define names for the first event in the simulation
-  events = 0;
-  
-//  pause;
-  
+  // input data
   in1 = inlist(1);
   in2 = inlist(2);
-  
-  
-  // print out some state information
-//  [sim] = ld_printf(sim, events, in=inlist(1), str="case"+string(casename)+": indata(1)", insize=1);
 
   // sample data for the output
   [sim, outdata1] = ld_constvec(sim, 0, vec=[1200]);
@@ -97,7 +80,6 @@ function [sim, outlist] = schematic_fn(sim, inlist)
       intypes=[ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT], ...
       ForLoop_fn=ForLoopFn, SimnestName="ForLoopTest", NitSignal=ActiveSim, list("UserdataTest")  );
 
-  
 
   [sim] = ld_printf(sim, 0,  outlist(1)  , "output ", 1);
 
@@ -105,13 +87,6 @@ function [sim, outlist] = schematic_fn(sim, inlist)
   // output of schematic
   outlist = list(); 
 endfunction
-
-
-  
-
-
-
-
 
 
 
