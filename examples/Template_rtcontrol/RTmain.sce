@@ -15,11 +15,11 @@ cd(thispath);
 //
 // To run the generated controller stored in template.[i,r]par, call from a terminal the 
 //
-// ortd --baserate=1000 --rtmode 1 -s template -i 901 -l 0
+// ortdrun
 // 
 // If you want to use harder real-time capabilities, run as root: 
 // 
-// sudo ortd --baserate=1000 --rtmode 1 -s template -i 901 -l 0
+// sudo ortdrun
 // 
 
 
@@ -51,7 +51,7 @@ endfunction
 function [sim, outlist] = schematic_fn(sim, inlist)  
 
 // 
-// Create a thread that runs the control system
+// Create a thread that runs the control system (no hard realtime)
 // 
    
         ThreadPrioStruct.prio1=ORTD.ORTD_RT_NORMALTASK; // or  ORTD.ORTD_RT_REALTIMETASK
@@ -59,6 +59,15 @@ function [sim, outlist] = schematic_fn(sim, inlist)
                                   // for ORTD.ORTD_RT_NORMALTASK this is the nice-value (higher value means less priority)
         ThreadPrioStruct.cpu = -1; // The CPU on which the thread will run; -1 dynamically assigns to a CPU, 
                                    // counting of the CPUs starts at 0
+                                   
+
+//    NOTE: for rt_preempt real-time (better realtime ) use the following parameters configuration for the thread
+// 
+//         // Create a RT thread on CPU 0:
+//         ThreadPrioStruct.prio1=ORTD.ORTD_RT_REALTIMETASK; // rt_preempt FIFO scheduler
+//         ThreadPrioStruct.prio2=50; // Highest priority
+//         ThreadPrioStruct.cpu = 0; // CPU 0                
+                                   
 
         [sim, StartThread] = ld_initimpuls(sim, ev); // triggers your computation only once
         [sim, outlist, computation_finished] = ld_async_simulation(sim, ev, ...
@@ -69,30 +78,14 @@ function [sim, outlist] = schematic_fn(sim, inlist)
                               TriggerSignal=StartThread, name="MainRealtimeThread", ...
                               ThreadPrioStruct, userdata=list() );
        
-
-//    NOTE: for rt_preempt real-time you can use e.g. the following parameters:
-// 
-//         // Create a RT thread on CPU 0:
-//         ThreadPrioStruct.prio1=ORTD.ORTD_RT_REALTIMETASK; // rt_preempt FIFO scheduler
-//         ThreadPrioStruct.prio2=50; // Highest priority
-//         ThreadPrioStruct.cpu = 0; // CPU 0
-
-
    // output of schematic (empty)
    outlist = list();
 endfunction
 
-  
-
-
-
-
-
-
 
 
 //
-// Set-up (no detailed understanding necessary)
+// Set-up: Compile the schematic into the files RTmain.ipar and RTmain.rpar
 //
 
 thispath = get_absolute_file_path(ProgramName+'.sce');
