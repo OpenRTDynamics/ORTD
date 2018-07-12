@@ -66,19 +66,19 @@ function [sim, outlist] = schematic_fn(sim, inlist)
 
   // create a modulo counter to repeatedly shift the currently active simulation
   [sim, one] = ld_const(sim, 0, 1);
-  [sim, ActiveSim] = ld_modcounter(sim, 0, in=one, initial_count=1, mod=10);
-  [sim, ActiveSim] = ld_add_ofs(sim, 0, ActiveSim, 1);
+  [sim, CountTo] = ld_modcounter(sim, 0, in=one, initial_count=1, mod=10);
+  [sim, CountTo] = ld_add_ofs(sim, 0, CountTo, 1);
   
-  [sim] = ld_printf(sim, 0,  ActiveSim  , "Number of iterations of the nested simulation", 1);
+  [sim] = ld_printf(sim, 0,  CountTo  , "Number of iterations of the nested simulation", 1);
     
-  [sim, ActiveSim] = ld_ceilInt32(sim, 0, ActiveSim);
+  [sim, CountTo] = ld_ceilInt32(sim, 0, CountTo);
 
   // set-up three states represented by three nested simulations
   [sim, outlist, userdata] = ld_ForLoopNest(sim, 0, ...
       inlist=list(data1, data2), ..
       insizes=[1,2], outsizes=[1], ... 
       intypes=[ORTD.DATATYPE_FLOAT,ORTD.DATATYPE_FLOAT  ], outtypes=[ORTD.DATATYPE_FLOAT], ...
-      ForLoop_fn=ForLoopFn, SimnestName="ForLoopTest", NitSignal=ActiveSim, list("UserdataTest")  );
+      ForLoop_fn=ForLoopFn, SimnestName="ForLoopTest", NitSignal=CountTo, list("UserdataTest")  );
 
 
   [sim] = ld_printf(sim, 0,  outlist(1)  , "output ", 1);
