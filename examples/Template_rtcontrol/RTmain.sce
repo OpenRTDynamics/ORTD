@@ -13,11 +13,11 @@ thispath = get_absolute_file_path(ProgramName+'.sce');
 cd(thispath);
 
 //
-// To run the generated controller stored in template.[i,r]par, call from a terminal the 
+// To run the generated controller run the following command within this directory
 //
 // ortdrun
 // 
-// If you want to use harder real-time capabilities, run as root: 
+// If you want to use harder real-time capabilities, sudo-execution is required: 
 // 
 // sudo ortdrun
 // 
