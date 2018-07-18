@@ -3,9 +3,9 @@ OpenRTDynamics v1.00-svn -- Open Real-Time Dynamics - A framework
                             for implementing real-time controllers
                             and signal processing algorithms.
 
-                            (openrtdynamics.sf.net)
+                            (openrtdynamics.github.io)
 
-Version of this document: 11.5.2017, applies to Revision 618 or higher
+Data of this document: 18.7.2018
 
 The Real-Time Dynamics Framework is a novel approach to the implementation
 of block- / signal-based schematics, commonly used in control engineering 
