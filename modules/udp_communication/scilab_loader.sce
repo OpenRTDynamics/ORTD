@@ -1,6 +1,44 @@
 
 
-// Interfacing functions are placed in this place
+// Added on 7.8.18
+function Stream=NewStream(Name)
+    Stream.Name = Name;
+    Stream.DemuxInfo = list();
+    Stream.StreamSignals = list();
+endfunction
+
+// Added on 7.8.18
+function [Stream] = AddSignalToStream(Stream, SigName, Sig)
+    Stream.StreamSignals($+1) = Sig;
+    Stream.DemuxInfo($+1) = struct('N',SigName, 'SI', length(Stream.DemuxInfo) + 1 , 'len',1 );
+
+    printf("Added signal " + string( SigName ) + " to the stream "+ string(Stream.Name + "\n") );
+endfunction
+
+// Added on 7.8.18
+function [sim, PacketFramework, Stream, StreamSig] = FinalizeStream(sim, PacketFramework, Stream)
+    [sim, StreamSig] = ld_mux(sim, 0, length(Stream.StreamSignals), Stream.StreamSignals );
+
+
+    //  [sim] = ld_printf(sim, 0, StreamSig, "StreamSig ", length(Stream.StreamSignals) );
+
+    [sim, PacketFramework]=ld_SendPacketMux(sim, PacketFramework, Signal=StreamSig, NValues_send=length( Stream.StreamSignals ), datatype=ORTD.DATATYPE_FLOAT, SourceName=Stream.Name, Stream.DemuxInfo);
+
+    // disp(Stream.DemuxInfo);
+    printf(" ---------- Table of stream (%s) contents ---------\n", Stream.Name );
+    for i=1:length(Stream.DemuxInfo)
+
+        printf("  " + string( Stream.DemuxInfo(i).N ) + "\n" ); 
+
+    end
+endfunction
+
+
+
+
+
+
+
 
 function [sim, out] = ld_udp_main_receiver(sim, events, udpport, identstr, socket_fname, vecsize) // PARSEDOCU_BLOCK
     // udp main receiver - block

@@ -2,56 +2,71 @@
 <!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN" "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 <toc version="1.0">
 <tocitem target="index" text="ORTD Scilab Interface Toolbox">
-<tocitem target="section_602aebafc4f838f4e7acdc9e6e855ced" text="Automation">
+<tocitem target="section_ba3caf34da463c8aaef953d2fd581f36" text="Automation">
 <tocitem target="ld_AutoExperiment" text="ld_AutoExperiment"/>
 <tocitem target="ld_AutoExperiment2" text="ld_AutoExperiment2"/>
 <tocitem target="ld_AutoOnlineExch_dev" text="ld_AutoOnlineExch_dev"/>
 <tocitem target="ld_AutoOnlineExch_dev2" text="ld_AutoOnlineExch_dev2"/>
 </tocitem>
-<tocitem target="section_9872a3e838cb3b3b22fdee758035f302" text="EDF">
+<tocitem target="section_785588d4258f3706a9ef990be08fc05f" text="EDF">
 <tocitem target="ld_EDFWrite" text="ld_EDFWrite"/>
 </tocitem>
-<tocitem target="section_8dd04a8a537face84b1b49c5f25b9c77" text="I2C">
+<tocitem target="section_391e86c5f047e811437b94f1e04b68e4" text="I2C">
 <tocitem target="ld_I2CDevice_BufferWrite" text="ld_I2CDevice_BufferWrite"/>
 <tocitem target="ld_I2CDevice_Read" text="ld_I2CDevice_Read"/>
 <tocitem target="ld_I2CDevice_Transmit" text="ld_I2CDevice_Transmit"/>
 <tocitem target="ld_I2CDevice_Write" text="ld_I2CDevice_Write"/>
 <tocitem target="ld_I2CDevice_shObj" text="ld_I2CDevice_shObj"/>
 </tocitem>
-<tocitem target="section_133769887ca66e56bc5c708f2f0e7126" text="ORTD_TMSI">
-<tocitem target="ld_SyncTMSI" text="ld_SyncTMSI"/>
-</tocitem>
-<tocitem target="section_879339f383e0d28dc4727f02207f5b4d" text="Random">
+<tocitem target="section_bd40c348044744fb8f5b58920234179e" text="Random">
 <tocitem target="ld_Random" text="ld_Random"/>
 </tocitem>
-<tocitem target="section_969854af9cc9151526b4b2a0d14718a4" text="android">
+<tocitem target="section_49e7c96c1252f49283be6d8edef5d580" text="android">
 <tocitem target="ld_AndroidSensors" text="ld_AndroidSensors"/>
 </tocitem>
-<tocitem target="section_36b3d060978c0411bd31be25049d8d0a" text="basic_ldblocks">
+<tocitem target="section_9f75c896c62078a4f7c917c6fbfd1691" text="basic_ldblocks">
 <tocitem target="ld_ArrayInt32" text="ld_ArrayInt32"/>
 <tocitem target="ld_CompareEqInt32" text="ld_CompareEqInt32"/>
+<tocitem target="ld_CompareInt32" text="ld_CompareInt32"/>
 <tocitem target="ld_DivInt32" text="ld_DivInt32"/>
 <tocitem target="ld_FlagProbe" text="ld_FlagProbe"/>
+<tocitem target="ld_GetBitsInt32" text="ld_GetBitsInt32"/>
+<tocitem target="ld_HistogramInt32" text="ld_HistogramInt32"/>
 <tocitem target="ld_Int32ToFloat" text="ld_Int32ToFloat"/>
 <tocitem target="ld_LevelDemux" text="ld_LevelDemux"/>
 <tocitem target="ld_ModInt32" text="ld_ModInt32"/>
 <tocitem target="ld_MulInt32" text="ld_MulInt32"/>
+<tocitem target="ld_MultiFileSave" text="ld_MultiFileSave"/>
 <tocitem target="ld_ORTDIO_Put" text="ld_ORTDIO_Put"/>
 <tocitem target="ld_OneStepDelInt32" text="ld_OneStepDelInt32"/>
 <tocitem target="ld_RTCrossCorr" text="ld_RTCrossCorr"/>
 <tocitem target="ld_ReadAsciiFile" text="ld_ReadAsciiFile"/>
+<tocitem target="ld_SetBitsInt32" text="ld_SetBitsInt32"/>
+<tocitem target="ld_SyncFilewrite" text="ld_SyncFilewrite"/>
+<tocitem target="ld_Timer" text="ld_Timer"/>
 <tocitem target="ld_TrigSwitch1toN" text="ld_TrigSwitch1toN"/>
+<tocitem target="ld_VarVec_AbsSumNorm" text="ld_VarVec_AbsSumNorm"/>
+<tocitem target="ld_VarVec_MinMax" text="ld_VarVec_MinMax"/>
+<tocitem target="ld_VarVec_Variance" text="ld_VarVec_Variance"/>
+<tocitem target="ld_VarVec_add" text="ld_VarVec_add"/>
+<tocitem target="ld_VarVec_ztf" text="ld_VarVec_ztf"/>
+<tocitem target="ld_WindowedMean" text="ld_WindowedMean"/>
 <tocitem target="ld_abs" text="ld_abs"/>
 <tocitem target="ld_add" text="ld_add"/>
 <tocitem target="ld_add_ofs" text="ld_add_ofs"/>
+<tocitem target="ld_add_ofsInt32" text="ld_add_ofsInt32"/>
 <tocitem target="ld_alternate" text="ld_alternate"/>
 <tocitem target="ld_and" text="ld_and"/>
+<tocitem target="ld_andInt32" text="ld_andInt32"/>
 <tocitem target="ld_belowEpsForNSteps" text="ld_belowEpsForNSteps"/>
 <tocitem target="ld_belowEpsForNStepsAdvanced" text="ld_belowEpsForNStepsAdvanced"/>
 <tocitem target="ld_ceilInt32" text="ld_ceilInt32"/>
+<tocitem target="ld_collectValues" text="ld_collectValues"/>
 <tocitem target="ld_compare" text="ld_compare"/>
 <tocitem target="ld_compare_01" text="ld_compare_01"/>
 <tocitem target="ld_cond_overwrite" text="ld_cond_overwrite"/>
+<tocitem target="ld_cond_overwrite2" text="ld_cond_overwrite2"/>
+<tocitem target="ld_cond_overwriteInt32" text="ld_cond_overwriteInt32"/>
 <tocitem target="ld_const" text="ld_const"/>
 <tocitem target="ld_const_bin" text="ld_const_bin"/>
 <tocitem target="ld_constvec" text="ld_constvec"/>
@@ -59,6 +74,7 @@
 <tocitem target="ld_counter" text="ld_counter"/>
 <tocitem target="ld_delay" text="ld_delay"/>
 <tocitem target="ld_demux" text="ld_demux"/>
+<tocitem target="ld_demuxInt32" text="ld_demuxInt32"/>
 <tocitem target="ld_detect_step_event" text="ld_detect_step_event"/>
 <tocitem target="ld_detect_step_event2" text="ld_detect_step_event2"/>
 <tocitem target="ld_extract_element" text="ld_extract_element"/>
@@ -68,11 +84,13 @@
 <tocitem target="ld_floorInt32" text="ld_floorInt32"/>
 <tocitem target="ld_fngen" text="ld_fngen"/>
 <tocitem target="ld_gain" text="ld_gain"/>
+<tocitem target="ld_gainInt32" text="ld_gainInt32"/>
 <tocitem target="ld_getsign" text="ld_getsign"/>
 <tocitem target="ld_greaterEpsForNSteps" text="ld_greaterEpsForNSteps"/>
 <tocitem target="ld_hysteresis" text="ld_hysteresis"/>
 <tocitem target="ld_initimpuls" text="ld_initimpuls"/>
 <tocitem target="ld_insert_element" text="ld_insert_element"/>
+<tocitem target="ld_integratorInt32" text="ld_integratorInt32"/>
 <tocitem target="ld_interface" text="ld_interface"/>
 <tocitem target="ld_iszero" text="ld_iszero"/>
 <tocitem target="ld_jumper" text="ld_jumper"/>
@@ -83,19 +101,26 @@
 <tocitem target="ld_limitedcounter" text="ld_limitedcounter"/>
 <tocitem target="ld_lin_awup_controller" text="ld_lin_awup_controller"/>
 <tocitem target="ld_lookup" text="ld_lookup"/>
+<tocitem target="ld_max" text="ld_max"/>
 <tocitem target="ld_memory" text="ld_memory"/>
 <tocitem target="ld_memorydel" text="ld_memorydel"/>
 <tocitem target="ld_modcounter" text="ld_modcounter"/>
 <tocitem target="ld_mult" text="ld_mult"/>
 <tocitem target="ld_mute" text="ld_mute"/>
 <tocitem target="ld_mux" text="ld_mux"/>
+<tocitem target="ld_muxInt32" text="ld_muxInt32"/>
 <tocitem target="ld_not" text="ld_not"/>
+<tocitem target="ld_notInt32" text="ld_notInt32"/>
 <tocitem target="ld_or" text="ld_or"/>
+<tocitem target="ld_orInt32" text="ld_orInt32"/>
 <tocitem target="ld_play_simple" text="ld_play_simple"/>
 <tocitem target="ld_print_angle" text="ld_print_angle"/>
 <tocitem target="ld_printf" text="ld_printf"/>
+<tocitem target="ld_printfBin" text="ld_printfBin"/>
+<tocitem target="ld_printfInt32" text="ld_printfInt32"/>
 <tocitem target="ld_printfbar" text="ld_printfbar"/>
 <tocitem target="ld_printfstderr" text="ld_printfstderr"/>
+<tocitem target="ld_printfstderr2" text="ld_printfstderr2"/>
 <tocitem target="ld_pwm" text="ld_pwm"/>
 <tocitem target="ld_reference_reached" text="ld_reference_reached"/>
 <tocitem target="ld_roundInt32" text="ld_roundInt32"/>
@@ -108,20 +133,29 @@
 <tocitem target="ld_sumInt32" text="ld_sumInt32"/>
 <tocitem target="ld_switch" text="ld_switch"/>
 <tocitem target="ld_switch2to1" text="ld_switch2to1"/>
+<tocitem target="ld_switch2to1Int32" text="ld_switch2to1Int32"/>
 <tocitem target="ld_vecXCorrelation" text="ld_vecXCorrelation"/>
+<tocitem target="ld_vectorFindShape" text="ld_vectorFindShape"/>
+<tocitem target="ld_vectorFindSpike" text="ld_vectorFindSpike"/>
+<tocitem target="ld_vectorInt32ToFloat" text="ld_vectorInt32ToFloat"/>
+<tocitem target="ld_vector_Int32ToFloat" text="ld_vector_Int32ToFloat"/>
 <tocitem target="ld_vector_NaNtoVal" text="ld_vector_NaNtoVal"/>
+<tocitem target="ld_vector_VarExtract" text="ld_vector_VarExtract"/>
 <tocitem target="ld_vector_abs" text="ld_vector_abs"/>
 <tocitem target="ld_vector_abssum" text="ld_vector_abssum"/>
 <tocitem target="ld_vector_add" text="ld_vector_add"/>
 <tocitem target="ld_vector_addscalar" text="ld_vector_addscalar"/>
 <tocitem target="ld_vector_concate" text="ld_vector_concate"/>
 <tocitem target="ld_vector_delay" text="ld_vector_delay"/>
+<tocitem target="ld_vector_delayInt32" text="ld_vector_delayInt32"/>
 <tocitem target="ld_vector_diff" text="ld_vector_diff"/>
 <tocitem target="ld_vector_extract" text="ld_vector_extract"/>
 <tocitem target="ld_vector_extractandsum" text="ld_vector_extractandsum"/>
 <tocitem target="ld_vector_findthr" text="ld_vector_findthr"/>
+<tocitem target="ld_vector_floorInt32" text="ld_vector_floorInt32"/>
 <tocitem target="ld_vector_gain" text="ld_vector_gain"/>
 <tocitem target="ld_vector_glue" text="ld_vector_glue"/>
+<tocitem target="ld_vector_lookup" text="ld_vector_lookup"/>
 <tocitem target="ld_vector_minmax" text="ld_vector_minmax"/>
 <tocitem target="ld_vector_multscalar" text="ld_vector_multscalar"/>
 <tocitem target="ld_vector_mute" text="ld_vector_mute"/>
@@ -130,22 +164,22 @@
 <tocitem target="ld_vector_sum" text="ld_vector_sum"/>
 <tocitem target="ld_ztf" text="ld_ztf"/>
 </tocitem>
-<tocitem target="section_a3511e748cf068958d2453cfe9e22697" text="ext_process">
+<tocitem target="section_a8db4cc82358ad37f68108cbaf575710" text="ext_process">
 <tocitem target="ld_Proc_shObj" text="ld_Proc_shObj"/>
 <tocitem target="ld_startproc" text="ld_startproc"/>
 <tocitem target="ld_startproc2" text="ld_startproc2"/>
 </tocitem>
-<tocitem target="section_a18d3d2d2c4690b13e4ddbd0b1c7b8f2" text="matrix">
+<tocitem target="section_70cfdcdbf3e5824a7feb77f93fdfab30" text="matrix">
 <tocitem target="ld_constmat" text="ld_constmat"/>
 <tocitem target="ld_leastsquares" text="ld_leastsquares"/>
 <tocitem target="ld_matmul" text="ld_matmul"/>
 <tocitem target="ld_matvecmul_3d" text="ld_matvecmul_3d"/>
 </tocitem>
-<tocitem target="section_5c60c0c0131b96ecd9be1d9cfb3ad3c7" text="muparser">
+<tocitem target="section_42b60631cadf6a26d2c65014d262194b" text="muparser">
 <tocitem target="ld_muparser" text="ld_muparser"/>
 <tocitem target="ld_muparser_subst" text="ld_muparser_subst"/>
 </tocitem>
-<tocitem target="section_d88e6b452d8cff2f7189c92b61d6d691" text="nested">
+<tocitem target="section_c713e2958c86a1ad693a44b703f75ff1" text="nested">
 <tocitem target="ld_CaseSwitchNest" text="ld_CaseSwitchNest"/>
 <tocitem target="ld_NoResetNest" text="ld_NoResetNest"/>
 <tocitem target="ld_ReplaceableNest" text="ld_ReplaceableNest"/>
@@ -161,25 +195,27 @@
 <tocitem target="ld_survivereset" text="ld_survivereset"/>
 <tocitem target="ld_write_global_memory" text="ld_write_global_memory"/>
 </tocitem>
-<tocitem target="section_401e5c0912778e07f02e7aa32cf243ac" text="pipelines">
+<tocitem target="section_90a37ef65f5342998d88220cd735fe8e" text="pipelines">
 <tocitem target="ld_read_ringbuf" text="ld_read_ringbuf"/>
+<tocitem target="ld_relread_ringbuf" text="ld_relread_ringbuf"/>
 <tocitem target="ld_ringbuf" text="ld_ringbuf"/>
+<tocitem target="ld_setmarkerW_ringbuf" text="ld_setmarkerW_ringbuf"/>
 <tocitem target="ld_write_ringbuf" text="ld_write_ringbuf"/>
 </tocitem>
-<tocitem target="section_c04fbd76a291c02db2a2962c8c17c31b" text="rt_server">
+<tocitem target="section_43b4a0937a128973c790ea11f4d81e79" text="rt_server">
 <tocitem target="ld_parameter" text="ld_parameter"/>
 <tocitem target="ld_stream" text="ld_stream"/>
 </tocitem>
-<tocitem target="section_cecb8d5e8cc45e99fdbca61603d54fec" text="scicos_blocks">
+<tocitem target="section_e139b02efac25f37a5c0d8465d39d383" text="scicos_blocks">
 <tocitem target="ld_scicosblock" text="ld_scicosblock"/>
 </tocitem>
-<tocitem target="section_2b3c0ec4cab6f8b949c4ed2d8790ad85" text="scilab">
+<tocitem target="section_2e315ae846303aedaea277fc257866ec" text="scilab">
 <tocitem target="ld_scilab" text="ld_scilab"/>
 <tocitem target="ld_scilab2" text="ld_scilab2"/>
 <tocitem target="ld_scilab3" text="ld_scilab3"/>
 <tocitem target="ld_scilab4" text="ld_scilab4"/>
 </tocitem>
-<tocitem target="section_4fd6a85e3cdcef11f3c589069dc1a42b" text="synchronisation">
+<tocitem target="section_1126b9122af2228442baa3ce27f6cadc" text="synchronisation">
 <tocitem target="ld_ClockSync" text="ld_ClockSync"/>
 <tocitem target="ld_RecvNotifications" text="ld_RecvNotifications"/>
 <tocitem target="ld_ThreadNotify" text="ld_ThreadNotify"/>
@@ -187,9 +223,10 @@
 <tocitem target="ld_notification_shObj" text="ld_notification_shObj"/>
 <tocitem target="ld_synctimer" text="ld_synctimer"/>
 </tocitem>
-<tocitem target="section_57d8be213064e841a9c85e408af25895" text="udp_communication">
+<tocitem target="section_35c71c1b0d8ada32b5f1f78ec4f25ca1" text="udp_communication">
 <tocitem target="ld_ConcateData" text="ld_ConcateData"/>
 <tocitem target="ld_DisassembleData" text="ld_DisassembleData"/>
+<tocitem target="ld_DisassembleData2" text="ld_DisassembleData2"/>
 <tocitem target="ld_PF_Finalise" text="ld_PF_Finalise"/>
 <tocitem target="ld_PF_InitInstance" text="ld_PF_InitInstance"/>
 <tocitem target="ld_PF_Parameter" text="ld_PF_Parameter"/>
@@ -198,6 +235,7 @@
 <tocitem target="ld_SendPacket" text="ld_SendPacket"/>
 <tocitem target="ld_SendPacketForPlugin" text="ld_SendPacketForPlugin"/>
 <tocitem target="ld_SendPacketInclSub" text="ld_SendPacketInclSub"/>
+<tocitem target="ld_SendPacketMux" text="ld_SendPacketMux"/>
 <tocitem target="ld_UDPSocket_Recv" text="ld_UDPSocket_Recv"/>
 <tocitem target="ld_UDPSocket_Reply" text="ld_UDPSocket_Reply"/>
 <tocitem target="ld_UDPSocket_Send" text="ld_UDPSocket_Send"/>

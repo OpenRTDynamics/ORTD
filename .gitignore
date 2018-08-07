@@ -85,3 +85,5 @@ modules/matrix/LDFLAGS
 scilab/ld_toolbox/etc/ortd_path.conf
 documentation/List_of_Module_Blocks.txt
 scilabdir.conf
+modules/I2C/dummy.cpp
+modules/matrix/CONFIG_WITH_blas_AND_gsl

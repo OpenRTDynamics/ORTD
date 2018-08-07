@@ -1,0 +1,81 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ld_WindowedMean</title>
+    <style type="text/css" media="all">
+      @import url("scilab_code.css");
+      @import url("xml_code.css");
+      @import url("c_code.css");
+      @import url("style.css");
+    </style>
+  </head>
+  <body>
+    <div class="manualnavbar">
+    <table width="100%"><tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_VarVec_ztf.html">&lt;&lt; ld_VarVec_ztf</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_9f75c896c62078a4f7c917c6fbfd1691.html">basic_ldblocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_abs.html">ld_abs &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+
+
+
+    <span class="path"><a href="index.html">ORTD Scilab Interface Toolbox</a> &gt;&gt; <a href="section_9f75c896c62078a4f7c917c6fbfd1691.html">basic_ldblocks</a> &gt; ld_WindowedMean</span>
+
+    <br /><br />
+    <div class="info"></div>
+
+  <div class="refnamediv"><h1 class="refname">ld_WindowedMean</h1>
+
+    <p class="refpurpose"></p></div>
+
+  <div class="refsynopsisdiv"><h3 class="title">Calling Sequence</h3>
+
+    <div class="synopsis"><pre><span class="default">[</span><span class="default">sim</span><span class="default">, </span><span class="default">EstMean</span><span class="default">, </span><span class="default">EstSigma</span><span class="default">] = </span><span class="functionid">ld_WindowedMean</span><span class="default">(</span><span class="default">sim</span><span class="default">, </span><span class="default">events</span><span class="default">, </span><span class="default">in</span><span class="default">, </span><span class="default">weight</span><span class="default">, </span><span class="default">WindowLen</span><span class="default">)</span></pre></div></div>
+
+  <div class="refsection"><h3 class="title">Description</h3>
+
+    <p class="para"><p class="para"></p>
+<p class="para">ld_WindowedMean - Calculte the average of the input singal for a floating window</p>
+<p class="para"></p>
+<p class="para">in * - input signal</p>
+<p class="para">weight * - weight for the current sample</p>
+<p class="para">EstMean * - the calculated average</p>
+<p class="para">EstSigma * - the calculated standard deviation</p>
+<p class="para">WindowLen - length of floating window</p>
+<p class="para"></p>
+<p class="para">If weight is less than 0 the filter update is prevented. E.g. if in contains an invalid sample that</p>
+<p class="para">shall not be counted in the calculation of the Mean and Variance</p>
+<p class="para"></p></p></div>
+    <br />
+
+    <div class="manualnavbar">
+    <table width="100%">
+    <tr><td colspan="3" class="next"><a href="http://bugzilla.scilab.org/enter_bug.cgi?product=Scilab%20software&component=Documentation%20pages" class="ulink">Report an issue</a></td></tr>
+<tr>
+      <td width="30%">
+    	<span class="previous"><a href="ld_VarVec_ztf.html">&lt;&lt; ld_VarVec_ztf</a></span>
+
+      </td>
+      <td width="40%" class="center">
+      	<span class="top"><a href="section_9f75c896c62078a4f7c917c6fbfd1691.html">basic_ldblocks</a></span>
+
+      </td>
+      <td width="30%" class="next">
+      	<span class="next"><a href="ld_abs.html">ld_abs &gt;&gt;</a></span>
+
+      </td>
+    </tr></table>
+      <hr />
+    </div>
+  </body>
+</html>

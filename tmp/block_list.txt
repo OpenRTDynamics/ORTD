@@ -1,37 +1,3 @@
-M O D U L E -- android
-
-
-
-BLOCK -- ld_AndroidSensors
-
-  CALLING SEQUENCE
-
-    [sim, out, SensorID] = ld_AndroidSensors(sim, events, in, ConfigStruct)
-
-  DESCRIPTION
-
->>> PURPOSE:   Read out Android Sensors and synchronise the simulation to them    
-     Special: SYNC_BLOCK (use only one block of this type in an asynchronous running sub-simulation)
-    
-     out - vector of size 10 containing the sensor values
-     in - when in becomes one, the synchronisation loop is interrupted
-     SensorID - The ID of the sensor that send new data
-     
-     Possible sensor ID's:
-     
-         ASENSOR_TYPE_ACCELEROMETER      = 1,
-         ASENSOR_TYPE_MAGNETIC_FIELD     = 2,
-         ASENSOR_TYPE_GYROSCOPE          = 4,
-         ASENSOR_TYPE_LIGHT              = 5,
-         ASENSOR_TYPE_PROXIMITY          = 8
-     
-     EXPERIMENTAL
-     
-
-
-
-
-
 M O D U L E -- Automation
 
 
@@ -201,6 +167,191 @@ BLOCK -- ld_AutoOnlineExch_dev2
      param.scilab_path: String describing the Scilab executable to use. e.g. set to "BUILDIN_PATH"
      
      Note: This is a temporary development version. The interface may slightly change. Rev 2
+     
+
+
+
+
+
+M O D U L E -- EDF
+
+
+
+BLOCK -- ld_EDFWrite
+
+  CALLING SEQUENCE
+
+    [sim] = ld_EDFWrite(sim, events, fname, smp_freq, inlist, innames, PhyMin, PhyMax, DigMin, DigMax)
+
+  DESCRIPTION
+
+     Write data to EDF+ - Files
+    
+     inlist - list() of signals of size 1
+     
+     
+
+
+
+
+
+M O D U L E -- I2C
+
+
+
+BLOCK -- ld_I2CDevice_shObj
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_shObj(sim, events, ObjectIdentifyer, Visibility, I2CDevicename, I2Caddr)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   I2C device connection     
+     This function creates a shared object for I2C communications
+     using the linux kernel's I2C-interface. (linux/i2c-dev.h, linux/i2c.h
+     https://www.kernel.org/doc/Documentation/i2c/dev-interface )
+     Hardware supporting this interface is e.g. available at the following systems
+     
+     *) Beaglebone
+     *) Rasperry Pi
+     
+     An I2C device at adress I2Caddr ( numbering as used by i2cdetect; Please compare to other notations!)
+     is opened via the I2C-bus given by I2CDevicename (e.g. "/dev/i2c-0", "/dev/i2c-1", ...)
+     
+     Currently there are only functions for writing to the bus.
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_Write
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_Write(sim, events, ObjectIdentifyer, Register, in)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Write to a one byte register of an I2C-device     
+     
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_BufferWrite
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_BufferWrite(sim, events, ObjectIdentifyer, in, vecsize)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Raw write of vecsize bytes to an I2C-bus.     
+     The Values from multiple calls of this block are buffered untile they are
+     send by ld_I2CDevice_Transmit.
+     
+     Note: The maximal buffer size currently is 1000 bytes.
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_Transmit
+
+  CALLING SEQUENCE
+
+    [sim] = ld_I2CDevice_Transmit(sim, events, ObjectIdentifyer)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   Transmit / Flush write buffers and send the collected data to the device.     
+     
+
+
+
+
+
+BLOCK -- ld_I2CDevice_Read
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_I2CDevice_Read(sim, events, ObjectIdentifyer, Register)
+
+  DESCRIPTION
+
+     
+>>> PURPOSE:   read one byte from a register of an I2C-device     
+     
+     
+
+
+
+
+
+M O D U L E -- Random
+
+
+
+BLOCK -- ld_Random
+
+  CALLING SEQUENCE
+
+    [sim, out] = ld_Random(sim, events, Method, Seed)
+
+  DESCRIPTION
+
+     
+     Random generator - block
+    
+     out * - random output
+     
+     Method - 0 (normal distribution), 1 (uniform distribution, NOT IMPLEMENTED)
+     Seed - The random seed to start with, NOT IMPLEMENTED
+    
+     The implementation of http://randomlib.sourceforge.net is used.
+     
+
+
+
+
+
+M O D U L E -- android
+
+
+
+BLOCK -- ld_AndroidSensors
+
+  CALLING SEQUENCE
+
+    [sim, out, SensorID] = ld_AndroidSensors(sim, events, in, ConfigStruct)
+
+  DESCRIPTION
+
+>>> PURPOSE:   Read out Android Sensors and synchronise the simulation to them    
+     Special: SYNC_BLOCK (use only one block of this type in an asynchronous running sub-simulation)
+    
+     out - vector of size 10 containing the sensor values
+     in - when in becomes one, the synchronisation loop is interrupted
+     SensorID - The ID of the sensor that send new data
+     
+     Possible sensor ID's:
+     
+         ASENSOR_TYPE_ACCELEROMETER      = 1,
+         ASENSOR_TYPE_MAGNETIC_FIELD     = 2,
+         ASENSOR_TYPE_GYROSCOPE          = 4,
+         ASENSOR_TYPE_LIGHT              = 5,
+         ASENSOR_TYPE_PROXIMITY          = 8
+     
+     EXPERIMENTAL
      
 
 
@@ -3050,28 +3201,6 @@ BLOCK -- ld_play_simple
 
 
 
-M O D U L E -- EDF
-
-
-
-BLOCK -- ld_EDFWrite
-
-  CALLING SEQUENCE
-
-    [sim] = ld_EDFWrite(sim, events, fname, smp_freq, inlist, innames, PhyMin, PhyMax, DigMin, DigMax)
-
-  DESCRIPTION
-
-     Write data to EDF+ - Files
-    
-     inlist - list() of signals of size 1
-     
-     
-
-
-
-
-
 M O D U L E -- ext_process
 
 
@@ -3133,108 +3262,6 @@ BLOCK -- ld_startproc2
      prio - Priority (set to zero for now)
      whentorun - 0 - Start process on blocks initialisation and stop on desruction; 
                  1 - Start process on activation in a statemachine and stop on reset
-     
-     
-
-
-
-
-
-M O D U L E -- I2C
-
-
-
-BLOCK -- ld_I2CDevice_shObj
-
-  CALLING SEQUENCE
-
-    [sim] = ld_I2CDevice_shObj(sim, events, ObjectIdentifyer, Visibility, I2CDevicename, I2Caddr)
-
-  DESCRIPTION
-
-     
->>> PURPOSE:   I2C device connection     
-     This function creates a shared object for I2C communications
-     using the linux kernel's I2C-interface. (linux/i2c-dev.h, linux/i2c.h
-     https://www.kernel.org/doc/Documentation/i2c/dev-interface )
-     Hardware supporting this interface is e.g. available at the following systems
-     
-     *) Beaglebone
-     *) Rasperry Pi
-     
-     An I2C device at adress I2Caddr ( numbering as used by i2cdetect; Please compare to other notations!)
-     is opened via the I2C-bus given by I2CDevicename (e.g. "/dev/i2c-0", "/dev/i2c-1", ...)
-     
-     Currently there are only functions for writing to the bus.
-     
-
-
-
-
-
-BLOCK -- ld_I2CDevice_Write
-
-  CALLING SEQUENCE
-
-    [sim] = ld_I2CDevice_Write(sim, events, ObjectIdentifyer, Register, in)
-
-  DESCRIPTION
-
-     
->>> PURPOSE:   Write to a one byte register of an I2C-device     
-     
-     
-
-
-
-
-
-BLOCK -- ld_I2CDevice_BufferWrite
-
-  CALLING SEQUENCE
-
-    [sim] = ld_I2CDevice_BufferWrite(sim, events, ObjectIdentifyer, in, vecsize)
-
-  DESCRIPTION
-
-     
->>> PURPOSE:   Raw write of vecsize bytes to an I2C-bus.     
-     The Values from multiple calls of this block are buffered untile they are
-     send by ld_I2CDevice_Transmit.
-     
-     Note: The maximal buffer size currently is 1000 bytes.
-     
-
-
-
-
-
-BLOCK -- ld_I2CDevice_Transmit
-
-  CALLING SEQUENCE
-
-    [sim] = ld_I2CDevice_Transmit(sim, events, ObjectIdentifyer)
-
-  DESCRIPTION
-
-     
->>> PURPOSE:   Transmit / Flush write buffers and send the collected data to the device.     
-     
-
-
-
-
-
-BLOCK -- ld_I2CDevice_Read
-
-  CALLING SEQUENCE
-
-    [sim, out] = ld_I2CDevice_Read(sim, events, ObjectIdentifyer, Register)
-
-  DESCRIPTION
-
-     
->>> PURPOSE:   read one byte from a register of an I2C-device     
      
      
 
@@ -3935,33 +3962,6 @@ BLOCK -- ld_setmarkerW_ringbuf
      ident_str (string) - name of the ringbuffer
      trigger - UINT - set marker if trigger > 0 
     
-
-
-
-
-
-M O D U L E -- Random
-
-
-
-BLOCK -- ld_Random
-
-  CALLING SEQUENCE
-
-    [sim, out] = ld_Random(sim, events, Method, Seed)
-
-  DESCRIPTION
-
-     
-     Random generator - block
-    
-     out * - random output
-     
-     Method - 0 (normal distribution), 1 (uniform distribution, NOT IMPLEMENTED)
-     Seed - The random seed to start with, NOT IMPLEMENTED
-    
-     The implementation of http://randomlib.sourceforge.net is used.
-     
 
 
 
