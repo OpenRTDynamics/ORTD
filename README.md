@@ -57,6 +57,9 @@ library.
 IMPORTANT NEWS and NOTES
 ========================
 
+- Please note: Scilab 6 and above does not work so far as the syntax slightly changed 
+  breaking the compatibility. Please use one the older 5.x versions. 
+
 - Rev 592: Full support for PaPI (Graphical interface to control targets)
 
 - Rev 519: A new command "ortdrun" has been introduced that starts the 
@@ -196,6 +199,7 @@ REQUIREMENTS
 On the development host:
  * Linux (Ubuntu is tested)
  * Scilab 5.3. or above. It will be automatically installed via the graphical installer.
+ * Please note: Scilab 6 and above does not work so far as the syntax slightly changed breaking the compatibility.
 
 On the executing / real-time target (can also be the development host):
  * Linux (Ubuntu is tested, rt_preemption is supported but not required)
